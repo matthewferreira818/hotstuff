@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wavelist — Shop what's trending right now</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <noscript>
+    <div style="padding:24px;text-align:center;background:#121218;color:#f4f4f6;">
+      Wavelist's trending catalog requires JavaScript to load. Please enable it to browse current products.
+    </div>
+  </noscript>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#">
+        <span class="brand-mark">W</span>Wavelist
+      </a>
+      <nav class="nav-links">
+        <a href="#trending">Trending</a>
+        <a href="#how">How it works</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-primary" href="#trending">Shop trending</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-inner">
+        <span class="eyebrow">Restocked daily · <span id="product-count" aria-live="polite">0</span> products live now</span>
+        <h1>The catalog that changes<br>with what's actually selling.</h1>
+        <p class="hero-sub">
+          Wavelist tracks what's trending across social and search, then curates a fresh
+          lineup of products every few days. No fixed catalog, no dead inventory — just
+          what's hot right now.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="#trending">See what's trending</a>
+          <a class="btn btn-ghost btn-lg" href="#how">How curation works</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="trending" id="trending">
+      <div class="section-head">
+        <h2>Trending this week</h2>
+        <p>Ranked by trend score — a live blend of search volume and sell-through rate.</p>
+      </div>
+      <div class="grid" id="product-grid"></div>
+    </section>
+
+    <section class="how" id="how">
+      <div class="section-head">
+        <h2>How the catalog stays fresh</h2>
+        <p>Every listing here is data, not code — that's what makes it easy to rotate.</p>
+      </div>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-num">01</div>
+          <h3>Trend signal comes in</h3>
+          <p>Rising search terms and social velocity surface a new candidate product.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">02</div>
+          <h3>Added to the catalog</h3>
+          <p>A single entry is appended to the product list — no redesign required.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">03</div>
+          <h3>Retired when it cools off</h3>
+          <p>Once trend score drops, the entry is removed and shelf space opens up.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <div class="section-head">
+        <h2>FAQ</h2>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary>How often does the catalog change?</summary>
+          <p>Semi-frequently — new products are added and old ones removed as trends shift, not on a fixed schedule.</p>
+        </details>
+        <details>
+          <summary>Is this a single-product store?</summary>
+          <p>No. Wavelist is intentionally multi-product and rotates its lineup based on what's currently trending and selling.</p>
+        </details>
+        <details>
+          <summary>How fast does a new trend show up?</summary>
+          <p>We watch trend and sell-through data daily, so a rising product can go live in hours — and once demand cools, it's retired to make room for what's next.</p>
+        </details>
+        <details>
+          <summary>What if I want something that's already sold out or rotated off?</summary>
+          <p>Trending items move fast by design, so availability isn't guaranteed to last. Every listing is vetted before it goes live, and if a product you bought rotates out of the catalog, your order, warranty, and support are unaffected.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© <span id="year"></span> Wavelist</span>
+      <span class="footer-note">Catalog refreshes as trends shift.</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

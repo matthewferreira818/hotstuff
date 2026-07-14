@@ -24,6 +24,7 @@ PRODUCT_LIST_URL = "https://developers.cjdropshipping.com/api2.0/v1/product/list
 
 PRODUCT_COUNT = 8
 MARKUP_MULTIPLIER = 1.6  # sell price = supplier cost * markup
+PRICE_FLOOR = 15.00  # displayed price never goes below this, regardless of supplier cost
 
 GRADIENTS = [
     "linear-gradient(135deg, #6366f1, #ec4899)",
@@ -159,11 +160,12 @@ def to_site_products(cj_products: list[dict]) -> list[dict]:
     for i, p in enumerate(cj_products):
         category, emoji = classify_name(p.get("nameEn", ""))
         cost_price = parse_price(p.get("nowPrice") or p.get("sellPrice"))
+        marked_up_price = round(cost_price * MARKUP_MULTIPLIER, 2)
         site_products.append({
             "id": p.get("sku") or p.get("id") or f"cj{i}",
             "name": clean_name(p.get("nameEn", "Untitled product")),
             "category": category,
-            "price": round(cost_price * MARKUP_MULTIPLIER, 2),
+            "price": max(marked_up_price, PRICE_FLOOR),
             "trendScore": normalize_trend_score(int(p.get("listedNum", 0)), listed_nums),
             "badge": "🔥 Trending",
             "emoji": emoji,

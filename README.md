@@ -46,8 +46,9 @@ CJ_API_KEY=CJUserNum@api@xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 **Known limitations of the auto-refresh:**
 - Prices are the *lowest* variant cost from CJ's price range, marked up by
-  `MARKUP_MULTIPLIER` (1.6x) in `refresh_products.py` — real per-variant
-  pricing will vary, adjust the multiplier as needed.
+  `MARKUP_MULTIPLIER` (1.6x), then floored at `PRICE_FLOOR` ($15) in
+  `refresh_products.py` — so displayed price is never below $15 even if the
+  marked-up supplier cost would be lower. Adjust either constant as needed.
 - Category and emoji are guessed from keywords in the product title (CJ's
   list endpoint doesn't return category names), so occasionally a product
   lands in the generic "Trending Finds" bucket — check `NAME_KEYWORD_CATEGORIES`

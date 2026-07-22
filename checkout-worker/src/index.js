@@ -4,6 +4,12 @@ const STRIPE_API = "https://api.stripe.com/v1";
 const CJ_AUTH_URL = "https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken";
 const CJ_ORDER_URL = "https://developers.cjdropshipping.com/api2.0/v1/shopping/order/createOrderV2";
 
+// Countries Stripe Checkout will collect a shipping address for.
+const SHIP_COUNTRIES = [
+  "CA", "US", "GB", "AU", "NZ", "IE", "DE", "FR", "ES", "IT", "NL",
+  "SE", "NO", "DK", "FI", "BE", "AT", "CH", "PT", "PL", "MX", "JP", "SG", "AE",
+];
+
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -35,6 +41,10 @@ export default {
       return handleWebhook(request, env);
     }
 
+    if (url.pathname === "/orders" && request.method === "GET") {
+      return handleOrdersList(url, env);
+    }
+
     return new Response("Not found", { status: 404 });
   },
 };
@@ -64,7 +74,9 @@ async function handleCreateCheckoutSession(request, env) {
     params.set("line_items[0][quantity]", "1");
     params.set("success_url", "https://matthewferreira818.github.io/hotstuff/?success=1");
     params.set("cancel_url", "https://matthewferreira818.github.io/hotstuff/?canceled=1");
-    params.set("shipping_address_collection[allowed_countries][0]", "US");
+    SHIP_COUNTRIES.forEach((c, i) =>
+      params.set(`shipping_address_collection[allowed_countries][${i}]`, c)
+    );
     params.set("metadata[cj_sku]", product.id);
     params.set("metadata[product_name]", product.name);
 
@@ -100,7 +112,7 @@ async function handleWebhook(request, env) {
   const event = JSON.parse(payload);
 
   if (event.type === "checkout.session.completed") {
-    await fulfillOrder(event.data.object, env);
+    await recordOrder(event.data.object, env);
   }
 
   return new Response("ok", { status: 200 });
@@ -136,66 +148,181 @@ function timingSafeEqual(a, b) {
   return result === 0;
 }
 
-async function fulfillOrder(session, env) {
-  const alreadyProcessed = await env.ORDERS_KV.get(session.id);
-  if (alreadyProcessed) {
-    console.log("Skipping already-processed session", session.id);
-    return;
+// Pull the shipping address + name from wherever Stripe put them (the field
+// moved to collected_information; keep the older fallbacks for safety).
+function extractShipping(session) {
+  const ci = session.collected_information?.shipping_details;
+  const sd = session.shipping_details;
+  const cd = session.customer_details;
+  return {
+    address: ci?.address || sd?.address || cd?.address || null,
+    name: ci?.name || sd?.name || cd?.name || "",
+  };
+}
+
+// Record every paid order into a durable, listable log for fulfillment. We also
+// make a best-effort CJ API call, but it usually fails from Cloudflare's shared
+// IP (CJ caps API users per IP), so the log — not the CJ call — is the source of
+// truth. Fulfillment is done manually from the /orders page until CJ auto-placement
+// runs from a stable IP.
+async function recordOrder(session, env) {
+  const key = `order:${session.id}`;
+  if (await env.ORDERS_KV.get(key)) {
+    console.log("Skipping already-recorded session", session.id);
+    return; // idempotent against Stripe webhook retries
   }
 
-  const cjSku = session.metadata?.cj_sku;
-  if (!cjSku) {
-    console.log("No cj_sku in session metadata", session.id);
-    return;
-  }
+  const { address, name } = extractShipping(session);
+  const cd = session.customer_details || {};
 
-  const address = session.shipping_details?.address || session.customer_details?.address;
-  if (!address) {
-    console.log("No shipping address on session", session.id);
-    await env.ORDERS_KV.put(session.id, "failed:no-address");
-    return;
-  }
-
-  const tokenRes = await fetch(CJ_AUTH_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ apiKey: env.CJ_API_KEY }),
-  });
-  const tokenData = await tokenRes.json();
-  const accessToken = tokenData?.data?.accessToken;
-  if (!accessToken) {
-    console.log("CJ auth failed", JSON.stringify(tokenData));
-    await env.ORDERS_KV.put(session.id, "failed:cj-auth");
-    return;
-  }
-
-  const orderBody = {
-    orderNumber: session.id,
-    shippingCustomerName: session.shipping_details?.name || session.customer_details?.name || "Customer",
-    shippingAddress: address.line1 || "",
-    shippingAddress2: address.line2 || "",
-    shippingCity: address.city || "",
-    shippingProvince: address.state || "",
-    shippingZip: address.postal_code || "",
-    shippingCountryCode: address.country || "US",
-    shippingPhone: session.customer_details?.phone || "",
-    payType: 2,
-    products: [{ sku: cjSku, quantity: 1 }],
+  const record = {
+    sessionId: session.id,
+    createdAt: new Date().toISOString(),
+    status: "to-fulfill",
+    product: {
+      sku: session.metadata?.cj_sku || "",
+      name: session.metadata?.product_name || "",
+      qty: 1,
+    },
+    amount: (session.amount_total || 0) / 100,
+    currency: (session.currency || "usd").toUpperCase(),
+    customer: { name: name || cd.name || "", email: cd.email || "", phone: cd.phone || "" },
+    ship: address
+      ? {
+          line1: address.line1 || "",
+          line2: address.line2 || "",
+          city: address.city || "",
+          state: address.state || "",
+          postal: address.postal_code || "",
+          country: address.country || "",
+        }
+      : null,
+    cj: null,
   };
 
-  const orderRes = await fetch(CJ_ORDER_URL, {
-    method: "POST",
-    headers: {
-      "CJ-Access-Token": accessToken,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(orderBody),
-  });
-  const orderData = await orderRes.json();
-  console.log("CJ order result", JSON.stringify(orderData));
+  // Best-effort CJ auto-placement (works only from a stable/whitelisted IP).
+  try {
+    if (record.product.sku && address) {
+      const tokenRes = await fetch(CJ_AUTH_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: env.CJ_API_KEY }),
+      });
+      const accessToken = (await tokenRes.json())?.data?.accessToken;
+      if (accessToken) {
+        const orderRes = await fetch(CJ_ORDER_URL, {
+          method: "POST",
+          headers: { "CJ-Access-Token": accessToken, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderNumber: session.id,
+            shippingCustomerName: record.customer.name || "Customer",
+            shippingAddress: address.line1 || "",
+            shippingAddress2: address.line2 || "",
+            shippingCity: address.city || "",
+            shippingProvince: address.state || "",
+            shippingZip: address.postal_code || "",
+            shippingCountryCode: address.country || "US",
+            shippingPhone: record.customer.phone || "",
+            payType: 1,
+            products: [{ sku: record.product.sku, quantity: 1 }],
+          }),
+        });
+        const od = await orderRes.json();
+        if (od?.result) {
+          record.status = "auto-placed";
+          record.cj = { orderId: od.data?.orderId || "", payUrl: od.data?.cjPayUrl || "" };
+        } else {
+          record.cj = { error: od?.message || "unknown" };
+        }
+      } else {
+        record.cj = { error: "cj-auth-failed" };
+      }
+    }
+  } catch (err) {
+    record.cj = { error: String(err) };
+  }
 
-  await env.ORDERS_KV.put(
-    session.id,
-    orderData?.result ? `fulfilled:${orderData.data?.orderId}` : `failed:${orderData?.message || "unknown"}`
+  await env.ORDERS_KV.put(key, JSON.stringify(record));
+  console.log("Recorded order", session.id, "status", record.status);
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
+}
+
+// Private orders page: GET /orders?token=<ORDERS_ADMIN_TOKEN>
+async function handleOrdersList(url, env) {
+  const token = url.searchParams.get("token") || "";
+  if (!env.ORDERS_ADMIN_TOKEN || token !== env.ORDERS_ADMIN_TOKEN) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  const list = await env.ORDERS_KV.list({ prefix: "order:" });
+  const orders = [];
+  for (const k of list.keys) {
+    const v = await env.ORDERS_KV.get(k.name);
+    if (v) {
+      try {
+        orders.push(JSON.parse(v));
+      } catch {
+        /* skip malformed */
+      }
+    }
+  }
+  orders.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+
+  const rows = orders
+    .map((o) => {
+      const s = o.ship || {};
+      const addr = o.ship
+        ? [s.line1, s.line2, `${s.city}, ${s.state} ${s.postal}`, s.country]
+            .filter(Boolean)
+            .map(escapeHtml)
+            .join("<br>")
+        : '<span style="color:#b91c1c">no address</span>';
+      const cjNote = o.cj?.error
+        ? `<span style="color:#b91c1c">auto-place failed: ${escapeHtml(o.cj.error)}</span>`
+        : o.cj?.orderId
+        ? `CJ #${escapeHtml(o.cj.orderId)}`
+        : "—";
+      return `<tr>
+        <td>${escapeHtml((o.createdAt || "").slice(0, 16).replace("T", " "))}</td>
+        <td><span class="status ${escapeHtml(o.status)}">${escapeHtml(o.status)}</span></td>
+        <td><b>${escapeHtml(o.product?.name || o.product?.sku)}</b><br><small>SKU ${escapeHtml(o.product?.sku)} &times;${o.product?.qty || 1}</small></td>
+        <td>$${escapeHtml(o.amount)} ${escapeHtml(o.currency)}</td>
+        <td>${escapeHtml(o.customer?.name)}<br><small>${escapeHtml(o.customer?.email)}<br>${escapeHtml(o.customer?.phone)}</small></td>
+        <td>${addr}</td>
+        <td>${cjNote}</td>
+      </tr>`;
+    })
+    .join("");
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>HotsTuff Orders</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#fff9f2;color:#2a1a2e;}
+  header{padding:18px 24px;border-bottom:1px solid #eadfd5;}
+  h1{margin:0;font-size:20px;} .sub{color:#7a6a72;font-size:13px;margin-top:4px;}
+  .wrap{overflow-x:auto;padding:16px 24px;}
+  table{border-collapse:collapse;width:100%;min-width:820px;font-size:13px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #eadfd5;vertical-align:top;}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#7a6a72;}
+  small{color:#7a6a72;}
+  .status{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;}
+  .status.to-fulfill{background:#fee2e2;color:#b91c1c;}
+  .status.auto-placed{background:#dcfce7;color:#15803d;}
+  .empty{padding:40px;text-align:center;color:#7a6a72;}
+</style></head><body>
+<header><h1>HotsTuff — Orders to fulfill</h1>
+<div class="sub">${orders.length} order(s). "to-fulfill" = place & pay this order in the CJ dashboard using the shipping address shown.</div></header>
+<div class="wrap">${
+    orders.length
+      ? `<table><thead><tr><th>Date (UTC)</th><th>Status</th><th>Product</th><th>Paid</th><th>Customer</th><th>Ship to</th><th>CJ</th></tr></thead><tbody>${rows}</tbody></table>`
+      : '<div class="empty">No orders yet.</div>'
+  }</div>
+</body></html>`;
+
+  return new Response(html, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
 }

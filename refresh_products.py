@@ -8,6 +8,7 @@ Requires a .env file (same folder) containing:
     CJ_API_KEY=CJUserNum@api@xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 """
 
+import hashlib
 import json
 import os
 import re
@@ -22,9 +23,16 @@ PRODUCTS_FILE = HERE / "products.json"
 AUTH_URL = "https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken"
 PRODUCT_LIST_URL = "https://developers.cjdropshipping.com/api2.0/v1/product/listV2"
 
-PRODUCT_COUNT = 8
-MARKUP_MULTIPLIER = 1.6  # sell price = supplier cost * markup
-PRICE_FLOOR = 15.00  # displayed price never goes below this, regardless of supplier cost
+DISPLAY_COUNT = 13   # products shown on the site each cycle
+POOL_SIZE = 60       # how many trending products to pull, to rotate a fresh selection from
+MAX_REPEATS = 3      # at most this many items may carry over from the previous cycle
+                     # -> guarantees at least (DISPLAY_COUNT - MAX_REPEATS) = 10 items change each cycle
+MARKUP_MULTIPLIER = 1.6  # used only as a margin floor: displayed price never drops below supplier cost * this
+
+# Retail-looking price points spanning ~$4-$25. Each product is assigned one
+# deterministically from its SKU (so its price is stable across cycles), then
+# raised to protect margin if the supplier cost would exceed it.
+PRICE_LADDER = [4.99, 6.99, 8.99, 10.99, 12.99, 14.99, 16.99, 18.99, 21.99, 24.99]
 
 GRADIENTS = [
     "linear-gradient(135deg, #6366f1, #ec4899)",
@@ -71,6 +79,48 @@ def parse_price(price_str) -> float:
         return 0.0
     match = re.search(r"[\d.]+", str(price_str))
     return float(match.group()) if match else 0.0
+
+
+def product_id(p: dict) -> str:
+    return p.get("sku") or p.get("id") or ""
+
+
+def assign_price(sku: str, marked_up_cost: float) -> float:
+    """Pick a stable, varied retail price for a product from PRICE_LADDER,
+    never dropping below the marked-up supplier cost (margin protection)."""
+    h = int(hashlib.sha256((sku or "x").encode()).hexdigest(), 16)
+    price = PRICE_LADDER[h % len(PRICE_LADDER)]
+    if price < marked_up_cost:
+        higher = [p for p in PRICE_LADDER if p >= marked_up_cost]
+        price = higher[0] if higher else PRICE_LADDER[-1]
+    return price
+
+
+def load_previous_ids() -> set[str]:
+    if not PRODUCTS_FILE.exists():
+        return set()
+    try:
+        data = json.loads(PRODUCTS_FILE.read_text())
+        return {p.get("id") for p in data if isinstance(p, dict)}
+    except (json.JSONDecodeError, OSError):
+        return set()
+
+
+def select_rotating(pool: list[dict], prev_ids: set[str]) -> list[dict]:
+    """Choose DISPLAY_COUNT products from the trending pool so that at most
+    MAX_REPEATS carry over from last cycle (i.e. >= 10 change every cycle).
+    Pool is already sorted by trend, so 'first N' keeps the hottest items."""
+    fresh = [p for p in pool if product_id(p) not in prev_ids]
+    repeats = [p for p in pool if product_id(p) in prev_ids]
+
+    kept_repeats = repeats[:MAX_REPEATS]           # a little continuity for the top carry-overs
+    chosen = fresh[: DISPLAY_COUNT - len(kept_repeats)] + kept_repeats
+
+    if len(chosen) < DISPLAY_COUNT:                # pool smaller than expected — backfill
+        extra = [p for p in repeats[MAX_REPEATS:] if p not in chosen]
+        chosen += extra[: DISPLAY_COUNT - len(chosen)]
+
+    return chosen[:DISPLAY_COUNT]
 
 
 MAX_NAME_LENGTH = 55
@@ -131,7 +181,7 @@ def fetch_trending_products(access_token: str) -> list[dict]:
         "orderBy": 1,       # sort by listing count (sales-volume proxy)
         "sort": "desc",
         "page": 1,
-        "size": PRODUCT_COUNT,
+        "size": POOL_SIZE,
     }
     query = "&".join(f"{k}={v}" for k, v in params.items())
     url = f"{PRODUCT_LIST_URL}?{query}"
@@ -160,12 +210,13 @@ def to_site_products(cj_products: list[dict]) -> list[dict]:
     for i, p in enumerate(cj_products):
         category, emoji = classify_name(p.get("nameEn", ""))
         cost_price = parse_price(p.get("nowPrice") or p.get("sellPrice"))
-        marked_up_price = round(cost_price * MARKUP_MULTIPLIER, 2)
+        marked_up_cost = round(cost_price * MARKUP_MULTIPLIER, 2)
+        sku = product_id(p) or f"cj{i}"
         site_products.append({
-            "id": p.get("sku") or p.get("id") or f"cj{i}",
+            "id": sku,
             "name": clean_name(p.get("nameEn", "Untitled product")),
             "category": category,
-            "price": max(marked_up_price, PRICE_FLOOR),
+            "price": assign_price(sku, marked_up_cost),
             "trendScore": normalize_trend_score(int(p.get("listedNum", 0)), listed_nums),
             "badge": "🔥 Trending",
             "emoji": emoji,
@@ -184,16 +235,22 @@ def main():
     except urllib.error.HTTPError as e:
         raise SystemExit(f"CJ auth request failed: HTTP {e.code} {e.reason}")
 
-    print(f"Fetching top {PRODUCT_COUNT} trending products...")
+    print(f"Fetching a pool of {POOL_SIZE} trending products...")
     try:
-        cj_products = fetch_trending_products(access_token)
+        pool = fetch_trending_products(access_token)
     except urllib.error.HTTPError as e:
         raise SystemExit(f"CJ product request failed: HTTP {e.code} {e.reason}")
 
-    if not cj_products:
+    if not pool:
         raise SystemExit("CJ returned no trending products — leaving products.json untouched.")
 
-    site_products = to_site_products(cj_products)
+    prev_ids = load_previous_ids()
+    selected = select_rotating(pool, prev_ids)
+
+    changed = sum(1 for p in selected if product_id(p) not in prev_ids)
+    print(f"Selected {len(selected)} products ({changed} new vs. last cycle).")
+
+    site_products = to_site_products(selected)
     PRODUCTS_FILE.write_text(json.dumps(site_products, indent=2) + "\n")
     print(f"Wrote {len(site_products)} products to {PRODUCTS_FILE}")
 

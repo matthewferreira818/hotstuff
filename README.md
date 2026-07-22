@@ -24,12 +24,19 @@ page must be served over http(s) — opening `index.html` directly via
 
 ## Automatic trending refresh
 
-`products.json` is regenerated every Monday 09:00 UTC by a GitHub Actions
+`products.json` is regenerated every 3 days at 09:00 UTC by a GitHub Actions
 workflow ([`.github/workflows/refresh-products.yml`](.github/workflows/refresh-products.yml))
 that runs `refresh_products.py` against the CJ Dropshipping API, commits the
 result if it changed, and pushes — which triggers GitHub Pages to redeploy
 automatically. This runs in the cloud, independent of whether your machine
-is on.
+is on. (The cron `0 9 */3 * *` fires on days 1, 4, 7 … 28, 31 of each month,
+so the interval around a month boundary is a little shorter than 3 days.)
+
+The site shows **13 products** each cycle (`DISPLAY_COUNT`), selected from a
+pool of the top **60** trending items (`POOL_SIZE`). At most `MAX_REPEATS` (3)
+items carry over from the previous cycle, so **at least 10 of the 13 change
+every cycle** — the carried-over items are the hottest repeats, for a bit of
+continuity.
 
 - **Trigger it manually:** GitHub repo → Actions tab → "Refresh trending
   products" → Run workflow. Or: `gh workflow run refresh-products.yml`.
@@ -49,10 +56,13 @@ CJ_API_KEY=CJUserNum@api@xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 **Known limitations of the auto-refresh:**
-- Prices are the *lowest* variant cost from CJ's price range, marked up by
-  `MARKUP_MULTIPLIER` (1.6x), then floored at `PRICE_FLOOR` ($15) in
-  `refresh_products.py` — so displayed price is never below $15 even if the
-  marked-up supplier cost would be lower. Adjust either constant as needed.
+- Each product is assigned a stable retail price from `PRICE_LADDER`
+  (a spread of points across ~$4–$25), chosen deterministically from its SKU
+  so its price stays the same across cycles. The price is then raised if
+  needed so it never drops below the supplier cost marked up by
+  `MARKUP_MULTIPLIER` (1.6x) — this protects margin. Because the ladder is
+  seeded by SKU, the exact prices on the site depend on which items are
+  trending. Edit `PRICE_LADDER` / `MARKUP_MULTIPLIER` to change the range.
 - Category and emoji are guessed from keywords in the product title (CJ's
   list endpoint doesn't return category names), so occasionally a product
   lands in the generic "Trending Finds" bucket — check `NAME_KEYWORD_CATEGORIES`

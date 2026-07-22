@@ -2,7 +2,9 @@ name: Refresh trending products
 
 on:
   schedule:
-    - cron: "0 9 * * 1"  # every Monday 09:00 UTC
+    # every 3 days at 09:00 UTC (fires on days 1,4,7,...,28,31 of each month;
+    # the month boundary makes one interval shorter than 3 days — close enough)
+    - cron: "0 9 */3 * *"
   workflow_dispatch: {}
 
 permissions:
@@ -29,7 +31,7 @@ jobs:
             git config user.name "wavelist-bot"
             git config user.email "actions@users.noreply.github.com"
             git add products.json
-            git commit -m "Weekly trending products refresh"
+            git commit -m "Trending products refresh (3-day cycle)"
             git push
           else
             echo "No changes to products.json"

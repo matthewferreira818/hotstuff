@@ -1,10 +1,14 @@
-# Wavelist
+# HotsTuff
 
 A landing page for a storefront whose catalog changes based on what's currently
 trending — not a single fixed product.
 
-**Live site:** https://matthewferreira818.github.io/wavelist/
-**Repo:** https://github.com/matthewferreira818/wavelist
+**Live site:** https://matthewferreira818.github.io/hotstuff/
+**Repo:** https://github.com/matthewferreira818/hotstuff
+
+Note: the checkout backend (Cloudflare Worker) keeps its internal name
+`wavelist-checkout` — that's backend plumbing, not customer-facing, so it
+wasn't renamed to avoid re-registering the live Stripe webhook.
 
 ## Running locally
 
@@ -30,7 +34,7 @@ is on.
 - **Trigger it manually:** GitHub repo → Actions tab → "Refresh trending
   products" → Run workflow. Or: `gh workflow run refresh-products.yml`.
 - **The API key** is stored as a GitHub Actions secret (`CJ_API_KEY`), not in
-  the repo. To rotate it: `gh secret set CJ_API_KEY --repo matthewferreira818/wavelist`.
+  the repo. To rotate it: `gh secret set CJ_API_KEY --repo matthewferreira818/hotstuff`.
 
 To run the refresh manually on your own machine instead:
 

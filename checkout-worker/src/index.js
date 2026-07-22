@@ -1,5 +1,5 @@
 const ALLOWED_ORIGIN = "https://matthewferreira818.github.io";
-const PRODUCTS_URL = "https://matthewferreira818.github.io/wavelist/products.json";
+const PRODUCTS_URL = "https://matthewferreira818.github.io/hotstuff/products.json";
 const STRIPE_API = "https://api.stripe.com/v1";
 const CJ_AUTH_URL = "https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken";
 const CJ_ORDER_URL = "https://developers.cjdropshipping.com/api2.0/v1/shopping/order/createOrderV2";
@@ -62,8 +62,8 @@ async function handleCreateCheckoutSession(request, env) {
     }
     params.set("line_items[0][price_data][unit_amount]", String(Math.round(product.price * 100)));
     params.set("line_items[0][quantity]", "1");
-    params.set("success_url", "https://matthewferreira818.github.io/wavelist/?success=1");
-    params.set("cancel_url", "https://matthewferreira818.github.io/wavelist/?canceled=1");
+    params.set("success_url", "https://matthewferreira818.github.io/hotstuff/?success=1");
+    params.set("cancel_url", "https://matthewferreira818.github.io/hotstuff/?canceled=1");
     params.set("shipping_address_collection[allowed_countries][0]", "US");
     params.set("metadata[cj_sku]", product.id);
     params.set("metadata[product_name]", product.name);

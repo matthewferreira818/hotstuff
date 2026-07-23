@@ -17,49 +17,49 @@ Portable USB Blender — just $24.99 at HotsTuff 🔥
 Projector Humidifier — just $13.99 at HotsTuff 🔥
 [LINK] #cozyhome #homefinds
 
-> The piece people notice 👗
-Statement Necklace — just $35.99 at HotsTuff 🔥
-[LINK] #fashion #ootd
-
 > Built for the outdoors 🧤
 Touchscreen Winter Gloves — just $18.99 at HotsTuff 🔥
 [LINK] #sports #fitness
 
-> Tiny gadget, huge difference 🔌
-Distance Measuring Instrument Electronic — just $35.99 at HotsTuff 🔥
-[LINK] #gadgets #techtok
+> Small upgrade, big difference 🍳
+Telescopic Car Phone Mount — just $13.99 at HotsTuff 🔥
+[LINK] #kitchengadgets #tiktokmademebuyit
 
-> Trending right now 🛍️
-Booty Lifting Anti Cellulite — just $35.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+> Level up your setup 🏋️
+Grip & Forearm Trainer — just $31.99 at HotsTuff 🔥
+[LINK] #fitness #homegym
+
+> Your kitchen just got an upgrade 🍳
+Electric Protein Shaker — just $27.99 at HotsTuff 🔥
+[LINK] #kitchengadgets #tiktokmademebuyit
 
 > Your pet's about to be spoiled 🐾
-Touchscreen Winter Gloves — just $27.99 at HotsTuff 🔥
+Cozy 2-in-1 Pet Bed — just $21.99 at HotsTuff 🔥
+[LINK] #petsofx #dogsofx
+
+> Add this to the routine 💄
+Reusable Pet Hair Remover — just $27.99 at HotsTuff 🔥
+[LINK] #beauty #selfcare
+
+> Pet-parent essential 🐾
+Pet Car Seat Belt — just $11.99 at HotsTuff 🔥
 [LINK] #petsofx #dogsofx
 
 > Effortless and on-trend 👗
-Womens Clothing Long Sleeve — just $27.99 at HotsTuff 🔥
+Glowing Moon Necklace — just $18.99 at HotsTuff 🔥
 [LINK] #fashion #ootd
 
-> This week's must-have 📱
-Compatible with Apple, Flowing — just $11.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
-
-> The gift that always lands 🧸
-Newborn Baby Boys Girls — just $35.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
-
-> The easy win for your routine 🏋️
-Plaid Leggings Fitness Yoga — just $11.99 at HotsTuff 🔥
-[LINK] #fitness #homegym
-
-> The coziest thing you'll buy this week 🏠
-New Halloween Pumpkin Lantern — just $21.99 at HotsTuff 🔥
-[LINK] #cozyhome #homefinds
+> It solves such an annoying problem 🔌
+Bluetooth Item Finder — just $21.99 at HotsTuff 🔥
+[LINK] #gadgets #techtok
 
 > A gift that actually lands 💍
-Retro Magnetic Folding Heart — just $18.99 at HotsTuff 🔥
+Couple's Hug Necklace — just $21.99 at HotsTuff 🔥
 [LINK] #jewelry #giftideas
+
+> Effortless and on-trend 👗
+Fleece Winter Jacket — just $21.99 at HotsTuff 🔥
+[LINK] #fashion #ootd
 
 
 ---
@@ -88,17 +88,6 @@ Grab one before it rotates out 👇
 [LINK]
 ```
 
-**Statement Necklace — $35.99**
-
-```
-👗 Statement Necklace — $35.99
-
-Easy to wear, easy to love.
-
-Grab one before it rotates out 👇
-[LINK]
-```
-
 **Touchscreen Winter Gloves — $18.99**
 
 ```
@@ -110,12 +99,23 @@ Grab one before it rotates out 👇
 [LINK]
 ```
 
-**Distance Measuring Instrument Electronic — $35.99**
+**Telescopic Car Phone Mount — $13.99**
 
 ```
-🔌 Distance Measuring Instrument Electronic — $35.99
+🍳 Telescopic Car Phone Mount — $13.99
 
-The kind of thing you'll wonder how you lived without.
+One of those little kitchen upgrades you didn't know you needed until you had it.
+
+Grab one before it rotates out 👇
+[LINK]
+```
+
+**Grip & Forearm Trainer — $31.99**
+
+```
+🏋️ Grip & Forearm Trainer — $31.99
+
+Perfect for squeezing a little more into your day without the gym.
 
 Grab one before it rotates out 👇
 [LINK]
@@ -136,20 +136,20 @@ Grab one before it rotates out 👇
 🎬 Concept: Lights-on → lights-off reveal. The transformation is the hook.
 📝 Caption: turning my room into a whole vibe for $13.99 🌙 #tiktokmademebuyit #cozy
 
-**Statement Necklace — $35.99**
-
-🎬 Concept: Quick try-on / styling clip with a trending sound.
-📝 Caption: the fit is fitting 🔥 $35.99 #tiktokmademebuyit #fashiontok
-
 **Touchscreen Winter Gloves — $18.99**
 
 🎬 Concept: Fast action clip of it in use. Energy + trending sound.
 📝 Caption: needed this one fr $18.99 🙌 #tiktokmademebuyit
 
-**Distance Measuring Instrument Electronic — $35.99**
+**Telescopic Car Phone Mount — $13.99**
 
-🎬 Concept: 'POV: [the problem]' → show the gadget solving it. Mini-story.
-📝 Caption: why did nobody tell me about this 🤯 $35.99 #tiktokmademebuyit #gadgets
+🎬 Concept: Quick demo — show it working in one 8-sec shot. Trending sound.
+📝 Caption: ok this is actually genius 🥤 only $13.99 #tiktokmademebuyit #kitchengadgets
+
+**Grip & Forearm Trainer — $31.99**
+
+🎬 Concept: Casual 'using it while watching TV' clip. Relatable > polished.
+📝 Caption: building strength from my couch ngl 💪 $31.99 #tiktokmademebuyit #fittok
 
 
 ---

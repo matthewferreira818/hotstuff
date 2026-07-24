@@ -1,0 +1,43 @@
+name: Daily product spotlight tweet
+
+on:
+  schedule:
+    - cron: "0 16 * * *"  # daily 16:00 UTC (~noon ET) — good engagement window
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  spotlight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Skip if the refresh roundup already tweeted today
+        id: gate
+        run: |
+          if git log --since=midnight --oneline | grep -q "Refresh: trending products"; then
+            echo "Catalog refreshed today — the fresh-drops roundup covers it. Skipping spotlight."
+            echo "post=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "post=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.post == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Post today's spotlight
+        if: steps.gate.outputs.post == 'true'
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+        run: |
+          pip install --quiet requests requests-oauthlib
+          python post_daily_tweet.py

@@ -1,5 +1,8 @@
 const CHECKOUT_API = "https://wavelist-checkout.wavelist-mf818.workers.dev";
 
+let allProducts = [];
+let activeCategory = "All";
+
 async function loadProducts() {
   const grid = document.getElementById("product-grid");
   const countEl = document.getElementById("product-count");
@@ -7,13 +10,12 @@ async function loadProducts() {
   grid.innerHTML = "";
   grid.appendChild(emptyState("Loading trending products…"));
 
-  let products;
   try {
     const res = await fetch("products.json", { cache: "no-store" });
     if (!res.ok) throw new Error(`products.json responded with ${res.status}`);
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("products.json must be an array");
-    products = data;
+    allProducts = data;
   } catch (err) {
     console.error(err);
     grid.innerHTML = "";
@@ -22,19 +24,52 @@ async function loadProducts() {
     return;
   }
 
-  countEl.textContent = products.length;
+  countEl.textContent = allProducts.length;
+  buildCategoryBar();
+  renderGrid();
+}
 
+function buildCategoryBar() {
+  const bar = document.getElementById("category-bar");
+  if (!bar) return;
+  bar.innerHTML = "";
+
+  const counts = new Map();
+  for (const p of allProducts) {
+    const c = p.category || "Other";
+    counts.set(c, (counts.get(c) || 0) + 1);
+  }
+  const categories = ["All", ...[...counts.keys()].sort((a, b) => counts.get(b) - counts.get(a))];
+
+  for (const cat of categories) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "category-chip" + (cat === activeCategory ? " active" : "");
+    chip.setAttribute("role", "tab");
+    chip.setAttribute("aria-selected", cat === activeCategory ? "true" : "false");
+    chip.textContent = cat === "All" ? `All (${allProducts.length})` : `${cat} (${counts.get(cat)})`;
+    chip.addEventListener("click", () => {
+      activeCategory = cat;
+      buildCategoryBar();
+      renderGrid();
+    });
+    bar.appendChild(chip);
+  }
+}
+
+function renderGrid() {
+  const grid = document.getElementById("product-grid");
   grid.innerHTML = "";
 
-  if (products.length === 0) {
+  const visible = allProducts
+    .filter((p) => activeCategory === "All" || (p.category || "Other") === activeCategory)
+    .sort((a, b) => (Number(b.trendScore) || 0) - (Number(a.trendScore) || 0));
+
+  if (visible.length === 0) {
     grid.appendChild(emptyState("No trending products right now — check back soon."));
     return;
   }
-
-  const sorted = [...products].sort(
-    (a, b) => (Number(b.trendScore) || 0) - (Number(a.trendScore) || 0)
-  );
-  for (const product of sorted) {
+  for (const product of visible) {
     grid.appendChild(buildCard(product));
   }
 }

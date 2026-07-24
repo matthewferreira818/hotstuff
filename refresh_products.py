@@ -24,10 +24,10 @@ PRODUCTS_FILE = HERE / "products.json"
 AUTH_URL = "https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken"
 PRODUCT_LIST_URL = "https://developers.cjdropshipping.com/api2.0/v1/product/listV2"
 
-DISPLAY_COUNT = 13   # products shown on the site each cycle
-POOL_SIZE = 60       # how many trending products to pull, to rotate a fresh selection from
-MAX_REPEATS = 3      # at most this many items may carry over from the previous cycle
-                     # -> guarantees at least (DISPLAY_COUNT - MAX_REPEATS) = 10 items change each cycle
+DISPLAY_COUNT = 40   # products shown on the site each cycle
+POOL_SIZE = 100      # how many trending products to pull (CJ page max), to rotate from
+MAX_REPEATS = 12     # at most this many items may carry over from the previous cycle
+                     # -> guarantees at least (DISPLAY_COUNT - MAX_REPEATS) = 28 items change each cycle
 MARKUP_MULTIPLIER = 1.6  # legacy wholesale-only floor (cost * this). Kept as an
                           # extra always-on safety margin on top of the real
                           # profit guarantee below; for cost > ~$16.80 this

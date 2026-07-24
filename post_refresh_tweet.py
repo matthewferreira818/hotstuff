@@ -70,6 +70,10 @@ def main():
     if resp.status_code in (200, 201):
         print("Tweet posted:", resp.json().get("data", {}).get("id"))
         return 0
+    if resp.status_code == 402:
+        # marker line consumed by the workflow's credit-watch step
+        print("X_CREDITS_DEPLETED: tweets are paused until credits are topped up at console.x.com")
+        return 0
     # Don't fail the whole refresh workflow over a tweet - log and move on.
     print(f"Tweet failed (HTTP {resp.status_code}): {resp.text[:300]}")
     return 0

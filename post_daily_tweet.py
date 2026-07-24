@@ -72,6 +72,9 @@ def main():
     resp = session.post("https://api.x.com/2/tweets", json={"text": tweet}, timeout=30)
     if resp.status_code in (200, 201):
         print("Tweet posted:", resp.json().get("data", {}).get("id"))
+    elif resp.status_code == 402:
+        # marker line consumed by the workflow's credit-watch step
+        print("X_CREDITS_DEPLETED: tweets are paused until credits are topped up at console.x.com")
     else:
         print(f"Tweet failed (HTTP {resp.status_code}): {resp.text[:300]}")
     return 0  # never fail the workflow over a tweet

@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   spotlight:
@@ -40,4 +41,21 @@ jobs:
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
         run: |
           pip install --quiet requests requests-oauthlib
-          python post_daily_tweet.py
+          python post_daily_tweet.py 2>&1 | tee tweet.log
+
+      - name: Credit watch — alert if X credits are depleted
+        if: steps.gate.outputs.post == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if grep -q "X_CREDITS_DEPLETED" tweet.log; then
+            if ! gh issue list --state open --search "X credits depleted" --json number --jq length | grep -qv '^0$'; then
+              gh issue create \
+                --title "🔴 X credits depleted — daily tweets are paused" \
+                --body "The daily spotlight tweet failed with HTTP 402 (credits depleted). Top up at https://console.x.com (Buy Credits) and tweets resume automatically on the next run. No other store systems are affected."
+            else
+              echo "Depletion issue already open — not duplicating."
+            fi
+          else
+            echo "Credits OK."
+          fi

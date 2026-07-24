@@ -152,6 +152,17 @@ Each product card has a "Buy now" button that:
   `ORDERS_KV` namespace keyed by the Stripe Checkout Session id
   (`npx wrangler kv key get <session_id> --binding ORDERS_KV --remote`).
 
+### Custom-design merch (middleman model)
+The site's Merch section lets customers upload their own art (`/upload-design`
+on the Worker → stored in `ORDERS_KV` as `design:<uuid>`, 90-day TTL) and buy a
+"Your Design Tee" ($32.99, size + colour picked on the Stripe page via
+custom_fields). **Fulfillment is manual:** open the `/orders` dashboard — custom
+orders show a "customer design file" link (token-protected download). Download
+the art, create the product in Printify (or any print service) with the
+customer's size/colour, and ship to the address shown. Price clears worst-case
+POD base + shipping + Stripe fees. Logo-merch tiles are "Coming soon" until the
+Printify pop-up store is live.
+
 ### Known limitations
 - Only ships to the US (`shipping_address_collection` in the Worker).
 - No inventory/stock check against CJ before accepting payment — if a

@@ -6,9 +6,10 @@ let activeCategory = "All";
 async function loadProducts() {
   const grid = document.getElementById("product-grid");
   const countEl = document.getElementById("product-count");
+  const countSuffix = document.getElementById("count-suffix");
 
   grid.innerHTML = "";
-  grid.appendChild(emptyState("Loading trending products…"));
+  renderSkeletons(grid, 8);
 
   try {
     const res = await fetch("products.json", { cache: "no-store" });
@@ -20,13 +21,29 @@ async function loadProducts() {
     console.error(err);
     grid.innerHTML = "";
     grid.appendChild(emptyState("Couldn't load the catalog. Is products.json reachable?"));
-    countEl.textContent = "0";
+    // leave the count hidden rather than flashing a misleading "0"
     return;
   }
 
   countEl.textContent = allProducts.length;
+  if (countSuffix) countSuffix.hidden = false;
   buildCategoryBar();
   renderGrid();
+}
+
+function renderSkeletons(grid, n) {
+  for (let i = 0; i < n; i++) {
+    const card = document.createElement("div");
+    card.className = "card skeleton";
+    card.innerHTML =
+      '<div class="card-thumb"></div>' +
+      '<div class="card-body">' +
+      '<div class="skeleton-line" style="width:40%"></div>' +
+      '<div class="skeleton-line" style="width:88%"></div>' +
+      '<div class="skeleton-line" style="width:62%"></div>' +
+      "</div>";
+    grid.appendChild(card);
+  }
 }
 
 function buildCategoryBar() {
@@ -69,9 +86,12 @@ function renderGrid() {
     grid.appendChild(emptyState("No trending products right now — check back soon."));
     return;
   }
-  for (const product of visible) {
-    grid.appendChild(buildCard(product));
-  }
+  visible.forEach((product, i) => {
+    const card = buildCard(product);
+    // gentle staggered fade-in as the grid renders
+    card.style.animationDelay = (i * 0.04) + "s";
+    grid.appendChild(card);
+  });
 }
 
 function emptyState(message) {
@@ -154,7 +174,7 @@ function buildCard(p) {
   return card;
 }
 
-async function startCheckout(productId, button) {
+async function startCheckout(productId, button, designId) {
   const originalText = button.textContent;
   button.disabled = true;
   button.textContent = "Redirecting…";
@@ -163,7 +183,7 @@ async function startCheckout(productId, button) {
     const res = await fetch(`${CHECKOUT_API}/create-checkout-session`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId }),
+      body: JSON.stringify(designId ? { productId, designId } : { productId }),
     });
     const data = await res.json();
     if (!res.ok || !data.url) {
@@ -197,3 +217,56 @@ function showOrderStatusBanner() {
 document.getElementById("year").textContent = new Date().getFullYear();
 showOrderStatusBanner();
 loadProducts();
+
+/* --- Custom-design merch: upload art, then buy (middleman flow) --- */
+(function initCustomMerch() {
+  const fileInput = document.getElementById("design-file");
+  const preview = document.getElementById("design-preview");
+  const hint = document.getElementById("design-hint");
+  const buyBtn = document.getElementById("design-buy");
+  if (!fileInput || !buyBtn) return;
+
+  let designId = null;
+
+  fileInput.addEventListener("change", async () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) {
+      hint.innerHTML = "<b>That file is over 8 MB</b><br><small>Try a smaller image</small>";
+      return;
+    }
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    preview.src = dataUrl;
+    preview.hidden = false;
+    hint.hidden = true;
+    buyBtn.disabled = true;
+    buyBtn.textContent = "Uploading…";
+    try {
+      const res = await fetch(`${CHECKOUT_API}/upload-design`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filename: file.name, dataUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.designId) throw new Error(data.error || "upload failed");
+      designId = data.designId;
+      buyBtn.disabled = false;
+      buyBtn.textContent = "Buy";
+    } catch (err) {
+      designId = null;
+      buyBtn.textContent = "Buy";
+      preview.hidden = true;
+      hint.hidden = false;
+      hint.innerHTML = "<b>Upload failed</b><br><small>" + String(err.message || err) + " — tap to retry</small>";
+    }
+  });
+
+  buyBtn.addEventListener("click", () => {
+    if (designId) startCheckout("custom-tee", buyBtn, designId);
+  });
+})();

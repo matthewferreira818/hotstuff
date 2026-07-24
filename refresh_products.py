@@ -289,6 +289,116 @@ def normalize_trend_score(listed_num: int, all_listed_nums: list[int]) -> int:
     return round(scaled)
 
 
+# Warm, benefit-led descriptions keyed to what the product actually IS, with a
+# few variants each so 40 cards don't read identically. The variant is chosen
+# deterministically per SKU (same hashing style as assign_price), so a given
+# product's copy stays stable across refreshes. First matching keyword wins.
+KEYWORD_DESCRIPTIONS = [
+    (("necklace", "pendant", "bracelet", " ring", "jewelry", "clover", "zodiac", "constellation"),
+     ["Everyday sparkle that makes an easy, giftable win.",
+      "A dainty little piece people keep adding to cart.",
+      "Wear-anywhere shine — and it gives beautifully, too."]),
+    (("leggings", "yoga", "fitness", "trainer", "workout", "grip", " abs", "muscle", "seamless"),
+     ["Gear up — a fitness favorite shoppers keep coming back for.",
+      "The kind of workout upgrade that actually gets used.",
+      "Move better, feel better — a trending fitness pick."]),
+    (("dog", "cat", "pet", "puppy", "kitten"),
+     ["A pet-parent favorite your furry friend will love.",
+      "Spoil the good boy (or girl) — pet owners can't get enough.",
+      "Made for happy pets and easier pet-parenting."]),
+    (("phone", "case", "charger", "wireless", "magnetic", "airpod", "apple"),
+     ["A handy phone upgrade that smooths out your day.",
+      "Small accessory, surprisingly big daily payoff.",
+      "The phone add-on you'll wonder how you lived without."]),
+    (("humidifier", "diffuser", "aromatherapy", "essential oil"),
+     ["Turn any room into a calm, better-smelling space.",
+      "Set the mood — soft mist, softer vibes.",
+      "A little spa energy for your home or desk."]),
+    (("led", "light", "lamp", "lantern", "candle", "fairy", "glow", "luminous"),
+     ["Set the mood with a warm, ambient glow.",
+      "Instant cozy — lighting that transforms a room.",
+      "Soft light that makes any corner feel special."]),
+    (("blender", "juicer", "mixer", "stirrer", "kitchen", "coffee", "milk"),
+     ["A clever kitchen helper that earns its counter space.",
+      "Small gadget, big everyday kitchen win.",
+      "Makes the daily routine quicker and a little more fun."]),
+    (("vacuum", "cleaner", "dredger", "sewer", "remover", "lint"),
+     ["Turns an annoying chore into a quick, satisfying job.",
+      "The satisfying little fix for an everyday mess.",
+      "Cleaning up just got weirdly enjoyable."]),
+    (("baby", "newborn", "kids", "jumper", "children"),
+     ["Adorable and practical — an easy pick for the little ones.",
+      "Cute meets useful for babies and toddlers.",
+      "The kind of thing new parents quietly love."]),
+    (("glove", "winter", "warm", "scarf"),
+     ["Cozy, practical, and right on time for the season.",
+      "Beat the chill in style — a seasonal favorite.",
+      "Warm hands, happy you."]),
+    (("toy", "plush", "teddy", "drawing", "educational", "bear"),
+     ["Hours of fun — and it makes a great gift, too.",
+      "Playtime sorted; smiles guaranteed.",
+      "A crowd-pleaser for kids and the young at heart."]),
+    (("car", "vehicle", "dashboard", "tracker", "gps", "seat belt", "holder"),
+     ["A smart little upgrade for your daily drive.",
+      "Ride smarter — a favorite for the daily commute.",
+      "Fixes a real car annoyance you didn't know you could."]),
+    (("shower", "finder", "bluetooth", "ruler", "measuring", "instrument", "tape", "socket", "led "),
+     ["Smart, useful tech that solves a real everyday annoyance.",
+      "The clever little fix that just makes sense.",
+      "Practical tech people wish they'd bought sooner."]),
+    (("crystal", "stone", "healing", "moon", "tree of life"),
+     ["A calming little talisman with serious shelf appeal.",
+      "Good-vibes decor that doubles as a thoughtful gift.",
+      "Natural, pretty, and quietly trending."]),
+]
+
+CATEGORY_DESCRIPTIONS = {
+    "Fashion": ["A trending wardrobe win that's flying off the shelves.",
+                "Easy style upgrade shoppers are loving right now."],
+    "Beauty": ["A small beauty win that becomes a daily go-to.",
+               "The kind of self-care buy people rave about."],
+    "Home": ["A cozy home upgrade with big everyday payoff.",
+             "Little touch, big difference in your space."],
+    "Kitchen": ["A handy kitchen helper worth the counter space.",
+                "Makes cooking (and cleanup) a little easier."],
+    "Electronics": ["Clever tech that solves a real everyday problem.",
+                    "Useful gadgetry people keep coming back for."],
+    "Pet": ["A pet-parent favorite for happier furry friends.",
+            "Because the good pets deserve nice things."],
+    "Fitness": ["A trending fitness pick that actually gets used.",
+                "Level up the routine — a workout favorite."],
+    "Toys": ["Fun for the kids and an easy gift-time win.",
+             "Playtime, sorted — and it's trending for a reason."],
+    "Jewelry": ["Everyday sparkle that gives beautifully, too.",
+                "A dainty piece people keep adding to cart."],
+    "Phone Accessories": ["A handy phone upgrade that smooths out your day.",
+                          "Small add-on, surprisingly big daily payoff."],
+    "Sports": ["Trending gear for getting after it outdoors.",
+               "The kind of kit that makes an active day better."],
+}
+
+DEFAULT_DESCRIPTIONS = [
+    "One of this week's most-loved trending finds.",
+    "A shopper favorite that's having a real moment.",
+    "Trending hard right now — and easy to see why.",
+]
+
+
+def describe(name: str, category: str, sku: str) -> str:
+    """A warm, benefit-led one-liner keyed to the product. Deterministic per
+    SKU so copy stays stable across refreshes — no more identical templates."""
+    low = f" {(name or '').lower()} "
+    variants = None
+    for keywords, options in KEYWORD_DESCRIPTIONS:
+        if any(k in low for k in keywords):
+            variants = options
+            break
+    if variants is None:
+        variants = CATEGORY_DESCRIPTIONS.get(category, DEFAULT_DESCRIPTIONS)
+    idx = int(hashlib.sha256((sku or "x").encode()).hexdigest(), 16) % len(variants)
+    return variants[idx]
+
+
 def to_site_products(cj_products: list[dict]) -> list[dict]:
     listed_nums = [int(p.get("listedNum", 0)) for p in cj_products]
     site_products = []
@@ -306,7 +416,7 @@ def to_site_products(cj_products: list[dict]) -> list[dict]:
             "emoji": emoji,
             "image": p.get("bigImage") or None,
             "gradient": GRADIENTS[i % len(GRADIENTS)],
-            "description": f"Trending in {category} — {p.get('listedNum', 0)} active listings and climbing.",
+            "description": describe(clean_name(p.get("nameEn", "")), category, sku),
         })
     return site_products
 

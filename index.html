@@ -20,6 +20,7 @@
       <nav class="nav-links">
         <a href="#trending">Trending</a>
         <a href="#how">How it works</a>
+        <a href="#merch">Merch</a>
         <a href="#shipping">Shipping</a>
         <a href="#faq">FAQ</a>
       </nav>
@@ -30,7 +31,7 @@
   <main>
     <section class="hero">
       <div class="hero-inner">
-        <span class="eyebrow">Restocked daily · <span id="product-count" aria-live="polite">0</span> products live now</span>
+        <span class="eyebrow">Restocked daily<span id="count-suffix" hidden> · <span id="product-count" aria-live="polite"></span> products live now</span></span>
         <h1>Welcome to <span class="brand-accent">HotsTuff!</span><br>where we sell products everyone seems to love!</h1>
         <p class="hero-sub">
           HotsTuff tracks what's trending across social and search, then curates a fresh
@@ -75,6 +76,48 @@
           <p>Once trend score drops, the entry is removed and shelf space opens up.</p>
         </div>
       </div>
+    </section>
+
+    <section class="merch" id="merch">
+      <div class="section-head">
+        <h2>HotsTuff Merch</h2>
+        <p>Rep the flame — tees, mugs and stickers with the HotsTuff logo. Dropping soon.</p>
+      </div>
+      <div class="merch-grid">
+        <div class="merch-card">
+          <img src="assets/merch/tee-dark.jpg" alt="HotsTuff flame logo tee in black" loading="lazy">
+          <div class="merch-info"><h3>Classic Tee — Black</h3><span class="merch-badge">Coming soon</span></div>
+        </div>
+        <div class="merch-card">
+          <img src="assets/merch/tee-light.jpg" alt="HotsTuff flame logo tee in white" loading="lazy">
+          <div class="merch-info"><h3>Classic Tee — White</h3><span class="merch-badge">Coming soon</span></div>
+        </div>
+        <div class="merch-card">
+          <img src="assets/merch/mug.jpg" alt="HotsTuff flame logo mug" loading="lazy">
+          <div class="merch-info"><h3>Morning Fuel Mug</h3><span class="merch-badge">Coming soon</span></div>
+        </div>
+        <div class="merch-card">
+          <img src="assets/merch/sticker.jpg" alt="HotsTuff flame sticker" loading="lazy">
+          <div class="merch-info"><h3>Flame Sticker</h3><span class="merch-badge">Coming soon</span></div>
+        </div>
+        <div class="merch-card merch-custom">
+          <label class="merch-drop" for="design-file">
+            <input type="file" id="design-file" accept="image/png,image/jpeg,image/webp" hidden>
+            <img id="design-preview" alt="Your uploaded design" hidden>
+            <span class="merch-drop-hint" id="design-hint">
+              <span class="merch-drop-icon">⬆️</span>
+              <b>Print YOUR design</b><br>
+              <small>Tap to upload — PNG or JPG, up to 8&nbsp;MB</small>
+            </span>
+          </label>
+          <div class="merch-info">
+            <h3>Your Design Tee — $32.99</h3>
+            <button class="btn btn-primary merch-buy" id="design-buy" disabled>Buy</button>
+          </div>
+        </div>
+      </div>
+      <p class="merch-note">Custom tees: pick your size &amp; colour at checkout — we print your art and ship it to your door. Only upload art you have the right to print.<br>
+      Logo merch drops soon — follow <a href="https://x.com/hotstuff2213" target="_blank" rel="noopener">@hotstuff2213</a> to catch it.</p>
     </section>
 
     <section class="shipping" id="shipping">

@@ -15,6 +15,16 @@ const STRIPE_API = "https://api.stripe.com/v1";
 const CJ_AUTH_URL = "https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken";
 const CJ_ORDER_URL = "https://developers.cjdropshipping.com/api2.0/v1/shopping/order/createOrderV2";
 
+// Custom-design merch (middleman model): the customer uploads their art, we
+// take payment, then print + ship it via a print-on-demand service. Prices are
+// fixed server-side and must clear worst-case POD base cost + shipping +
+// Stripe's fee with margin to spare (same no-loss rule as the catalog).
+const CUSTOM_PRODUCTS = {
+  "custom-tee": { name: "Custom Tee — Your Design", price: 32.99 },
+};
+const MAX_DESIGN_BYTES = 8 * 1024 * 1024;
+const DESIGN_TTL_SECONDS = 60 * 60 * 24 * 90; // keep uploads 90 days
+
 // Countries Stripe Checkout will collect a shipping address for.
 const SHIP_COUNTRIES = [
   "CA", "US", "GB", "AU", "NZ", "IE", "DE", "FR", "ES", "IT", "NL",
@@ -59,40 +69,79 @@ export default {
       return handleOrdersList(url, env);
     }
 
+    if (url.pathname === "/upload-design" && request.method === "POST") {
+      return handleUploadDesign(request, env);
+    }
+
+    if (url.pathname === "/design" && request.method === "GET") {
+      return handleDesignDownload(url, env);
+    }
+
     return new Response("Not found", { status: 404 });
   },
 };
 
 async function handleCreateCheckoutSession(request, env) {
   try {
-    const { productId } = await request.json();
+    const { productId, designId } = await request.json();
     if (!productId) {
       return jsonResponse({ error: "productId required" }, 400, request);
     }
 
-    const productsRes = await fetch(PRODUCTS_URL, { cf: { cacheTtl: 0 } });
-    const products = await productsRes.json();
-    const product = products.find((p) => p.id === productId);
-    if (!product) {
-      return jsonResponse({ error: "product not found" }, 404, request);
-    }
-
     const params = new URLSearchParams();
     params.set("mode", "payment");
-    params.set("line_items[0][price_data][currency]", "usd");
-    params.set("line_items[0][price_data][product_data][name]", product.name);
-    if (product.image) {
-      params.set("line_items[0][price_data][product_data][images][0]", product.image);
-    }
-    params.set("line_items[0][price_data][unit_amount]", String(Math.round(product.price * 100)));
-    params.set("line_items[0][quantity]", "1");
     params.set("success_url", `${SITE_URL}/?success=1`);
     params.set("cancel_url", `${SITE_URL}/?canceled=1`);
     SHIP_COUNTRIES.forEach((c, i) =>
       params.set(`shipping_address_collection[allowed_countries][${i}]`, c)
     );
-    params.set("metadata[cj_sku]", product.id);
-    params.set("metadata[product_name]", product.name);
+
+    const custom = CUSTOM_PRODUCTS[productId];
+    if (custom) {
+      // middleman flow: the design must already be uploaded
+      if (!designId || !(await env.ORDERS_KV.get(`design:${designId}`))) {
+        return jsonResponse({ error: "design upload required" }, 400, request);
+      }
+      params.set("line_items[0][price_data][currency]", "usd");
+      params.set("line_items[0][price_data][product_data][name]", custom.name);
+      params.set("line_items[0][price_data][unit_amount]", String(Math.round(custom.price * 100)));
+      params.set("line_items[0][quantity]", "1");
+      params.set("metadata[design_id]", designId);
+      params.set("metadata[product_name]", custom.name);
+      // size + colour collected right on the Stripe page
+      params.set("custom_fields[0][key]", "size");
+      params.set("custom_fields[0][label][type]", "custom");
+      params.set("custom_fields[0][label][custom]", "Shirt size");
+      params.set("custom_fields[0][type]", "dropdown");
+      ["S", "M", "L", "XL", "2XL"].forEach((s, i) => {
+        params.set(`custom_fields[0][dropdown][options][${i}][label]`, s);
+        params.set(`custom_fields[0][dropdown][options][${i}][value]`, s);
+      });
+      params.set("custom_fields[1][key]", "color");
+      params.set("custom_fields[1][label][type]", "custom");
+      params.set("custom_fields[1][label][custom]", "Shirt colour");
+      params.set("custom_fields[1][type]", "dropdown");
+      [["Black", "black"], ["White", "white"]].forEach(([label, value], i) => {
+        params.set(`custom_fields[1][dropdown][options][${i}][label]`, label);
+        params.set(`custom_fields[1][dropdown][options][${i}][value]`, value);
+      });
+    } else {
+      const productsRes = await fetch(PRODUCTS_URL, { cf: { cacheTtl: 0 } });
+      const products = await productsRes.json();
+      const product = products.find((p) => p.id === productId);
+      if (!product) {
+        return jsonResponse({ error: "product not found" }, 404, request);
+      }
+      params.set("line_items[0][price_data][currency]", "usd");
+      params.set("line_items[0][price_data][product_data][name]", product.name);
+      if (product.image) {
+        params.set("line_items[0][price_data][product_data][images][0]", product.image);
+      }
+      params.set("line_items[0][price_data][unit_amount]", String(Math.round(product.price * 100)));
+      params.set("line_items[0][quantity]", "1");
+      params.set("metadata[cj_sku]", product.id);
+      params.set("metadata[product_name]", product.name);
+    }
 
     const stripeRes = await fetch(`${STRIPE_API}/checkout/sessions`, {
       method: "POST",
@@ -112,6 +161,55 @@ async function handleCreateCheckoutSession(request, env) {
   } catch (err) {
     return jsonResponse({ error: String(err) }, 500, request);
   }
+}
+
+// Customer design upload for the middleman merch flow. Stored in KV as a data
+// URL; referenced by id from the checkout session's metadata.
+async function handleUploadDesign(request, env) {
+  try {
+    const { filename, dataUrl } = await request.json();
+    if (typeof dataUrl !== "string" || !/^data:image\/(png|jpeg|webp);base64,/.test(dataUrl)) {
+      return jsonResponse({ error: "PNG, JPG or WEBP image required" }, 400, request);
+    }
+    const b64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+    if (b64.length * 0.75 > MAX_DESIGN_BYTES) {
+      return jsonResponse({ error: "image too large (8 MB max)" }, 413, request);
+    }
+    const designId = crypto.randomUUID();
+    await env.ORDERS_KV.put(
+      `design:${designId}`,
+      JSON.stringify({
+        filename: String(filename || "design").slice(0, 120),
+        dataUrl,
+        createdAt: new Date().toISOString(),
+      }),
+      { expirationTtl: DESIGN_TTL_SECONDS }
+    );
+    return jsonResponse({ designId }, 200, request);
+  } catch (err) {
+    return jsonResponse({ error: String(err) }, 500, request);
+  }
+}
+
+// Admin download of an uploaded design: GET /design?id=...&token=<ORDERS_ADMIN_TOKEN>
+async function handleDesignDownload(url, env) {
+  const token = url.searchParams.get("token") || "";
+  if (!env.ORDERS_ADMIN_TOKEN || token !== env.ORDERS_ADMIN_TOKEN) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const raw = await env.ORDERS_KV.get(`design:${url.searchParams.get("id")}`);
+  if (!raw) return new Response("Design not found (uploads expire after 90 days)", { status: 404 });
+  const design = JSON.parse(raw);
+  const [, mime, b64] = design.dataUrl.match(/^data:(image\/[a-z]+);base64,(.*)$/) || [];
+  if (!b64) return new Response("Corrupt design record", { status: 500 });
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  return new Response(bytes, {
+    status: 200,
+    headers: {
+      "Content-Type": mime,
+      "Content-Disposition": `inline; filename="${design.filename.replace(/[^\w.-]/g, "_")}"`,
+    },
+  });
 }
 
 async function handleWebhook(request, env) {
@@ -201,6 +299,10 @@ async function recordOrder(session, env) {
     amount: (session.amount_total || 0) / 100,
     currency: (session.currency || "usd").toUpperCase(),
     customer: { name: name || cd.name || "", email: cd.email || "", phone: cd.phone || "" },
+    design: session.metadata?.design_id || null,
+    options: (session.custom_fields || [])
+      .map((f) => `${f.key}: ${f.dropdown?.value || f.text?.value || f.numeric?.value || ""}`)
+      .filter((s) => !s.endsWith(": ")),
     ship: address
       ? {
           line1: address.line1 || "",
@@ -304,7 +406,13 @@ async function handleOrdersList(url, env) {
       return `<tr>
         <td>${escapeHtml((o.createdAt || "").slice(0, 16).replace("T", " "))}</td>
         <td><span class="status ${escapeHtml(o.status)}">${escapeHtml(o.status)}</span></td>
-        <td><b>${escapeHtml(o.product?.name || o.product?.sku)}</b><br><small>SKU ${escapeHtml(o.product?.sku)} &times;${o.product?.qty || 1}</small></td>
+        <td><b>${escapeHtml(o.product?.name || o.product?.sku)}</b><br><small>${
+          o.design
+            ? `<a href="/design?id=${escapeHtml(o.design)}&token=${encodeURIComponent(token)}" target="_blank">customer design file</a>${
+                o.options?.length ? " &middot; " + escapeHtml(o.options.join(", ")) : ""
+              }`
+            : `SKU ${escapeHtml(o.product?.sku)} &times;${o.product?.qty || 1}`
+        }</small></td>
         <td>$${escapeHtml(o.amount)} ${escapeHtml(o.currency)}</td>
         <td>${escapeHtml(o.customer?.name)}<br><small>${escapeHtml(o.customer?.email)}<br>${escapeHtml(o.customer?.phone)}</small></td>
         <td>${addr}</td>

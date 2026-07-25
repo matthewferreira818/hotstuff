@@ -101,18 +101,29 @@ NAME_KEYWORD_CATEGORIES = [
 ]
 
 
-def classify_name(name: str) -> tuple[str, str]:
-    name_lower = (name or "").lower()
-    # Whole-word matching (with a simple plural fold) so e.g. "Suction" can
-    # never match "cup" nor "delicate" match "cat". Multi-word keywords fall
-    # back to substring matching.
+def tokenize(name: str) -> tuple[str, set[str]]:
+    """Lowercase + pad a name for substring checks, and split it into a word
+    set for whole-word checks. Shared by classify_name and describe() so both
+    use the same word-boundary-safe matching (see keyword_hit)."""
+    name_lower = f" {(name or '').lower()} "
     words = set(re.findall(r"[a-z]+", name_lower))
-    def hit(k: str) -> bool:
-        if " " in k:
-            return k in name_lower
-        return k in words or k + "s" in words or (k.endswith("s") and k[:-1] in words)
+    return name_lower, words
+
+
+def keyword_hit(name_lower: str, words: set[str], k: str) -> bool:
+    """Whole-word matching (with a simple plural fold) so e.g. "Suction" can
+    never match "cup" nor "delicate" match "cat" -- and so a concatenated
+    supplier word like "CarWash" can't falsely match "car". Multi-word (or
+    space-padded) keywords fall back to substring matching."""
+    if " " in k:
+        return k in name_lower
+    return k in words or k + "s" in words or (k.endswith("s") and k[:-1] in words)
+
+
+def classify_name(name: str) -> tuple[str, str]:
+    name_lower, words = tokenize(name)
     for keywords, category, emoji in NAME_KEYWORD_CATEGORIES:
-        if any(hit(k) for k in keywords):
+        if any(keyword_hit(name_lower, words, k) for k in keywords):
             return category, emoji
     return "Trending Finds", "🛍️"
 
@@ -300,109 +311,232 @@ def normalize_trend_score(listed_num: int, all_listed_nums: list[int]) -> int:
 
 
 # Warm, benefit-led descriptions keyed to what the product actually IS, with a
-# few variants each so 40 cards don't read identically. The variant is chosen
-# deterministically per SKU (same hashing style as assign_price), so a given
-# product's copy stays stable across refreshes. First matching keyword wins.
+# handful of variants each so 40 cards rarely repeat one. The variant is
+# chosen deterministically per SKU (same hashing style as assign_price), so a
+# given product's copy stays stable across refreshes. Matching uses the same
+# whole-word logic as classify_name (see keyword_hit/tokenize) so a stray
+# substring -- e.g. "car" inside a concatenated "CarWash" -- can't pull in an
+# unrelated blurb. First matching keyword group wins.
 KEYWORD_DESCRIPTIONS = [
+    (("fetal", "pregnancy", "prenatal", "expecting"),
+     ["A sweet way to feel a little closer during pregnancy.",
+      "A gentle keepsake for an exciting stage of the wait.",
+      "A thoughtful pick for parents-to-be.",
+      "Small moments made a little more special before baby arrives.",
+      "A caring little extra for the nine-month countdown."]),
     (("necklace", "pendant", "bracelet", " ring", "jewelry", "clover", "zodiac", "constellation"),
      ["Everyday sparkle that makes an easy, giftable win.",
       "A dainty little piece people keep adding to cart.",
-      "Wear-anywhere shine — and it gives beautifully, too."]),
+      "Wear-anywhere shine — and it gives beautifully, too.",
+      "Simple, pretty, and easy to layer with anything.",
+      "A little extra shine for an everyday outfit."]),
     (("leggings", "yoga", "fitness", "trainer", "workout", "grip", " abs", "muscle", "seamless"),
      ["Gear up — a fitness favorite shoppers keep coming back for.",
       "The kind of workout upgrade that actually gets used.",
-      "Move better, feel better — a trending fitness pick."]),
+      "Move better, feel better — a trending fitness pick.",
+      "Built for the gym, comfy enough for the couch after.",
+      "An easy way to make workouts feel more solid."]),
     (("dog", "cat", "pet", "puppy", "kitten"),
      ["A pet-parent favorite your furry friend will love.",
       "Spoil the good boy (or girl) — pet owners can't get enough.",
-      "Made for happy pets and easier pet-parenting."]),
+      "Made for happy pets and easier pet-parenting.",
+      "A little extra comfort for your best friend.",
+      "Pet-approved, parent-approved."]),
     (("phone", "case", "charger", "wireless", "magnetic", "airpod", "apple"),
      ["A handy phone upgrade that smooths out your day.",
       "Small accessory, surprisingly big daily payoff.",
-      "The phone add-on you'll wonder how you lived without."]),
+      "The phone add-on you'll wonder how you lived without.",
+      "Keeps your phone charged, protected, or both.",
+      "An easy fix for one of your most-used gadgets."]),
     (("humidifier", "diffuser", "aromatherapy", "essential oil"),
      ["Turn any room into a calm, better-smelling space.",
       "Set the mood — soft mist, softer vibes.",
-      "A little spa energy for your home or desk."]),
+      "A little spa energy for your home or desk.",
+      "An easy way to freshen up any room.",
+      "Quiet, simple, and nice to come home to."]),
     (("led", "light", "lamp", "lantern", "candle", "fairy", "glow", "luminous"),
      ["Set the mood with a warm, ambient glow.",
       "Instant cozy — lighting that transforms a room.",
-      "Soft light that makes any corner feel special."]),
+      "Soft light that makes any corner feel special.",
+      "An easy plug-in upgrade for any room's vibe.",
+      "Bright idea, warm feeling."]),
     (("blender", "juicer", "mixer", "stirrer", "kitchen", "coffee", "milk"),
      ["A clever kitchen helper that earns its counter space.",
       "Small gadget, big everyday kitchen win.",
-      "Makes the daily routine quicker and a little more fun."]),
+      "Makes the daily routine quicker and a little more fun.",
+      "An easy upgrade for your morning routine.",
+      "Simple kitchen gear that actually gets used."]),
     (("vacuum", "cleaner", "dredger", "sewer", "remover", "lint"),
      ["Turns an annoying chore into a quick, satisfying job.",
       "The satisfying little fix for an everyday mess.",
-      "Cleaning up just got weirdly enjoyable."]),
+      "Cleaning up just got weirdly enjoyable.",
+      "A small tool that handles a surprisingly big mess.",
+      "Makes tidying up faster and way less annoying."]),
     (("baby", "newborn", "kids", "jumper", "children"),
      ["Adorable and practical — an easy pick for the little ones.",
       "Cute meets useful for babies and toddlers.",
-      "The kind of thing new parents quietly love."]),
+      "The kind of thing new parents quietly love.",
+      "Soft, simple, and made with little ones in mind.",
+      "A sweet, easy pick for baby's everyday routine."]),
     (("glove", "winter", "warm", "scarf"),
      ["Cozy, practical, and right on time for the season.",
       "Beat the chill in style — a seasonal favorite.",
-      "Warm hands, happy you."]),
+      "Warm hands, happy you.",
+      "An easy layer for cold-weather days.",
+      "Keeps you comfortable when the temperature drops."]),
     (("toy", "plush", "teddy", "drawing", "educational", "bear"),
      ["Hours of fun — and it makes a great gift, too.",
       "Playtime sorted; smiles guaranteed.",
-      "A crowd-pleaser for kids and the young at heart."]),
+      "A crowd-pleaser for kids and the young at heart.",
+      "Easy fun that keeps little hands busy.",
+      "A simple toy that gets played with, not shelved."]),
+    (("hose", "nozzle", "sprayer", "blaster", "garden", "lawn"),
+     ["Hooks up in seconds for an easy yard or car-wash boost.",
+      "Turns hose duty into a quick, satisfying job.",
+      "A yard-day upgrade — more spray, less hassle.",
+      "Makes watering, washing, and rinsing genuinely easier.",
+      "Built for the yard, handy for the driveway too."]),
     (("car", "vehicle", "dashboard", "tracker", "gps", "seat belt", "holder"),
      ["A smart little upgrade for your daily drive.",
       "Ride smarter — a favorite for the daily commute.",
-      "Fixes a real car annoyance you didn't know you could."]),
+      "Fixes a real car annoyance you didn't know you could.",
+      "Makes every drive a little easier.",
+      "A simple add-on your car has been missing."]),
     (("shower", "finder", "bluetooth", "ruler", "measuring", "instrument", "tape", "socket", "led "),
      ["Smart, useful tech that solves a real everyday annoyance.",
       "The clever little fix that just makes sense.",
-      "Practical tech people wish they'd bought sooner."]),
+      "Practical tech people wish they'd bought sooner.",
+      "Handy tech for a job you didn't want to do by hand.",
+      "A small gadget that earns its keep fast."]),
     (("crystal", "stone", "healing", "moon", "tree of life"),
      ["A calming little talisman with serious shelf appeal.",
       "Good-vibes decor that doubles as a thoughtful gift.",
-      "Natural, pretty, and quietly trending."]),
+      "Natural, pretty, and quietly trending.",
+      "A pretty little pick-me-up for a shelf or desk.",
+      "Simple, natural style that's easy to love."]),
+    (("shoe", "sneaker", "sandal", "slipper"),
+     ["Easy-wear style that goes with almost everything.",
+      "Comfortable enough for all-day, cute enough for anywhere.",
+      "A shoe upgrade that's easy to reach for daily.",
+      "Step out in something new without overthinking it.",
+      "Comfy first, stylish always."]),
+    (("bag", "backpack", "purse", "handbag", "tote"),
+     ["Room for everything, without looking like it.",
+      "An easy grab-and-go for daily errands.",
+      "Fits the essentials and still looks put-together.",
+      "A bag that pulls its weight every single day.",
+      "Simple, roomy, and easy to style."]),
+    (("wrench", "tool", "repair", "screwdriver", "drill"),
+     ["A handy fix-it upgrade for the toolbox.",
+      "Makes a fiddly job noticeably faster.",
+      "Practical gear that earns a spot in the garage.",
+      "The kind of tool you reach for more than expected.",
+      "Simple, sturdy, and genuinely useful."]),
+    (("shaper", "shaping", "compression", "slimming", "shapewear", "strapless bra", "push up"),
+     ["An easy, comfy layer under any outfit.",
+      "Smooths things out without a second thought.",
+      "A go-to layering piece for under everyday looks.",
+      "Simple support that fits under whatever you're wearing.",
+      "An easy wardrobe helper for a polished look."]),
+    (("knee pad", "knee brace", "elbow pad", "wrist brace"),
+     ["Extra padding for whatever activity you're into.",
+      "Built to take a knock so you don't have to.",
+      "Simple protection that doesn't slow you down.",
+      "An easy add for active days.",
+      "Practical padding for sports, work, or play."]),
 ]
 
 CATEGORY_DESCRIPTIONS = {
     "Fashion": ["A trending wardrobe win that's flying off the shelves.",
-                "Easy style upgrade shoppers are loving right now."],
+                "Easy style upgrade shoppers are loving right now.",
+                "A simple way to freshen up your everyday look.",
+                "Wardrobe-ready and easy to style multiple ways."],
     "Beauty": ["A small beauty win that becomes a daily go-to.",
-               "The kind of self-care buy people rave about."],
+               "The kind of self-care buy people rave about.",
+               "An easy add to your everyday routine.",
+               "Simple beauty gear that actually gets used."],
     "Home": ["A cozy home upgrade with big everyday payoff.",
-             "Little touch, big difference in your space."],
+             "Little touch, big difference in your space.",
+             "An easy way to make your space feel more finished.",
+             "Simple home gear that quietly earns its keep."],
     "Kitchen": ["A handy kitchen helper worth the counter space.",
-                "Makes cooking (and cleanup) a little easier."],
+                "Makes cooking (and cleanup) a little easier.",
+                "Small kitchen gear, surprisingly big payoff.",
+                "An easy upgrade for everyday meals."],
     "Electronics": ["Clever tech that solves a real everyday problem.",
-                    "Useful gadgetry people keep coming back for."],
+                    "Useful gadgetry people keep coming back for.",
+                    "Small tech, surprisingly handy day to day.",
+                    "Practical gear for the gadget drawer."],
     "Pet": ["A pet-parent favorite for happier furry friends.",
-            "Because the good pets deserve nice things."],
+            "Because the good pets deserve nice things.",
+            "An easy win for pets and their people.",
+            "Simple pet gear that gets used daily."],
     "Fitness": ["A trending fitness pick that actually gets used.",
-                "Level up the routine — a workout favorite."],
+                "Level up the routine — a workout favorite.",
+                "Simple gear that makes workouts a little easier.",
+                "An easy add to any fitness routine."],
     "Toys": ["Fun for the kids and an easy gift-time win.",
-             "Playtime, sorted — and it's trending for a reason."],
+             "Playtime, sorted — and it's trending for a reason.",
+             "An easy pick for keeping little hands busy.",
+             "Simple fun that holds attention."],
     "Jewelry": ["Everyday sparkle that gives beautifully, too.",
-                "A dainty piece people keep adding to cart."],
+                "A dainty piece people keep adding to cart.",
+                "Simple shine that goes with everything.",
+                "An easy little extra for any outfit."],
     "Phone Accessories": ["A handy phone upgrade that smooths out your day.",
-                          "Small add-on, surprisingly big daily payoff."],
+                          "Small add-on, surprisingly big daily payoff.",
+                          "An easy fix for one of your most-used gadgets.",
+                          "Practical gear for the phone you use nonstop."],
     "Sports": ["Trending gear for getting after it outdoors.",
-               "The kind of kit that makes an active day better."],
+               "The kind of kit that makes an active day better.",
+               "Simple gear built for actually getting used.",
+               "An easy add for active days."],
     "Auto": ["A small car upgrade that makes every drive nicer.",
-             "Practical kit your car will thank you for."],
+             "Practical kit your car will thank you for.",
+             "An easy fix for a small daily driving annoyance.",
+             "Simple gear that makes commuting a little smoother."],
+    "Outdoor": ["Trending gear for wherever the trail takes you.",
+                "Simple kit that makes time outside easier.",
+                "An easy upgrade for camping, hiking, or the yard.",
+                "Built for outside, easy enough for everyday use."],
+    "Bags": ["Room for everything, without looking like it.",
+             "An easy grab-and-go for daily errands.",
+             "Fits the essentials and still looks put-together.",
+             "Simple, roomy, and easy to style."],
+    "Footwear": ["Easy-wear style that goes with almost everything.",
+                 "Comfortable enough for all-day, cute enough for anywhere.",
+                 "A shoe upgrade that's easy to reach for daily.",
+                 "Comfy first, stylish always."],
+    "Tools": ["A handy fix-it upgrade for the toolbox.",
+              "Makes a fiddly job noticeably faster.",
+              "Practical gear that earns a spot in the garage.",
+              "Simple, sturdy, and genuinely useful."],
+    "Trending Finds": ["A shopper favorite that's having a real moment.",
+                        "Simple, useful, and easy to see why it's trending.",
+                        "An easy pick that's earning repeat buyers.",
+                        "Practical, well-priced, and quietly popular.",
+                        "The kind of find that over-delivers for the price.",
+                        "A small daily upgrade worth trying.",
+                        "Handy, simple, and easy to love.",
+                        "One of this week's most-loved trending finds."],
 }
 
 DEFAULT_DESCRIPTIONS = [
     "One of this week's most-loved trending finds.",
     "A shopper favorite that's having a real moment.",
     "Trending hard right now — and easy to see why.",
+    "Simple, useful, and easy to see why it's trending.",
+    "An easy pick that's earning repeat buyers.",
 ]
 
 
 def describe(name: str, category: str, sku: str) -> str:
     """A warm, benefit-led one-liner keyed to the product. Deterministic per
     SKU so copy stays stable across refreshes — no more identical templates."""
-    low = f" {(name or '').lower()} "
+    name_lower, words = tokenize(name)
     variants = None
     for keywords, options in KEYWORD_DESCRIPTIONS:
-        if any(k in low for k in keywords):
+        if any(keyword_hit(name_lower, words, k) for k in keywords):
             variants = options
             break
     if variants is None:

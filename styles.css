@@ -710,6 +710,11 @@ details p {
   overflow: hidden;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+a.merch-card {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
 .merch-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
@@ -741,6 +746,9 @@ details p {
   background: linear-gradient(120deg, var(--accent-a), var(--accent-b));
   padding: 4px 10px;
   border-radius: 999px;
+}
+.merch-badge-soon {
+  background: var(--muted, #7a6a72);
 }
 .merch-note {
   text-align: center;

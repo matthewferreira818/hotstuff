@@ -12,6 +12,9 @@
       HotsTuff's trending catalog requires JavaScript to load. Please enable it to browse current products.
     </div>
   </noscript>
+  <div class="announce">
+    🚚 <b>Free shipping</b><span class="announce-detail"> on every order</span><span class="announce-extra"> · 🔒 Secure Stripe checkout</span> · ↩️ 30-day money-back guarantee
+  </div>
   <header class="nav">
     <div class="nav-inner">
       <a class="brand" href="#">
@@ -20,7 +23,7 @@
       <nav class="nav-links">
         <a href="#trending">Trending</a>
         <a href="#how">How it works</a>
-        <a href="#merch">Merch</a>
+        <a href="#merch">Merch <span class="nav-new">New</span></a>
         <a href="#shipping">Shipping</a>
         <a href="#faq">FAQ</a>
       </nav>
@@ -45,6 +48,13 @@
       </div>
     </section>
 
+    <div class="trust-strip" aria-label="Why shop with confidence">
+      <div class="trust-item"><span class="trust-icon">🔒</span><span><b>Secure checkout</b><small>Payments handled by Stripe</small></span></div>
+      <div class="trust-item"><span class="trust-icon">🚚</span><span><b>Free tracked shipping</b><small>On every order, worldwide</small></span></div>
+      <div class="trust-item"><span class="trust-icon">↩️</span><span><b>30-day guarantee</b><small>Full refund or free replacement</small></span></div>
+      <div class="trust-item"><span class="trust-icon">💬</span><span><b>Real human support</b><small>Replies within 1–2 business days</small></span></div>
+    </div>
+
     <section class="trending" id="trending">
       <div class="section-head">
         <h2>Trending this week</h2>
@@ -54,34 +64,13 @@
       <div class="grid" id="product-grid"></div>
     </section>
 
-    <section class="how" id="how">
-      <div class="section-head">
-        <h2>How the catalog stays fresh</h2>
-        <p>Every listing here is data, not code — that's what makes it easy to rotate.</p>
-      </div>
-      <div class="how-grid">
-        <div class="how-card">
-          <div class="how-num">01</div>
-          <h3>Trend signal comes in</h3>
-          <p>Rising search terms and social velocity surface a new candidate product.</p>
-        </div>
-        <div class="how-card">
-          <div class="how-num">02</div>
-          <h3>Added to the catalog</h3>
-          <p>A single entry is appended to the product list — no redesign required.</p>
-        </div>
-        <div class="how-card">
-          <div class="how-num">03</div>
-          <h3>Retired when it cools off</h3>
-          <p>Once trend score drops, the entry is removed and shelf space opens up.</p>
-        </div>
-      </div>
-    </section>
-
     <section class="merch" id="merch">
-      <div class="section-head">
+      <span class="merch-ribbon" aria-hidden="true">NEW</span>
+      <div class="merch-inner">
+      <div class="section-head merch-head">
+        <span class="merch-eyebrow">✨ Just dropped</span>
         <h2>HotsTuff Merch</h2>
-        <p>Rep the flame — tees, mugs and stickers with the HotsTuff logo. Dropping soon.</p>
+        <p>Rep the flame — logo tees, mugs and stickers are on the way. Custom printing is <b>live now</b>: upload your own design and we'll put it on a tee.</p>
       </div>
       <div class="merch-grid">
         <div class="merch-card">
@@ -118,6 +107,31 @@
       </div>
       <p class="merch-note">Custom tees: pick your size &amp; colour at checkout — we print your art and ship it to your door. Only upload art you have the right to print.<br>
       Logo merch drops soon — follow <a href="https://x.com/hotstuff2213" target="_blank" rel="noopener">@hotstuff2213</a> to catch it.</p>
+      </div>
+    </section>
+
+    <section class="how" id="how">
+      <div class="section-head">
+        <h2>How the catalog stays fresh</h2>
+        <p>Every listing here is data, not code — that's what makes it easy to rotate.</p>
+      </div>
+      <div class="how-grid">
+        <div class="how-card">
+          <div class="how-num">01</div>
+          <h3>Trend signal comes in</h3>
+          <p>Rising search terms and social velocity surface a new candidate product.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">02</div>
+          <h3>Added to the catalog</h3>
+          <p>A single entry is appended to the product list — no redesign required.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-num">03</div>
+          <h3>Retired when it cools off</h3>
+          <p>Once trend score drops, the entry is removed and shelf space opens up.</p>
+        </div>
+      </div>
     </section>
 
     <section class="shipping" id="shipping">
@@ -194,6 +208,14 @@
   </main>
 
   <footer class="footer">
+    <div class="footer-trust" aria-label="Accepted payment methods">
+      <span class="pay-badge">VISA</span>
+      <span class="pay-badge">Mastercard</span>
+      <span class="pay-badge">AMEX</span>
+      <span class="pay-badge">Apple&nbsp;Pay</span>
+      <span class="pay-badge">Google&nbsp;Pay</span>
+      <span>· Checkout secured by Stripe</span>
+    </div>
     <div class="footer-inner">
       <span>© <span id="year"></span> HotsTuff</span>
       <span class="footer-note">

@@ -36,7 +36,7 @@ function corsHeaders(request) {
   const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     "Access-Control-Allow-Origin": allowed,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Vary": "Origin",
   };
@@ -69,6 +69,10 @@ export default {
       return handleOrdersList(url, env);
     }
 
+    if (url.pathname === "/session-summary" && request.method === "GET") {
+      return handleSessionSummary(url, env, request);
+    }
+
     if (url.pathname === "/upload-design" && request.method === "POST") {
       return handleUploadDesign(request, env);
     }
@@ -90,8 +94,12 @@ async function handleCreateCheckoutSession(request, env) {
 
     const params = new URLSearchParams();
     params.set("mode", "payment");
-    params.set("success_url", `${SITE_URL}/?success=1`);
+    // {CHECKOUT_SESSION_ID} is substituted by Stripe so the confirmation page
+    // can look up its own order summary.
+    params.set("success_url", `${SITE_URL}/success.html?session_id={CHECKOUT_SESSION_ID}`);
     params.set("cancel_url", `${SITE_URL}/?canceled=1`);
+    // Phone makes manual CJ fulfillment smoother (carriers want one).
+    params.set("phone_number_collection[enabled]", "true");
     SHIP_COUNTRIES.forEach((c, i) =>
       params.set(`shipping_address_collection[allowed_countries][${i}]`, c)
     );
@@ -108,6 +116,8 @@ async function handleCreateCheckoutSession(request, env) {
       params.set("line_items[0][quantity]", "1");
       params.set("metadata[design_id]", designId);
       params.set("metadata[product_name]", custom.name);
+      // shows as the line description on the Stripe email receipt
+      params.set("payment_intent_data[description]", `HotsTuff — ${custom.name}`);
       // size + colour collected right on the Stripe page
       params.set("custom_fields[0][key]", "size");
       params.set("custom_fields[0][label][type]", "custom");
@@ -141,6 +151,8 @@ async function handleCreateCheckoutSession(request, env) {
       params.set("line_items[0][quantity]", "1");
       params.set("metadata[cj_sku]", product.id);
       params.set("metadata[product_name]", product.name);
+      // shows as the line description on the Stripe email receipt
+      params.set("payment_intent_data[description]", `HotsTuff — ${product.name}`);
     }
 
     const stripeRes = await fetch(`${STRIPE_API}/checkout/sessions`, {
@@ -210,6 +222,53 @@ async function handleDesignDownload(url, env) {
       "Content-Disposition": `inline; filename="${design.filename.replace(/[^\w.-]/g, "_")}"`,
     },
   });
+}
+
+// Public order summary for the confirmation page. Session IDs are unguessable
+// (Stripe-issued, high entropy) and the page belongs to the customer who just
+// paid, so returning their own order details here mirrors what Stripe's own
+// confirmation surface shows. Only ever returns data for PAID sessions.
+async function handleSessionSummary(url, env, request) {
+  const id = url.searchParams.get("session_id") || "";
+  if (!/^cs_(live|test)_[A-Za-z0-9]+$/.test(id)) {
+    return jsonResponse({ error: "invalid session id" }, 400, request);
+  }
+  const res = await fetch(`${STRIPE_API}/checkout/sessions/${id}`, {
+    headers: { Authorization: `Bearer ${env.STRIPE_SECRET_KEY}` },
+  });
+  if (!res.ok) {
+    return jsonResponse({ error: "order not found" }, 404, request);
+  }
+  const session = await res.json();
+  if (session.payment_status !== "paid") {
+    return jsonResponse({ error: "order not found" }, 404, request);
+  }
+  const { address, name } = extractShipping(session);
+  const cd = session.customer_details || {};
+  return jsonResponse(
+    {
+      product: session.metadata?.product_name || "Your order",
+      amount: (session.amount_total || 0) / 100,
+      currency: (session.currency || "usd").toUpperCase(),
+      email: cd.email || "",
+      name: name || cd.name || "",
+      options: (session.custom_fields || [])
+        .map((f) => `${f.key}: ${f.dropdown?.value || f.text?.value || f.numeric?.value || ""}`)
+        .filter((s) => !s.endsWith(": ")),
+      ship: address
+        ? {
+            line1: address.line1 || "",
+            line2: address.line2 || "",
+            city: address.city || "",
+            state: address.state || "",
+            postal: address.postal_code || "",
+            country: address.country || "",
+          }
+        : null,
+    },
+    200,
+    request
+  );
 }
 
 async function handleWebhook(request, env) {
@@ -314,7 +373,29 @@ async function recordOrder(session, env) {
         }
       : null,
     cj: null,
+    receipt: null,
   };
+
+  // Email the customer a Stripe receipt: setting receipt_email on an already-
+  // succeeded PaymentIntent makes Stripe send its receipt email immediately
+  // (no extra email service needed). Best-effort — never blocks the order log.
+  try {
+    if (session.payment_intent && record.customer.email) {
+      const piRes = await fetch(`${STRIPE_API}/payment_intents/${session.payment_intent}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ receipt_email: record.customer.email }).toString(),
+      });
+      record.receipt = piRes.ok ? "sent" : `error-${piRes.status}`;
+    } else {
+      record.receipt = "skipped-no-email";
+    }
+  } catch (err) {
+    record.receipt = `error: ${String(err)}`;
+  }
 
   // Best-effort CJ auto-placement (works only from a stable/whitelisted IP).
   try {
@@ -413,7 +494,9 @@ async function handleOrdersList(url, env) {
               }`
             : `SKU ${escapeHtml(o.product?.sku)} &times;${o.product?.qty || 1}`
         }</small></td>
-        <td>$${escapeHtml(o.amount)} ${escapeHtml(o.currency)}</td>
+        <td>$${escapeHtml(o.amount)} ${escapeHtml(o.currency)}${
+          o.receipt ? `<br><small>receipt: ${escapeHtml(o.receipt)}</small>` : ""
+        }</td>
         <td>${escapeHtml(o.customer?.name)}<br><small>${escapeHtml(o.customer?.email)}<br>${escapeHtml(o.customer?.phone)}</small></td>
         <td>${addr}</td>
         <td>${cjNote}</td>

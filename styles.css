@@ -111,7 +111,7 @@ summary:focus-visible,
 }
 
 .btn-primary {
-  background: var(--accent-a);
+  background: linear-gradient(120deg, var(--accent-a), #f43f5e 55%, var(--accent-b));
   color: white;
   box-shadow: var(--shadow-sm);
 }
@@ -207,6 +207,17 @@ section {
   margin: 0 0 8px;
 }
 
+/* short flame-gradient underline beneath every section heading */
+.section-head h2::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 4px;
+  border-radius: 2px;
+  margin-top: 10px;
+  background: linear-gradient(90deg, var(--accent-a), var(--accent-b));
+}
+
 .section-head p {
   color: var(--text-muted);
   margin: 0;
@@ -239,8 +250,8 @@ section {
 }
 
 .category-chip.active {
-  background: var(--accent-a);
-  border-color: var(--accent-a);
+  background: linear-gradient(120deg, var(--accent-a), #f43f5e);
+  border-color: transparent;
   color: #ffffff;
 }
 
@@ -599,16 +610,76 @@ details p {
   }
 }
 
-/* --- Merch section --- */
+/* --- Merch section: full-width spotlight band --- */
 .merch {
+  position: relative;
+  overflow: hidden;
+  max-width: none;
+  margin: 24px 0 0;
+  padding: 72px 24px 48px;
+  background:
+    radial-gradient(560px circle at 85% 0%, rgba(245, 158, 11, 0.14), transparent 60%),
+    linear-gradient(180deg, rgba(245, 158, 11, 0.07), rgba(225, 29, 72, 0.05));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.merch-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 56px 24px 8px;
+}
+.merch-ribbon {
+  position: absolute;
+  top: 26px;
+  right: -38px;
+  transform: rotate(45deg);
+  background: linear-gradient(120deg, var(--accent-a), var(--accent-b));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  padding: 7px 52px;
+  box-shadow: 0 2px 12px rgba(225, 29, 72, 0.35);
+  z-index: 2;
+  pointer-events: none;
+}
+.merch-eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: linear-gradient(120deg, var(--accent-a), var(--accent-b));
+  padding: 5px 14px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+.merch-head h2 {
+  font-size: 34px;
+}
+.merch-head p {
+  max-width: 640px;
+}
+.merch-head p b {
+  color: var(--accent-a);
 }
 .merch-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+.nav-new {
+  display: inline-block;
+  margin-left: 2px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, var(--accent-a), var(--accent-b));
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  vertical-align: middle;
 }
 .merch-card {
   background: #fff;
@@ -657,9 +728,17 @@ details p {
 }
 .merch-note a { color: var(--accent-a); font-weight: 700; }
 @media (max-width: 640px) {
+  .merch { padding: 56px 24px 36px; }
   .merch-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .merch-info h3 { font-size: 0.82rem; }
   .merch-badge { font-size: 0.6rem; padding: 3px 8px; }
+  .merch-head h2 { font-size: 26px; }
+  .merch-ribbon {
+    top: 16px;
+    right: -42px;
+    font-size: 11px;
+    padding: 5px 46px;
+  }
 }
 
 /* custom-design upload card */
@@ -701,3 +780,192 @@ details p {
 }
 .merch-buy { padding: 8px 18px; }
 .merch-buy:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* --- Announcement bar (free shipping / guarantee) --- */
+.announce {
+  background: linear-gradient(120deg, var(--accent-a), var(--accent-b));
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px 16px;
+  letter-spacing: 0.01em;
+}
+.announce b { font-weight: 800; }
+@media (max-width: 640px) {
+  .announce { font-size: 12px; padding: 7px 10px; }
+  /* keep it one line on phones */
+  .announce .announce-extra,
+  .announce .announce-detail { display: none; }
+}
+
+/* --- Trust strip (secure checkout / shipping / guarantee / support) --- */
+.trust-strip {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  font-size: 13px;
+  box-shadow: var(--shadow-sm);
+}
+.trust-icon { font-size: 20px; flex: none; }
+.trust-item b { display: block; font-size: 13px; }
+.trust-item small { color: var(--text-muted); font-size: 12px; }
+@media (max-width: 820px) {
+  .trust-strip { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* --- Footer payment badges --- */
+.footer-trust {
+  max-width: 1120px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+.pay-badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+@media (max-width: 640px) {
+  .footer-inner { flex-direction: column; gap: 6px; text-align: center; }
+}
+
+/* --- Success (order confirmation) page --- */
+.success-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 56px 24px 80px;
+  text-align: center;
+}
+.success-check {
+  width: 84px;
+  height: 84px;
+  margin-bottom: 20px;
+}
+.success-check circle {
+  stroke: #22c55e;
+  stroke-width: 3;
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: checkDraw 0.6s ease forwards;
+}
+.success-check path {
+  stroke: #22c55e;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 36;
+  stroke-dashoffset: 36;
+  animation: checkDraw 0.4s ease 0.5s forwards;
+}
+@keyframes checkDraw { to { stroke-dashoffset: 0; } }
+.success-main h1 {
+  font-size: clamp(28px, 5vw, 40px);
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+.success-sub {
+  color: var(--text-muted);
+  font-size: 17px;
+  margin: 0 0 32px;
+}
+.order-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 22px 24px;
+  text-align: left;
+  margin-bottom: 40px;
+}
+.order-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px dashed var(--border);
+}
+.order-row:last-of-type { border-bottom: none; }
+.order-row-product {
+  font-size: 16px;
+  font-weight: 600;
+  padding-top: 0;
+}
+.order-amount {
+  font-weight: 800;
+  color: var(--accent-a);
+  white-space: nowrap;
+}
+.order-label {
+  flex: none;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.order-row span:last-child { text-align: right; overflow-wrap: anywhere; }
+.order-ref {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.order-fallback-text { margin: 4px 0; color: var(--text-muted); font-size: 14.5px; }
+.order-skeleton .skeleton-line { margin: 12px 0; }
+.next-steps { text-align: left; margin-bottom: 36px; padding: 0; }
+.next-steps h2 { font-size: 20px; margin: 0 0 16px; text-align: center; }
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.step {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.step-icon { grid-row: 1 / span 2; font-size: 22px; align-self: center; }
+.step b { font-size: 14.5px; }
+.step small { color: var(--text-muted); font-size: 13px; }
+.step.done { border-color: rgba(34, 197, 94, 0.45); }
+.success-note {
+  color: var(--text-muted);
+  font-size: 13.5px;
+  line-height: 1.7;
+  margin: 0 0 28px;
+}
+.success-note a { color: var(--accent-a); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  .success-check circle, .success-check path { animation: none; stroke-dashoffset: 0; }
+}

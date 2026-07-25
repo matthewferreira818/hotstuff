@@ -81,13 +81,15 @@ GRADIENTS = [
 # CJ's list endpoint doesn't reliably return category names, so category + emoji
 # are both derived from keywords in the product title.
 NAME_KEYWORD_CATEGORIES = [
+    # Pet stays ahead of Auto so "dog car seat belt"-style items keep the Pet label.
+    (("pet", "dog", "cat", "puppy", "kitten"), "Pet", "🐾"),
+    (("car", "vehicle", "dashboard", "windshield", "suction"), "Auto", "🚗"),
     (("blender", "juicer", "kitchen", "cup", "mug", "cookware"), "Kitchen", "🍳"),
     (("humidifier", "night light", "lamp", "led", "home", "decor"), "Home", "🏠"),
     (("makeup", "beauty", "skincare", "hair", "cosmetic"), "Beauty", "💄"),
     (("fitness", "gym", "yoga", "muscle", "workout"), "Fitness", "🏋️"),
     (("usb", "charger", "bluetooth", "electronic", "speaker", "earbud"), "Electronics", "🔌"),
     (("toy", "kids", "children", "game"), "Toys", "🧸"),
-    (("pet", "dog", "cat"), "Pet", "🐾"),
     (("dress", "shirt", "fashion", "clothing", "jacket"), "Fashion", "👗"),
     (("jewelry", "necklace", "ring", "bracelet"), "Jewelry", "💍"),
     (("outdoor", "camping", "hiking", "tent"), "Outdoor", "🏕️"),
@@ -101,8 +103,16 @@ NAME_KEYWORD_CATEGORIES = [
 
 def classify_name(name: str) -> tuple[str, str]:
     name_lower = (name or "").lower()
+    # Whole-word matching (with a simple plural fold) so e.g. "Suction" can
+    # never match "cup" nor "delicate" match "cat". Multi-word keywords fall
+    # back to substring matching.
+    words = set(re.findall(r"[a-z]+", name_lower))
+    def hit(k: str) -> bool:
+        if " " in k:
+            return k in name_lower
+        return k in words or k + "s" in words or (k.endswith("s") and k[:-1] in words)
     for keywords, category, emoji in NAME_KEYWORD_CATEGORIES:
-        if any(k in name_lower for k in keywords):
+        if any(hit(k) for k in keywords):
             return category, emoji
     return "Trending Finds", "🛍️"
 
@@ -183,7 +193,7 @@ def select_rotating(pool: list[dict], prev_ids: set[str]) -> list[dict]:
     return chosen[:DISPLAY_COUNT]
 
 
-MAX_NAME_LENGTH = 55
+MAX_NAME_LENGTH = 80  # card CSS clamps to two lines, so mid-name "…" is rarely needed
 
 # Pure marketing/SEO puffery that never describes the physical product.
 # Dropped from titles (case-insensitive, whole words).
@@ -375,6 +385,8 @@ CATEGORY_DESCRIPTIONS = {
                           "Small add-on, surprisingly big daily payoff."],
     "Sports": ["Trending gear for getting after it outdoors.",
                "The kind of kit that makes an active day better."],
+    "Auto": ["A small car upgrade that makes every drive nicer.",
+             "Practical kit your car will thank you for."],
 }
 
 DEFAULT_DESCRIPTIONS = [

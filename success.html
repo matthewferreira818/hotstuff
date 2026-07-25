@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Order confirmed — HotsTuff</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">H</span>HotsTuff
+      </a>
+      <a class="btn btn-ghost" href="/#trending">← Back to the shop</a>
+    </div>
+  </header>
+
+  <main class="success-main">
+    <svg class="success-check" viewBox="0 0 52 52" aria-hidden="true">
+      <circle cx="26" cy="26" r="24" fill="none"/>
+      <path d="M14 27l8 8 16-16" fill="none"/>
+    </svg>
+    <h1>Order confirmed — <span class="brand-accent">thank you!</span></h1>
+    <p class="success-sub" id="success-sub">
+      Your payment went through and your order is officially in motion.
+    </p>
+
+    <section class="order-card" id="order-card" aria-live="polite">
+      <div class="order-skeleton" id="order-skeleton">
+        <div class="skeleton-line" style="width:55%"></div>
+        <div class="skeleton-line" style="width:35%"></div>
+        <div class="skeleton-line" style="width:70%"></div>
+      </div>
+      <div id="order-details" hidden>
+        <div class="order-row order-row-product">
+          <span id="order-product"></span>
+          <span class="order-amount" id="order-amount"></span>
+        </div>
+        <div class="order-row" id="order-options-row" hidden>
+          <span class="order-label">Options</span>
+          <span id="order-options"></span>
+        </div>
+        <div class="order-row" id="order-receipt-row" hidden>
+          <span class="order-label">🧾 Receipt</span>
+          <span>Emailed to <b id="order-email"></b></span>
+        </div>
+        <div class="order-row" id="order-ship-row" hidden>
+          <span class="order-label">📦 Ships to</span>
+          <span id="order-ship"></span>
+        </div>
+        <div class="order-ref" id="order-ref"></div>
+      </div>
+      <div id="order-fallback" hidden>
+        <p class="order-fallback-text">
+          Payment received! Full details — including your receipt — are on their
+          way to the email you used at checkout.
+        </p>
+      </div>
+    </section>
+
+    <section class="next-steps">
+      <h2>What happens next</h2>
+      <ol class="steps">
+        <li class="step done">
+          <span class="step-icon">✅</span>
+          <b>Order confirmed</b>
+          <small>Today — payment received and your order is logged.</small>
+        </li>
+        <li class="step">
+          <span class="step-icon">📦</span>
+          <b>Processing</b>
+          <small>We place it with our supplier within 1–3 business days.</small>
+        </li>
+        <li class="step">
+          <span class="step-icon">🚚</span>
+          <b>On its way</b>
+          <small>Tracking lands in your inbox; delivery typically takes 1–3 weeks.</small>
+        </li>
+      </ol>
+    </section>
+
+    <p class="success-note">
+      Spot a typo in your shipping address? Contact us right away and we'll fix
+      it before your order ships.<br>
+      📞 <a href="tel:+15068899737">(506) 889-9737</a> ·
+      ✉️ <a href="mailto:matthew.ferreira213@yahoo.com">matthew.ferreira213@yahoo.com</a>
+    </p>
+
+    <a class="btn btn-primary btn-lg" href="/#trending">Keep browsing what's hot</a>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>© <span id="year"></span> HotsTuff</span>
+      <span class="footer-note">30-day money-back guarantee · Secure checkout by Stripe</span>
+    </div>
+  </footer>
+
+  <script>
+    const CHECKOUT_API = "https://wavelist-checkout.wavelist-mf818.workers.dev";
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    (async function loadSummary() {
+      const skeleton = document.getElementById("order-skeleton");
+      const details = document.getElementById("order-details");
+      const fallback = document.getElementById("order-fallback");
+      const sessionId = new URLSearchParams(window.location.search).get("session_id");
+
+      const showFallback = () => {
+        skeleton.hidden = true;
+        fallback.hidden = false;
+      };
+
+      if (!sessionId) return showFallback();
+
+      try {
+        const res = await fetch(
+          `${CHECKOUT_API}/session-summary?session_id=${encodeURIComponent(sessionId)}`
+        );
+        if (!res.ok) throw new Error(`summary responded ${res.status}`);
+        const o = await res.json();
+
+        document.getElementById("order-product").textContent = o.product || "Your order";
+        let amount = "";
+        try {
+          amount = new Intl.NumberFormat("en", {
+            style: "currency",
+            currency: o.currency || "USD",
+          }).format(o.amount || 0);
+        } catch {
+          amount = `$${(o.amount || 0).toFixed(2)} ${o.currency || ""}`;
+        }
+        document.getElementById("order-amount").textContent = amount;
+
+        if (o.options && o.options.length) {
+          document.getElementById("order-options").textContent = o.options.join(" · ");
+          document.getElementById("order-options-row").hidden = false;
+        }
+        if (o.email) {
+          document.getElementById("order-email").textContent = o.email;
+          document.getElementById("order-receipt-row").hidden = false;
+        }
+        if (o.ship) {
+          const s = o.ship;
+          document.getElementById("order-ship").textContent = [
+            o.name,
+            s.line1,
+            s.line2,
+            [s.city, s.state, s.postal].filter(Boolean).join(", "),
+            s.country,
+          ]
+            .filter(Boolean)
+            .join(" · ");
+          document.getElementById("order-ship-row").hidden = false;
+        }
+        document.getElementById("order-ref").textContent =
+          "Order ref: …" + sessionId.slice(-10) + " — keep this if you contact support.";
+
+        skeleton.hidden = true;
+        details.hidden = false;
+      } catch (err) {
+        console.error(err);
+        showFallback();
+      }
+    })();
+  </script>
+</body>
+</html>

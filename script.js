@@ -144,6 +144,7 @@ function buildCard(p) {
   const name = document.createElement("h3");
   name.className = "card-name";
   name.textContent = p.name || "Untitled product";
+  name.title = p.name || ""; // full name on hover when the card clamps it
 
   const desc = document.createElement("p");
   desc.className = "card-desc";

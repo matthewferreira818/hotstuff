@@ -72,6 +72,14 @@ function buildCategoryBar() {
     });
     bar.appendChild(chip);
   }
+
+  // Merch lives in its own section (not the catalog), so its "category" chip
+  // is a jump-link. Placed right after "All" so the new drop stays visible.
+  const merchChip = document.createElement("a");
+  merchChip.href = "#merch";
+  merchChip.className = "category-chip category-chip-merch";
+  merchChip.textContent = "Merch ✨";
+  bar.insertBefore(merchChip, bar.children[1] || null);
 }
 
 function renderGrid() {

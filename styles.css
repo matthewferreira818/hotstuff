@@ -21,6 +21,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* anchor jumps land below the sticky nav instead of underneath it */
+section[id] {
+  scroll-margin-top: 96px;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
@@ -252,6 +257,23 @@ section {
 .category-chip.active {
   background: linear-gradient(120deg, var(--accent-a), #f43f5e);
   border-color: transparent;
+  color: #ffffff;
+}
+
+/* Merch jump-link chip: gradient outline so the new drop stands out */
+.category-chip-merch {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--bg-elevated), var(--bg-elevated)) padding-box,
+    linear-gradient(120deg, var(--accent-a), var(--accent-b)) border-box;
+  color: var(--accent-a);
+  font-weight: 700;
+}
+
+.category-chip-merch:hover {
+  background: linear-gradient(120deg, var(--accent-a), var(--accent-b));
   color: #ffffff;
 }
 

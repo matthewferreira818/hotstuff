@@ -11,6 +11,10 @@ permissions:
   contents: write
   issues: write
 
+concurrency:
+  group: refresh-products
+  cancel-in-progress: false
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -37,7 +41,12 @@ jobs:
             git config user.name "wavelist-bot"
             git config user.email "actions@users.noreply.github.com"
             git commit -m "Refresh: trending products + social posts (3-day cycle)"
-            git push
+            # runner-queue delays can start this job long after checkout's SHA
+            # was pinned; rebase onto the live head so an interim push to master
+            # doesn't get ours rejected as non-fast-forward
+            git fetch origin master
+            git rebase -X theirs origin/master
+            git push origin HEAD:master
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "No changes"

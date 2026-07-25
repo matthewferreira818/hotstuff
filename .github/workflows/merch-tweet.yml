@@ -1,0 +1,41 @@
+name: One-off merch showcase tweet
+
+# Fires once: on the push that adds this file. Later pushes don't touch this
+# path, so it won't repost. workflow_dispatch kept for a deliberate manual
+# re-run (e.g. after a credit top-up).
+on:
+  push:
+    paths:
+      - ".github/workflows/merch-tweet.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Post the merch showcase tweet (ad card + QR reply)
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+        run: |
+          pip install --quiet requests requests-oauthlib pillow segno
+          python post_merch_tweet.py
+
+      - name: Record the result in the repo
+        run: |
+          git config user.name "hotstuff-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add marketing/merch-tweet-result.txt
+          git diff --cached --quiet || git commit -m "Record merch tweet result"
+          git push

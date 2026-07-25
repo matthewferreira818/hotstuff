@@ -1,6 +1,6 @@
 # HotsTuff — This Cycle's Posts (auto-generated)
 
-_Generated 2026-07-24 from the current lineup (40 products). Replace `[LINK]` with_ **https://findhotstuff.com/**
+_Generated 2026-07-25 from the current lineup (40 products). Replace `[LINK]` with_ **https://findhotstuff.com/**
 
 > Tone: upbeat + clean on Twitter/Facebook, fun + casual on TikTok. Post these over the next ~3 days (until the catalog rotates and this file updates). Stagger times, reply to comments. Shipping is ~1–3 weeks — never promise faster.
 
@@ -17,13 +17,13 @@ Portable USB Blender — just $24.99 at HotsTuff 🔥
 Projector Humidifier — just $13.99 at HotsTuff 🔥
 [LINK] #cozyhome #homefinds
 
-> The piece people notice 👗
-Statement Necklace — just $35.99 at HotsTuff 🔥
-[LINK] #fashion #ootd
-
 > Built for the outdoors 🧤
 Touchscreen Winter Gloves — just $18.99 at HotsTuff 🔥
 [LINK] #sports #fitness
+
+> The piece people notice 👗
+Statement Necklace — just $35.99 at HotsTuff 🔥
+[LINK] #fashion #ootd
 
 > Tiny gadget, huge difference 🔌
 Distance Measuring Instrument Electronic — just $35.99 at HotsTuff 🔥
@@ -57,117 +57,117 @@ Electric Protein Shaker — just $27.99 at HotsTuff 🔥
 Cozy 2-in-1 Pet Bed — just $21.99 at HotsTuff 🔥
 [LINK] #petsofx #dogsofx
 
-> Add this to the routine 💄
-Reusable Pet Hair Remover — just $27.99 at HotsTuff 🔥
+> Effortless and on-trend 👗
+Fleece Winter Jacket — just $21.99 at HotsTuff 🔥
+[LINK] #fashion #ootd
+
+> The piece people ask about 💍
+Statement Necklace — just $13.99 at HotsTuff 🔥
+[LINK] #jewelry #giftideas
+
+> The easy glow-up 💄
+Makeup Brushes Kit Maquiagem — just $15.99 at HotsTuff 🔥
 [LINK] #beauty #selfcare
 
-> Pet-parent essential 🐾
-Pet Car Seat Belt — just $11.99 at HotsTuff 🔥
-[LINK] #petsofx #dogsofx
+> Instant fun unlocked 🧸
+Dog Chew Toys For — just $18.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
 
-> Effortless and on-trend 👗
-Glowing Moon Necklace — just $18.99 at HotsTuff 🔥
-[LINK] #fashion #ootd
+> Everyone's grabbing this 🛍️
+Arm Shaping Sleeves Slimming — just $11.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
+
+> Trending right now 👜
+Harajuku Canvas Bags Students — just $27.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
 
 > It solves such an annoying problem 🔌
-Bluetooth Item Finder — just $21.99 at HotsTuff 🔥
+USB Charger Quick Charge — just $11.99 at HotsTuff 🔥
 [LINK] #gadgets #techtok
-
-> A gift that actually lands 💍
-Couple's Hug Necklace — just $21.99 at HotsTuff 🔥
-[LINK] #jewelry #giftideas
-
-> This week's must-have 📱
-Compatible with Apple, Flowing — just $11.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
-
-> The gift that always lands 🧸
-Newborn Baby Boys Girls — just $35.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
-
-> The easy win for your routine 🏋️
-Plaid Leggings Fitness Yoga — just $11.99 at HotsTuff 🔥
-[LINK] #fitness #homegym
-
-> The coziest thing you'll buy this week 🏠
-New Halloween Pumpkin Lantern — just $21.99 at HotsTuff 🔥
-[LINK] #cozyhome #homefinds
-
-> A gift that actually lands 💍
-Retro Magnetic Folding Heart — just $18.99 at HotsTuff 🔥
-[LINK] #jewelry #giftideas
-
-> The easy win for your routine 🏋️
-Grip & Forearm Trainer — just $31.99 at HotsTuff 🔥
-[LINK] #fitness #homegym
-
-> Pet-parent essential 🐾
-Cozy 2-in-1 Pet Bed — just $27.99 at HotsTuff 🔥
-[LINK] #petsofx #dogsofx
-
-> Effortless and on-trend 👗
-New Design Adjustable Initial — just $35.99 at HotsTuff 🔥
-[LINK] #fashion #ootd
-
-> Trending right now 📱
-Phone Case Anti-peep Magnetic — just $15.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
-
-> Instant fun unlocked 🧸
-Educational Toy Drawing Pad — just $11.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
-
-> Instant fun unlocked 🧸
-Zodiac Constellation Bracelet Luminous — just $21.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
-
-> Your pet's about to be spoiled 🐾
-Pet Dog Cat Ice — just $27.99 at HotsTuff 🔥
-[LINK] #petsofx #dogsofx
-
-> Your kitchen just got an upgrade 🍳
-Sewer Dredger Spring Pipe — just $9.99 at HotsTuff 🔥
-[LINK] #kitchengadgets #tiktokmademebuyit
-
-> Your space is about to feel so much better 🏠
-Nylon LED Pet Dog — just $11.99 at HotsTuff 🔥
-[LINK] #cozyhome #homefinds
-
-> It solves such an annoying problem 🔌
-Compatible with Apple 3-in-1 — just $21.99 at HotsTuff 🔥
-[LINK] #gadgets #techtok
-
-> Trending right now 🛍️
-Shower Head Water Saving — just $24.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
 
 > This week's must-have 🛍️
-Multi-function socket — just $35.99 at HotsTuff 🔥
+Mighty Power Hose Blaster — just $18.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> The coziest thing you'll buy this week 🏠
-Projector Humidifier — just $24.99 at HotsTuff 🔥
-[LINK] #cozyhome #homefinds
-
 > Instant cozy upgrade 🏠
-Car Vacuum Cleaner Wireless — just $35.99 at HotsTuff 🔥
+Fetal Heart Rate Monitor — just $11.99 at HotsTuff 🔥
 [LINK] #cozyhome #homefinds
 
-> Your pet's about to be spoiled 🐾
-Bluetooth Item Finder — just $35.99 at HotsTuff 🔥
+> The easy glow-up 💄
+Blackhead Instrument Electric Suction — just $13.99 at HotsTuff 🔥
+[LINK] #beauty #selfcare
+
+> Everyone's grabbing this 🛍️
+Cooling Blankets Pure Color — just $27.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
+
+> Game-day ready 🧤
+Sports Knee Pads Knitted — just $11.99 at HotsTuff 🔥
+[LINK] #sports #fitness
+
+> Trending right now 🛍️
+Pocket Compression Shorts — just $11.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
+
+> The easy win for your routine 🏋️
+Yoga Resistance Rubber Bands — just $18.99 at HotsTuff 🔥
+[LINK] #fitness #homegym
+
+> Everyone's grabbing this 🛍️
+Double Heads Are Suitable — just $18.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
+
+> Add this to the routine 💄
+The pores clean artifact — just $24.99 at HotsTuff 🔥
+[LINK] #beauty #selfcare
+
+> Your dog or cat will thank you 🐾
+Reflective Dog Leash Nylon — just $11.99 at HotsTuff 🔥
 [LINK] #petsofx #dogsofx
 
-> Instant cozy upgrade 🏠
-LED sensor light bar — just $24.99 at HotsTuff 🔥
-[LINK] #cozyhome #homefinds
-
-> Guaranteed to be a hit 🧸
-Giant Teddy Bear Plush — just $15.99 at HotsTuff 🔥
+> Trending right now 🛍️
+Large Size Strapless Bra — just $21.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> A gift that actually lands 💍
-Fairy Lights String Christmas — just $18.99 at HotsTuff 🔥
+> Everyone's grabbing this 🛍️
+Polar Dot Baby Blanket — just $13.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
+
+> Everyone's grabbing this 👟
+Women Shoes Sports Sneakers — just $31.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
+
+> Small upgrade, big difference 🍳
+Kitchen Natural Wooden Bowl — just $13.99 at HotsTuff 🔥
+[LINK] #kitchengadgets #tiktokmademebuyit
+
+> The kitchen gadget everyone's grabbing 🍳
+BBQ Healthy Kitchen Cooking — just $11.99 at HotsTuff 🔥
+[LINK] #kitchengadgets #tiktokmademebuyit
+
+> Pet-parent essential 🐾
+Cozy 2-in-1 Pet Bed — just $13.99 at HotsTuff 🔥
+[LINK] #petsofx #dogsofx
+
+> Your new go-to 👗
+Fleece Winter Jacket — just $21.99 at HotsTuff 🔥
+[LINK] #fashion #ootd
+
+> Trending right now 🛍️
+Chest Expander Puller — just $15.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
+
+> Simple, sweet, and it stands out 💍
+Compatible With Smart Bracelet — just $24.99 at HotsTuff 🔥
 [LINK] #jewelry #giftideas
+
+> The easy win for your routine 🏋️
+Energy Luminous Lotus Natural — just $15.99 at HotsTuff 🔥
+[LINK] #fitness #homegym
+
+> Instant cozy upgrade 🏠
+Waterproof New RGB LED — just $24.99 at HotsTuff 🔥
+[LINK] #cozyhome #homefinds
 
 
 ---
@@ -196,23 +196,23 @@ Grab one before it rotates out 👇
 [LINK]
 ```
 
-**Statement Necklace — $35.99**
-
-```
-👗 Statement Necklace — $35.99
-
-Easy to wear, easy to love.
-
-Grab one before it rotates out 👇
-[LINK]
-```
-
 **Touchscreen Winter Gloves — $18.99**
 
 ```
 🧤 Touchscreen Winter Gloves — $18.99
 
 Built for the people who'd rather be moving than sitting still.
+
+Grab one before it rotates out 👇
+[LINK]
+```
+
+**Statement Necklace — $35.99**
+
+```
+👗 Statement Necklace — $35.99
+
+Easy to wear, easy to love.
 
 Grab one before it rotates out 👇
 [LINK]
@@ -244,15 +244,15 @@ Grab one before it rotates out 👇
 🎬 Concept: Lights-on → lights-off reveal. The transformation is the hook.
 📝 Caption: turning my room into a whole vibe for $13.99 🌙 #tiktokmademebuyit #cozy
 
-**Statement Necklace — $35.99**
-
-🎬 Concept: Quick try-on / styling clip with a trending sound.
-📝 Caption: the fit is fitting 🔥 $35.99 #tiktokmademebuyit #fashiontok
-
 **Touchscreen Winter Gloves — $18.99**
 
 🎬 Concept: Fast action clip of it in use. Energy + trending sound.
 📝 Caption: needed this one fr $18.99 🙌 #tiktokmademebuyit
+
+**Statement Necklace — $35.99**
+
+🎬 Concept: Quick try-on / styling clip with a trending sound.
+📝 Caption: the fit is fitting 🔥 $35.99 #tiktokmademebuyit #fashiontok
 
 **Distance Measuring Instrument Electronic — $35.99**
 

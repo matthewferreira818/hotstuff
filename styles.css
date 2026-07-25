@@ -774,7 +774,7 @@ a.merch-card {
 /* custom-design upload card */
 .merch-drop {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   aspect-ratio: 1;
   cursor: pointer;
@@ -798,13 +798,15 @@ a.merch-card {
   color: var(--muted, #7a6a72);
   font-size: 0.9rem;
   line-height: 1.5;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.72);
-  border-radius: 12px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.82);
+  border-radius: 999px;
   max-width: 82%;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
 }
 .merch-drop-hint b { color: var(--accent-a); }
-.merch-drop-icon { display: block; font-size: 1.8rem; margin-bottom: 6px; }
+.merch-drop-icon { display: block; font-size: 1.4rem; }
 #design-preview {
   width: 100%;
   height: 100%;
@@ -812,6 +814,9 @@ a.merch-card {
   padding: 14px;
   box-sizing: border-box;
 }
+/* .merch-card img { display: block } would otherwise override the
+   [hidden] attribute on the preview/hint */
+.merch-drop [hidden] { display: none !important; }
 .merch-buy { padding: 8px 18px; }
 .merch-buy:disabled { opacity: 0.45; cursor: not-allowed; }
 

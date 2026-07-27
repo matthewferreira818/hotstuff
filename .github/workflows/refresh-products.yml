@@ -35,7 +35,7 @@ jobs:
 
       - name: Generate TikTok photo pack
         run: |
-          pip install --quiet requests pillow
+          pip install --quiet requests pillow segno
           python make_tiktok_pack.py
 
       - name: Commit and push if anything changed

@@ -1,6 +1,6 @@
 # HotsTuff — TikTok Photo Pack (auto-generated)
 
-_Generated 2026-07-27 · 8 slides · post all slides as one TikTok photo (swipe) post._
+_Generated 2026-07-27 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
 
 
 ## 🖼️ Slides

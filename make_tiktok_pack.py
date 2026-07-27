@@ -18,6 +18,7 @@ Usage:
 
 import io
 import json
+import math
 from datetime import date
 from pathlib import Path
 
@@ -220,10 +221,10 @@ def write_captions(products):
     """marketing/tiktok/captions.md — 3 paste-ready variants + posting notes."""
     tags = _pack_tags(products)
     top = products[0]["_ad"].lower()
-    under = max(float(p["price"]) for p in products)
+    under = math.ceil(max(float(p["price"]) for p in products))
     variants = [
         ("Variant 1 — curiosity hook",
-         f"ok this week's finds are actually unreal 👀 everything under ${under:.0f} {tags}"),
+         f"ok this week's finds are actually unreal 👀 everything under ${under} {tags}"),
         ("Variant 2 — POV hook",
          f"POV: your fyp finally delivered 🔥 slide 1 is the {top} btw {tags}"),
         ("Variant 3 — ranked-list hook",
@@ -233,7 +234,8 @@ def write_captions(products):
     L = []
     L.append("# HotsTuff — TikTok Photo Pack (auto-generated)\n")
     L.append(f"_Generated {date.today().isoformat()} · {len(products)} slides · "
-             "post all slides as one TikTok photo (swipe) post._\n")
+             "post all slides as one TikTok photo (swipe) post — the last "
+             "slide is the QR code closer._\n")
     L.append("\n## 🖼️ Slides\n")
     for i, p in enumerate(products, 1):
         L.append(f"{i}. `slide-{i:02d}.png` — {p['_ad']} — {price(p)} "
@@ -247,6 +249,58 @@ def write_captions(products):
     L.append("\n_Post this pack within ~3 days: the catalog refreshes on that "
              "cycle and these slides regenerate with new products._\n")
     (OUT_DIR / "captions.md").write_text("\n".join(L), encoding="utf-8")
+
+
+
+def build_qr_slide(count):
+    """Final swipe-stopper slide: big scannable QR straight to the store."""
+    import segno
+    from PIL import Image, ImageDraw
+
+    canvas = Image.new("RGB", (W, H), BG)
+    draw = ImageDraw.Draw(canvas)
+
+    # header: flame + wordmark, same placement as the product slides
+    wm_font = _font(72, True)
+    fh = 88
+    group = fh * 0.84 + 16 + draw.textlength("HotsTuff", font=wm_font)
+    hx = (W - group) // 2
+    fw = draw_flame(draw, hx, 168, fh, core=BG)
+    draw.text((hx + fw + 16, 182), "HotsTuff", font=wm_font, fill=ACCENT)
+
+    hook_font = _font(64, True)
+    hook = "Scan to shop the drop"
+    draw.text(((W - draw.textlength(hook, font=hook_font)) // 2, 372),
+              hook, font=hook_font, fill=INK)
+
+    # QR on a white card so any scanner locks on instantly
+    qr_buf = io.BytesIO()
+    segno.make(f"https://{SITE}/", error="m").save(
+        qr_buf, kind="png", scale=24, border=2, dark="#111111", light="#ffffff")
+    qr = Image.open(qr_buf).convert("RGB")
+    if qr.width > 620:
+        qr = qr.resize((620, 620), Image.NEAREST)
+    card_w = qr.width + 96
+    card_x = (W - card_w) // 2
+    draw.rounded_rectangle((card_x, 520, card_x + card_w, 520 + card_w),
+                           radius=48, fill="#ffffff")
+    canvas.paste(qr, ((W - qr.width) // 2, 520 + 48))
+
+    sub_font = _font(44)
+    sub = f"{count} finds · all under one link"
+    draw.text(((W - draw.textlength(sub, font=sub_font)) // 2, 1268),
+              sub, font=sub_font, fill=MUTED)
+
+    bar, bar_mask = _flame_gradient((320, 12), radius=6)
+    canvas.paste(bar, ((W - 320) // 2, 1372), bar_mask)
+
+    site_font = _font(56, True)
+    draw.text(((W - draw.textlength(SITE, font=site_font)) // 2, 1428),
+              SITE, font=site_font, fill=AMBER)
+
+    buf = io.BytesIO()
+    canvas.save(buf, format="PNG")
+    return buf.getvalue()
 
 
 def build():
@@ -277,9 +331,16 @@ def build():
               f"({p.get('category', '?')}, score {p.get('trendScore', 0)})")
 
     if made:
+        try:
+            qr_out = OUT_DIR / f"slide-{len(made) + 1:02d}.png"
+            qr_out.write_bytes(build_qr_slide(len(made)))
+            print(f"wrote {qr_out.name} — QR closer slide")
+        except Exception as exc:  # noqa: BLE001 - QR slide is a bonus, never fatal
+            print(f"skipped QR slide: {exc}")
         write_captions(made)
     else:
-        print("no slides generated — captions.md left untouched")
+        (OUT_DIR / "captions.md").unlink(missing_ok=True)
+        print("no slides generated — stale captions.md removed")
     print(f"Done: {len(made)} slides, {len(skipped)} skipped -> {OUT_DIR}")
 
 

@@ -109,12 +109,42 @@ function emptyState(message) {
   return div;
 }
 
+// Category border colors: known categories get brand-tuned hues; anything new
+// falls back to a stable pick from the palette (hash of the name), so colors
+// never change between visits or cycles.
+const CATEGORY_COLORS = {
+  "Fashion": "#e11d48",
+  "Beauty": "#db2777",
+  "Jewelry": "#b45309",
+  "Footwear": "#ea580c",
+  "Kitchen": "#c2410c",
+  "Home": "#7c3aed",
+  "Electronics": "#0284c7",
+  "Gadgets": "#0284c7",
+  "Pet": "#4d7c0f",
+  "Fitness": "#0d9488",
+  "Sports": "#16a34a",
+  "Outdoor": "#15803d",
+  "Auto": "#64748b",
+  "Bags": "#9d174d",
+  "Trending Finds": "#d97706",
+};
+const CATEGORY_FALLBACK = ["#e11d48", "#ea580c", "#7c3aed", "#0d9488", "#0284c7", "#16a34a", "#9d174d", "#64748b"];
+
+function categoryColor(cat) {
+  if (CATEGORY_COLORS[cat]) return CATEGORY_COLORS[cat];
+  let h = 0;
+  for (let i = 0; i < cat.length; i++) h = (h * 31 + cat.charCodeAt(i)) >>> 0;
+  return CATEGORY_FALLBACK[h % CATEGORY_FALLBACK.length];
+}
+
 function buildCard(p) {
   const price = (Number(p.price) || 0).toFixed(2);
   const trendScore = Number.isFinite(Number(p.trendScore)) ? p.trendScore : "—";
 
   const card = document.createElement("article");
   card.className = "card";
+  card.style.setProperty("--cat-color", categoryColor(p.category || "Other"));
 
   const thumb = document.createElement("div");
   thumb.className = "card-thumb";

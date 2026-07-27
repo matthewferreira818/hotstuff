@@ -114,23 +114,23 @@ function emptyState(message) {
 // falls back to a stable pick from the palette (hash of the name), so colors
 // never change between visits or cycles.
 const CATEGORY_COLORS = {
-  "Fashion": "#e11d48",
-  "Beauty": "#db2777",
-  "Jewelry": "#b45309",
-  "Footwear": "#ea580c",
-  "Kitchen": "#c2410c",
-  "Home": "#7c3aed",
-  "Electronics": "#0284c7",
-  "Gadgets": "#0284c7",
-  "Pet": "#4d7c0f",
-  "Fitness": "#0d9488",
-  "Sports": "#16a34a",
-  "Outdoor": "#15803d",
-  "Auto": "#64748b",
-  "Bags": "#9d174d",
-  "Trending Finds": "#d97706",
+  "Fashion": "#fb5d7d",
+  "Beauty": "#f472b6",
+  "Jewelry": "#fbbf24",
+  "Footwear": "#fb923c",
+  "Kitchen": "#f97352",
+  "Home": "#a78bfa",
+  "Electronics": "#38bdf8",
+  "Gadgets": "#38bdf8",
+  "Pet": "#a3e635",
+  "Fitness": "#2dd4bf",
+  "Sports": "#4ade80",
+  "Outdoor": "#34d399",
+  "Auto": "#94a3b8",
+  "Bags": "#e879f9",
+  "Trending Finds": "#f59e0b",
 };
-const CATEGORY_FALLBACK = ["#e11d48", "#ea580c", "#7c3aed", "#0d9488", "#0284c7", "#16a34a", "#9d174d", "#64748b"];
+const CATEGORY_FALLBACK = ["#fb5d7d", "#fb923c", "#a78bfa", "#2dd4bf", "#38bdf8", "#4ade80", "#e879f9", "#94a3b8"];
 
 function categoryColor(cat) {
   if (CATEGORY_COLORS[cat]) return CATEGORY_COLORS[cat];

@@ -1008,3 +1008,60 @@ a.merch-card {
 @media (prefers-reduced-motion: reduce) {
   .success-check circle, .success-check path { animation: none; stroke-dashoffset: 0; }
 }
+
+/* Automation tab — standout pill, and the one nav link that survives on mobile */
+.nav-links a.nav-automation {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border: 1.5px solid var(--accent-b);
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.nav-links a.nav-automation::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-b);
+  box-shadow: 0 0 8px 1px rgba(245, 158, 11, 0.7);
+}
+
+.nav-links a.nav-automation:hover {
+  background: linear-gradient(120deg, var(--accent-a), var(--accent-b));
+  border-color: transparent;
+  color: #fff;
+}
+
+.nav-links a.nav-automation:hover::before {
+  background: #fff;
+}
+
+@media (max-width: 640px) {
+  .nav-links {
+    display: flex;
+  }
+  .nav-links a {
+    display: none;
+  }
+  .nav-links a.nav-automation {
+    display: inline-flex;
+    font-size: 12px;
+    padding: 4px 9px;
+    gap: 5px;
+  }
+  .nav-links a.nav-automation::before {
+    width: 6px;
+    height: 6px;
+  }
+  .nav-inner {
+    gap: 8px;
+  }
+  .nav-inner .btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}

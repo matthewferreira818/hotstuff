@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#191016">
+<meta name="description" content="HotsTuff links — shop what's trending, or put your business page on autopilot.">
+<title>HotsTuff — Links</title>
+<style>
+  :root {
+    --bg: #191016;
+    --text: #f6edf3;
+    --muted: #b59fab;
+    --rose: #e11d48;
+    --amber: #f59e0b;
+    --navy: #0d1f33;
+    --gold: #f0b429;
+  }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px calc(40px + env(safe-area-inset-bottom));
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    line-height: 1.5;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .page { width: 100%; max-width: 400px; text-align: center; }
+
+  /* header with faint flame glow behind it */
+  header { position: relative; margin-bottom: 36px; }
+  header::before {
+    content: "";
+    position: absolute;
+    inset: -80px -70px -30px;
+    pointer-events: none;
+    background:
+      radial-gradient(58% 62% at 50% 34%, rgba(225, 29, 72, 0.26), transparent 70%),
+      radial-gradient(42% 46% at 56% 48%, rgba(245, 158, 11, 0.16), transparent 70%);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    header::before { animation: breathe 5s ease-in-out infinite alternate; }
+    @keyframes breathe { from { opacity: 0.75; } to { opacity: 1; } }
+  }
+  .mark {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--rose), var(--amber));
+    color: #fff;
+    font-size: 32px;
+    font-weight: 800;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 30px -8px rgba(225, 29, 72, 0.6);
+  }
+  h1 { position: relative; margin: 14px 0 4px; font-size: 28px; letter-spacing: -0.01em; }
+  .tagline { position: relative; margin: 0; color: var(--muted); font-size: 15.5px; }
+
+  /* big thumb links */
+  .links { display: grid; gap: 14px; }
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 64px;
+    padding: 14px 20px;
+    border-radius: 18px;
+    font-size: 17px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .btn-shop {
+    background: linear-gradient(135deg, var(--rose), var(--amber));
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 12px 30px -12px rgba(225, 29, 72, 0.5);
+  }
+  .btn-shop:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 16px 36px -12px rgba(225, 29, 72, 0.65);
+  }
+  .btn-lh {
+    background: var(--navy);
+    color: var(--gold);
+    border: 2px solid var(--gold);
+  }
+  .btn-lh:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 14px 32px -14px rgba(240, 180, 41, 0.4);
+  }
+  .btn-lh:focus-visible { outline-color: var(--gold); }
+  @media (prefers-reduced-motion: reduce) {
+    .btn { transition: none; }
+    .btn:hover, .btn:active { transform: none; }
+  }
+
+  /* social row */
+  .social { margin-top: 32px; font-size: 14px; color: var(--muted); }
+  .social a {
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(246, 237, 243, 0.3);
+    padding-bottom: 1px;
+  }
+  .social a:hover { border-color: var(--amber); }
+  .social a:focus-visible {
+    outline: 2px solid var(--rose);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <span class="mark" aria-hidden="true">H</span>
+      <h1>HotsTuff</h1>
+      <p class="tagline">Fresh finds, restocked while you scroll.</p>
+    </header>
+    <nav class="links" aria-label="HotsTuff links">
+      <a class="btn btn-shop" href="https://findhotstuff.com/">🔥 Shop what's trending</a>
+      <a class="btn btn-lh" href="https://findhotstuff.com/automation/">🗼 Automate your business page</a>
+    </nav>
+    <p class="social">
+      <a href="https://x.com/hotstuff2213">@hotstuff2213 on X</a> · posts 3x daily, automatically
+    </p>
+  </div>
+</body>
+</html>

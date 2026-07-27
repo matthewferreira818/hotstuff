@@ -33,10 +33,15 @@ jobs:
       - name: Generate fresh social posts
         run: python generate_posts.py
 
+      - name: Generate TikTok photo pack
+        run: |
+          pip install --quiet requests pillow
+          python make_tiktok_pack.py
+
       - name: Commit and push if anything changed
         id: commit
         run: |
-          git add products.json marketing/latest-posts.md
+          git add products.json marketing/latest-posts.md marketing/tiktok
           if ! git diff --cached --quiet; then
             git config user.name "wavelist-bot"
             git config user.email "actions@users.noreply.github.com"

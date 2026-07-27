@@ -62,6 +62,7 @@ function buildCategoryBar() {
     const chip = document.createElement("button");
     chip.type = "button";
     chip.className = "category-chip" + (cat === activeCategory ? " active" : "");
+    if (cat !== "All") chip.style.setProperty("--cat-color", categoryColor(cat));
     chip.setAttribute("role", "tab");
     chip.setAttribute("aria-selected", cat === activeCategory ? "true" : "false");
     chip.textContent = cat === "All" ? `All (${allProducts.length})` : `${cat} (${counts.get(cat)})`;

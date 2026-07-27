@@ -237,9 +237,9 @@ section {
 }
 
 .category-chip {
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--cat-color, var(--border));
   background: var(--bg-elevated);
-  color: var(--text-muted);
+  color: var(--cat-color, var(--text-muted));
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 600;
@@ -250,13 +250,14 @@ section {
 }
 
 .category-chip:hover {
-  border-color: var(--accent-a);
-  color: var(--accent-a);
+  background: var(--cat-color, var(--accent-a));
+  border-color: var(--cat-color, var(--accent-a));
+  color: #ffffff;
 }
 
 .category-chip.active {
-  background: linear-gradient(120deg, var(--accent-a), #f43f5e);
-  border-color: transparent;
+  background: var(--cat-color, linear-gradient(120deg, var(--accent-a), #f43f5e));
+  border-color: var(--cat-color, transparent);
   color: #ffffff;
 }
 

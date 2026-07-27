@@ -32,11 +32,10 @@ automatically. This runs in the cloud, independent of whether your machine
 is on. (The cron `0 9 */3 * *` fires on days 1, 4, 7 … 28, 31 of each month,
 so the interval around a month boundary is a little shorter than 3 days.)
 
-The site shows **13 products** each cycle (`DISPLAY_COUNT`), selected from a
-pool of the top **60** trending items (`POOL_SIZE`). At most `MAX_REPEATS` (3)
-items carry over from the previous cycle, so **at least 10 of the 13 change
-every cycle** — the carried-over items are the hottest repeats, for a bit of
-continuity.
+The site shows **40 products** each cycle (`DISPLAY_COUNT`), selected from a
+pool of the top **100** trending items (`POOL_SIZE`). `MAX_REPEATS` is **0**:
+**every item is replaced each cycle** — items from the previous cycle only
+reappear as backfill if the trending pool has fewer than 40 new products.
 
 - **Trigger it manually:** GitHub repo → Actions tab → "Refresh trending
   products" → Run workflow. Or: `gh workflow run refresh-products.yml`.

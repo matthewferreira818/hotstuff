@@ -26,8 +26,9 @@ PRODUCT_LIST_URL = "https://developers.cjdropshipping.com/api2.0/v1/product/list
 
 DISPLAY_COUNT = 40   # products shown on the site each cycle
 POOL_SIZE = 100      # how many trending products to pull (CJ page max), to rotate from
-MAX_REPEATS = 12     # at most this many items may carry over from the previous cycle
-                     # -> guarantees at least (DISPLAY_COUNT - MAX_REPEATS) = 28 items change each cycle
+MAX_REPEATS = 0      # full rotation: no items carry over from the previous cycle
+                     # (previous items only reappear as backfill if the trending
+                     # pool has fewer than DISPLAY_COUNT new products)
 MARKUP_MULTIPLIER = 1.6  # legacy wholesale-only floor (cost * this). Kept as an
                           # extra always-on safety margin on top of the real
                           # profit guarantee below; for cost > ~$16.80 this
@@ -189,8 +190,10 @@ def load_previous_ids() -> set[str]:
 
 def select_rotating(pool: list[dict], prev_ids: set[str]) -> list[dict]:
     """Choose DISPLAY_COUNT products from the trending pool so that at most
-    MAX_REPEATS carry over from last cycle (i.e. >= 10 change every cycle).
-    Pool is already sorted by trend, so 'first N' keeps the hottest items."""
+    MAX_REPEATS carry over from last cycle (0 = every item is new whenever the
+    pool allows). Pool is already sorted by trend, so 'first N' keeps the
+    hottest items; previous items are used only as backfill when the pool
+    doesn't have enough new products."""
     fresh = [p for p in pool if product_id(p) not in prev_ids]
     repeats = [p for p in pool if product_id(p) in prev_ids]
 

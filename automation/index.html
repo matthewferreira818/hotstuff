@@ -59,6 +59,10 @@
     @keyframes sweep { from { transform: rotate(-26deg); } to { transform: rotate(26deg); } }
   }
   .hero-inner { position: relative; max-width: 760px; margin: 0 auto; }
+  .store-link { position: absolute; top: 16px; left: 18px; color: var(--hero-muted);
+    font-size: 13.5px; text-decoration: none; }
+  .store-link:hover { color: var(--hero-ink); text-decoration: underline; }
+  .store-link:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
   .brand {
     font-size: 13px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
     color: var(--gold); margin-bottom: 26px;
@@ -166,6 +170,7 @@
 
 <header class="hero">
   <div class="beam" aria-hidden="true"></div>
+  <a class="store-link" href="../">← back to the HotsTuff store</a>
   <div class="hero-inner">
     <p class="brand"><span class="dot"></span>Lighthouse Social</p>
     <h1 class="serif">Your business posts every day.<br><em>You don't lift a finger.</em></h1>

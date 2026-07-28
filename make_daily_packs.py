@@ -63,6 +63,49 @@ def _pick_daily(products):
     return [usable[(start + i) % len(usable)] for i in range(min(DAILY_COUNT, len(usable)))]
 
 
+SERIF_FONTS = {
+    True: ["/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
+           r"C:\\Windows\\Fonts\\georgiab.ttf"],
+    False: ["/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+            r"C:\\Windows\\Fonts\\georgia.ttf"],
+}
+
+
+def _serif(size, bold=False):
+    from PIL import ImageFont
+    for path in SERIF_FONTS[bold]:
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return _font(size, bold)  # sans fallback
+
+
+def _fit(draw, text, size, max_width, loader=None, bold=True):
+    """Largest font (from `size` down) at which text fits max_width."""
+    loader = loader or _font
+    while size > 24:
+        f = loader(size, bold)
+        if draw.textlength(text, font=f) <= max_width:
+            return f
+        size -= 2
+    return loader(24, bold)
+
+
+def _glow(canvas, cx, cy, radius):
+    """Soft gold radial glow, like the beam haze on the automation page."""
+    from PIL import Image, ImageDraw
+    overlay = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    od = ImageDraw.Draw(overlay)
+    steps = 36
+    for i in range(steps, 0, -1):
+        r = radius * i / steps
+        alpha = int(26 * (1 - i / steps) ** 2) + 2
+        od.ellipse((cx - r, cy - r * 0.62, cx + r, cy + r * 0.62),
+                   fill=(240, 180, 41, alpha))
+    canvas.paste(Image.alpha_composite(canvas.convert("RGBA"), overlay).convert("RGB"), (0, 0))
+
+
 def _lh_header(draw, canvas):
     """Gold beacon dot + LIGHTHOUSE SOCIAL wordmark, centered."""
     from PIL import ImageDraw  # noqa: F401 - parity with sibling builders
@@ -83,15 +126,16 @@ def _lh_slide_hook():
     draw = ImageDraw.Draw(canvas)
     _lh_header(draw, canvas)
 
-    lines = ["This store ran", "itself today."]
-    y = 620
-    big = _font(110, True)
-    for line in lines:
-        draw.text(((W - draw.textlength(line, font=big)) // 2, y), line, font=big, fill=LH_INK)
-        y += 132
+    _glow(canvas, W // 2, 210, 520)
 
-    sub = "no employee posted. no one scheduled anything."
-    sub_font = _font(44)
+    y = 600
+    for line, colour in (("This store", LH_INK), ("runs itself.", GOLD)):
+        big = _fit(draw, line, 128, W - 2 * 90, loader=_serif)
+        draw.text(((W - draw.textlength(line, font=big)) // 2, y), line, font=big, fill=colour)
+        y += 152
+
+    sub = "no employees. nothing scheduled by hand."
+    sub_font = _fit(draw, sub, 44, W - 2 * 90, bold=False)
     draw.text(((W - draw.textlength(sub, font=sub_font)) // 2, y + 40), sub, font=sub_font, fill=FOG)
 
     hint = "receipts →"
@@ -111,24 +155,27 @@ def _lh_slide_receipts(product_count, refreshed):
     draw = ImageDraw.Draw(canvas)
     _lh_header(draw, canvas)
 
-    title = "today's receipts"
-    t_font = _font(72, True)
+    title = "what's on autopilot"
+    t_font = _fit(draw, title, 76, W - 2 * 90, loader=_serif)
     draw.text(((W - draw.textlength(title, font=t_font)) // 2, 330), title, font=t_font, fill=LH_INK)
 
     rows = [
-        "posted on X 3x, on schedule",
-        f"kept {product_count} products live on the site",
-        f"catalog refreshed {refreshed}",
-        "checked the site every hour",
+        "posts on X three times a day",
+        f"keeps {product_count} products live on the site",
+        f"refreshes the catalog every 3 days",
+        "checks the site's pulse every hour",
         "human hours required: zero",
     ]
     y = 560
-    row_font = _font(42, True)
+    text_left, text_right_pad = 200, 40
+    max_text_w = (W - 90) - text_left - text_right_pad
     for text in rows:
         card_h = 150
+        row_font = _fit(draw, text, 42, max_text_w)
         draw.rounded_rectangle((90, y, W - 90, y + card_h), radius=24, fill=NAVY_2)
         draw.ellipse((140, y + 64, 162, y + 86), fill=GOLD)
-        draw.text((200, y + 52), text, font=row_font, fill=LH_INK)
+        row_h = row_font.size
+        draw.text((text_left, y + (card_h - row_h) // 2 - 6), text, font=row_font, fill=LH_INK)
         y += card_h + 26
 
     buf = io.BytesIO()
@@ -145,10 +192,10 @@ def _lh_slide_cta():
     draw = ImageDraw.Draw(canvas)
     _lh_header(draw, canvas)
 
-    hook_font = _font(64, True)
-    for i, line in enumerate(["your business page", "could run like this"]):
-        draw.text(((W - draw.textlength(line, font=hook_font)) // 2, 350 + i * 84),
-                  line, font=hook_font, fill=LH_INK)
+    for i, (line, colour) in enumerate((("your business page", LH_INK), ("could run like this", GOLD))):
+        hook_font = _fit(draw, line, 68, W - 2 * 90, loader=_serif)
+        draw.text(((W - draw.textlength(line, font=hook_font)) // 2, 340 + i * 92),
+                  line, font=hook_font, fill=colour)
 
     qr_buf = io.BytesIO()
     segno.make(f"https://{SITE}/automation/", error="m").save(
@@ -161,8 +208,8 @@ def _lh_slide_cta():
     draw.rounded_rectangle((card_x, 600, card_x + card_w, 600 + card_w), radius=44, fill="#ffffff")
     canvas.paste(qr, ((W - qr.width) // 2, 600 + 44))
 
-    sub_font = _font(34)
     for i, sub in enumerate(["setup in a week · you approve the voice", "no contracts · cancel anytime"]):
+        sub_font = _fit(draw, sub, 34, W - 2 * 100, bold=False)
         draw.text(((W - draw.textlength(sub, font=sub_font)) // 2, 1310 + i * 52),
                   sub, font=sub_font, fill=FOG)
 

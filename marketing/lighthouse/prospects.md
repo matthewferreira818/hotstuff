@@ -71,3 +71,74 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 
 **Follow-up (once, 4-5 days later):** mention the first sample posts are free.
 **Show, don't tell:** your X feed scrolling + findhotstuff.com/automation.
+
+## Ready-to-send drafts (fill in [month], then send)
+
+_One per business, hook matched to what they sell. 5/day max._
+
+
+### The Painted Pony Bar & Grill (Sackville)
+> Hey! I was looking for The Painted Pony Bar & Grill online and noticed the page hasn't posted since [month] — and honestly, your live nights and specials could post themselves. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Holan Kitchen (Sackville)
+> Hey! I was looking for Holan Kitchen online and noticed the page hasn't posted since [month] — and honestly, your dishes deserve a feed as good as the food. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Ducks Aren't Real (Sackville)
+> Hey! I was looking for Ducks Aren't Real online and noticed the page hasn't posted since [month] — and honestly, a name this good should be on people's feeds every day. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Fener's Place (Sackville)
+> Hey! I was looking for Fener's Place online and noticed the page hasn't posted since [month] — and honestly, your regulars would share your specials if they saw them. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Cranewood On Main (Sackville)
+> Hey! I was looking for Cranewood On Main online and noticed the page hasn't posted since [month] — and honestly, your seasonal menu could announce itself. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Goya's Pizza (Sackville)
+> Hey! I was looking for Goya's Pizza online and noticed the page hasn't posted since [month] — and honestly, pizza photos are the easiest content on earth — yours could post daily. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Patterson's Family Restaurant (Sackville)
+> Hey! I was looking for Patterson's Family Restaurant online and noticed the page hasn't posted since [month] — and honestly, your daily specials could post themselves every morning. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Songs Chopsticks (Sackville)
+> Hey! I was looking for Songs Chopsticks online and noticed the page hasn't posted since [month] — and honestly, your lunch crowd checks their phone before they pick a spot. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Jack's Pizza (Sackville)
+> Hey! I was looking for Jack's Pizza online and noticed the page hasn't posted since [month] — and honestly, donair pics at 8pm sell donairs at 9pm — automatically. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### The Cackling Goose Market (Sackville)
+> Hey! I was looking for The Cackling Goose Market online and noticed the page hasn't posted since [month] — and honestly, what's-fresh-this-week posts could write themselves. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Aida's Café (Sackville)
+> Hey! I was looking for Aida's Café online and noticed the page hasn't posted since [month] — and honestly, your morning menu could greet people before they've had coffee. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Bagtown Brewing (Sackville)
+> Hey! I was looking for Bagtown Brewing online and noticed the page hasn't posted since [month] — and honestly, your tap list could announce every new pour on its own. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Carlos Barber Shop (Sackville)
+> Hey! I was looking for Carlos Barber Shop online and noticed the page hasn't posted since [month] — and honestly, fresh-cut photos are the best barber ads and they could post themselves. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Steel Clippers Barbershop (Sackville)
+> Hey! I was looking for Steel Clippers Barbershop online and noticed the page hasn't posted since [month] — and honestly, before-and-afters could go up automatically after every day. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### 150 Bridge Salon (Sackville)
+> Hey! I was looking for 150 Bridge Salon online and noticed the page hasn't posted since [month] — and honestly, your transformations belong on a feed that never goes quiet. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Looking Good Hair Design (Sackville — VERIFY NB)
+> Hey! I was looking for Looking Good Hair Design online and noticed the page hasn't posted since [month] — and honestly, your colour work could book next week's chairs. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### A Touch of Class Hair & Tanning (Sackville — VERIFY NB)
+> Hey! I was looking for A Touch of Class Hair & Tanning online and noticed the page hasn't posted since [month] — and honestly, a quiet page costs bookings — yours could run itself. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Summit Hair Studio (Sackville — VERIFY NB)
+> Hey! I was looking for Summit Hair Studio online and noticed the page hasn't posted since [month] — and honestly, your best work could show up on feeds daily without you touching a thing. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### LeBlancs Meat Market (Memramcook)
+> Hey! I was looking for LeBlancs Meat Market online and noticed the page hasn't posted since [month] — and honestly, this-week's-cuts posts could go out automatically — I'm local, from Memramcook myself. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Adorable Chocolat (Shediac)
+> Hey! I was looking for Adorable Chocolat online and noticed the page hasn't posted since [month] — and honestly, every new batch deserves a post, and it could happen automatically. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Le Moque Tortue (Shediac)
+> Hey! I was looking for Le Moque Tortue online and noticed the page hasn't posted since [month] — and honestly, a place with this much character should never have a silent feed. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Le Globe Café (Shediac)
+> Hey! I was looking for Le Globe Café online and noticed the page hasn't posted since [month] — and honestly, your pastry case could post itself every morning. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.

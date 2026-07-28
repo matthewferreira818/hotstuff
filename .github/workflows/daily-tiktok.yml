@@ -1,0 +1,38 @@
+name: Daily TikTok packs (product + agent)
+
+on:
+  schedule:
+    - cron: "20 10 * * *"  # ~7:20am Atlantic — packs ready every morning
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  packs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate today's packs
+        run: |
+          pip install --quiet requests pillow segno
+          python make_daily_packs.py
+
+      - name: Commit and push if anything changed
+        run: |
+          git add marketing/tiktok/daily
+          if ! git diff --cached --quiet; then
+            git config user.name "wavelist-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git commit -m "Daily TikTok packs (product + agent)"
+            git fetch origin master
+            git rebase -X theirs origin/master
+            git push origin HEAD:master
+          else
+            echo "No changes"
+          fi

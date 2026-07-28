@@ -310,3 +310,72 @@ loadProducts();
     if (designId) startCheckout("custom-tee", buyBtn, designId);
   });
 })();
+
+/* ---- app install (PWA) ---------------------------------------------- */
+(() => {
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((err) => console.warn("sw registration failed", err));
+    });
+  }
+
+  const DISMISS_KEY = "hotstuff-install-dismissed";
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+  if (isStandalone || localStorage.getItem(DISMISS_KEY)) return;
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let deferredPrompt = null;
+  let pill = null;
+
+  function makePill() {
+    if (pill) return pill;
+    pill = document.createElement("div");
+    pill.className = "install-pill";
+    pill.innerHTML =
+      '<button type="button" class="install-pill-btn">📲 Get the app</button>' +
+      '<button type="button" class="install-pill-close" aria-label="Dismiss">×</button>';
+    document.body.appendChild(pill);
+    pill.querySelector(".install-pill-close").addEventListener("click", () => {
+      localStorage.setItem(DISMISS_KEY, "1");
+      pill.remove();
+    });
+    pill.querySelector(".install-pill-btn").addEventListener("click", async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (choice.outcome === "accepted") {
+          localStorage.setItem(DISMISS_KEY, "1");
+          pill.remove();
+        }
+      } else if (isIOS) {
+        showIOSHint();
+      }
+    });
+    return pill;
+  }
+
+  function showIOSHint() {
+    let hint = pill.querySelector(".install-hint");
+    if (hint) { hint.remove(); return; }
+    hint = document.createElement("div");
+    hint.className = "install-hint";
+    hint.innerHTML = "Tap <b>Share</b> ▸ <b>Add to Home Screen</b> to install HotsTuff.";
+    pill.appendChild(hint);
+  }
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    makePill();
+  });
+
+  // iOS Safari never fires beforeinstallprompt — offer the hint instead
+  if (isIOS) makePill();
+
+  window.addEventListener("appinstalled", () => {
+    localStorage.setItem(DISMISS_KEY, "1");
+    if (pill) pill.remove();
+  });
+})();

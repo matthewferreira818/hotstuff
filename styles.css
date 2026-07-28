@@ -1062,3 +1062,52 @@ a.merch-card {
     padding: 10px 12px;
   }
 }
+
+/* ---- app install pill ---- */
+.install-pill {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-md);
+  padding: 4px;
+}
+.install-pill-btn {
+  border: 0;
+  background: linear-gradient(120deg, var(--accent-a), var(--accent-b));
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 9px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.install-pill-close {
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.install-hint {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  width: 230px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 12px 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
+}

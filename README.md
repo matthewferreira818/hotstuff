@@ -22,6 +22,26 @@ Then open the printed local URL. `index.html` fetches `products.json`, so the
 page must be served over http(s) — opening `index.html` directly via
 `file://` will block the fetch in most browsers.
 
+## App (PWA)
+
+The site is an installable Progressive Web App: visitors get a "📲 Get the
+app" pill (Android/desktop Chrome show a real install prompt; iOS gets
+Share ▸ Add to Home Screen instructions), and the installed app opens
+standalone with the flame icon, works offline from cache, and always shows
+the freshest catalog when online.
+
+Pieces: `manifest.webmanifest` (identity/icons), `sw.js` (service worker:
+network-first for pages + `products.json`, cached fallback offline;
+stale-while-revalidate for static files and CJ product photos), icons in
+`assets/icons/` (regenerate with `python make_app_icons.py` — reuses the
+brand flame from `tweet_media.py`), and the install-pill block at the bottom
+of `script.js`.
+
+**If you change `index.html` / `styles.css` / `script.js`, bump `VERSION` in
+`sw.js`** so installed apps fetch the new shell instead of serving the old
+one from cache. (`products.json` rotations need no bump — the catalog is
+always fetched network-first.)
+
 ## Automatic trending refresh
 
 `products.json` is regenerated every 3 days at 09:00 UTC by a GitHub Actions

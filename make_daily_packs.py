@@ -4,7 +4,7 @@ Builds the two daily TikTok posts under marketing/tiktok/daily/:
   product/  - 3-slide mini-pack of today's featured products + QR closer,
               in the HotsTuff flame identity. The pick rotates by date so
               each day of a 3-day catalog cycle features different items.
-  agent/    - 3-slide "the store ran itself today" pack in the Lighthouse
+  agent/    - 3-slide "the store ran itself today" pack in the East Coast Social
               navy/gold identity, ending on a QR to /automation — the daily
               ad for the automation business.
 
@@ -35,7 +35,7 @@ AGENT_DIR = DAILY_DIR / "agent"
 
 DAILY_COUNT = 3
 
-# Lighthouse Social identity (matches automation/index.html)
+# East Coast Social identity (matches automation/index.html)
 NAVY = "#0d1f33"
 NAVY_2 = "#14304d"
 GOLD = "#f0b429"
@@ -107,11 +107,11 @@ def _glow(canvas, cx, cy, radius):
 
 
 def _lh_header(draw, canvas):
-    """Gold beacon dot + LIGHTHOUSE SOCIAL wordmark, centered."""
+    """Gold beacon dot + EAST COAST SOCIAL wordmark, centered."""
     from PIL import ImageDraw  # noqa: F401 - parity with sibling builders
 
     wm_font = _font(52, True)
-    label = "LIGHTHOUSE SOCIAL"
+    label = "EAST COAST SOCIAL"
     lw = draw.textlength(label, font=wm_font)
     x = (W - (lw + 40)) // 2
     draw.ellipse((x, 196, x + 22, 218), fill=GOLD)
@@ -285,7 +285,7 @@ def build_daily():
     (AGENT_DIR / "agent-1.png").write_bytes(_lh_slide_hook())
     (AGENT_DIR / "agent-2.png").write_bytes(_lh_slide_receipts(len(products), refreshed))
     (AGENT_DIR / "agent-3.png").write_bytes(_lh_slide_cta())
-    print("wrote agent-1..3.png — Lighthouse receipts pack")
+    print("wrote agent-1..3.png — East Coast Social receipts pack")
 
     _write_captions(made if made else picks)
     print(f"Done → {DAILY_DIR}")

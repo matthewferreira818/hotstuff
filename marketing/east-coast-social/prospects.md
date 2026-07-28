@@ -1,4 +1,4 @@
-# Lighthouse Social — Prospect List (Sackville / Memramcook / ~35km)
+# East Coast Social — Prospect List (Sackville / Memramcook / ~35km)
 
 _Compiled 2026-07-28 from public directories. Next step for each: a 30-second
 feed check — look the business up on Instagram/Facebook, note the last post

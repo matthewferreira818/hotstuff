@@ -14,23 +14,23 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 ## Sackville NB — food & drink
 | Business | Type | Feed check |
 |---|---|---|
-| The Painted Pony Bar & Grill | bar & grill | |
-| Holan Kitchen | restaurant | |
-| Ducks Aren't Real | restaurant | |
-| Fener's Place | restaurant | |
+| The Painted Pony Bar & Grill | bar & grill | ✅ active (posted Jul 10, checked 07-28) |
+| Holan Kitchen | restaurant | 🎯 last post May 8 (checked 07-28) — fb.com/holankitchen |
+| Ducks Aren't Real | restaurant | 🎯 last post Jun 13 (checked 07-28) — fb.com/ducksarentrealnb, IG ducks_arent_real |
+| Fener's Place | restaurant | ✅ borderline (Jun 27) — re-check ~Aug 12; fb.com/fenersplace |
 | Cranewood On Main | café/restaurant | |
-| Goya's Pizza | pizza | |
-| Patterson's Family Restaurant | family restaurant | |
-| Songs Chopsticks | restaurant | |
-| Jack's Pizza | pizza/donair | |
-| The Cackling Goose Market | market/café | |
-| Aida's Café | café | |
-| Bagtown Brewing | brewery | |
+| Goya's Pizza | pizza | ✅ active (posted Jul 21, checked 07-28) |
+| Patterson's Family Restaurant | family restaurant | ✅ very active (posts daily, checked 07-28) |
+| Songs Chopsticks | restaurant | 🎯 last post Aug 1 2025! (checked 07-28) — fb.com/songschopsticks |
+| Jack's Pizza | pizza/donair | 🎯 last post Mar 10 (checked 07-28) — fb.com/SackvilleJacks |
+| The Cackling Goose Market | market/café | ✅ very active (checked 07-28) |
+| Aida's Café | café | ✅ active (posted Jun 30, checked 07-28) |
+| Bagtown Brewing | brewery | ⏳ page is 18+ age-gated — check logged in on phone |
 
 ## Sackville NB — services
 | Business | Type | Feed check |
 |---|---|---|
-| Carlos Barber Shop (22 Lansdowne St) | barber | |
+| Carlos Barber Shop (22 Lansdowne St) | barber | ❓ no page found (checked 07-28) — walk-in prospect. ⚠️ IG @carlos.barbershop is a DIFFERENT shop (Dominican Republic), do not DM |
 | Steel Clippers Barbershop (80 Main St) | barber | |
 | 150 Bridge Salon | salon | |
 | Looking Good Hair Design | salon — *verify it's Sackville NB, not NS* | |
@@ -40,7 +40,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 ## Memramcook / Dorchester
 | Business | Type | Feed check |
 |---|---|---|
-| LeBlancs Meat Market (32 La Mountain Rd) | butcher/market | |
+| LeBlancs Meat Market (32 La Mountain Rd) | butcher/market | 🎯 last post May 17 **2025** (checked 07-28) — real page name "Viandes LeBlanc Meats", French-leaning; fb.com/people/LeBlanc-Meat/100057430480369 |
 | _More: memramcook.com → business directory (markets, catering, pub)_ | | |
 
 ## Shediac (~30km)

@@ -5,6 +5,11 @@ on:
     # every 3 days at 09:00 UTC (fires on days 1,4,7,...,28,31 of each month;
     # the month boundary makes one interval shorter than 3 days — close enough)
     - cron: "0 9 */3 * *"
+    # backup crons: GitHub's scheduler sometimes skips or delays the 09:00
+    # fire by hours. These retries self-heal a missed refresh; the gate step
+    # below makes whichever fires first win and the rest no-op.
+    - cron: "30 10 */3 * *"
+    - cron: "0 13 */3 * *"
   workflow_dispatch: {}
 
 permissions:
@@ -20,26 +25,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+
+      - name: Skip if the catalog already refreshed today (backup-cron guard)
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && git log --since=midnight --oneline | grep -q "Refresh: trending products"; then
+            echo "Catalog already refreshed today — this is a duplicate scheduled fire. Skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
+
         with:
           python-version: "3.12"
 
       - name: Run refresh script
+        if: steps.gate.outputs.run == 'true'
         env:
           CJ_API_KEY: ${{ secrets.CJ_API_KEY }}
         run: python refresh_products.py
 
       - name: Generate fresh social posts
+        if: steps.gate.outputs.run == 'true'
         run: python generate_posts.py
 
       - name: Generate TikTok photo pack
+        if: steps.gate.outputs.run == 'true'
         run: |
           pip install --quiet requests pillow segno
           python make_tiktok_pack.py
 
       - name: Commit and push if anything changed
         id: commit
+        if: steps.gate.outputs.run == 'true'
         run: |
           git add products.json marketing/latest-posts.md marketing/tiktok
           if ! git diff --cached --quiet; then
@@ -59,7 +82,7 @@ jobs:
           fi
 
       - name: Tweet the fresh drop (skips until X API secrets are configured)
-        if: steps.commit.outputs.changed == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.commit.outputs.changed == 'true'
         env:
           X_API_KEY: ${{ secrets.X_API_KEY }}
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
@@ -70,7 +93,7 @@ jobs:
           python post_refresh_tweet.py 2>&1 | tee tweet.log
 
       - name: Credit watch — alert if X credits are depleted
-        if: steps.commit.outputs.changed == 'true'
+        if: steps.gate.outputs.run == 'true' && steps.commit.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

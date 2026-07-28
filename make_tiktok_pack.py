@@ -315,9 +315,14 @@ def build():
         stale.unlink()
 
     made, skipped = [], []
+    seen_names = set()  # CJ sometimes lists one product twice under different SKUs
     for p in candidates:
         if len(made) == SLIDES:
             break
+        name_key = p["_ad"].lower()
+        if name_key in seen_names:
+            print(f"skipped duplicate name: {p['_ad']}")
+            continue
         try:
             png = build_slide(p, len(made) + 1)
         except Exception as exc:  # noqa: BLE001 - one bad photo must never sink the pack
@@ -327,6 +332,7 @@ def build():
         out = OUT_DIR / f"slide-{len(made) + 1:02d}.png"
         out.write_bytes(png)
         made.append(p)
+        seen_names.add(name_key)
         print(f"wrote {out.name} — {p['_ad']} "
               f"({p.get('category', '?')}, score {p.get('trendScore', 0)})")
 

@@ -11,8 +11,8 @@ _Generated 2026-07-28 · 8 slides · post all slides as one TikTok photo (swipe)
 4. `slide-04.png` — Statement Necklace — $35.99 (Fashion)
 5. `slide-05.png` — Distance Measuring Instrument Electronic — $35.99 (Electronics)
 6. `slide-06.png` — Booty Lifting Anti Cellulite — $35.99 (Trending Finds)
-7. `slide-07.png` — Touchscreen Winter Gloves — $27.99 (Pet)
-8. `slide-08.png` — Womens Clothing Long Sleeve — $27.99 (Fashion)
+7. `slide-07.png` — Womens Clothing Long Sleeve — $27.99 (Fashion)
+8. `slide-08.png` — Telescopic Car Phone Mount — $13.99 (Auto)
 
 
 ## 📝 Captions — pick one, paste as-is

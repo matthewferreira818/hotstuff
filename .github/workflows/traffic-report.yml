@@ -1,0 +1,25 @@
+name: Traffic report
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"   # every 3 hours, on the hour (UTC)
+  workflow_dispatch: {}
+
+concurrency:
+  group: traffic-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Send traffic snapshot to phone
+        env:
+          GOATCOUNTER_TOKEN: ${{ secrets.GOATCOUNTER_TOKEN }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python traffic_report.py

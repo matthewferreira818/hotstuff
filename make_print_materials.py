@@ -94,10 +94,10 @@ def dot_grid(img, box, color=GOLD, alpha=42, step=56, dot_r=4):
 
 
 def logo_badge(size):
-    """Circular crop of the ECS lighthouse logo (fb-logo.png) + its paste mask."""
+    """Circular crop of the ECS logo (fb-logo.png, sunrise motif) + its paste mask."""
     from PIL import Image, ImageDraw
     logo = Image.open(HERE / "marketing" / "east-coast-social" / "fb-logo.png").convert("RGB")
-    crop = logo.crop((162, 190, 862, 890)).resize((size, size), Image.LANCZOS)
+    crop = logo.crop((92, 100, 932, 940)).resize((size, size), Image.LANCZOS)
     mask = Image.new("L", (size, size), 0)
     ImageDraw.Draw(mask).ellipse((0, 0, size - 1, size - 1), fill=255)
     return crop, mask

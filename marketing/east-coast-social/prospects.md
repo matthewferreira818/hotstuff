@@ -31,11 +31,11 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 | Business | Type | Feed check |
 |---|---|---|
 | Carlos Barber Shop (22 Lansdowne St) | barber | ❓ no page found (checked 07-28) — walk-in prospect. ⚠️ IG @carlos.barbershop is a DIFFERENT shop (Dominican Republic), do not DM |
-| Steel Clippers Barbershop (80 Main St) | barber | |
-| 150 Bridge Salon | salon | |
-| Looking Good Hair Design | salon — *verify it's Sackville NB, not NS* | |
-| A Touch of Class Hair & Tanning | salon — *verify NB* | |
-| Summit Hair Studio | salon — *verify NB* | |
+| Steel Clippers Barbershop (80 Main St) | barber | ✅ active (posted Jul 28, checked 07-29) — one-person shop (Tammy), walk-in only |
+| 150 Bridge Salon | salon | 🎯 DM SENT 07-29 (last post mid-April; fb.com/150bridgesalon) |
+| Looking Good Hair Design | salon | ❌ NOT local — fb match is Maroochydore, Australia; no NB page found (07-29). Drop. |
+| A Touch of Class Hair & Tanning | salon | ❌ no NB page found (07-29). Drop or verify by phone book. |
+| Summit Hair Studio | salon | ❌ no NB page found (07-29). Drop or verify by phone book. |
 
 ## Memramcook / Dorchester
 | Business | Type | Feed check |
@@ -46,13 +46,13 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 ## Shediac (~30km)
 | Business | Type | Feed check |
 |---|---|---|
-| Adorable Chocolat | chocolate shop/café | |
-| Le Moque Tortue | restaurant | |
-| Le Globe Café | café | |
-| Bistro Blonde | café/bistro | |
-| Restaurant Route 66 | family restaurant | |
-| Blue Lobster Kitchen | restaurant | |
-| Dr.SashAesthetics | aesthetics/wellness | |
+| Adorable Chocolat | chocolate shop/café | ✅ active (Jul 6, checked 07-29) — same owners as Moque Tortue ("Shediac Wonderland" group) |
+| Le Moque Tortue | restaurant | ✅ active (trivia-night posts, checked 07-29) |
+| Le Globe Café | café | ✅ very active (500 talking, checked 07-29) |
+| Bistro Blonde | café/bistro | ⏳ lives on Hôtel Shediac's page — looks ~2 YEARS dead (2y-old comment on newest visible post) but exact month unverified; check on phone, could be a strong 🎯 |
+| Restaurant Route 66 | family restaurant | ✅ active (Jul 1, checked 07-29) |
+| Blue Lobster Kitchen | restaurant | ✅ active (Jul 8, 53 talking, checked 07-29) |
+| Dr.SashAesthetics | aesthetics/wellness | ❓ no Facebook found (07-29) — likely Instagram-only; check IG on phone |
 
 ## Dieppe (~25km)
 | Business | Type | Feed check |

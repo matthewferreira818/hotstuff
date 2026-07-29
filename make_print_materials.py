@@ -295,7 +295,134 @@ def make_cards():
     print("cards done")
 
 
+def gradient_pill(img, box, text, font):
+    """Gold horizontal-gradient pill with navy text — the store's badge style."""
+    from PIL import Image, ImageDraw
+    x0, y0, x1, y1 = box
+    w, h = x1 - x0, y1 - y0
+    pill = Image.new("RGB", (w, h), GOLD)
+    pd = ImageDraw.Draw(pill)
+    left, right = _rgb("#ffd166"), _rgb("#f0a020")
+    for x in range(w):
+        t = x / max(1, w)
+        col = tuple(int(left[i] + (right[i] - left[i]) * t) for i in range(3))
+        pd.line((x, 0, x, h), fill=col)
+    mask = Image.new("L", (w, h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, w - 1, h - 1), radius=h // 2, fill=255)
+    img.paste(pill, (x0, y0), mask)
+    if text:
+        d = ImageDraw.Draw(img)
+        tw = d.textlength(text, font=font)
+        d.text((x0 + (w - tw) // 2, y0 + (h - int(font.size * 1.35)) // 2), text, font=font, fill=NAVY)
+
+
+def tear_tabs(img, d, W, H):
+    """Light tear-off tab strip with dashed cut lines (shared by both flyers)."""
+    from PIL import Image as Im, ImageDraw
+    tab_top = H - 460
+    d.rectangle((0, tab_top, W, H), fill=LIGHT)
+    d.line((0, tab_top, W, tab_top), fill=GOLD, width=8)
+    n = 8
+    tab_w = W // n
+    tab_text_img = Im.new("RGB", (420, tab_w - 40), LIGHT)
+    td = ImageDraw.Draw(tab_text_img)
+    td.text((16, 8), "East Coast Social", font=fit(td, "East Coast Social", 40, 388), fill=NAVY)
+    td.text((16, 68), PHONE, font=fit(td, PHONE, 40, 388, bold=False), fill=INK)
+    td.text((16, 128), SITE_LINE, font=fit(td, SITE_LINE, 30, 388, bold=False), fill=FOG)
+    tab_rot = tab_text_img.rotate(90, expand=True)
+    for i in range(n):
+        x = i * tab_w
+        if i:
+            for yy in range(tab_top + 10, H - 10, 36):
+                d.line((x, yy, x, yy + 18), fill=FOG, width=3)
+        img.paste(tab_rot, (x + 20, tab_top + 20))
+
+
+def make_flyer_dark():
+    """Letter flyer in the HotsTuff store-slide style — full dark navy page,
+    gradient badge pill, white content card, big price — ECS colours + logo."""
+    from PIL import Image, ImageDraw
+
+    W, H = 2550, 3300
+    img = Image.new("RGB", (W, H), NAVY)
+    d = ImageDraw.Draw(img)
+    v_gradient(d, (0, 0, W, H), NAVY, NAVY_3)
+    dot_grid(img, (0, 0, 900, 500))
+    dot_grid(img, (W - 900, H - 960, W, H - 470))
+    radial_glow(img, (W // 2, 640), 900, peak_alpha=55)
+
+    # logo lockup (like the flame + wordmark on store slides)
+    label_f = _font(84, True)
+    label = "EAST COAST SOCIAL"
+    lw = d.textlength(label, font=label_f)
+    badge, gap = 220, 48
+    bx = int((W - (badge + gap + lw)) // 2)
+    crop, mask = logo_badge(badge)
+    img.paste(crop, (bx, 70), mask)
+    d.ellipse((bx, 70, bx + badge, 70 + badge), outline=GOLD, width=8)
+    d.text((bx + badge + gap, 132), label, font=label_f, fill=GOLD)
+
+    # gradient pill badge
+    pill_f = _font(54, True)
+    pt = "DONE-FOR-YOU SOCIAL MEDIA"
+    pw = d.textlength(pt, font=pill_f)
+    pill_w = int(pw + 140)
+    gradient_pill(img, ((W - pill_w) // 2, 370, (W + pill_w) // 2, 480), pt, pill_f)
+
+    # hero
+    hero1 = fit(d, "Your business posts every day.", 150, W - 300, loader=_serif)
+    centered(d, "Your business posts every day.", 560, hero1, LIGHT, W)
+    hero2 = fit(d, "You don't lift a finger.", 150, W - 300, loader=_serif)
+    centered(d, "You don't lift a finger.", 760, hero2, GOLD, W)
+    sub2 = "Sackville · Memramcook · the greater Moncton area"
+    centered(d, sub2, 950, fit(d, sub2, 54, W - 400, bold=False), "#a8bccf", W)
+
+    # white content card (the store slides' rounded-card centerpiece)
+    rows = [
+        "Your page posts every single day — in your voice, with your photos",
+        "Branded picture posts with QR codes to your menu or booking page",
+        "Content refreshes itself, so your feed never goes quiet again",
+        "A local human keeps watch — you get one simple monthly summary",
+    ]
+    cx0, cy0, cx1 = 170, 1070, W - 170
+    row_f = min((fit(d, t, 58, cx1 - cx0 - 300) for t in rows), key=lambda f: f.size)
+    card_h = 90 + len(rows) * 132 + 40
+    d.rounded_rectangle((cx0 + 14, cy0 + 18, cx1 + 14, cy0 + card_h + 18), radius=60, fill="#08131f")
+    d.rounded_rectangle((cx0, cy0, cx1, cy0 + card_h), radius=60, fill=PAPER)
+    y = cy0 + 70
+    for text in rows:
+        d.ellipse((cx0 + 80, y + 12, cx0 + 124, y + 56), fill=GOLD)
+        d.text((cx0 + 170, y), text, font=row_f, fill=INK)
+        y += 132
+
+    # gradient divider (the slides' underline bar)
+    gradient_pill(img, ((W - 340) // 2, 1786, (W + 340) // 2, 1802), "", pill_f)
+
+    # big price treatment (like the store slides' price)
+    centered(d, "$49/month", 1850, _font(190, True), GOLD, W)
+    sub_price = "$299 setup  ·  no contracts  ·  cancel anytime"
+    centered(d, sub_price, 2100, fit(d, sub_price, 56, W - 500, bold=False), LIGHT, W)
+
+    # QR card
+    qbox = 430
+    qx0, qy0 = (W - qbox) // 2, 2220
+    d.rounded_rectangle((qx0 + 10, qy0 + 12, qx0 + qbox + 10, qy0 + qbox + 12), radius=50, fill="#08131f")
+    d.rounded_rectangle((qx0, qy0, qx0 + qbox, qy0 + qbox), radius=50, fill=PAPER)
+    img.paste(qr_image(360), ((W - 360) // 2, qy0 + 35))
+    centered(d, SITE_LINE, 2672, _font(60, True), GOLD, W)
+    contact = f"Matthew Ferreira  ·  {PHONE}  ·  {EMAIL}"
+    centered(d, contact, 2752, fit(d, contact, 44, W - 300, bold=False), LIGHT, W)
+
+    tear_tabs(img, d, W, H)
+
+    OUT.mkdir(parents=True, exist_ok=True)
+    img.save(OUT / "flyer-dark.png")
+    img.save(OUT / "flyer-dark.pdf", resolution=300)
+    print("dark flyer done")
+
+
 if __name__ == "__main__":
     make_flyer()
+    make_flyer_dark()
     make_cards()
     print(f"all print materials -> {OUT}")

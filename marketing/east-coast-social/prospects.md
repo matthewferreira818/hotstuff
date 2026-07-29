@@ -15,14 +15,14 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 | Business | Type | Feed check |
 |---|---|---|
 | The Painted Pony Bar & Grill | bar & grill | ✅ active (posted Jul 10, checked 07-28) |
-| Holan Kitchen | restaurant | 🎯 last post May 8 (checked 07-28) — fb.com/holankitchen |
-| Ducks Aren't Real | restaurant | 🎯 last post Jun 13 (checked 07-28) — fb.com/ducksarentrealnb, IG ducks_arent_real |
+| Holan Kitchen | restaurant | 🎯 DM SENT 07-28 (from Matthew's profile, Claude-assisted) |
+| Ducks Aren't Real | restaurant | 🎯 DM SENT 07-28 — auto-reply says they don't check DMs; FOLLOW UP BY EMAIL ducksarentreal@gmail.com |
 | Fener's Place | restaurant | ✅ borderline (Jun 27) — re-check ~Aug 12; fb.com/fenersplace |
 | Cranewood On Main | café/restaurant | |
 | Goya's Pizza | pizza | ✅ active (posted Jul 21, checked 07-28) |
 | Patterson's Family Restaurant | family restaurant | ✅ very active (posts daily, checked 07-28) |
-| Songs Chopsticks | restaurant | 🎯 last post Aug 1 2025! (checked 07-28) — fb.com/songschopsticks |
-| Jack's Pizza | pizza/donair | 🎯 last post Mar 10 (checked 07-28) — fb.com/SackvilleJacks |
+| Songs Chopsticks | restaurant | 🎯 DM SENT 07-28 (from Matthew's profile, Claude-assisted) |
+| Jack's Pizza | pizza/donair | 🎯 DM SENT 07-28 (from Matthew's profile, Claude-assisted) |
 | The Cackling Goose Market | market/café | ✅ very active (checked 07-28) |
 | Aida's Café | café | ✅ active (posted Jun 30, checked 07-28) |
 | Bagtown Brewing | brewery | ⏳ page is 18+ age-gated — check logged in on phone |
@@ -40,7 +40,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 ## Memramcook / Dorchester
 | Business | Type | Feed check |
 |---|---|---|
-| LeBlancs Meat Market (32 La Mountain Rd) | butcher/market | 🎯 last post May 17 **2025** (checked 07-28) — real page name "Viandes LeBlanc Meats", French-leaning; fb.com/people/LeBlanc-Meat/100057430480369 |
+| LeBlancs Meat Market (32 La Mountain Rd) | butcher/market | 🎯 page messaging DISABLED (07-28) — reach via email leblancmeat.32@gmail.com (French draft ready) or walk-in with ECS flyer; page "Viandes LeBlanc Meats" |
 | _More: memramcook.com → business directory (markets, catering, pub)_ | | |
 
 ## Shediac (~30km)

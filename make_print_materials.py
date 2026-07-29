@@ -93,6 +93,16 @@ def dot_grid(img, box, color=GOLD, alpha=42, step=56, dot_r=4):
     img.paste(overlay, (x0, y0), overlay)
 
 
+def logo_badge(size):
+    """Circular crop of the ECS lighthouse logo (fb-logo.png) + its paste mask."""
+    from PIL import Image, ImageDraw
+    logo = Image.open(HERE / "marketing" / "east-coast-social" / "fb-logo.png").convert("RGB")
+    crop = logo.crop((162, 190, 862, 890)).resize((size, size), Image.LANCZOS)
+    mask = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(mask).ellipse((0, 0, size - 1, size - 1), fill=255)
+    return crop, mask
+
+
 def qr_image(size):
     import segno
     from PIL import Image
@@ -130,9 +140,13 @@ def make_flyer():
     label_f = _font(72, True)
     label = "EAST COAST SOCIAL"
     lw = d.textlength(label, font=label_f)
-    lx = (W - (lw + 60)) // 2
-    d.ellipse((lx, 128, lx + 36, 164), fill=GOLD)
-    d.text((lx + 60, 110), label, font=label_f, fill=GOLD)
+    badge, gap = 200, 44
+    bx = int((W - (badge + gap + lw)) // 2)
+    by = 60
+    crop, mask = logo_badge(badge)
+    img.paste(crop, (bx, by), mask)
+    d.ellipse((bx, by, bx + badge, by + badge), outline=GOLD, width=8)
+    d.text((bx + badge + gap, by + 58), label, font=label_f, fill=GOLD)
 
     hero1 = fit(d, "Your business posts every day.", 150, W - 300, loader=_serif)
     centered(d, "Your business posts every day.", 300, hero1, LIGHT, W)
@@ -249,9 +263,13 @@ def make_cards():
     label_f = _font(40, True)
     label = "EAST COAST SOCIAL"
     lw = d.textlength(label, font=label_f)
-    lx = (W - (lw + 34)) // 2
-    d.ellipse((lx, 66, lx + 20, 86), fill=GOLD)
-    d.text((lx + 34, 56), label, font=label_f, fill=GOLD)
+    badge, gap = 96, 24
+    bx = int((W - (badge + gap + lw)) // 2)
+    by = 34
+    crop, mask = logo_badge(badge)
+    front.paste(crop, (bx, by), mask)
+    d.ellipse((bx, by, bx + badge, by + badge), outline=GOLD, width=5)
+    d.text((bx + badge + gap, by + 24), label, font=label_f, fill=GOLD)
 
     tag1 = fit(d, "Social media that", 64, W - 160, loader=_serif)
     centered(d, "Social media that", 170, tag1, LIGHT, W)

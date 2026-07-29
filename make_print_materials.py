@@ -347,8 +347,6 @@ def make_flyer_dark():
     img = Image.new("RGB", (W, H), NAVY)
     d = ImageDraw.Draw(img)
     v_gradient(d, (0, 0, W, H), NAVY, NAVY_3)
-    dot_grid(img, (0, 0, 900, 500))
-    dot_grid(img, (W - 900, H - 960, W, H - 470))
     radial_glow(img, (W // 2, 640), 900, peak_alpha=55)
 
     # logo lockup (like the flame + wordmark on store slides)

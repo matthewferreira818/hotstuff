@@ -60,6 +60,162 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 | Nataliia's World of Beauty | beauty salon | |
 | _More: greatershediacchamber.com member directory_ | | |
 
+
+## Pipeline batch 2 (mined 2026-07-29) — TO FEED-CHECK before any DM
+
+_71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.com, tantramarnb.com, station8nb.ca, Shediac chamber, Dieppe, dealer/contractor/hospitality/professional sectors). Rules unchanged: verify last-post date first; >1 month quiet = 🎯 with real month; 5/day cap; medium prospects may pitch better by EMAIL — grab contact address during feed-check._
+
+### Small businesses
+
+| Business | Town | Type | Feed check |
+|---|---|---|---|
+| Fred's Seafood Restaurant | Cap-Pele | restaurant (seafood, family-owned) | likely ✅ — FB page exists (facebook.com/fredseafoodrestaurant), actively posts menus/reels |
+| Kelly's Bake Shop | Cap-Pele | bakery |  |
+| A & M Auto Repair | Dieppe | auto repair shop | no social seen in search; reviews call it 'the most honest garage' |
+| Blue Olive | Dieppe | Mediterranean (Tunisian/Lebanese) restaurant | no social seen in search |
+| Boulangerie Tony | Dieppe | bakery/café | FB page (facebook.com/Boulangerie.Tony) and Instagram (@boulangerie.tony) both exist |
+| CAVOK Brewing Co. | Dieppe | craft brewery/brewpub | no social seen in search |
+| Cremerie Bennic Dairy Bar | Dieppe | ice cream / dairy bar | no social seen in search |
+| Flying Boats Brewing | Dieppe | craft brewery | no social seen in search |
+| Hom Thai Cuisine | Dieppe | Thai restaurant | no social seen in search |
+| Mansu BBQ | Dieppe | Korean restaurant | no social seen in search |
+| Maverick Barber Studio | Dieppe | barber shop | books via Fresha; no social seen in search |
+| My Man Barber | Dieppe | barber shop | books via Vagaro; no social seen in search |
+| Norm's Pizza | Dieppe | pizza shop | no social seen in search |
+| Red Satay | Dieppe | Vietnamese restaurant | no social seen in search |
+| Rossano's Italian Grill | Dieppe | Italian restaurant | no social seen in search |
+| Sugar Roll Japanese Cuisine | Dieppe | Japanese/sushi restaurant | no social seen in search |
+| The Madras Cafe | Dieppe | South Indian restaurant | no social seen in search |
+| High Tide Homestead and Cattle | Dorchester | farm/meat sales | FB page exists (linked in directory) |
+| Maplehurst Manor B&B | Dorchester | bed and breakfast | has own website (maplehurstmanor.com); no social noted |
+| Peep and Keep Ecotique | Dorchester | eco boutique/gift shop | FB page exists (linked in directory) |
+| Village Square Takeout | Dorchester | takeout restaurant | FB page exists (linked in directory) |
+| Willow Farm | Dorchester | farm/produce | has own website (willowfarmnb.ca); no social noted |
+| The Thirsty Whippet Pub | Dorchester (Tantramar) | pub |  |
+| Ocean View Park Restaurant | Grand-Barachois | restaurant (Canadian cuisine, Route 133) |  |
+| Boulangerie Pain du College | Memramcook | bakery | no social noted in village directory listing |
+| China Place | Memramcook | Chinese restaurant | no social noted in village directory listing |
+| Crow & Vine | Memramcook | winery/restaurant | no social noted in village directory listing |
+| Distillerie Crooked River | Memramcook | craft distillery | no social noted in village directory listing |
+| Freddie's Pizza | Memramcook | pizza restaurant | no social noted in village directory listing |
+| Grange d'artisans Zoli | Memramcook | artisan craft shop | no social noted in village directory listing |
+| Memramcook Auto Service Ltée | Memramcook | auto repair garage | no social found; has reviews on YellowPages |
+| Verger Belliveau (Belliveau Orchard) | Memramcook | orchard/cidery farm market | no social noted in village directory listing |
+| Euston Park Social | Pointe-du-Chene | beachside gourmet canteen / beer garden |  |
+| Morse et Marteaux | Pointe-du-Chene | restaurant (BBQ smokehouse) |  |
+| The Sandbar (Sandbar & Grill) | Pointe-du-Chene | restaurant (waterfront seafood, on the wharf) |  |
+| C & J's Family Restaurant | Port Elgin | family restaurant | no social found |
+| Hidden House Pottery & Press | Port Elgin | pottery studio/art shop | has own website (hiddenhousepotteryandpress.com); no social noted |
+| Ted's Garage | Port Elgin | auto repair garage | no social found |
+| The Garden House Restaurant | Port Elgin | restaurant/catering | no social found in search snippets |
+| Beale and Inch Construction | Sackville | excavation/construction (60-year family business) | no social found |
+| CMA Plumbing & Heating | Sackville | plumber/heating | FB page exists (facebook.com/curtistheplumber) |
+| Cafe Tintamarre | Sackville | cafe |  |
+| Cory Allen's Plumbing & Heating Ltd. | Sackville | plumber |  |
+| Dave's Rock Emporium | Sackville | rock/mineral shop |  |
+| Fog Forest Gallery | Sackville | art gallery |  |
+| Gary Estabrooks Auto Service | Sackville | auto repair |  |
+| NCFIT Sackville | Sackville | gym (CrossFit-style, formerly CrossFit Sackville) | FB page exists (facebook.com/NCFITSackville) |
+| Namaste Bistro Sackville | Sackville | restaurant / take-out |  |
+| S Hall Tire Muffler & Auto Repair Centre | Sackville | auto repair / tire shop |  |
+| Sackville Auto & RV Ltd. | Sackville | auto/RV sales & service |  |
+| Sackville Muddy Paws | Sackville | pet groomer | FB page exists (facebook.com/sackvillemuddypaws) |
+| Sackville Plumbing & Heating Ltd | Sackville | plumber | no social seen in results |
+| Sackville Service Station Ltd. | Sackville | auto service station |  |
+| Tantramar Electric Ltd. | Sackville | electrician |  |
+| Tantramar Lawn & Landscaping | Sackville | landscaper | no social found in results |
+| The Barn Shop | Sackville | retail shop |  |
+| The Roost Cafe on York | Sackville | cafe |  |
+| Tidewater Books | Sackville | independent bookstore | FB page exists (facebook.com/TidewaterBooks) |
+| Wheeler Electric | Sackville | electrician | has own website; no FB/IG seen |
+| Fluffy Tails Dog Grooming | Sackville (Frosty Hollow) | pet groomer | FB page exists |
+| Boulangerie Leger Bakery | Shediac | bakery (also serves Cap-Pele) |  |
+| Chez Linda | Shediac | restaurant (family-owned seafood) |  |
+| Hally's Scoops and Brew | Shediac | cafe / ice cream shop |  |
+| Kainan Restaurant | Shediac | restaurant (Filipino) |  |
+| Kuro Sushi | Shediac | restaurant (Korean-Japanese) |  |
+| Poissonnerie Bigfish Fishmarket | Shediac | fish market |  |
+| Shediac Paddle Shop | Shediac | paddleboard/kayak shop and rentals |  |
+| Soggy Paws Pet Grooming | Shediac | pet grooming |  |
+| U'R Hair Down Salon | Shediac | hair salon |  |
+| Tantramar Excavating Ltd | Upper Cape (Port Elgin area) | excavation/septic contractor | has own website; no social seen |
+| The Flowr Shop - 19+ Herbal Dispensary | Westcock (Tantramar) | cannabis/herbal dispensary |  |
+
+### Medium businesses (10-100 staff / multi-location — consider Business-tier pricing before pitching)
+
+| Business | Town | Type | Feed check |
+|---|---|---|---|
+| Amherst Chrysler (Allen Auto Group) | Amherst, NS | New/used car dealership (Chrysler/Dodge/Jeep/Ram) |  |
+| Amherst Golf Club | Amherst, NS | Golf course | FB page exists (facebook.com/Amherstgolf) and surfaced in search results |
+| Amherst Toyota | Amherst, NS | New/used car dealership (Toyota) |  |
+| Dayle's Grand Market (Dayle's Maritimes Limited) | Amherst, NS | department store turned boutique market collective | FB page exists (facebook.com/dayles.dept) |
+| Taylor Ford Amherst | Amherst, NS | New/used car dealership (Ford) |  |
+| Trueman Blueberry Farms | Aulac / Point de Bute (near Sackville), NB | farm market / agritourism | likely ✅ — FB page exists (facebook.com/truemanblueberryfarms); tourism listings suggest active promo |
+| Ocean Surf RV Park-Camping | Cap-Pele, NB | RV park / campground |  |
+| Sandy Beach Tenting & Trailer Park | Cap-Pele, NB | Campground |  |
+| Westmorland Fisheries Ltd. | Cap-Pelé, NB | seafood processor (lobster/crab) | LinkedIn company page exists; no consumer FB/IG noticed |
+| Farmer Brown's Greenhouse | Dawson Settlement (greater Moncton), NB | greenhouse / garden centre | None noticed in search results |
+| Dieppe Driving School | Dieppe | driving school | none noticed in search results |
+| George's Plumbing and Heating | Dieppe | plumbing & heating contractor |  |
+| Sportmed Max Physiotherapy | Dieppe (also Moncton, Riverview) | physiotherapy clinic group | none noticed in search results |
+| Champlain Dental Clinic | Dieppe (also Moncton, Shediac, Richibucto, Petitcodiac) | dental clinic group | none noticed in search results |
+| Dental Health Centre | Dieppe / Moncton | dental clinic | none noticed in search results |
+| Max Health Institute & Physiotherapy | Dieppe / Moncton | multidisciplinary physiotherapy clinic | none noticed in search results |
+| Edgeline Construction Ltd. | Dieppe / greater Moncton | commercial general contractor |  |
+| Coop IGA de Dieppe (Cooperative de Consommation de Dieppe ltee) | Dieppe, NB | co-op grocery store | FB page exists (facebook.com/CoopDieppe) |
+| Fox Creek Golf Club | Dieppe, NB | Golf course (private club) |  |
+| Rallye Motoplex & Marine | Dieppe, NB | Powersports & marine dealer |  |
+| Gagnon Beach Campground & Cottages | Grand-Barachois (Cap-Acadie), NB | Campground / cottage rentals |  |
+| Pro Roofing | Greater Moncton (projects in Shediac) | residential roofing company |  |
+| Pine Needles Golf & Country Club | Haute-Aboujagane (between Shediac and Cap-Pele), NB | Golf course |  |
+| Foyer St-Thomas de la Vallée de Memramcook | Memramcook | seniors' care home | none noticed in search results |
+| Verger Belliveau Orchard | Memramcook, NB | orchard / farm market / cidery-winery | FB page exists (facebook.com/vergerbelliveau) |
+| Alliance Building Contractors Ltd. | Moncton | design-build construction firm |  |
+| Avery & Associates CPA | Moncton | accounting firm | none noticed in search results |
+| Bob's Cool Air Inc. | Moncton | HVAC / heat pump company |  |
+| Creativ Realty | Moncton | real-estate brokerage | FB page exists (facebook.com/creativrealty) |
+| Greene CPA | Moncton | accounting firm | none noticed in search results |
+| MacArthur's Paving & Construction | Moncton | paving / municipal piping contractor |  |
+| Terris Refrigeration, Heating & Cooling | Moncton | commercial HVAC-R contractor |  |
+| Wildwood Cabinets | Moncton | custom cabinet manufacturer & showroom |  |
+| Magic Mountain Water Park | Moncton (Magnetic Hill), NB | Water park / attraction & event venue | likely ✅ — FB page exists (facebook.com/MagicMountainNB), appears active |
+| Dolma Food | Moncton + Dieppe, NB | independent grocer / butcher / deli | FB pages exist for both locations |
+| Artisan Roofing Inc. | Moncton / Atlantic Canada | roofing & home improvement contractor |  |
+| GENCAN Roofing | Moncton / Maritimes | commercial flat roofing contractor | No Facebook/Instagram links found on their website — likely weak or no social presence |
+| Acadia Toyota | Moncton, NB | New/used car dealership (Toyota) |  |
+| Fancy Pokket Corporation | Moncton, NB | wholesale bakery (pita/bagels/tortillas) | None noticed in search results |
+| Green Diamond Equipment (Moncton branch) | Moncton, NB | Farm equipment dealer (John Deere) |  |
+| Home Furniture & Lighting | Moncton, NB | furniture & appliance store | None noticed in search results |
+| Leisure Time Sales (RV Center) | Moncton, NB | RV dealer |  |
+| Lounsbury Furniture | Moncton, NB | furniture & appliance store | FB page exists (facebook.com/LounsburyFurniture) |
+| MacArthur's Nurseries | Moncton, NB | garden centre / nursery | None noticed in search results |
+| Magnetic Hill Winery & B&B | Moncton, NB | Winery / B&B / wedding & event venue |  |
+| Maple Leaf Tractors & Equipment | Moncton, NB | Farm equipment dealer (Massey Ferguson, Kuhn) |  |
+| Nova International | Moncton, NB | Tractor & heavy equipment dealer (Kubota) |  |
+| Work & Play | Moncton, NB | Trailer dealer (utility, cargo, dump, equipment) |  |
+| Wheaton's | Moncton, NB (Maritime chain incl. Amherst NS) | home decor & furniture retailer | likely ✅ — FB (@wheatonsstores) and Instagram (@wheatons_ca) exist, appear active at chain level |
+| Croisieres Shediac Bay Cruises | Pointe-du-Chene (Shediac), NB | Boat tours / marine tourism | Not seen in search results |
+| Port Elgin Auto Sales | Port Elgin / Baie Verte, NB | Used truck & vehicle dealer |  |
+| Riverview Animal Health Centre | Riverview (greater Moncton) | veterinary hospital (24/7 emergency) | FB presence — two pages surfaced in results (RiverviewAnimalHealthCentre and cvcriverview) |
+| Moncton Golf & Country Club | Riverview (greater Moncton), NB | Golf course (member-owned club) |  |
+| RightLane Driver Training | Riverview / Moncton | driving school | none noticed in search results |
+| Bowsers' Construction Ltd. | Sackville | civil contractor (excavation, water & sewer) |  |
+| Campbell's Funeral Home | Sackville | funeral home | none noticed in search results |
+| Drew Nursing Home | Sackville | seniors' nursing home (non-profit) | none noticed in search results (has careers site drewnursinghome.ca) |
+| Marshlands Inn | Sackville, NB | Heritage inn with restaurant |  |
+| Carter's Septic Tank Service Ltd. | Salisbury / Second North River (serves all SE NB) | septic pumping & installation |  |
+| Cabinet Specialty | Shediac | kitchen/bath cabinet showroom & installer |  |
+| Remco Construction Inc. | Shediac | home builder / general contractor | Facebook page exists (surfaced in search results) |
+| Shediac Veterinary Hospital (Hôpital Vétérinaire de Shediac) | Shediac | veterinary hospital | FB page exists (facebook.com/ShediacVeterinaryHospital) |
+| East Coast Sport & Marine | Shediac (Pointe-du-Chene Rd), NB | Boat & powersports dealer |  |
+| Camping Beausejour | Shediac / Grand-Barachois, NB | Campground |  |
+| Centre Visuel de Shédiac / Shediac Eye Care (with Tantramar Eye Care) | Shediac / Sackville | optometry clinic | FB page exists (facebook.com/shediaceyecare) |
+| Auberge SHORES Inn & Hotel | Shediac, NB | Inn / motel |  |
+| Parlee Beach Motel | Shediac, NB | Motel | FB page exists (facebook.com/parleebeachmotel) and surfaced in search results |
+| Romeo's Marine | Shediac, NB | Marine sales & fiberglass service |  |
+| Seaside Chevrolet | Shediac, NB | New/used car dealership (Chevrolet) |  |
+| Shediac Lobster Shop Ltd. | Shediac, NB | seafood processor | Has own website (shediaclobster.ca); no FB/IG noticed in search results |
+
 ## The DM (personalize the first line every time)
 > Hey! I was looking for [business] online and noticed the [Instagram/Facebook]
 > hasn't posted since [month] — meanwhile you've clearly got stuff worth showing

@@ -56,74 +56,53 @@ def night_sky(size_w, size_h):
     return img
 
 
-def draw_lighthouse(img, cx, base_y, height, beam_left=True, beam_right=True):
-    """Gold-striped lighthouse with a glowing lantern and light beams,
-    drawn onto `img` with the lantern at (cx, base_y - height)."""
+def draw_sunrise(img, cx, horizon_y, radius, ray_count=9, reflection=True):
+    """Half-risen gold sun on the horizon line at (cx, horizon_y), with a fan
+    of rays above and a shimmering reflection in the water below."""
     d = ImageDraw.Draw(img, "RGBA")
-    h = height
-    top_y = base_y - h
-    w_base = h * 0.30
-    w_top = h * 0.17
+    r = radius
 
-    # beams first so the tower overlaps them
-    lantern_y = top_y + h * 0.10
-    beam_len = h * 1.5
-    spread = h * 0.16
-    for direction, on in ((-1, beam_left), (1, beam_right)):
-        if not on:
-            continue
-        x_far = cx + direction * beam_len
-        d.polygon([(cx, lantern_y), (x_far, lantern_y - spread), (x_far, lantern_y + spread)],
-                  fill=(240, 180, 41, 48))
-        d.polygon([(cx, lantern_y),
-                   (x_far, lantern_y - spread * 0.45), (x_far, lantern_y + spread * 0.45)],
-                  fill=(255, 220, 120, 42))
+    # rays: tapered spokes fanning over the top half, gaps left for air
+    for i in range(ray_count):
+        ang = math.pi * (i + 0.5) / ray_count  # 0..pi, sunrise fan
+        r0, r1 = r * 1.35, r * (2.1 if i % 2 == 0 else 1.75)
+        wa = math.pi / ray_count * 0.30       # angular half-width of a ray
+        pts = []
+        for a in (ang - wa, ang + wa):
+            pts.append((cx + math.cos(a) * r0, horizon_y - math.sin(a) * r0))
+        for a in (ang + wa * 0.5, ang - wa * 0.5):
+            pts.append((cx + math.cos(a) * r1, horizon_y - math.sin(a) * r1))
+        d.polygon(pts, fill=(240, 180, 41, 210))
 
-    # tapered tower with gold/navy stripes
-    stripes = 5
-    for i in range(stripes):
-        t0, t1 = i / stripes, (i + 1) / stripes
-        yy0 = top_y + h * 0.18 + (h * 0.82) * t0
-        yy1 = top_y + h * 0.18 + (h * 0.82) * t1
-        ww0 = w_top + (w_base - w_top) * t0
-        ww1 = w_top + (w_base - w_top) * t1
-        color = GOLD if i % 2 == 0 else (226, 232, 240)
-        d.polygon([(cx - ww0 / 2, yy0), (cx + ww0 / 2, yy0),
-                   (cx + ww1 / 2, yy1), (cx - ww1 / 2, yy1)], fill=color)
+    # the half-sun, two-tone for depth
+    d.pieslice((cx - r, horizon_y - r, cx + r, horizon_y + r), 180, 360, fill=GOLD)
+    d.pieslice((cx - r * 0.72, horizon_y - r * 0.72, cx + r * 0.72, horizon_y + r * 0.72),
+               180, 360, fill=(255, 214, 110))
 
-    # gallery deck + railing
-    deck_y = top_y + h * 0.18
-    d.rectangle((cx - w_top * 0.85, deck_y - h * 0.015, cx + w_top * 0.85, deck_y + h * 0.015),
-                fill=(226, 232, 240))
-    # lantern room with glow
-    lw = w_top * 0.62
-    glow = Image.new("RGBA", img.size, (0, 0, 0, 0))
-    ImageDraw.Draw(glow).ellipse((cx - lw * 1.7, lantern_y - lw * 1.7,
-                                  cx + lw * 1.7, lantern_y + lw * 1.7),
-                                 fill=(255, 214, 100, 90))
-    img.paste(glow, (0, 0), glow)
-    d.rectangle((cx - lw / 2, lantern_y - h * 0.045, cx + lw / 2, deck_y), fill=(255, 224, 130))
-    d.line([(cx, lantern_y - h * 0.04), (cx, deck_y)], fill=NAVY, width=max(2, int(h * 0.008)))
-    # dome cap
-    d.pieslice((cx - lw * 0.7, lantern_y - h * 0.10, cx + lw * 0.7, lantern_y + h * 0.02),
-               180, 360, fill=GOLD)
+    # horizon line
+    d.line([(cx - r * 2.4, horizon_y), (cx + r * 2.4, horizon_y)],
+           fill=(120, 160, 200, 130), width=max(2, int(r * 0.03)))
 
-    # rocks / waves at the base
-    d.ellipse((cx - w_base * 1.15, base_y - h * 0.03, cx + w_base * 1.15, base_y + h * 0.05),
-              fill=(9, 22, 38))
-    for k, (dx, wl) in enumerate(((-1.9, 1.1), (1.4, 0.9), (-0.4, 1.5))):
-        y = base_y + h * (0.055 + 0.02 * k)
-        x0 = cx + w_base * dx - w_base * wl / 2
-        d.arc((x0, y - h * 0.02, x0 + w_base * wl, y + h * 0.02), 200, 340,
-              fill=(120, 160, 200, 200), width=max(2, int(h * 0.006)))
+    # water: wave arcs + a broken gold reflection path under the sun
+    for k, (dx, wl) in enumerate(((-1.5, 1.0), (1.2, 0.8), (-0.3, 1.3))):
+        y = horizon_y + r * (0.42 + 0.30 * k)
+        x0 = cx + r * dx - r * wl / 2
+        d.arc((x0, y - r * 0.10, x0 + r * wl, y + r * 0.10), 200, 340,
+              fill=(120, 160, 200, 200), width=max(2, int(r * 0.035)))
+    if reflection:
+        for k in range(4):
+            y = horizon_y + r * (0.16 + 0.24 * k)
+            w = r * (0.85 - 0.17 * k)
+            d.rounded_rectangle((cx - w / 2, y, cx + w / 2, y + r * 0.075),
+                                radius=r * 0.04, fill=(240, 180, 41, 170 - 30 * k))
 
 
 def make_logo():
     s = 3
     size = 1024 * s
     img = night_sky(size, size)
-    # circle-safe: lighthouse centred, content inside inner ~72%
-    draw_lighthouse(img, size / 2, size * 0.80, size * 0.52)
+    # circle-safe: sun on a horizon just below centre, rays inside inner ~72%
+    draw_sunrise(img, size / 2, size * 0.58, size * 0.175)
     img.resize((1024, 1024), Image.LANCZOS).save(HERE / "fb-logo.png")
 
 
@@ -132,10 +111,9 @@ def make_cover():
     W, H = 1640 * s, 624 * s
     img = night_sky(W, H)
 
-    # lighthouse at the right edge of the mobile-safe band, beaming left;
-    # text is drawn afterwards and must stay clear of the tower (< 0.70 W)
-    lx = W * 0.80
-    draw_lighthouse(img, lx, H * 0.86, H * 0.60, beam_left=True, beam_right=False)
+    # sunrise at the right edge of the mobile-safe band; text is drawn
+    # afterwards and must stay clear of the sun + rays (< 0.67 W)
+    draw_sunrise(img, W * 0.85, H * 0.55, H * 0.19)
 
     d = ImageDraw.Draw(img)
     # wordmark + copy block, inside the mobile-safe band (center ~68% of width)
@@ -147,7 +125,7 @@ def make_cover():
 
     line1 = "Your business posts every day."
     line2 = "You don't lift a finger."
-    serif_big = font(60 * s, bold=True, serif=True)
+    serif_big = font(54 * s, bold=True, serif=True)
     d.text((x0, H * 0.40), line1, font=serif_big, fill=INK_LIGHT)
     d.text((x0, H * 0.53), line2, font=serif_big, fill=GOLD)
 

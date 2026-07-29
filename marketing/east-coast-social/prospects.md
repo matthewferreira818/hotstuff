@@ -93,11 +93,11 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Willow Farm | Dorchester | farm/produce | has own website (willowfarmnb.ca); no social noted |
 | The Thirsty Whippet Pub | Dorchester (Tantramar) | pub |  |
 | Ocean View Park Restaurant | Grand-Barachois | restaurant (Canadian cuisine, Route 133) |  |
-| Boulangerie Pain du College | Memramcook | bakery | no social noted in village directory listing |
-| China Place | Memramcook | Chinese restaurant | no social noted in village directory listing |
-| Crow & Vine | Memramcook | winery/restaurant | no social noted in village directory listing |
-| Distillerie Crooked River | Memramcook | craft distillery | no social noted in village directory listing |
-| Freddie's Pizza | Memramcook | pizza restaurant | no social noted in village directory listing |
+| Boulangerie Pain du College | Memramcook | bakery | ✅ active-ish — page 'Wood Chef Bakery', posted Jul 1 (checked 07-29) |
+| China Place | Memramcook | Chinese restaurant | ❓ NO managed page (auto-stub only, checked 07-29) — 'build your page' walk-in prospect |
+| Crow & Vine | Memramcook | winery/restaurant | ❓ no Facebook found (07-29) — 'build your page' prospect |
+| Distillerie Crooked River | Memramcook | craft distillery | ⏳ borderline — page 'Crooked River Farm - Ferme', ~Jun 23 per search index; recheck mid-Aug |
+| Freddie's Pizza | Memramcook | pizza restaurant | ⏳ date unreadable in-browser; posts look current/managed — 30-sec phone check |
 | Grange d'artisans Zoli | Memramcook | artisan craft shop | no social noted in village directory listing |
 | Memramcook Auto Service Ltée | Memramcook | auto repair garage | no social found; has reviews on YellowPages |
 | Verger Belliveau (Belliveau Orchard) | Memramcook | orchard/cidery farm market | no social noted in village directory listing |

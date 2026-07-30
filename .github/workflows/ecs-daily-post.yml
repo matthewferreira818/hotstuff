@@ -1,0 +1,28 @@
+name: ECS daily post
+
+on:
+  schedule:
+    - cron: "0 12 * * *"   # 12:00 UTC = 9:00 AM Atlantic — morning-coffee slot
+  workflow_dispatch: {}
+
+concurrency:
+  group: ecs-daily-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Generate today's card + caption
+        run: python marketing/east-coast-social/engine/generate_ecs_post.py
+      - name: Publish to Facebook Page
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+        run: python marketing/east-coast-social/engine/post_to_facebook.py

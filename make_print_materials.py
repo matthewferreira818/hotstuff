@@ -103,12 +103,12 @@ def logo_badge(size):
     return crop, mask
 
 
-def qr_image(size):
+def qr_image(size, url=AUTOMATION_URL):
     import segno
     from PIL import Image
     buf = io.BytesIO()
-    segno.make(AUTOMATION_URL, error="m").save(buf, kind="png", scale=20, border=2,
-                                               dark="#111111", light="#ffffff")
+    segno.make(url, error="m").save(buf, kind="png", scale=20, border=2,
+                                    dark="#111111", light="#ffffff")
     qr = Image.open(buf).convert("RGB")
     return qr.resize((size, size), Image.NEAREST)
 
@@ -316,19 +316,20 @@ def gradient_pill(img, box, text, font):
         d.text((x0 + (w - tw) // 2, y0 + (h - int(font.size * 1.35)) // 2), text, font=font, fill=NAVY)
 
 
-def tear_tabs(img, d, W, H):
-    """Light tear-off tab strip with dashed cut lines (shared by both flyers)."""
+def tear_tabs(img, d, W, H, l1="East Coast Social", l2=PHONE, l3=SITE_LINE,
+              l1_fill=NAVY, l2_fill=INK, l3_fill=FOG, strip=LIGHT, accent=GOLD):
+    """Tear-off tab strip with dashed cut lines (shared by all flyers)."""
     from PIL import Image as Im, ImageDraw
     tab_top = H - 460
-    d.rectangle((0, tab_top, W, H), fill=LIGHT)
-    d.line((0, tab_top, W, tab_top), fill=GOLD, width=8)
+    d.rectangle((0, tab_top, W, H), fill=strip)
+    d.line((0, tab_top, W, tab_top), fill=accent, width=8)
     n = 8
     tab_w = W // n
-    tab_text_img = Im.new("RGB", (420, tab_w - 40), LIGHT)
+    tab_text_img = Im.new("RGB", (420, tab_w - 40), strip)
     td = ImageDraw.Draw(tab_text_img)
-    td.text((16, 8), "East Coast Social", font=fit(td, "East Coast Social", 40, 388), fill=NAVY)
-    td.text((16, 68), PHONE, font=fit(td, PHONE, 40, 388, bold=False), fill=INK)
-    td.text((16, 128), SITE_LINE, font=fit(td, SITE_LINE, 30, 388, bold=False), fill=FOG)
+    td.text((16, 8), l1, font=fit(td, l1, 40, 388), fill=l1_fill)
+    td.text((16, 68), l2, font=fit(td, l2, 40, 388, bold=False), fill=l2_fill)
+    td.text((16, 128), l3, font=fit(td, l3, 30, 388, bold=False), fill=l3_fill)
     tab_rot = tab_text_img.rotate(90, expand=True)
     for i in range(n):
         x = i * tab_w
@@ -419,8 +420,93 @@ def make_flyer_dark():
     print("dark flyer done")
 
 
+def make_flyer_hotstuff():
+    """Letter flyer for the HotsTuff store itself, in the TikTok-slide identity:
+    dark plum page, flame + wordmark, flame-gradient pill, white card, amber claim."""
+    from PIL import Image, ImageDraw
+    from make_tiktok_pack import _flame_gradient
+
+    SBG, SACCENT, SAMBER = "#191016", "#e11d48", "#f59e0b"
+    SINK_L, SMUTED, SINK_D = "#f7f2ee", "#a3958f", "#231418"
+
+    W, H = 2550, 3300
+    img = Image.new("RGB", (W, H), SBG)
+    d = ImageDraw.Draw(img)
+    v_gradient(d, (0, 0, W, H), SBG, "#2a1a22")
+    radial_glow(img, (W // 2, 640), 900, color=SAMBER, peak_alpha=45)
+
+    # flame + wordmark lockup (same construction as the slides)
+    wm_f = _font(170, True)
+    fh = 200
+    group = int(fh * 0.84 + 40 + d.textlength("HotsTuff", font=wm_f))
+    hx = (W - group) // 2
+    fw = draw_flame(d, hx, 90, fh, core=SBG)
+    d.text((hx + fw + 40, 110), "HotsTuff", font=wm_f, fill=SACCENT)
+
+    # flame-gradient pill badge
+    pill_f = _font(54, True)
+    pt = "NEW DROPS EVERY 3 DAYS"
+    pw = d.textlength(pt, font=pill_f)
+    pill_w = int(pw + 140)
+    pill, pmask = _flame_gradient((pill_w, 110), radius=55)
+    img.paste(pill, ((W - pill_w) // 2, 380), pmask)
+    d.text(((W - pw) // 2, 380 + (110 - int(54 * 1.35)) // 2), pt, font=pill_f, fill="#ffffff")
+
+    # hero
+    hero1 = fit(d, "The internet's trending stuff.", 150, W - 300, loader=_serif)
+    centered(d, "The internet's trending stuff.", 570, hero1, SINK_L, W)
+    hero2 = fit(d, "Caught while it's still hot.", 150, W - 300, loader=_serif)
+    centered(d, "Caught while it's still hot.", 770, hero2, SAMBER, W)
+    sub2 = "findhotstuff.com · 40 fresh finds at a time"
+    centered(d, sub2, 960, fit(d, sub2, 54, W - 400, bold=False), SMUTED, W)
+
+    # white content card
+    rows = [
+        "40 hand-picked trending products — every one under $25",
+        "The catalog refreshes itself every 3 days — always something new",
+        "Custom tees: upload your own design, we print it and ship it",
+        "Secure card checkout powered by Stripe",
+    ]
+    cx0, cy0, cx1 = 170, 1080, W - 170
+    row_f = min((fit(d, t, 58, cx1 - cx0 - 300) for t in rows), key=lambda f: f.size)
+    card_h = 90 + len(rows) * 132 + 40
+    d.rounded_rectangle((cx0 + 14, cy0 + 18, cx1 + 14, cy0 + card_h + 18), radius=60, fill="#0d0a0c")
+    d.rounded_rectangle((cx0, cy0, cx1, cy0 + card_h), radius=60, fill="#ffffff")
+    y = cy0 + 70
+    for text in rows:
+        dot, dmask = _flame_gradient((44, 44), radius=22)
+        img.paste(dot, (cx0 + 80, y + 10), dmask)
+        d.text((cx0 + 170, y), text, font=row_f, fill=SINK_D)
+        y += 132
+
+    # divider + big claim (the slides' price treatment)
+    bar, bmask = _flame_gradient((340, 16), radius=8)
+    img.paste(bar, ((W - 340) // 2, 1800), bmask)
+    big = "Every find under $25"
+    centered(d, big, 1880, fit(d, big, 190, W - 300), SAMBER, W)
+    subp = "snooze it and it's gone — the shelf clears itself"
+    centered(d, subp, 2110, fit(d, subp, 56, W - 500, bold=False), SINK_L, W)
+
+    # QR card -> the store
+    qbox = 430
+    qx0, qy0 = (W - qbox) // 2, 2230
+    d.rounded_rectangle((qx0 + 10, qy0 + 12, qx0 + qbox + 10, qy0 + qbox + 12), radius=50, fill="#0d0a0c")
+    d.rounded_rectangle((qx0, qy0, qx0 + qbox, qy0 + qbox), radius=50, fill="#ffffff")
+    img.paste(qr_image(360, "https://findhotstuff.com/"), ((W - 360) // 2, qy0 + 35))
+    centered(d, "findhotstuff.com", 2685, _font(64, True), SAMBER, W)
+
+    tear_tabs(img, d, W, H, l1="HotsTuff", l2="findhotstuff.com", l3="new drops every 3 days",
+              l1_fill=SACCENT, l2_fill=SINK_D, l3_fill="#8a7a74", strip="#fff9f2", accent=SACCENT)
+
+    OUT.mkdir(parents=True, exist_ok=True)
+    img.save(OUT / "flyer-hotstuff.png")
+    img.save(OUT / "flyer-hotstuff.pdf", resolution=300)
+    print("hotstuff flyer done")
+
+
 if __name__ == "__main__":
     make_flyer()
     make_flyer_dark()
+    make_flyer_hotstuff()
     make_cards()
     print(f"all print materials -> {OUT}")

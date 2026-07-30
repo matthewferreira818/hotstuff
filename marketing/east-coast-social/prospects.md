@@ -109,13 +109,13 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Ted's Garage | Port Elgin | auto repair garage | no social found |
 | The Garden House Restaurant | Port Elgin | restaurant/catering | no social found in search snippets |
 | Beale and Inch Construction | Sackville | excavation/construction (60-year family business) | no social found |
-| CMA Plumbing & Heating | Sackville | plumber/heating | FB page exists (facebook.com/curtistheplumber) |
+| CMA Plumbing & Heating | Sackville | plumber/heating | 🎯 DM SENT 07-29 (quiet since Feb; email on page: cmaplumbing@outlook.com) |
 | Cafe Tintamarre | Sackville | cafe |  |
 | Cory Allen's Plumbing & Heating Ltd. | Sackville | plumber |  |
 | Dave's Rock Emporium | Sackville | rock/mineral shop |  |
 | Fog Forest Gallery | Sackville | art gallery |  |
 | Gary Estabrooks Auto Service | Sackville | auto repair |  |
-| NCFIT Sackville | Sackville | gym (CrossFit-style, formerly CrossFit Sackville) | FB page exists (facebook.com/NCFITSackville) |
+| NCFIT Sackville | Sackville | gym (CrossFit-style, formerly CrossFit Sackville) | 🎯 DM SENT 07-29 (page dead since Dec 2023!) |
 | Namaste Bistro Sackville | Sackville | restaurant / take-out |  |
 | S Hall Tire Muffler & Auto Repair Centre | Sackville | auto repair / tire shop |  |
 | Sackville Auto & RV Ltd. | Sackville | auto/RV sales & service |  |
@@ -126,7 +126,7 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Tantramar Lawn & Landscaping | Sackville | landscaper | no social found in results |
 | The Barn Shop | Sackville | retail shop |  |
 | The Roost Cafe on York | Sackville | cafe |  |
-| Tidewater Books | Sackville | independent bookstore | FB page exists (facebook.com/TidewaterBooks) |
+| Tidewater Books | Sackville | independent bookstore | 🎯 DM SENT 07-29 (quiet since Oct 2025; auto-reply says EMAIL them: tidewaterbooks@eastlink.ca) |
 | Wheeler Electric | Sackville | electrician | has own website; no FB/IG seen |
 | Fluffy Tails Dog Grooming | Sackville (Frosty Hollow) | pet groomer | FB page exists |
 | Boulangerie Leger Bakery | Shediac | bakery (also serves Cap-Pele) |  |
@@ -195,7 +195,7 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Work & Play | Moncton, NB | Trailer dealer (utility, cargo, dump, equipment) |  |
 | Wheaton's | Moncton, NB (Maritime chain incl. Amherst NS) | home decor & furniture retailer | likely ✅ — FB (@wheatonsstores) and Instagram (@wheatons_ca) exist, appear active at chain level |
 | Croisieres Shediac Bay Cruises | Pointe-du-Chene (Shediac), NB | Boat tours / marine tourism | Not seen in search results |
-| Port Elgin Auto Sales | Port Elgin / Baie Verte, NB | Used truck & vehicle dealer |  |
+| Port Elgin Auto Sales | Port Elgin / Baie Verte, NB | Used truck & vehicle dealer | 🎯 DM SENT 07-29 (page has ZERO posts ever, 149 followers) |
 | Riverview Animal Health Centre | Riverview (greater Moncton) | veterinary hospital (24/7 emergency) | FB presence — two pages surfaced in results (RiverviewAnimalHealthCentre and cvcriverview) |
 | Moncton Golf & Country Club | Riverview (greater Moncton), NB | Golf course (member-owned club) |  |
 | RightLane Driver Training | Riverview / Moncton | driving school | none noticed in search results |
@@ -212,7 +212,7 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Centre Visuel de Shédiac / Shediac Eye Care (with Tantramar Eye Care) | Shediac / Sackville | optometry clinic | FB page exists (facebook.com/shediaceyecare) |
 | Auberge SHORES Inn & Hotel | Shediac, NB | Inn / motel |  |
 | Parlee Beach Motel | Shediac, NB | Motel | FB page exists (facebook.com/parleebeachmotel) and surfaced in search results |
-| Romeo's Marine | Shediac, NB | Marine sales & fiberglass service |  |
+| Romeo's Marine (checked: ✅ active, posted Jul 14) | Shediac, NB | Marine sales & fiberglass service |  |
 | Seaside Chevrolet | Shediac, NB | New/used car dealership (Chevrolet) |  |
 | Shediac Lobster Shop Ltd. | Shediac, NB | seafood processor | Has own website (shediaclobster.ca); no FB/IG noticed in search results |
 

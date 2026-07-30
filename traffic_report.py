@@ -49,6 +49,11 @@ def main() -> None:
                     + dt.timedelta(hours=3))
     today = gc_total(token, midnight_utc, now)
 
+    # fuller totals for the workflow log (the phone ping stays short)
+    week = gc_total(token, now - dt.timedelta(days=7), now)
+    alltime = gc_total(token, dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc), now)
+    print(f"totals: all-time={alltime} · 7d={week} · today={today} · last3h={last3h}")
+
     msg = f"{last3h} views in the last 3h · {today} so far today"
     req = urllib.request.Request(
         f"https://ntfy.sh/{topic}",

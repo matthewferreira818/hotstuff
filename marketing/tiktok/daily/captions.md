@@ -1,12 +1,12 @@
 # Daily TikTok posts (auto-generated)
 
-_Generated 2026-07-29 · post PRODUCT in the daytime, AGENT in the evening._
+_Generated 2026-07-30 · post PRODUCT in the daytime, AGENT in the evening._
 
 
 ## 🔥 Product post (product/) — caption
 
 ```
-today's heat check 🔥 pocket + yoga and more — all under one link #tiktokmademebuyit #trending #dailyfinds
+today's heat check 🔥 the + reflective and more — all under one link #tiktokmademebuyit #trending #dailyfinds
 ```
 
 

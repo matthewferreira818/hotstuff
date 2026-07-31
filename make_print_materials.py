@@ -462,7 +462,7 @@ def make_flyer_hotstuff():
 
     # white content card
     rows = [
-        "40 hand-picked trending products — every one under $25",
+        "40 hand-picked trending products, fresh from what's blowing up online",
         "The catalog refreshes itself every 3 days — always something new",
         "Custom tees: upload your own design, we print it and ship it",
         "Secure card checkout powered by Stripe",
@@ -482,9 +482,9 @@ def make_flyer_hotstuff():
     # divider + big claim (the slides' price treatment)
     bar, bmask = _flame_gradient((340, 16), radius=8)
     img.paste(bar, ((W - 340) // 2, 1800), bmask)
-    big = "Every find under $25"
+    big = "Snooze it, lose it."
     centered(d, big, 1880, fit(d, big, 190, W - 300), SAMBER, W)
-    subp = "snooze it and it's gone — the shelf clears itself"
+    subp = "the whole shelf clears itself every 3 days — when it's gone, it's gone"
     centered(d, subp, 2110, fit(d, subp, 56, W - 500, bold=False), SINK_L, W)
 
     # QR card -> the store

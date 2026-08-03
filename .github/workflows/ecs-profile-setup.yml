@@ -1,0 +1,22 @@
+name: ECS X profile setup (one-shot)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests requests_oauthlib
+      - name: Set profile, avatar, banner
+        env:
+          ECS_X_API_KEY: ${{ secrets.ECS_X_API_KEY }}
+          ECS_X_API_SECRET: ${{ secrets.ECS_X_API_SECRET }}
+          ECS_X_ACCESS_TOKEN: ${{ secrets.ECS_X_ACCESS_TOKEN }}
+          ECS_X_ACCESS_TOKEN_SECRET: ${{ secrets.ECS_X_ACCESS_TOKEN_SECRET }}
+        run: python marketing/east-coast-social/engine/setup_x_profile.py

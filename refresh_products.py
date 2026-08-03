@@ -13,6 +13,7 @@ import json
 import math
 import os
 import re
+import time
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -24,8 +25,9 @@ PRODUCTS_FILE = HERE / "products.json"
 AUTH_URL = "https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken"
 PRODUCT_LIST_URL = "https://developers.cjdropshipping.com/api2.0/v1/product/listV2"
 
-DISPLAY_COUNT = 40   # products shown on the site each cycle
-POOL_SIZE = 100      # how many trending products to pull (CJ page max), to rotate from
+DISPLAY_COUNT = 120  # products shown on the site each cycle
+POOL_SIZE = 300      # trending pool to rotate from, fetched in pages
+PAGE_SIZE = 100      # CJ list-endpoint page max
 MAX_REPEATS = 0      # full rotation: no items carry over from the previous cycle
                      # (previous items only reappear as backfill if the trending
                      # pool has fewer than DISPLAY_COUNT new products)
@@ -285,22 +287,35 @@ def get_access_token(api_key: str) -> str:
 
 
 def fetch_trending_products(access_token: str) -> list[dict]:
-    params = {
-        "productFlag": 0,   # trending
-        "orderBy": 1,       # sort by listing count (sales-volume proxy)
-        "sort": "desc",
-        "page": 1,
-        "size": POOL_SIZE,
-    }
-    query = "&".join(f"{k}={v}" for k, v in params.items())
-    url = f"{PRODUCT_LIST_URL}?{query}"
-    resp = get_json(url, headers={"CJ-Access-Token": access_token})
-    if resp.get("code") != 200:
-        raise SystemExit(f"CJ product query failed: {resp.get('message', resp)}")
-    content = resp["data"]["content"]
-    if not content:
-        return []
-    return content[0].get("productList", [])
+    """Pull the trending pool, paging through CJ's list endpoint (100/page max)."""
+    pool, seen = [], set()
+    pages = math.ceil(POOL_SIZE / PAGE_SIZE)
+    for page in range(1, pages + 1):
+        params = {
+            "productFlag": 0,   # trending
+            "orderBy": 1,       # sort by listing count (sales-volume proxy)
+            "sort": "desc",
+            "page": page,
+            "size": PAGE_SIZE,
+        }
+        query = "&".join(f"{k}={v}" for k, v in params.items())
+        url = f"{PRODUCT_LIST_URL}?{query}"
+        resp = get_json(url, headers={"CJ-Access-Token": access_token})
+        if resp.get("code") != 200:
+            raise SystemExit(f"CJ product query failed: {resp.get('message', resp)}")
+        content = resp["data"]["content"]
+        batch = content[0].get("productList", []) if content else []
+        if not batch:
+            break
+        for p in batch:
+            key = p.get("sku") or p.get("id") or json.dumps(p, sort_keys=True)[:80]
+            if key not in seen:
+                seen.add(key)
+                pool.append(p)
+        if len(pool) >= POOL_SIZE:
+            break
+        time.sleep(1.2)  # stay under CJ's per-endpoint rate limit
+    return pool[:POOL_SIZE]
 
 
 def normalize_trend_score(listed_num: int, all_listed_nums: list[int]) -> int:
@@ -314,7 +329,7 @@ def normalize_trend_score(listed_num: int, all_listed_nums: list[int]) -> int:
 
 
 # Warm, benefit-led descriptions keyed to what the product actually IS, with a
-# handful of variants each so 40 cards rarely repeat one. The variant is
+# handful of variants each so the cards rarely repeat one. The variant is
 # chosen deterministically per SKU (same hashing style as assign_price), so a
 # given product's copy stays stable across refreshes. Matching uses the same
 # whole-word logic as classify_name (see keyword_hit/tokenize) so a stray

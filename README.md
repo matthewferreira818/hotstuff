@@ -52,8 +52,9 @@ automatically. This runs in the cloud, independent of whether your machine
 is on. (The cron `0 9 */3 * *` fires on days 1, 4, 7 … 28, 31 of each month,
 so the interval around a month boundary is a little shorter than 3 days.)
 
-The site shows **40 products** each cycle (`DISPLAY_COUNT`), selected from a
-pool of the top **100** trending items (`POOL_SIZE`). `MAX_REPEATS` is **0**:
+The site shows **120 products** each cycle (`DISPLAY_COUNT`), selected from a
+pool of the top **300** trending items (`POOL_SIZE`, fetched in pages of
+`PAGE_SIZE`). `MAX_REPEATS` is **0**:
 **every item is replaced each cycle** — items from the previous cycle only
 reappear as backfill if the trending pool has fewer than 40 new products.
 

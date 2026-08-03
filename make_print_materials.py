@@ -457,12 +457,12 @@ def make_flyer_hotstuff():
     centered(d, "The internet's trending stuff.", 570, hero1, SINK_L, W)
     hero2 = fit(d, "Caught while it's still hot.", 150, W - 300, loader=_serif)
     centered(d, "Caught while it's still hot.", 770, hero2, SAMBER, W)
-    sub2 = "findhotstuff.com · 40 fresh finds at a time"
+    sub2 = "findhotstuff.com · 120 fresh finds at a time"
     centered(d, sub2, 960, fit(d, sub2, 54, W - 400, bold=False), SMUTED, W)
 
     # white content card
     rows = [
-        "40 hand-picked trending products, fresh from what's blowing up online",
+        "120 hand-picked trending products, fresh from what's blowing up online",
         "The catalog refreshes itself every 3 days — always something new",
         "Custom tees: upload your own design, we print it and ship it",
         "Secure card checkout powered by Stripe",

@@ -159,7 +159,16 @@ function buildCard(p) {
     img.src = p.image;
     img.alt = p.name || "";
     img.loading = "lazy";
-    img.addEventListener("error", () => img.remove(), { once: true });
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => {
+      // photo failed to load (CDN hiccup): show the emoji tile instead of
+      // leaving a blank gradient
+      img.remove();
+      const fallback = document.createElement("span");
+      fallback.textContent = p.emoji || "";
+      fallback.setAttribute("aria-hidden", "true");
+      thumb.prepend(fallback);
+    }, { once: true });
     thumb.appendChild(img);
   } else {
     const emojiSpan = document.createElement("span");

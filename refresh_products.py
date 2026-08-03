@@ -209,14 +209,23 @@ def select_rotating(pool: list[dict], prev_ids: set[str]) -> list[dict]:
     return chosen[:DISPLAY_COUNT]
 
 
-MAX_NAME_LENGTH = 80  # card CSS clamps to two lines, so mid-name "…" is rarely needed
+MAX_NAME_LENGTH = 52  # tight enough to read cleanly in two lines on mobile cards
 
 # Pure marketing/SEO puffery that never describes the physical product.
 # Dropped from titles (case-insensitive, whole words).
 FILLER_WORDS = {
     "hot", "selling", "sale", "hotsale", "wholesale", "fashion",
     "trendy", "brand", "quality", "product", "products", "item",
+    "new", "arrival", "arrivals", "style", "ins", "creative",
+    "dropshipping", "explosive", "amazon", "aliexpress",
+    "2024", "2025", "2026",
 }
+
+# Words that read as dangling clutter at the END of a name ("...Holder For",
+# "...Gloves Touch And") — stripped after cleaning/truncation so every name
+# ends on a real word.
+TRAILING_CONNECTORS = {"for", "with", "and", "the", "of", "to", "in", "on",
+                       "or", "a", "an", "&"}
 
 
 def _dedupe_key(word: str) -> str:
@@ -228,6 +237,20 @@ def _dedupe_key(word: str) -> str:
     return w
 
 
+def _tidy_case(word: str) -> str:
+    """Soften supplier SHOUTING: long ALL-CAPS words become Title Case, but
+    short acronyms like USB / LED / RGB keep their caps."""
+    if len(word) > 3 and word.isupper():
+        return word.capitalize()
+    return word
+
+
+def _strip_trailing_connectors(words: list[str]) -> list[str]:
+    while len(words) > 1 and words[-1].lower().strip(".,;:") in TRAILING_CONNECTORS:
+        words.pop()
+    return words
+
+
 def clean_name(name: str) -> str:
     words = " ".join((name or "").split()).split(" ")
     out, seen = [], set()
@@ -236,13 +259,15 @@ def clean_name(name: str) -> str:
         if not key or key in FILLER_WORDS or key in seen:
             continue  # drop filler puffery and repeated words (incl. plurals)
         seen.add(key)
-        out.append(w)
+        out.append(_tidy_case(w))
 
+    out = _strip_trailing_connectors(out)
     cleaned = " ".join(out).strip() or " ".join((name or "").split())
     if len(cleaned) <= MAX_NAME_LENGTH:
         return cleaned
     truncated = cleaned[:MAX_NAME_LENGTH].rsplit(" ", 1)[0]
-    return truncated + "…"
+    truncated = " ".join(_strip_trailing_connectors(truncated.split(" ")))
+    return truncated
 
 
 def load_api_key() -> str:

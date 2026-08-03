@@ -56,6 +56,13 @@ def main():
     if media_id:
         payload["media"] = {"media_ids": [str(media_id)]}
     resp = session.post("https://api.x.com/2/tweets", json=payload, timeout=30)
+    if resp.status_code == 402:
+        # Pay-per-use developer account with an empty credit balance: not a
+        # code failure, so don't turn the whole daily workflow red — skip
+        # politely until credits are added in the X developer console.
+        print("X developer account has no credits — skipping today's X post "
+              "(add credits at developer.x.com to arm this channel).")
+        return
     if resp.status_code not in (200, 201):
         print(f"X post failed: {resp.status_code} {resp.text[:300]}", file=sys.stderr)
         sys.exit(1)

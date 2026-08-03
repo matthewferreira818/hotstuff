@@ -33,7 +33,7 @@ PANEL = "#eef4fa"
 
 AUTOMATION_URL = "https://findhotstuff.com/automation/"
 PHONE = "(506) 889-9737"
-EMAIL = "matthew.ferreira818@gmail.com"
+EMAIL = "ceohotstuff@yahoo.com"
 SITE_LINE = "findhotstuff.com/automation"
 
 

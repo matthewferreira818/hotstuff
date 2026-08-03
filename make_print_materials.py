@@ -189,7 +189,7 @@ def make_flyer():
     y += 10
     rib_h = 130
     v_gradient(d, (0, y, W, y + rib_h), NAVY_2, NAVY)
-    price = "$299 setup  ·  $49/month  ·  no contracts, cancel anytime"
+    price = "Free setup  ·  $79/month  ·  no contracts, cancel anytime"
     pf = fit(d, price, 72, W - 560, loader=_serif)
     pw = d.textlength(price, font=pf)
     centered(d, price, y + 24, pf, GOLD, W)
@@ -398,8 +398,8 @@ def make_flyer_dark():
     gradient_pill(img, ((W - 340) // 2, 1786, (W + 340) // 2, 1802), "", pill_f)
 
     # big price treatment (like the store slides' price)
-    centered(d, "$49/month", 1850, _font(190, True), GOLD, W)
-    sub_price = "$299 setup  ·  no contracts  ·  cancel anytime"
+    centered(d, "$79/month", 1850, _font(190, True), GOLD, W)
+    sub_price = "free setup  ·  no contracts  ·  cancel anytime"
     centered(d, sub_price, 2100, fit(d, sub_price, 56, W - 500, bold=False), LIGHT, W)
 
     # QR card

@@ -3,7 +3,12 @@ name: ECS daily post
 on:
   schedule:
     - cron: "0 12 * * *"   # 12:00 UTC = 9:00 AM Atlantic — morning-coffee slot
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      only_x:
+        description: "Skip Facebook, post only to X (for testing the X hookup)"
+        type: boolean
+        default: false
 
 concurrency:
   group: ecs-daily-post
@@ -22,6 +27,7 @@ jobs:
       - name: Generate today's card + caption
         run: python marketing/east-coast-social/engine/generate_ecs_post.py
       - name: Publish to Facebook Page
+        if: ${{ github.event.inputs.only_x != 'true' }}
         env:
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}

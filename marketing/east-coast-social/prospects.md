@@ -298,3 +298,12 @@ _One per business, hook matched to what they sell. 5/day max._
 
 ### Le Globe Café (Shediac)
 > Hey! I was looking for Le Globe Café online and noticed the page hasn't posted since [month] — and honestly, your pastry case could post itself every morning. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Bistro Blonde / Hôtel Shediac (Shediac)
+> Hey! I was looking up Bistro Blonde and noticed the page hasn't posted since [month] — for a spot right in the heart of Shediac's summer traffic, that's leaving a lot on the table. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to show you how it works.
+
+### Kelly's Bake Shop (Cap-Pelé)
+> Hey! I was looking for Kelly's Bake Shop online and noticed the page hasn't posted since [month] — and fresh bread honestly sells itself in photos. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+### Nataliia's World of Beauty (Dieppe)
+> Hey! I was looking for Nataliia's World of Beauty online and noticed the page hasn't posted since [month] — and your kind of work is exactly what people scroll for. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.

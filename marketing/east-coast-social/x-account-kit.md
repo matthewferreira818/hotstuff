@@ -1,5 +1,8 @@
 # East Coast Social — X (Twitter) account kit
 
+> **Status:** account created — **@ECSocialNB** ✅ (steps 1–2 done).
+> Remaining: first posts (step 3) and arming the auto-poster (step 4).
+
 Everything needed to open the ECS X account and arm the daily auto-poster.
 The posting engine is already built and live in this repo — it rides the same
 daily run that posts to the Facebook Page (9:00 AM Atlantic) and skips

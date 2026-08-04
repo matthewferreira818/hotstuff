@@ -81,7 +81,7 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Mansu BBQ | Dieppe | Korean restaurant | no social seen in search |
 | Maverick Barber Studio | Dieppe | barber shop | books via Fresha; no social seen in search |
 | My Man Barber | Dieppe | barber shop | books via Vagaro; no social seen in search |
-| Norm's Pizza | Dieppe | pizza shop | no social seen in search |
+| Norm's Pizza | Dieppe | pizza shop | 📞 CALLED 08-04 — owner out, contact info left with staff (touch 1). Call back ~08-06, 2-4 PM only |
 | Red Satay | Dieppe | Vietnamese restaurant | no social seen in search |
 | Rossano's Italian Grill | Dieppe | Italian restaurant | no social seen in search |
 | Sugar Roll Japanese Cuisine | Dieppe | Japanese/sushi restaurant | no social seen in search |

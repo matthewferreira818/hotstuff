@@ -50,7 +50,7 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 | Boulangerie Tony | Dieppe (50 Rue du Marché) | (506) 388-2253 | Has FB but low activity; bakery = perfect daily-post client | |
 | A & M Auto Repair | Riverview (569 Pine Glen Rd — listing says Riverview, not Dieppe) | (506) 387-4151 | No social seen; "most honest garage" reviews = great content to automate | |
 | CAVOK Brewing Co. | Dieppe (250 Dieppe Blvd) | (506) 961-5835 | No social seen; breweries thrive on daily taps/events posts | 08-04 🔥 HOT: staff gave owner's cell, owner answered, asked for TEXT — sent free-week-of-samples offer. If quiet, bump ~08-06 |
-| Norm's Pizza | Dieppe (4-438 Paul St) | (506) 859-8180 | No social seen; pizza = easiest daily content there is | |
+| Norm's Pizza | Dieppe (4-438 Paul St) | (506) 859-8180 | No social seen; pizza = easiest daily content there is | 08-04 owner out — left contact info with staff (touch 1). Call back ~08-06 in the 2-4 window |
 
 _Rules: max ~5 calls a session, same as DMs. After each call, tell Claude
 the outcome → ledger gets updated. A "no" is a complete result — log it and

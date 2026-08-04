@@ -1,6 +1,6 @@
 # HotsTuff — TikTok Photo Pack (auto-generated)
 
-_Generated 2026-08-03 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
+_Generated 2026-08-04 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
 
 
 ## 🖼️ Slides
@@ -9,10 +9,10 @@ _Generated 2026-08-03 · 8 slides · post all slides as one TikTok photo (swipe)
 2. `slide-02.png` — Projector Humidifier — $13.99 (Auto)
 3. `slide-03.png` — Statement Necklace — $35.99 (Fashion)
 4. `slide-04.png` — Touchscreen Winter Gloves — $18.99 (Sports)
-5. `slide-05.png` — Distance Measuring Instrument Electronic — $35.99 (Electronics)
-6. `slide-06.png` — Booty Lifting Anti Cellulite — $35.99 (Trending Finds)
-7. `slide-07.png` — Womens Clothing Long Sleeve — $27.99 (Fashion)
-8. `slide-08.png` — Telescopic Car Phone Mount — $13.99 (Auto)
+5. `slide-05.png` — Fleece Winter Jacket — $21.99 (Fashion)
+6. `slide-06.png` — Makeup Brushes Kit Maquiagem — $15.99 (Beauty)
+7. `slide-07.png` — Dog Chew Toys — $18.99 (Pet)
+8. `slide-08.png` — Arm Shaping Sleeves Slimming — $11.99 (Trending Finds)
 
 
 ## 📝 Captions — pick one, paste as-is

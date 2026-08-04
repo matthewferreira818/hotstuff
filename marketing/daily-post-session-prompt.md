@@ -16,7 +16,7 @@ button myself — you prep everything and stop before submitting.
   findhotstuff.com/automation), I'll attach the saved card image, you fill
   the text. STOP — I'll click Post.
 
-**2. Two Pinterest pins (continue the drip):**
+**2. Three Pinterest pins (product drip + service pitch):**
 - Open https://github.com/matthewferreira818/hotstuff/blob/master/marketing/pinterest/pins.md
   and ask me which pin numbers I haven't posted yet.
 - For each of the next two: the image is at
@@ -24,6 +24,13 @@ button myself — you prep everything and stop before submitting.
   (help me save it), then on pinterest.com Create Pin: fill the title and
   description from pins.md, link https://findhotstuff.com/, board
   "Trending Finds". STOP before Publish — that click is mine.
+- Then ONE East Coast Social pin: open
+  https://github.com/matthewferreira818/hotstuff/blob/master/marketing/pinterest/ecs/pins-ecs.md
+  and ask me which ECS pin number is next. The image is at
+  https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/pinterest/ecs/pin-ecs-N.png
+  — same drill, but the link is https://findhotstuff.com/automation/ and
+  the board is "Small Business Marketing" (create it if it doesn't exist).
+  STOP before Publish.
 
 **3. Two TikTok photo posts (desktop, via TikTok Studio):**
 - Open https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/tiktok/daily/captions.md

@@ -56,3 +56,23 @@ _Rules: max ~5 calls a session, same as DMs. After each call, tell Claude
 the outcome → ledger gets updated. A "no" is a complete result — log it and
 move on. A voicemail counts as touch one; call back once, days later, then
 let it rest._
+
+## Walk-in playbook (hotels, no-page shops, DM ghosts)
+
+**Bring:** 2 dark flyers, 3 business cards, phone with two tabs ready:
+findhotstuff.com/automation and the @hotstuff2213 feed (live proof).
+
+**Timing:** mid-morning (10–11) or mid-afternoon (2–4), midweek. For a
+hotel, ask the front desk: "Is the GM or whoever handles marketing around?
+Twenty seconds, I promise." Get a NAME even if they're out.
+
+**The pitch (Hôtel Shediac / Bistro Blonde version):** "Your hotel page is
+actually great — but Bistro Blonde hasn't posted in about two years, and
+that's a restaurant in the middle of Shediac's tourist season. I run a
+local service that gives it its own daily voice, automatically — free
+setup, $79 a month, and I'll build the first week of sample posts free so
+you can see it before deciding." Show the store feed scrolling. Hand over
+flyer + card.
+
+**The close:** "Who should I email the one-pager to?" — a name + email is
+a WIN even without a yes. Log every walk-in outcome in prospects.md.

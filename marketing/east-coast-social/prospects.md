@@ -18,14 +18,14 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 | Holan Kitchen | restaurant | 🎯 DM SENT 07-28 (from Matthew's profile, Claude-assisted) |
 | Ducks Aren't Real | restaurant | 🎯 DM SENT 07-28 — auto-reply says they don't check DMs; FOLLOW UP BY EMAIL ducksarentreal@gmail.com |
 | Fener's Place | restaurant | ✅ borderline (Jun 27) — re-check ~Aug 12; fb.com/fenersplace |
-| Cranewood On Main | café/restaurant | |
+| Cranewood On Main | café/restaurant | 🎯 DM SENT 08-03 (extension-assisted, dead feed) |
 | Goya's Pizza | pizza | ✅ active (posted Jul 21, checked 07-28) |
 | Patterson's Family Restaurant | family restaurant | ✅ very active (posts daily, checked 07-28) |
 | Songs Chopsticks | restaurant | 🎯 DM SENT 07-28 (from Matthew's profile, Claude-assisted) |
 | Jack's Pizza | pizza/donair | 🎯 DM SENT 07-28 (from Matthew's profile, Claude-assisted) |
 | The Cackling Goose Market | market/café | ✅ very active (checked 07-28) |
 | Aida's Café | café | ✅ active (posted Jun 30, checked 07-28) |
-| Bagtown Brewing | brewery | ⏳ page is 18+ age-gated — check logged in on phone |
+| Bagtown Brewing | brewery | 🎯 DM SENT 08-03 (extension-assisted, dead feed) |
 
 ## Sackville NB — services
 | Business | Type | Feed check |
@@ -49,7 +49,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 | Adorable Chocolat | chocolate shop/café | ✅ active (Jul 6, checked 07-29) — same owners as Moque Tortue ("Shediac Wonderland" group) |
 | Le Moque Tortue | restaurant | ✅ active (trivia-night posts, checked 07-29) |
 | Le Globe Café | café | ✅ very active (500 talking, checked 07-29) |
-| Bistro Blonde | café/bistro | ⏳ lives on Hôtel Shediac's page — looks ~2 YEARS dead (2y-old comment on newest visible post) but exact month unverified; check on phone, could be a strong 🎯 |
+| Bistro Blonde | café/bistro | ✅ host page (Hôtel Shediac) ACTIVE — DM sent 08-03 anyway; WALK-IN planned (bistro itself long dead; pitch in person) |
 | Restaurant Route 66 | family restaurant | ✅ active (Jul 1, checked 07-29) |
 | Blue Lobster Kitchen | restaurant | ✅ active (Jul 8, 53 talking, checked 07-29) |
 | Dr.SashAesthetics | aesthetics/wellness | ❓ no Facebook found (07-29) — likely Instagram-only; check IG on phone |
@@ -57,7 +57,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 ## Dieppe (~25km)
 | Business | Type | Feed check |
 |---|---|---|
-| Nataliia's World of Beauty | beauty salon | |
+| Nataliia's World of Beauty | beauty salon | 🎯 DM SENT 08-03 (extension-assisted, dead feed) |
 | _More: greatershediacchamber.com member directory_ | | |
 
 
@@ -70,7 +70,7 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Business | Town | Type | Feed check |
 |---|---|---|---|
 | Fred's Seafood Restaurant | Cap-Pele | restaurant (seafood, family-owned) | likely ✅ — FB page exists (facebook.com/fredseafoodrestaurant), actively posts menus/reels |
-| Kelly's Bake Shop | Cap-Pele | bakery |  |
+| Kelly's Bake Shop | Cap-Pele | bakery | 🎯 DM SENT 08-03 (extension-assisted, dead feed) |
 | A & M Auto Repair | Dieppe | auto repair shop | no social seen in search; reviews call it 'the most honest garage' |
 | Blue Olive | Dieppe | Mediterranean (Tunisian/Lebanese) restaurant | no social seen in search |
 | Boulangerie Tony | Dieppe | bakery/café | FB page (facebook.com/Boulangerie.Tony) and Instagram (@boulangerie.tony) both exist |

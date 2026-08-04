@@ -224,6 +224,13 @@ function buildCard(p) {
 }
 
 async function startCheckout(productId, button, designId) {
+  // count the Buy click as a `buy-<id>` event — this is the "interacted with"
+  // signal the catalog rotation uses to decide which items stay
+  if (window.goatcounter && typeof window.goatcounter.count === "function") {
+    try {
+      window.goatcounter.count({ path: "buy-" + productId, title: "Buy click", event: true });
+    } catch (e) { /* analytics must never block a sale */ }
+  }
   const originalText = button.textContent;
   button.disabled = true;
   button.textContent = "Redirecting…";

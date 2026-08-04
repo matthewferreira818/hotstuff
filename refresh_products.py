@@ -28,9 +28,12 @@ PRODUCT_LIST_URL = "https://developers.cjdropshipping.com/api2.0/v1/product/list
 DISPLAY_COUNT = 120  # products shown on the site each cycle
 POOL_SIZE = 300      # trending pool to rotate from, fetched in pages
 PAGE_SIZE = 100      # CJ list-endpoint page max
-MAX_REPEATS = 0      # full rotation: no items carry over from the previous cycle
-                     # (previous items only reappear as backfill if the trending
-                     # pool has fewer than DISPLAY_COUNT new products)
+MAX_REPEATS = 4      # keep the 4 most-interacted-with items each cycle; the
+                     # other 116 fully rotate. "Interacted" = Buy-now clicks
+                     # tracked as GoatCounter `buy-<id>` events (script.js);
+                     # until click data accrues, the top-trending carry-overs
+                     # stand in. (Previous items also backfill if the trending
+                     # pool has fewer than DISPLAY_COUNT new products.)
 MARKUP_MULTIPLIER = 1.6  # legacy wholesale-only floor (cost * this). Kept as an
                           # extra always-on safety margin on top of the real
                           # profit guarantee below; for cost > ~$16.80 this
@@ -190,6 +193,32 @@ def load_previous_ids() -> set[str]:
         return set()
 
 
+def buy_clicks(pid: str) -> int:
+    """Buy-now clicks for a product, from GoatCounter's public counter
+    (script.js logs a `buy-<id>` event per click). 0 on any failure — the
+    rotation must never break because analytics hiccuped."""
+    url = f"https://theycallmemattyb.goatcounter.com/counter/buy-{pid}.json"
+    try:
+        with urllib.request.urlopen(url, timeout=8) as r:
+            raw = json.load(r).get("count", "0")
+        return int(re.sub(r"[^\d]", "", str(raw)) or 0)
+    except Exception:  # noqa: BLE001 - analytics is best-effort by design
+        return 0
+
+
+def rank_by_interaction(repeats: list[dict]) -> list[dict]:
+    """Order last cycle's still-trending items by real customer interest:
+    Buy-now clicks first (fetched concurrently), pool trend order as the
+    tiebreak (the sort is stable, so zero-click items keep trend order)."""
+    if not repeats:
+        return repeats
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(10) as ex:
+        clicks = dict(zip((product_id(p) for p in repeats),
+                          ex.map(lambda p: buy_clicks(product_id(p)), repeats)))
+    return sorted(repeats, key=lambda p: -clicks.get(product_id(p), 0))
+
+
 def select_rotating(pool: list[dict], prev_ids: set[str]) -> list[dict]:
     """Choose DISPLAY_COUNT products from the trending pool so that at most
     MAX_REPEATS carry over from last cycle (0 = every item is new whenever the
@@ -197,9 +226,9 @@ def select_rotating(pool: list[dict], prev_ids: set[str]) -> list[dict]:
     hottest items; previous items are used only as backfill when the pool
     doesn't have enough new products."""
     fresh = [p for p in pool if product_id(p) not in prev_ids]
-    repeats = [p for p in pool if product_id(p) in prev_ids]
+    repeats = rank_by_interaction([p for p in pool if product_id(p) in prev_ids])
 
-    kept_repeats = repeats[:MAX_REPEATS]           # a little continuity for the top carry-overs
+    kept_repeats = repeats[:MAX_REPEATS]           # the most-interacted-with carry-overs
     chosen = fresh[: DISPLAY_COUNT - len(kept_repeats)] + kept_repeats
 
     if len(chosen) < DISPLAY_COUNT:                # pool smaller than expected — backfill

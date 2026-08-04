@@ -54,9 +54,11 @@ so the interval around a month boundary is a little shorter than 3 days.)
 
 The site shows **120 products** each cycle (`DISPLAY_COUNT`), selected from a
 pool of the top **300** trending items (`POOL_SIZE`, fetched in pages of
-`PAGE_SIZE`). `MAX_REPEATS` is **0**:
-**every item is replaced each cycle** — items from the previous cycle only
-reappear as backfill if the trending pool has fewer than 40 new products.
+`PAGE_SIZE`). `MAX_REPEATS` is **4**: the four items customers interacted
+with most (Buy-now clicks, tracked as GoatCounter `buy-<id>` events) carry
+over each cycle; everything else is replaced. Until click data accrues, the
+top-trending carry-overs stand in. Previous items also reappear as backfill
+if the trending pool has fewer than `DISPLAY_COUNT` new products.
 
 - **Trigger it manually:** GitHub repo → Actions tab → "Refresh trending
   products" → Run workflow. Or: `gh workflow run refresh-products.yml`.

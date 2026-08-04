@@ -45,7 +45,7 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 
 | Business | Town | Phone | Why calling | Outcome |
 |---|---|---|---|---|
-| Carlos Barber Shop | Sackville (22 Lansdowne St) | (902) 297-3433 | No social page at all — needs it most | |
+| Carlos Barber Shop | Sackville (22 Lansdowne St) | (902) 297-3433 | No social page at all — needs it most | 08-04 voicemail (touch 1) — call back ~08-07 |
 | LeBlancs Meat Market | Memramcook (32 La Montain Rd) | (506) 758-2222 | Page messaging disabled; email drafted; French-first greeting is a nice touch: "Bonjour! Je peux continuer en anglais?" | |
 | Boulangerie Tony | Dieppe (50 Rue du Marché) | (506) 388-2253 | Has FB but low activity; bakery = perfect daily-post client | |
 | A & M Auto Repair | Dieppe | look up on Google Maps | No social seen; "most honest garage" reviews = great content to automate | |

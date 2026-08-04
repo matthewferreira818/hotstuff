@@ -30,7 +30,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 ## Sackville NB — services
 | Business | Type | Feed check |
 |---|---|---|
-| Carlos Barber Shop (22 Lansdowne St) | barber | ❓ no page found (checked 07-28) — walk-in prospect. ⚠️ IG @carlos.barbershop is a DIFFERENT shop (Dominican Republic), do not DM |
+| Carlos Barber Shop (22 Lansdowne St) | barber | 📞 CALLED 08-04 — voicemail left (touch 1). Call back once in a few days; if no answer, walk-in prospect. ⚠️ IG @carlos.barbershop is a DIFFERENT shop (Dominican Republic), do not DM |
 | Steel Clippers Barbershop (80 Main St) | barber | ✅ active (posted Jul 28, checked 07-29) — one-person shop (Tammy), walk-in only |
 | 150 Bridge Salon | salon | 🎯 DM SENT 07-29 (last post mid-April; fb.com/150bridgesalon) |
 | Looking Good Hair Design | salon | ❌ NOT local — fb match is Maroochydore, Australia; no NB page found (07-29). Drop. |

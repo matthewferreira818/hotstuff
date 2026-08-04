@@ -48,9 +48,9 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 | Carlos Barber Shop | Sackville (22 Lansdowne St) | (902) 297-3433 | No social page at all — needs it most | 08-04 voicemail (touch 1) — call back ~08-07 |
 | LeBlancs Meat Market | Memramcook (32 La Montain Rd) | (506) 758-2222 | Page messaging disabled; email drafted; French-first greeting is a nice touch: "Bonjour! Je peux continuer en anglais?" | |
 | Boulangerie Tony | Dieppe (50 Rue du Marché) | (506) 388-2253 | Has FB but low activity; bakery = perfect daily-post client | |
-| A & M Auto Repair | Dieppe | look up on Google Maps | No social seen; "most honest garage" reviews = great content to automate | |
-| CAVOK Brewing Co. | Dieppe | look up on Google Maps | No social seen; breweries thrive on daily taps/events posts | |
-| Norm's Pizza | Dieppe | look up on Google Maps | No social seen; pizza = easiest daily content there is | |
+| A & M Auto Repair | Riverview (569 Pine Glen Rd — listing says Riverview, not Dieppe) | (506) 387-4151 | No social seen; "most honest garage" reviews = great content to automate | |
+| CAVOK Brewing Co. | Dieppe (250 Dieppe Blvd) | (506) 961-5835 | No social seen; breweries thrive on daily taps/events posts | |
+| Norm's Pizza | Dieppe (4-438 Paul St) | (506) 859-8180 | No social seen; pizza = easiest daily content there is | |
 
 _Rules: max ~5 calls a session, same as DMs. After each call, tell Claude
 the outcome → ledger gets updated. A "no" is a complete result — log it and

@@ -25,10 +25,25 @@ button myself — you prep everything and stop before submitting.
   description from pins.md, link https://findhotstuff.com/, board
   "Trending Finds". STOP before Publish — that click is mine.
 
-**3. TikTok reminder (phone job, just read it out):**
+**3. Two TikTok photo posts (desktop, via TikTok Studio):**
 - Open https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/tiktok/daily/captions.md
-  and read me today's product caption and agent caption, so I can post the
-  slides from my phone right after (product in the daytime slot, agent in
-  the evening).
+  and note today's product caption and agent caption.
+- Help me save the product slides to Downloads (same URLs every day):
+  - https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/tiktok/daily/product/product-1.png
+  - https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/tiktok/daily/product/product-2.png
+  - https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/tiktok/daily/product/product-3.png
+  - https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/tiktok/daily/product/product-4-qr.png
+- Open https://www.tiktok.com/tiktokstudio/upload and switch to a photo
+  post. I'll attach the four product slides IN ORDER (1 → 4); you paste the
+  product caption. If there's a sound picker, help me pick something upbeat.
+  STOP — I'll click Post.
+- Then the agent post, same way, with these three slides:
+  - https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/tiktok/daily/agent/agent-1.png
+  - https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/tiktok/daily/agent/agent-2.png
+  - https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/tiktok/daily/agent/agent-3.png
+  Paste the agent caption, and use the **Schedule** option to set it for
+  8:00 PM tonight instead of posting now. STOP — I'll click Schedule.
+- If desktop upload won't do photo posts or won't let me add a sound, fall
+  back to reading me both captions so I can post from my phone instead.
 
 At the end, give me a checklist of what got posted and what's left.

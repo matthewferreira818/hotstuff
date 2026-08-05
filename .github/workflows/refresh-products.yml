@@ -60,11 +60,15 @@ jobs:
           pip install --quiet requests pillow segno
           python make_tiktok_pack.py
 
+      - name: Regenerate Pinterest pin pack from the fresh rotation
+        if: steps.gate.outputs.run == 'true'
+        run: python make_pinterest_pins.py
+
       - name: Commit and push if anything changed
         id: commit
         if: steps.gate.outputs.run == 'true'
         run: |
-          git add products.json marketing/latest-posts.md marketing/tiktok
+          git add products.json marketing/latest-posts.md marketing/tiktok marketing/pinterest
           if ! git diff --cached --quiet; then
             git config user.name "wavelist-bot"
             git config user.email "actions@users.noreply.github.com"

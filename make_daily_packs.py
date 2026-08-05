@@ -236,7 +236,14 @@ def _refreshed_text(products_file):
 
 
 def _write_captions(picks):
-    tag_items = " + ".join(p["_ad"].split()[0].lower() for p in picks[:2])
+    # categories make clean caption words; product-name first words are
+    # often brand gibberish ("elecpow"). Dedupe in case both share one.
+    cats = []
+    for p in picks[:2]:
+        c = (p.get("category") or p["_ad"].split()[0]).lower()
+        if c not in cats:
+            cats.append(c)
+    tag_items = " + ".join(cats) + (" finds" if len(cats) == 1 else "")
     L = [
         "# Daily TikTok posts (auto-generated)\n",
         f"_Generated {date.today().isoformat()} · post PRODUCT in the daytime, AGENT in the evening._\n",

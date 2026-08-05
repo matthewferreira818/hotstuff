@@ -58,6 +58,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 | Business | Type | Feed check |
 |---|---|---|
 | Nataliia's World of Beauty | beauty salon | 🎯 DM SENT 08-03 (extension-assisted, dead feed) |
+| Petals on the Petitcodiac (Dover) | flower farm — NEW business, $15 mason-jar bouquets, posts bilingually | 🌱 COMMUNITY-WARM 08-05: found in Demandez Memramcook, likely no website yet. Friendly comments only — NO pitch before late August. Natural fit: starter site + FR/EN posting |
 | _More: greatershediacchamber.com member directory_ | | |
 
 

@@ -24,6 +24,7 @@
     "hero-sub": "HotsTuff suit ce qui est tendance sur les réseaux et dans les recherches, puis compose une nouvelle sélection de produits aux quelques jours. Pas de catalogue figé, pas d'inventaire mort — juste ce qui est hot en ce moment.",
     "hero-cta-shop": "Voir les tendances",
     "hero-cta-how": "Comment ça fonctionne",
+    "hero-cta-automation": "✨ Automatisation pour votre entreprise",
     "trust-1": "<b>Paiement sécurisé</b><small>Transactions traitées par Stripe</small>",
     "trust-2": "<b>Livraison suivie gratuite</b><small>Sur chaque commande, partout au monde</small>",
     "trust-3": "<b>Garantie 30 jours</b><small>Remboursement complet ou remplacement gratuit</small>",

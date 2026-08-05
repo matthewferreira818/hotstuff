@@ -275,7 +275,8 @@ def build_qr_slide(count):
 
     # QR on a white card so any scanner locks on instantly
     qr_buf = io.BytesIO()
-    segno.make(f"https://{SITE}/", error="m").save(
+    # ?ref=tt so GoatCounter attributes scans of TikTok slides to TikTok
+    segno.make(f"https://{SITE}/?ref=tt", error="m").save(
         qr_buf, kind="png", scale=24, border=2, dark="#111111", light="#ffffff")
     qr = Image.open(qr_buf).convert("RGB")
     if qr.width > 620:

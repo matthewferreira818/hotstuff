@@ -21,6 +21,8 @@ from pathlib import Path
 HERE = Path(__file__).parent
 PRODUCTS_FILE = HERE / "products.json"
 LINK = "findhotstuff.com"
+# ?ref= tags let GoatCounter attribute visits (tweet clicks vs QR scans)
+TAGGED_LINK = f"{LINK}/?ref=x"
 MAX_TWEET = 280
 FEATURED = 3  # products shown in the tweet text and attached as cards
 
@@ -36,7 +38,7 @@ def compose_tweet(ranked):
     for p in ranked[:FEATURED]:
         name = ad_name_for(p)
         lines.append(f"{p.get('emoji', '\U0001F6CD️')} {name} – ${float(p['price']):.2f}")
-    lines.append(f"Rotating out in a few days \U0001F440 {LINK}")
+    lines.append(f"Rotating out in a few days \U0001F440 {TAGGED_LINK}")
     tweet = "\n".join(lines)
     # trim product lines if somehow over the limit
     while len(tweet) > MAX_TWEET and len(lines) > 3:
@@ -105,7 +107,7 @@ def main():
         qr_id = upload_media(session, build_qr_card())
     except Exception as exc:  # noqa: BLE001
         print(f"QR card skipped ({exc}) - replying with link only")
-    reply = post(session, f"Tap or scan to shop \U0001F447\nhttps://{LINK}/",
+    reply = post(session, f"Tap or scan to shop \U0001F447\nhttps://{TAGGED_LINK}",
                  media_ids=[qr_id] if qr_id else None, reply_to=tweet_id)
     if reply.status_code in (200, 201):
         print("QR reply posted:", reply.json().get("data", {}).get("id"))

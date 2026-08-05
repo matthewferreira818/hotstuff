@@ -173,7 +173,10 @@ def build():
     L.append("# HotsTuff — This Cycle's Posts (auto-generated)\n")
     L.append(
         f"_Generated {date.today().isoformat()} from the current lineup "
-        f"({len(products)} products). Replace `[LINK]` with_ **{LINK}**\n"
+        f"({len(products)} products). Replace `[LINK]` with the tagged link "
+        f"for wherever you post, so GoatCounter can attribute the traffic:_ "
+        f"**{LINK}?ref=x** _(X)_, **{LINK}?ref=fb** _(Facebook)_, "
+        f"**{LINK}?ref=tt** _(TikTok)_\n"
     )
     L.append(
         "> Tone: upbeat + clean on Twitter/Facebook, fun + casual on TikTok. "

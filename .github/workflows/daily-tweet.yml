@@ -2,9 +2,17 @@ name: Product spotlight 3x daily (X + Instagram)
 
 on:
   schedule:
-    - cron: "0 13 * * *"  # morning slot  (~10am Atlantic)
-    - cron: "0 17 * * *"  # afternoon slot (~2pm Atlantic)
-    - cron: "0 21 * * *"  # evening slot  (~6pm Atlantic)
+    - cron: "0 13 * * *"   # morning slot  (~10am Atlantic)
+    - cron: "0 17 * * *"   # afternoon slot (~2pm Atlantic)
+    - cron: "0 21 * * *"   # evening slot  (~6pm Atlantic)
+    # backup crons: GitHub's scheduler sometimes skips or delays a fire by
+    # hours (the 13:00 slot was silently dropped on 2026-08-05). One retry
+    # per slot, still inside the same slot window (<15h / <19h / >=19h UTC,
+    # matching current_slot() in post_daily_tweet.py); the gate step below
+    # makes whichever fires first win and the rest no-op.
+    - cron: "30 14 * * *"  # morning backup
+    - cron: "30 18 * * *"  # afternoon backup
+    - cron: "30 22 * * *"  # evening backup
   workflow_dispatch:
     inputs:
       offset:
@@ -15,6 +23,7 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: read   # the gate lists today's runs to dedupe backup-cron fires
 
 jobs:
   spotlight:
@@ -24,16 +33,37 @@ jobs:
         with:
           fetch-depth: 50
 
-      - name: Skip the morning slot on refresh days (roundup covers it)
+      - name: Gate — skip duplicate slot fires and refresh-day mornings
         id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          HOUR=$(date -u +%H)
+          HOUR=$((10#$(date -u +%H)))
+          # slot windows must match current_slot() in post_daily_tweet.py
+          if [ "$HOUR" -lt 15 ]; then LO=0; HI=14
+          elif [ "$HOUR" -lt 19 ]; then LO=15; HI=18
+          else LO=19; HI=23; fi
+
+          POST=true
+          # refresh days: the fresh-drops roundup covers the morning slot
           if [ "$HOUR" -lt 15 ] && git log --since=midnight --oneline | grep -q "Refresh: trending products"; then
             echo "Catalog refreshed today — the fresh-drops roundup covers the morning slot. Skipping."
-            echo "post=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "post=true" >> "$GITHUB_OUTPUT"
+            POST=false
           fi
+          # backup-cron dedupe: if a scheduled run already succeeded inside
+          # this slot's window today, this fire is a duplicate — skip it
+          if [ "$POST" = true ] && [ "${{ github.event_name }}" = "schedule" ]; then
+            for ts in $(gh run list --workflow daily-tweet.yml --event schedule --status success \
+                          --created "$(date -u +%Y-%m-%d)" --json startedAt --jq '.[].startedAt'); do
+              H=$((10#$(date -u -d "$ts" +%H)))
+              if [ "$H" -ge "$LO" ] && [ "$H" -le "$HI" ]; then
+                echo "Slot already covered by the successful run started at $ts — skipping duplicate fire."
+                POST=false
+                break
+              fi
+            done
+          fi
+          echo "post=$POST" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-python@v5
         if: steps.gate.outputs.post == 'true'
@@ -53,7 +83,7 @@ jobs:
           python post_daily_tweet.py 2>&1 | tee tweet.log
 
       - name: Post today's Instagram photo (afternoon slot only; skips until IG secrets are configured)
-        if: steps.gate.outputs.post == 'true' && (github.event.schedule == '0 17 * * *' || github.event_name == 'workflow_dispatch')
+        if: steps.gate.outputs.post == 'true' && (github.event.schedule == '0 17 * * *' || github.event.schedule == '30 18 * * *' || github.event_name == 'workflow_dispatch')
         env:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}

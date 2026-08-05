@@ -12,7 +12,9 @@ from pathlib import Path
 
 from post_card import render_card
 
-SITE = "findhotstuff.com/automation"
+# ?ref=ecs: the caption lands on X, Facebook, and manual posts alike, so the
+# tag names the funnel (ECS daily caption), not a single platform
+SITE = "findhotstuff.com/automation/?ref=ecs"
 
 # (card message, caption) pairs. Card text stays short; captions carry the CTA.
 # Rotates by day-of-year so the feed never repeats back-to-back weeks.

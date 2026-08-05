@@ -70,7 +70,7 @@ def main():
         qr_id = upload_media(session, build_qr_card())
     except Exception as exc:  # noqa: BLE001
         print(f"QR card skipped ({exc}) - replying with link only")
-    post(session, "Tap or scan to shop \U0001F447\nhttps://findhotstuff.com/",
+    post(session, "Tap or scan to shop \U0001F447\nhttps://findhotstuff.com/?ref=x",
          media_id=qr_id, reply_to=tweet_id)
 
     return finish(f"POSTED: https://x.com/hotstuff2213/status/{tweet_id}")

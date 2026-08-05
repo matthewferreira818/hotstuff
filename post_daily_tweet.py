@@ -26,6 +26,9 @@ from pathlib import Path
 HERE = Path(__file__).parent
 PRODUCTS_FILE = HERE / "products.json"
 LINK = "findhotstuff.com"
+# ?ref= tags let GoatCounter attribute visits to each surface (tweet link
+# clicks vs QR-card scans) so we can see which channels actually pull
+TAGGED_LINK = f"{LINK}/?ref=x"
 MAX_TWEET = 280
 
 CREDS = ["X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_TOKEN_SECRET"]
@@ -61,7 +64,7 @@ def compose_spotlight(p):
     tweet = (
         f"{hook} {emoji}\n"
         f"{name} — just {price} at HotsTuff \U0001F525\n"
-        f"Grab it before it rotates out \U0001F440 {LINK}\n"
+        f"Grab it before it rotates out \U0001F440 {TAGGED_LINK}\n"
         f"{tags}"
     )
     if len(tweet) > MAX_TWEET:  # drop hashtags first if somehow too long
@@ -123,7 +126,7 @@ def main():
         qr_id = upload_media(session, build_qr_card())
     except Exception as exc:  # noqa: BLE001
         print(f"QR card skipped ({exc}) - replying with link only")
-    reply = post(session, f"Tap or scan to shop \U0001F447\nhttps://{LINK}/",
+    reply = post(session, f"Tap or scan to shop \U0001F447\nhttps://{TAGGED_LINK}",
                  media_id=qr_id, reply_to=tweet_id)
     if reply.status_code in (200, 201):
         print("QR reply posted:", reply.json().get("data", {}).get("id"))

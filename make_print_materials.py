@@ -103,7 +103,7 @@ def logo_badge(size):
     return crop, mask
 
 
-def qr_image(size, url=AUTOMATION_URL):
+def qr_image(size, url=AUTOMATION_URL + "?ref=print"):
     import segno
     from PIL import Image
     buf = io.BytesIO()
@@ -492,7 +492,7 @@ def make_flyer_hotstuff():
     qx0, qy0 = (W - qbox) // 2, 2230
     d.rounded_rectangle((qx0 + 10, qy0 + 12, qx0 + qbox + 10, qy0 + qbox + 12), radius=50, fill="#0d0a0c")
     d.rounded_rectangle((qx0, qy0, qx0 + qbox, qy0 + qbox), radius=50, fill="#ffffff")
-    img.paste(qr_image(360, "https://findhotstuff.com/"), ((W - 360) // 2, qy0 + 35))
+    img.paste(qr_image(360, "https://findhotstuff.com/?ref=print"), ((W - 360) // 2, qy0 + 35))
     centered(d, "findhotstuff.com", 2685, _font(64, True), SAMBER, W)
 
     tear_tabs(img, d, W, H, l1="HotsTuff", l2="findhotstuff.com", l3="new drops every 3 days",

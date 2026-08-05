@@ -108,6 +108,10 @@ def build_pin(p, n):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
+    # regenerated every catalog rotation: drop the old cycle's pins first so
+    # a product whose photo fails this cycle can't leave a stale image behind
+    for old in OUT.glob("pin-*.png"):
+        old.unlink()
     picked = pick_products()
     entries = []
     for i, p in enumerate(picked, 1):
@@ -122,7 +126,7 @@ def main():
             f"- **Description:** {p.get('description', '')} Only ${p['price']} at "
             f"HotsTuff — a fresh drop of trending finds every 3 days, free shipping. "
             f"#{p.get('category', 'trending').replace(' ', '').lower()} #trendingproducts #onlinefinds\n"
-            f"- **Link:** https://findhotstuff.com/\n")
+            f"- **Link:** https://findhotstuff.com/?ref=pin\n")
         print(f"pin-{i}.png — {name} (${p['price']})")
     (OUT / "pins.md").write_text(
         "# Pinterest upload pack\n\n_Upload each pin with its title, description, "

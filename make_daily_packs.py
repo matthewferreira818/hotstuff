@@ -198,7 +198,8 @@ def _lh_slide_cta():
                   line, font=hook_font, fill=colour)
 
     qr_buf = io.BytesIO()
-    segno.make(f"https://{SITE}/automation/", error="m").save(
+    # ?ref=tt-ecs: TikTok agent-pack scans, kept distinct from store scans
+    segno.make(f"https://{SITE}/automation/?ref=tt-ecs", error="m").save(
         qr_buf, kind="png", scale=22, border=2, dark="#111111", light="#ffffff")
     qr = Image.open(qr_buf).convert("RGB")
     if qr.width > 560:

@@ -48,7 +48,13 @@ always fetched network-first.)
 workflow ([`.github/workflows/refresh-products.yml`](.github/workflows/refresh-products.yml))
 that runs `refresh_products.py` against the CJ Dropshipping API, commits the
 result if it changed, and pushes — which triggers GitHub Pages to redeploy
-automatically. This runs in the cloud, independent of whether your machine
+automatically. The same run also regenerates the social packs from the fresh
+lineup: `marketing/latest-posts.md`, the TikTok pack (`marketing/tiktok/`),
+and the Pinterest pin pack (`marketing/pinterest/`, 10 pins per cycle ≈ a
+3-a-day drip until the next rotation). Outbound links in all generated posts,
+pins, and QR codes carry `?ref=<channel>` tags (`x`, `x-qr`, `tt`, `pin`,
+`ecs`, `print`, …) which GoatCounter surfaces as campaigns, so the dashboard
+shows which channel each visit came from. This runs in the cloud, independent of whether your machine
 is on. (The cron `0 9 */3 * *` fires on days 1, 4, 7 … 28, 31 of each month,
 so the interval around a month boundary is a little shorter than 3 days.)
 

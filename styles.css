@@ -1111,3 +1111,11 @@ a.merch-card {
   font-size: 13.5px;
   line-height: 1.55;
 }
+
+/* language toggle (EN/FR) */
+.lang-toggle {
+  background: none; border: 1px solid rgba(255,255,255,.28); color: inherit;
+  border-radius: 999px; padding: 6px 13px; font-weight: 700; font-size: 13px;
+  letter-spacing: .06em; cursor: pointer; margin-left: 6px;
+}
+.lang-toggle:hover { border-color: rgba(255,255,255,.65); }

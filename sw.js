@@ -13,7 +13,7 @@
  * installed apps pick the new shell up on their next visit.
  */
 
-const VERSION = "v8";
+const VERSION = "v9";
 const SHELL_CACHE = `hotstuff-shell-${VERSION}`;
 const RUNTIME_CACHE = `hotstuff-runtime-${VERSION}`;
 const IMAGE_CACHE = `hotstuff-images-${VERSION}`;
@@ -25,6 +25,7 @@ const SHELL = [
   "index.html",
   "styles.css",
   "script.js",
+  "i18n.js",
   "manifest.webmanifest",
   "assets/icons/icon-192.png",
   "assets/icons/icon-512.png",

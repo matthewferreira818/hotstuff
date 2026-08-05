@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="HotsTuff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=2">
+<link rel="stylesheet" href="styles.css?v=3">
 <meta property="og:type" content="website">
 <meta property="og:title" content="HotsTuff — Shop what's trending right now">
 <meta property="og:description" content="A fresh lineup of trending products every 3 days. Free shipping, secure Stripe checkout, 30-day guarantee.">
@@ -43,7 +43,7 @@
       HotsTuff's trending catalog requires JavaScript to load. Please enable it to browse current products.
     </div>
   </noscript>
-  <div class="announce">
+  <div class="announce" data-i18n="announce">
     🚚 <b>Free shipping</b><span class="announce-detail"> on every order</span><span class="announce-extra"> · 🔒 Secure Stripe checkout</span> · ↩️ 30-day money-back guarantee
   </div>
   <header class="nav">
@@ -52,45 +52,46 @@
         <span class="brand-mark">H</span>HotsTuff
       </a>
       <nav class="nav-links">
-        <a href="#trending">Trending</a>
-        <a href="#how">How it works</a>
-        <a href="#merch">Merch <span class="nav-new">New</span></a>
-        <a href="#shipping">Shipping</a>
+        <a href="#trending" data-i18n="nav-trending">Trending</a>
+        <a href="#how" data-i18n="nav-how">How it works</a>
+        <a href="#merch" data-i18n="nav-merch">Merch <span class="nav-new">New</span></a>
+        <a href="#shipping" data-i18n="nav-shipping">Shipping</a>
         <a href="#faq">FAQ</a>
-        <a class="btn nav-automation" href="automation/">Automation</a>
+        <a class="btn nav-automation" href="automation/" data-i18n="nav-automation">Automation</a>
       </nav>
-      <a class="btn btn-primary" href="#trending">Shop trending</a>
+      <a class="btn btn-primary" href="#trending" data-i18n="nav-shop">Shop trending</a>
+      <button type="button" id="lang-toggle" class="lang-toggle" aria-label="Passer au français">FR</button>
     </div>
   </header>
 
   <main>
     <section class="hero">
       <div class="hero-inner">
-        <span class="eyebrow">Restocked daily<span id="count-suffix" hidden> · <span id="product-count" aria-live="polite"></span> products live now</span></span>
-        <h1>Welcome to <span class="brand-accent">HotsTuff!</span><br>where we sell products everyone seems to love!</h1>
-        <p class="hero-sub">
+        <span class="eyebrow"><span data-i18n="eyebrow-main">Restocked daily</span><span id="count-suffix" hidden> · <span id="product-count" aria-live="polite"></span> <span data-i18n="eyebrow-products">products live now</span></span></span>
+        <h1 data-i18n="hero-title">Welcome to <span class="brand-accent">HotsTuff!</span><br>where we sell products everyone seems to love!</h1>
+        <p class="hero-sub" data-i18n="hero-sub">
           HotsTuff tracks what's trending across social and search, then curates a fresh
           lineup of products every few days. No fixed catalog, no dead inventory — just
           what's hot right now.
         </p>
         <div class="hero-actions">
-          <a class="btn btn-primary btn-lg" href="#trending">See what's trending</a>
-          <a class="btn btn-ghost btn-lg" href="#how">How curation works</a>
+          <a class="btn btn-primary btn-lg" href="#trending" data-i18n="hero-cta-shop">See what's trending</a>
+          <a class="btn btn-ghost btn-lg" href="#how" data-i18n="hero-cta-how">How curation works</a>
         </div>
       </div>
     </section>
 
     <div class="trust-strip" aria-label="Why shop with confidence">
-      <div class="trust-item"><span class="trust-icon">🔒</span><span><b>Secure checkout</b><small>Payments handled by Stripe</small></span></div>
-      <div class="trust-item"><span class="trust-icon">🚚</span><span><b>Free tracked shipping</b><small>On every order, worldwide</small></span></div>
-      <div class="trust-item"><span class="trust-icon">↩️</span><span><b>30-day guarantee</b><small>Full refund or free replacement</small></span></div>
-      <div class="trust-item"><span class="trust-icon">💬</span><span><b>Real human support</b><small>Replies within 1–2 business days</small></span></div>
+      <div class="trust-item"><span class="trust-icon">🔒</span><span data-i18n="trust-1"><b>Secure checkout</b><small>Payments handled by Stripe</small></span></div>
+      <div class="trust-item"><span class="trust-icon">🚚</span><span data-i18n="trust-2"><b>Free tracked shipping</b><small>On every order, worldwide</small></span></div>
+      <div class="trust-item"><span class="trust-icon">↩️</span><span data-i18n="trust-3"><b>30-day guarantee</b><small>Full refund or free replacement</small></span></div>
+      <div class="trust-item"><span class="trust-icon">💬</span><span data-i18n="trust-4"><b>Real human support</b><small>Replies within 1–2 business days</small></span></div>
     </div>
 
     <section class="trending" id="trending">
       <div class="section-head">
-        <h2>Trending this week</h2>
-        <p>Ranked by trend score — a live blend of search volume and sell-through rate.</p>
+        <h2 data-i18n="trending-title">Trending this week</h2>
+        <p data-i18n="trending-sub">Ranked by trend score — a live blend of search volume and sell-through rate.</p>
       </div>
       <div class="category-bar" id="category-bar" role="tablist" aria-label="Filter products by category"></div>
       <div class="grid" id="product-grid"></div>
@@ -100,9 +101,9 @@
       <span class="merch-ribbon" aria-hidden="true">NEW</span>
       <div class="merch-inner">
       <div class="section-head merch-head">
-        <span class="merch-eyebrow">✨ Just dropped</span>
+        <span class="merch-eyebrow" data-i18n="merch-eyebrow">✨ Just dropped</span>
         <h2>HotsTuff Merch</h2>
-        <p>Rep the flame — the full lineup is <b>live now</b>: tee, crewneck, embroidered cap, mug and sticker. Or upload your own design and we'll put it on a tee.</p>
+        <p data-i18n="merch-sub">Rep the flame — the full lineup is <b>live now</b>: tee, crewneck, embroidered cap, mug and sticker. Or upload your own design and we'll put it on a tee.</p>
       </div>
       <div class="merch-grid">
         <a class="merch-card" href="https://hotstuff-store.printify.me/product/30344866" target="_blank" rel="noopener">
@@ -123,7 +124,7 @@
         </a>
         <a class="merch-card" href="https://hotstuff-store.printify.me/product/30345176" target="_blank" rel="noopener">
           <img src="assets/merch/sticker.jpg" alt="HotsTuff flame kiss-cut vinyl sticker" loading="lazy">
-          <div class="merch-info"><h3>Flame Sticker</h3><span class="merch-badge">From $3.49</span></div>
+          <div class="merch-info"><h3>Flame Sticker</h3><span class="merch-badge" data-i18n="merch-sticker-price">From $3.49</span></div>
         </a>
         <div class="merch-card merch-custom">
           <label class="merch-drop" for="design-file" aria-label="Upload your design — PNG or JPG, up to 8 MB">
@@ -134,50 +135,50 @@
             </span>
           </label>
           <div class="merch-info">
-            <h3>Your Design Tee — $32.99</h3>
+            <h3 data-i18n="merch-custom-title">Your Design Tee — $32.99</h3>
             <button class="btn btn-primary merch-buy" id="design-buy" disabled>Buy</button>
           </div>
         </div>
       </div>
-      <p class="merch-note">Custom tees: pick your size &amp; colour at checkout — we print your art and ship it to your door. Only upload art you have the right to print.<br>
+      <p class="merch-note" data-i18n="merch-note">Custom tees: pick your size &amp; colour at checkout — we print your art and ship it to your door. Only upload art you have the right to print.<br>
       Logo merch ships from our print partner — browse the full <a href="https://hotstuff-store.printify.me" target="_blank" rel="noopener">HotsTuff merch store</a>.</p>
       </div>
     </section>
 
     <section class="how" id="how">
       <div class="section-head">
-        <h2>How the catalog stays fresh</h2>
-        <p>Every listing here is data, not code — that's what makes it easy to rotate.</p>
+        <h2 data-i18n="how-title">How the catalog stays fresh</h2>
+        <p data-i18n="how-sub">Every listing here is data, not code — that's what makes it easy to rotate.</p>
       </div>
       <div class="how-grid">
         <div class="how-card">
           <div class="how-num">01</div>
-          <h3>Trend signal comes in</h3>
-          <p>Rising search terms and social velocity surface a new candidate product.</p>
+          <h3 data-i18n="how-1-title">Trend signal comes in</h3>
+          <p data-i18n="how-1-body">Rising search terms and social velocity surface a new candidate product.</p>
         </div>
         <div class="how-card">
           <div class="how-num">02</div>
-          <h3>Added to the catalog</h3>
-          <p>A single entry is appended to the product list — no redesign required.</p>
+          <h3 data-i18n="how-2-title">Added to the catalog</h3>
+          <p data-i18n="how-2-body">A single entry is appended to the product list — no redesign required.</p>
         </div>
         <div class="how-card">
           <div class="how-num">03</div>
-          <h3>Retired when it cools off</h3>
-          <p>Once trend score drops, the entry is removed and shelf space opens up.</p>
+          <h3 data-i18n="how-3-title">Retired when it cools off</h3>
+          <p data-i18n="how-3-body">Once trend score drops, the entry is removed and shelf space opens up.</p>
         </div>
       </div>
     </section>
 
     <section class="shipping" id="shipping">
       <div class="section-head">
-        <h2>Shipping &amp; returns</h2>
-        <p>Straight answers before you buy — no surprises at the doorstep.</p>
+        <h2 data-i18n="ship-title">Shipping &amp; returns</h2>
+        <p data-i18n="ship-sub">Straight answers before you buy — no surprises at the doorstep.</p>
       </div>
       <div class="how-grid">
         <div class="how-card">
           <div class="how-num">🚚</div>
-          <h3>Shipping</h3>
-          <p>
+          <h3 data-i18n="ship-1-title">Shipping</h3>
+          <p data-i18n="ship-1-body">
             We ship worldwide. Orders are processed in 1–3 business days, and
             because items ship directly from our suppliers, delivery usually
             takes <strong>1–3 weeks</strong> depending on your location. You'll
@@ -186,8 +187,8 @@
         </div>
         <div class="how-card">
           <div class="how-num">↩️</div>
-          <h3>Returns &amp; refunds</h3>
-          <p>
+          <h3 data-i18n="ship-2-title">Returns &amp; refunds</h3>
+          <p data-i18n="ship-2-body">
             If your item arrives damaged, defective, wrong, or never shows up,
             we'll make it right with a <strong>free replacement or full
             refund</strong> — just reach out within <strong>30 days</strong> of
@@ -197,8 +198,8 @@
         </div>
         <div class="how-card">
           <div class="how-num">💬</div>
-          <h3>Customer support</h3>
-          <p>
+          <h3 data-i18n="ship-3-title">Customer support</h3>
+          <p data-i18n="ship-3-body">
             Real people, happy to help. Reach us and we'll get back to you
             within 1–2 business days.<br>
             📞 <a href="tel:+15068899737">(506) 889-9737</a><br>
@@ -214,28 +215,28 @@
       </div>
       <div class="faq-list">
         <details>
-          <summary>How often does the catalog change?</summary>
-          <p>Semi-frequently — new products are added and old ones removed as trends shift, not on a fixed schedule.</p>
+          <summary data-i18n="faq-1-q">How often does the catalog change?</summary>
+          <p data-i18n="faq-1-a">Semi-frequently — new products are added and old ones removed as trends shift, not on a fixed schedule.</p>
         </details>
         <details>
-          <summary>Is this a single-product store?</summary>
-          <p>No. HotsTuff is intentionally multi-product and rotates its lineup based on what's currently trending and selling.</p>
+          <summary data-i18n="faq-2-q">Is this a single-product store?</summary>
+          <p data-i18n="faq-2-a">No. HotsTuff is intentionally multi-product and rotates its lineup based on what's currently trending and selling.</p>
         </details>
         <details>
-          <summary>How fast does a new trend show up?</summary>
-          <p>We watch trend and sell-through data daily, so a rising product can go live in hours — and once demand cools, it's retired to make room for what's next.</p>
+          <summary data-i18n="faq-3-q">How fast does a new trend show up?</summary>
+          <p data-i18n="faq-3-a">We watch trend and sell-through data daily, so a rising product can go live in hours — and once demand cools, it's retired to make room for what's next.</p>
         </details>
         <details>
-          <summary>What if I want something that's already sold out or rotated off?</summary>
-          <p>Trending items move fast by design, so availability isn't guaranteed to last. Every listing is vetted before it goes live, and if a product you bought rotates out of the catalog, your order, warranty, and support are unaffected.</p>
+          <summary data-i18n="faq-4-q">What if I want something that's already sold out or rotated off?</summary>
+          <p data-i18n="faq-4-a">Trending items move fast by design, so availability isn't guaranteed to last. Every listing is vetted before it goes live, and if a product you bought rotates out of the catalog, your order, warranty, and support are unaffected.</p>
         </details>
         <details>
-          <summary>How long does shipping take?</summary>
-          <p>Orders are processed in 1–3 business days and typically arrive within 1–3 weeks, since items ship directly from our suppliers. You'll receive tracking by email when it's available. See <a href="#shipping">Shipping &amp; returns</a> for full details.</p>
+          <summary data-i18n="faq-5-q">How long does shipping take?</summary>
+          <p data-i18n="faq-5-a">Orders are processed in 1–3 business days and typically arrive within 1–3 weeks, since items ship directly from our suppliers. You'll receive tracking by email when it's available. See <a href="#shipping">Shipping &amp; returns</a> for full details.</p>
         </details>
         <details>
-          <summary>What's your return policy?</summary>
-          <p>Damaged, defective, wrong, or undelivered items get a free replacement or full refund within 30 days of delivery. Change-of-mind returns are accepted within 14 days (return shipping may apply). Reach our support team to start a return.</p>
+          <summary data-i18n="faq-6-q">What's your return policy?</summary>
+          <p data-i18n="faq-6-a">Damaged, defective, wrong, or undelivered items get a free replacement or full refund within 30 days of delivery. Change-of-mind returns are accepted within 14 days (return shipping may apply). Reach our support team to start a return.</p>
         </details>
       </div>
     </section>
@@ -248,11 +249,11 @@
       <span class="pay-badge">AMEX</span>
       <span class="pay-badge">Apple&nbsp;Pay</span>
       <span class="pay-badge">Google&nbsp;Pay</span>
-      <span>· Checkout secured by Stripe</span>
+      <span data-i18n="footer-stripe">· Checkout secured by Stripe</span>
     </div>
     <div class="footer-inner">
       <span>© <span id="year"></span> HotsTuff</span>
-      <span class="footer-note">
+      <span class="footer-note" data-i18n="footer-note">
         Support: <a href="mailto:ceohotstuff@yahoo.com">ceohotstuff@yahoo.com</a>
         · <a href="tel:+15068899737">(506) 889-9737</a>
         · <a href="automation/">Social automation for your business</a>
@@ -260,7 +261,8 @@
     </div>
   </footer>
 
-  <script src="script.js?v=2"></script>
+  <script src="i18n.js?v=1"></script>
+  <script src="script.js?v=3"></script>
 <script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@ const CHECKOUT_API = "https://wavelist-checkout.wavelist-mf818.workers.dev";
 
 let allProducts = [];
 let activeCategory = "All";
+const T = (k, fb) => (window.HT_T && window.HT_T[k]) || fb;
 
 async function loadProducts() {
   const grid = document.getElementById("product-grid");
@@ -65,7 +66,7 @@ function buildCategoryBar() {
     if (cat !== "All") chip.style.setProperty("--cat-color", categoryColor(cat));
     chip.setAttribute("role", "tab");
     chip.setAttribute("aria-selected", cat === activeCategory ? "true" : "false");
-    chip.textContent = cat === "All" ? `All (${allProducts.length})` : `${cat} (${counts.get(cat)})`;
+    chip.textContent = cat === "All" ? `${T("all", "All")} (${allProducts.length})` : `${cat} (${counts.get(cat)})`;
     chip.addEventListener("click", () => {
       activeCategory = cat;
       buildCategoryBar();
@@ -191,7 +192,7 @@ function buildCard(p) {
 
   const name = document.createElement("h3");
   name.className = "card-name";
-  name.textContent = p.name || "Untitled product";
+  name.textContent = p.name || T("untitled", "Untitled product");
   name.title = p.name || ""; // full name on hover when the card clamps it
 
   const desc = document.createElement("p");
@@ -214,7 +215,7 @@ function buildCard(p) {
   const buyButton = document.createElement("button");
   buyButton.className = "btn btn-primary card-buy";
   buyButton.type = "button";
-  buyButton.textContent = "Buy now";
+  buyButton.textContent = T("buyNow", "Buy now");
   buyButton.addEventListener("click", () => startCheckout(p.id, buyButton));
 
   body.append(category, name, desc, footer, buyButton);
@@ -233,7 +234,7 @@ async function startCheckout(productId, button, designId) {
   }
   const originalText = button.textContent;
   button.disabled = true;
-  button.textContent = "Redirecting…";
+  button.textContent = T("redirecting", "Redirecting…");
 
   try {
     const res = await fetch(`${CHECKOUT_API}/create-checkout-session`, {
@@ -250,7 +251,7 @@ async function startCheckout(productId, button, designId) {
     console.error(err);
     button.disabled = false;
     button.textContent = originalText;
-    alert("Couldn't start checkout. Please try again in a moment.");
+    alert(T("checkoutFail", "Couldn't start checkout. Please try again in a moment."));
   }
 }
 
@@ -260,12 +261,12 @@ function showOrderStatusBanner() {
   if (params.get("success") === "1") {
     const banner = document.createElement("div");
     banner.className = "order-banner order-banner-success";
-    banner.textContent = "Payment received — thank you! Your order is being placed for fulfillment.";
+    banner.textContent = T("paidBanner", "Payment received — thank you! Your order is being placed for fulfillment.");
     main.prepend(banner);
   } else if (params.get("canceled") === "1") {
     const banner = document.createElement("div");
     banner.className = "order-banner order-banner-canceled";
-    banner.textContent = "Checkout canceled — no charge was made.";
+    banner.textContent = T("canceledBanner", "Checkout canceled — no charge was made.");
     main.prepend(banner);
   }
 }
@@ -288,7 +289,7 @@ loadProducts();
     const file = fileInput.files && fileInput.files[0];
     if (!file) return;
     if (file.size > 8 * 1024 * 1024) {
-      hint.innerHTML = "<b>That file is over 8 MB</b><br><small>Try a smaller image</small>";
+      hint.innerHTML = T("over8mb", "<b>That file is over 8 MB</b><br><small>Try a smaller image</small>");
       return;
     }
     const dataUrl = await new Promise((resolve, reject) => {
@@ -301,7 +302,7 @@ loadProducts();
     preview.hidden = false;
     hint.hidden = true;
     buyBtn.disabled = true;
-    buyBtn.textContent = "Uploading…";
+    buyBtn.textContent = T("uploading", "Uploading…");
     try {
       const res = await fetch(`${CHECKOUT_API}/upload-design`, {
         method: "POST",
@@ -312,13 +313,13 @@ loadProducts();
       if (!res.ok || !data.designId) throw new Error(data.error || "upload failed");
       designId = data.designId;
       buyBtn.disabled = false;
-      buyBtn.textContent = "Buy";
+      buyBtn.textContent = T("buy", "Buy");
     } catch (err) {
       designId = null;
-      buyBtn.textContent = "Buy";
+      buyBtn.textContent = T("buy", "Buy");
       preview.hidden = true;
       hint.hidden = false;
-      hint.innerHTML = "<b>Upload failed</b><br><small>" + String(err.message || err) + " — tap to retry</small>";
+      hint.innerHTML = T("uploadFailPrefix", "<b>Upload failed</b><br><small>") + String(err.message || err) + T("uploadFailSuffix", " — tap to retry</small>");
     }
   });
 
@@ -349,7 +350,7 @@ loadProducts();
     pill = document.createElement("div");
     pill.className = "install-pill";
     pill.innerHTML =
-      '<button type="button" class="install-pill-btn">📲 Get the app</button>' +
+      '<button type="button" class="install-pill-btn">' + T("getApp", "📲 Get the app") + "</button>" +
       '<button type="button" class="install-pill-close" aria-label="Dismiss">×</button>';
     document.body.appendChild(pill);
     pill.querySelector(".install-pill-close").addEventListener("click", () => {
@@ -377,7 +378,7 @@ loadProducts();
     if (hint) { hint.remove(); return; }
     hint = document.createElement("div");
     hint.className = "install-hint";
-    hint.innerHTML = "Tap <b>Share</b> ▸ <b>Add to Home Screen</b> to install HotsTuff.";
+    hint.innerHTML = T("iosHint", "Tap <b>Share</b> ▸ <b>Add to Home Screen</b> to install HotsTuff.");
     pill.appendChild(hint);
   }
 

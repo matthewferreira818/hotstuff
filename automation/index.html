@@ -22,6 +22,22 @@
     "sameAs": ["https://x.com/ECSocialNB"]
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "Do I have to give you my passwords?",
+       "acceptedAnswer": {"@type": "Answer", "text": "No. Platforms provide official connected-app access that you grant and can revoke any time from your own account. Your password never leaves you."}},
+      {"@type": "Question", "name": "What if I don't like what it says?",
+       "acceptedAnswer": {"@type": "Answer", "text": "You approve sample posts in your voice before launch, and you can request changes any time after. It's your feed — the engine works for you."}},
+      {"@type": "Question", "name": "How is this different from a scheduling app like Buffer?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Scheduling apps still make you write, design, and queue everything — that's the part nobody has time for. Here the writing, the design, and the scheduling are all done for you."}},
+      {"@type": "Question", "name": "Can it mention my weekly specials or events?",
+       "acceptedAnswer": {"@type": "Answer", "text": "Yes. Send a text when something's coming up, or set a standing schedule like wing night every Thursday, and it posts itself from then on."}}
+    ]
+  }
+  </script>
 <meta property="og:type" content="website">
 <meta property="og:title" content="East Coast Social — Your business posts every day">
 <meta property="og:description" content="Done-for-you social media automation for local NB businesses. You approve the voice once, then never touch it again.">
@@ -198,6 +214,8 @@
   .cta-final h2 { color: var(--hero-ink); }
   .cta-final p { color: var(--hero-muted); max-width: 30em; margin: 0 auto 26px; }
   footer { text-align: center; color: var(--muted); font-size: 13.5px; padding: 28px 20px 40px; }
+  .samples { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-top: 26px; }
+  .samples img { width: 100%; height: auto; border-radius: 14px; box-shadow: 0 10px 26px -12px rgba(0,0,0,.45); }
 </style>
 
 <header class="hero">
@@ -262,6 +280,17 @@ findhotstuff.com #cozyhome</p>
       <li><b>A human keeping watch</b> — I monitor every client's engine. If something needs attention, I fix it before you notice.</li>
       <li><b>A monthly summary</b> — what posted, what's coming, and anything worth knowing. One email, once a month.</li>
     </ul>
+  </section>
+
+  <section>
+    <p class="eyebrow">Your brand, not ours</p>
+    <h2 class="serif">Same engine, your colors.</h2>
+    <p class="lede">Three example posts for three (fictional) local shops — a café, a barbershop, a garage. Yours would look like <em>you</em>: your name, your colors, your daily rhythm.</p>
+    <div class="samples">
+      <img src="samples/sample-cafe.png" alt="Example automated post card for a café — warm amber branding: 'Cinnamon rolls just came out of the oven'" width="720" height="720" loading="lazy">
+      <img src="samples/sample-barber.png" alt="Example automated post card for a barbershop — dark gold branding: 'Two chairs open this afternoon'" width="720" height="720" loading="lazy">
+      <img src="samples/sample-garage.png" alt="Example automated post card for a garage — dark red branding: 'Winter changeover season is booking up'" width="720" height="720" loading="lazy">
+    </div>
   </section>
 
   <section>

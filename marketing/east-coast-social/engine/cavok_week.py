@@ -112,8 +112,8 @@ def day3():
     for cx, cy, w in [(220, 220, 260), (420, 150, 200), (640, 260, 230)]:  # clouds
         d.rounded_rectangle((cx, cy, cx + w, cy + 64), radius=32, fill=(34, 66, 72))
     header(d, y=70)
-    message(d, "Beach forecast: CAVOK.", 560, size=84)
-    d.text((64, 700), "find us at Aboiteau Beach all summer", font=_font(36), fill=(140, 170, 174))
+    y_end = message(d, "Beach forecast: CAVOK.", 560, size=84)
+    d.text((64, y_end + 28), "find us at Aboiteau Beach all summer", font=_font(36), fill=(140, 170, 174))
     footer(d, "WEDNESDAY")
     img.save(OUT / "day-3.png")
 

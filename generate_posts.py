@@ -189,6 +189,16 @@ def build():
     for p in ranked:
         L.append(f"> {twitter_post(p, p['_ad'])}\n")
 
+    L.append(
+        "\n**Standing merch slot — post once per cycle** _(append `#merch` "
+        "after the tagged link so it lands on the merch section):_\n"
+    )
+    L.append(
+        "> Rep the flame \U0001F525 Official HotsTuff merch is live — tee, "
+        "crewneck, embroidered cap, mug & sticker, printed to order.\n"
+        "> [LINK]#merch #merch #printondemand\n"
+    )
+
     L.append("\n---\n\n## 📘 Facebook — top picks (attach the product photo)\n")
     for p in heroes:
         L.append(f"**{p['_ad']} — {price(p)}**\n")

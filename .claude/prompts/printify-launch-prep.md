@@ -1,5 +1,8 @@
 # Printify merch launch prep — repo-side commit
 
+> **Status: EXECUTED 2026-08-06.** Store verified live (all five products
+> transact), launch commit landed. Kept for reference — don't re-run blindly.
+
 Paste this into a Claude Code session in the hotstuff repo:
 
 ---

@@ -1,8 +1,10 @@
 """
 Pinterest pin pack: 1000x1500 (2:3) product pins from the live catalog, in
 the HotsTuff flame identity. Picks top trending products (max 2 per category
-for variety), renders a pin for each, and writes pins.md with ready-to-paste
-titles, descriptions, and the destination link for each upload.
+for variety), renders a pin for each — plus one standing merch pin every
+cycle so the pop-up store gets re-marketed for free — and writes pins.md
+with ready-to-paste titles, descriptions, and the destination link for each
+upload.
 
 Output: marketing/pinterest/pin-N.png + pins.md
 
@@ -22,6 +24,19 @@ PIN_COUNT = 10
 SITE = "findhotstuff.com"
 INK_L, MUTED = "#f7f2ee", "#a3958f"
 
+# Standing merch slot: the last pin of every pack points at the live Printify
+# pop-up lineup (via the site's #merch section, so the ?ref survives).
+MERCH_PIN = {
+    "_merch": True,
+    "name": "HotsTuff Flame Tee",
+    "price": "24.99",
+    "image": str(HERE / "assets" / "merch" / "tee-dark.jpg"),
+    "description": ("The HotsTuff flame on a classic heavyweight cotton tee — "
+                    "official merch, printed to order. Full lineup: tee, "
+                    "crewneck, embroidered cap, mug and sticker."),
+    "category": "Merch",
+}
+
 
 def pick_products():
     ps = json.loads((HERE / "products.json").read_text())
@@ -36,7 +51,7 @@ def pick_products():
         per_cat[cat] = per_cat.get(cat, 0) + 1
         seen_names.add(name)
         picked.append(p)
-        if len(picked) == PIN_COUNT:
+        if len(picked) == PIN_COUNT - 1:  # last slot is the standing merch pin
             break
     return picked
 
@@ -46,9 +61,12 @@ def build_pin(p, n):
     import requests
     from PIL import Image, ImageDraw
 
-    resp = requests.get(p["image"], timeout=25)
-    resp.raise_for_status()
-    photo = Image.open(io.BytesIO(resp.content)).convert("RGB")
+    if p.get("_merch"):  # merch photo ships in the repo, no download needed
+        photo = Image.open(p["image"]).convert("RGB")
+    else:
+        resp = requests.get(p["image"], timeout=25)
+        resp.raise_for_status()
+        photo = Image.open(io.BytesIO(resp.content)).convert("RGB")
 
     img = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(img)
@@ -69,7 +87,7 @@ def build_pin(p, n):
                       card[1] + (card[3] - card[1] - photo.height) // 2))
 
     # name (up to 2 centered lines)
-    name = slide_name(p)
+    name = p["name"] if p.get("_merch") else slide_name(p)
     nf = _font(56, True)
     words, lines, cur = name.split(), [], ""
     for w_ in words:
@@ -98,7 +116,8 @@ def build_pin(p, n):
     # footer
     d.text(((W - d.textlength(SITE, font=_font(44, True))) // 2, H - 130),
            SITE, font=_font(44, True), fill=AMBER)
-    tail = "new drops every 3 days · free shipping"
+    tail = ("official merch · printed to order" if p.get("_merch")
+            else "new drops every 3 days · free shipping")
     d.text(((W - d.textlength(tail, font=_font(30, False))) // 2, H - 68),
            tail, font=_font(30, False), fill=MUTED)
 
@@ -112,7 +131,7 @@ def main():
     # a product whose photo fails this cycle can't leave a stale image behind
     for old in OUT.glob("pin-*.png"):
         old.unlink()
-    picked = pick_products()
+    picked = pick_products() + [MERCH_PIN]
     entries = []
     for i, p in enumerate(picked, 1):
         try:
@@ -120,13 +139,21 @@ def main():
         except Exception as exc:  # noqa: BLE001 - skip broken photos, keep the pack
             print(f"pin {i} skipped ({p.get('name', '?')[:30]}): {exc}")
             continue
-        entries.append(
-            f"## pin-{i}.png\n"
-            f"- **Title:** {name} — Trending Now\n"
-            f"- **Description:** {p.get('description', '')} Only ${p['price']} at "
-            f"HotsTuff — a fresh drop of trending finds every 3 days, free shipping. "
-            f"#{p.get('category', 'trending').replace(' ', '').lower()} #trendingproducts #onlinefinds\n"
-            f"- **Link:** https://findhotstuff.com/?ref=pin\n")
+        if p.get("_merch"):
+            entries.append(
+                f"## pin-{i}.png\n"
+                f"- **Title:** {name} — Official HotsTuff Merch\n"
+                f"- **Description:** {p['description']} ${p['price']}, shipping "
+                f"calculated at checkout. #merch #printondemand #trendingproducts\n"
+                f"- **Link:** https://findhotstuff.com/?ref=pin#merch\n")
+        else:
+            entries.append(
+                f"## pin-{i}.png\n"
+                f"- **Title:** {name} — Trending Now\n"
+                f"- **Description:** {p.get('description', '')} Only ${p['price']} at "
+                f"HotsTuff — a fresh drop of trending finds every 3 days, free shipping. "
+                f"#{p.get('category', 'trending').replace(' ', '').lower()} #trendingproducts #onlinefinds\n"
+                f"- **Link:** https://findhotstuff.com/?ref=pin\n")
         print(f"pin-{i}.png — {name} (${p['price']})")
     (OUT / "pins.md").write_text(
         "# Pinterest upload pack\n\n_Upload each pin with its title, description, "

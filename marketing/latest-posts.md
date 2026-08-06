@@ -1,6 +1,6 @@
 # HotsTuff — This Cycle's Posts (auto-generated)
 
-_Generated 2026-08-05 from the current lineup (120 products). Replace `[LINK]` with the tagged link for wherever you post, so GoatCounter can attribute the traffic:_ **https://findhotstuff.com/?ref=x** _(X)_, **https://findhotstuff.com/?ref=fb** _(Facebook)_, **https://findhotstuff.com/?ref=tt** _(TikTok)_
+_Generated 2026-08-06 from the current lineup (120 products). Replace `[LINK]` with the tagged link for wherever you post, so GoatCounter can attribute the traffic:_ **https://findhotstuff.com/?ref=x** _(X)_, **https://findhotstuff.com/?ref=fb** _(Facebook)_, **https://findhotstuff.com/?ref=tt** _(TikTok)_
 
 > Tone: upbeat + clean on Twitter/Facebook, fun + casual on TikTok. Post these over the next ~3 days (until the catalog rotates and this file updates). Stagger times, reply to comments. Shipping is ~1–3 weeks — never promise faster.
 
@@ -488,6 +488,12 @@ Elecpow Bike Alarm Remote — just $24.99 at HotsTuff 🔥
 > Trending right now 🛍️
 Backless Bra Invisible Bralette — just $13.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
+
+
+**Standing merch slot — post once per cycle** _(append `#merch` after the tagged link so it lands on the merch section):_
+
+> Rep the flame 🔥 Official HotsTuff merch is live — tee, crewneck, embroidered cap, mug & sticker, printed to order.
+> [LINK]#merch #merch #printondemand
 
 
 ---

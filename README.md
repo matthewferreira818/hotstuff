@@ -188,8 +188,10 @@ custom_fields). **Fulfillment is manual:** open the `/orders` dashboard — cust
 orders show a "customer design file" link (token-protected download). Download
 the art, create the product in Printify (or any print service) with the
 customer's size/colour, and ship to the address shown. Price clears worst-case
-POD base + shipping + Stripe fees. Logo-merch tiles are "Coming soon" until the
-Printify pop-up store is live.
+POD base + shipping + Stripe fees. Logo merch is sold through the live Printify
+pop-up store (hotstuff-store.printify.me) — Printify hosts checkout, production,
+shipping, and end-customer support for those orders. The merch tweet's ad card
+is regenerated with `python make_merch_card.py`.
 
 ### Known limitations
 - Only ships to the US (`shipping_address_collection` in the Worker).
@@ -198,6 +200,10 @@ Printify pop-up store is live.
   order call will fail (logged in `ORDERS_KV`, not currently surfaced back
   to the customer or you — check KV or Worker logs periodically for now).
 - No refund automation — refunds are manual via the Stripe dashboard.
+- Pop-up merch sales (Printify store): the owner is the Merchant of Record —
+  Printify does not collect or remit sales tax on those orders. Shipping is
+  charged at Printify's checkout, so the site's free-shipping promise is
+  scoped to main-store orders (see the merch-section note).
 
 ## The decision council (Claude Code)
 

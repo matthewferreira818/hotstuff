@@ -328,6 +328,28 @@ loadProducts();
   });
 })();
 
+/* --- Merch card clicks: merch-<slug> events, the pop-up store's only
+       funnel signal — GoatCounter can't see printify.me itself --------- */
+(function trackMerchClicks() {
+  const SLUGS = {
+    "30344866": "merch-tee",
+    "30344867": "merch-crewneck",
+    "30344868": "merch-cap",
+    "30345175": "merch-mug",
+    "30345176": "merch-sticker",
+  };
+  document.querySelectorAll('#merch a[href*="printify.me"]').forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.goatcounter && typeof window.goatcounter.count === "function") {
+        try {
+          const id = (link.href.match(/product\/(\d+)/) || [])[1];
+          window.goatcounter.count({ path: SLUGS[id] || "merch-store", title: "Merch click", event: true });
+        } catch (e) { /* analytics must never block the hop to the store */ }
+      }
+    });
+  });
+})();
+
 /* ---- app install (PWA) ---------------------------------------------- */
 (() => {
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {

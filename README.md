@@ -188,8 +188,10 @@ custom_fields). **Fulfillment is manual:** open the `/orders` dashboard — cust
 orders show a "customer design file" link (token-protected download). Download
 the art, create the product in Printify (or any print service) with the
 customer's size/colour, and ship to the address shown. Price clears worst-case
-POD base + shipping + Stripe fees. Logo-merch tiles are "Coming soon" until the
-Printify pop-up store is live.
+POD base + shipping + Stripe fees. Logo merch is sold through the live Printify
+pop-up store (hotstuff-store.printify.me) — Printify hosts checkout, production,
+shipping, and end-customer support for those orders. The merch tweet's ad card
+is regenerated with `python make_merch_card.py`.
 
 ### Known limitations
 - Only ships to the US (`shipping_address_collection` in the Worker).
@@ -198,3 +200,31 @@ Printify pop-up store is live.
   order call will fail (logged in `ORDERS_KV`, not currently surfaced back
   to the customer or you — check KV or Worker logs periodically for now).
 - No refund automation — refunds are manual via the Stripe dashboard.
+- Pop-up merch sales (Printify store): the owner is the Merchant of Record —
+  Printify does not collect or remit sales tax on those orders. Shipping is
+  charged at Printify's checkout, so the site's free-shipping promise is
+  scoped to main-store orders (see the merch-section note).
+
+## The decision council (Claude Code)
+
+The repo ships a five-seat advisory council for business decisions, run
+inside Claude Code. Say `/council <decision>` (e.g. `/council should we
+open the Printify pop-up store this month?`) and five advisor agents weigh
+in **in parallel**, each through a different lens:
+
+| Seat | Lens |
+| --- | --- |
+| The Operator | Can the automation stack actually run it; what breaks |
+| The Marketer | Which channel it feeds; how GoatCounter will measure it |
+| The Treasurer | Unit economics, cash exposure, founder-hours, grants |
+| The Skeptic | The strongest honest case against |
+| The Customer | Would a findhotstuff.com visitor actually care |
+
+Claude acts as the **Right Hand**: it frames the question, convenes the
+seats, then gives its own decisive call (it may overrule the majority) and
+logs the session to `.claude/council/DECISIONS.md` so future sessions have
+precedent. Individual seats can be consulted solo ("ask the Skeptic…").
+
+Definitions live in `.claude/agents/` (one file per seat) and
+`.claude/skills/council/` (the session playbook) — edit those to change
+how a seat thinks or add a new chair.

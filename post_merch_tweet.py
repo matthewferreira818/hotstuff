@@ -12,11 +12,13 @@ CARD = HERE / "marketing" / "merch-tweet-card.png"
 RESULT = HERE / "marketing" / "merch-tweet-result.txt"
 CREDS = ["X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_TOKEN_SECRET"]
 
-# Ad-manager approved 2026-07-25 (primary draft).
+# Launch copy 2026-08-06 — pop-up store live (replaces the ad-manager-approved
+# July "drops soon" tease).
 TWEET = (
-    "Your art. Your tee. \U0001F525 Upload any design at findhotstuff.com and "
-    "we'll print it + ship it to your door — $32.99, shipping included. "
-    "Rather rep the flame? HotsTuff logo merch drops soon."
+    "The flame drop is LIVE \U0001F525 HotsTuff logo tee, crewneck, embroidered "
+    "cap, mug & sticker — printed to order. Or upload your own art and we'll "
+    "put it on a tee for $32.99, shipping included. "
+    "https://findhotstuff.com/?ref=x#merch"
 )
 
 

@@ -35,7 +35,7 @@
     "merch-sub": "Affichez la flamme — la gamme complète est <b>en ligne</b> : t-shirt, coton ouaté, casquette brodée, tasse et autocollant. Ou téléversez votre propre design et on le met sur un t-shirt.",
     "merch-sticker-price": "À partir de 3,49 $",
     "merch-custom-title": "T-shirt à votre design — 32,99 $",
-    "merch-note": "T-shirts personnalisés : choisissez taille et couleur au paiement — on imprime votre visuel et on le livre à votre porte. Téléversez seulement des visuels que vous avez le droit d'imprimer.<br>\n      Le merch à logo part de notre partenaire d'impression — voyez la <a href=\"https://hotstuff-store.printify.me\" target=\"_blank\" rel=\"noopener\">boutique merch HotsTuff</a> complète.",
+    "merch-note": "T-shirts personnalisés : choisissez taille et couleur au paiement — on imprime votre visuel et on le livre à votre porte. Téléversez seulement des visuels que vous avez le droit d'imprimer.<br>\n      Le merch à logo part de notre partenaire d'impression — livraison calculée à leur paiement. Voyez la <a href=\"https://hotstuff-store.printify.me\" target=\"_blank\" rel=\"noopener\">boutique merch HotsTuff</a> complète.",
     "how-title": "Comment le catalogue reste frais",
     "how-sub": "Chaque fiche ici, c'est des données, pas du code — c'est ça qui rend la rotation facile.",
     "how-1-title": "Un signal de tendance entre",

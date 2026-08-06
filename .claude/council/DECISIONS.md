@@ -16,3 +16,10 @@ Format per entry:
 ```
 
 ---
+
+## 2026-08-06 — Take the Printify logo-merch pop-up store fully live and announce it this August, rather than deferring?
+- Seats: Operator GO-IF(4) · Marketer GO-IF(4) · Treasurer GO(4) · Skeptic GO-IF(4) · Customer GO-IF(4)
+- Clash: no seat wants to defer — the fight is over sequencing. The site already claims the lineup is "live now" but all five Printify product pages dead-end at "coming soon" with no Add to Cart, so the current half-launched state is the worst of the three worlds; announcement must come after publish + verification, not before.
+- Right Hand's call: GO-IF — finish the launch this month: publish the five products and complete Stripe payout verification in Printify, place one real test order (the sticker), and land the repo fix commit (merch click instrumentation, ?ref-tagged links via findhotstuff.com/#merch, sticker price sync, README update + Merchant-of-Record tax note, tweet copy, sw.js VERSION bump, standing merch slots in rotation packs) BEFORE firing any announcement. Hard fallback: if Printify can't publish in August, revert the "live now" copy immediately.
+- Matthew's decision: pending
+- Next moves: publish 5 products + verify Stripe payout in Printify dashboard (~15 min), order the $3.99 sticker end-to-end, repo fix commit (Claude can prep now), fire merch-tweet workflow_dispatch + add merch to rotation packs

@@ -2,6 +2,8 @@ const CHECKOUT_API = "https://wavelist-checkout.wavelist-mf818.workers.dev";
 
 let allProducts = [];
 let activeCategory = "All";
+let searchQuery = "";
+let sortMode = "trending";
 const T = (k, fb) => (window.HT_T && window.HT_T[k]) || fb;
 
 async function loadProducts() {
@@ -88,12 +90,20 @@ function renderGrid() {
   const grid = document.getElementById("product-grid");
   grid.innerHTML = "";
 
+  const q = searchQuery.trim().toLowerCase();
   const visible = allProducts
     .filter((p) => activeCategory === "All" || (p.category || "Other") === activeCategory)
-    .sort((a, b) => (Number(b.trendScore) || 0) - (Number(a.trendScore) || 0));
+    .filter((p) => !q || `${p.name || ""} ${p.description || ""} ${p.category || ""}`.toLowerCase().includes(q))
+    .sort((a, b) => {
+      if (sortMode === "price-asc") return (Number(a.price) || 0) - (Number(b.price) || 0);
+      if (sortMode === "price-desc") return (Number(b.price) || 0) - (Number(a.price) || 0);
+      return (Number(b.trendScore) || 0) - (Number(a.trendScore) || 0);
+    });
 
   if (visible.length === 0) {
-    grid.appendChild(emptyState("No trending products right now — check back soon."));
+    grid.appendChild(emptyState(q
+      ? T("noMatches", "No matches — try fewer or different words.")
+      : "No trending products right now — check back soon."));
     return;
   }
   visible.forEach((product, i) => {
@@ -270,6 +280,21 @@ function showOrderStatusBanner() {
     main.prepend(banner);
   }
 }
+
+(function initCatalogControls() {
+  const search = document.getElementById("product-search");
+  const sort = document.getElementById("product-sort");
+  if (search) {
+    let t = null;
+    search.addEventListener("input", () => {
+      clearTimeout(t);
+      t = setTimeout(() => { searchQuery = search.value; renderGrid(); }, 120);
+    });
+  }
+  if (sort) {
+    sort.addEventListener("change", () => { sortMode = sort.value; renderGrid(); });
+  }
+})();
 
 document.getElementById("year").textContent = new Date().getFullYear();
 showOrderStatusBanner();

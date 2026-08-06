@@ -1,3 +1,18 @@
+# ⚠️ PROGRAM UPDATE — Aug 6, 2026
+
+**Digital Boost 3.0 has ENDED — no more funding.** Reply came from **Cathy**
+(Sophie left TechImpact in June; mail forwards to Cathy — she is the contact now).
+
+The live intel:
+- TechImpact has applied for successor funding via ACOA; parameters TBD, **6-8 weeks** to clarity (~late Sept/Oct)
+- Sole proprietorships ARE eligible
+- Requirements to expect: fit ACOA-directed categories + **revenue positive with customers**
+  → every ECS client landed before October is also grant-eligibility evidence
+- Cathy asked for website links (sent Aug 6) — she's pre-reviewing what we do
+- Follow-up scheduled: late September
+
+_The application draft below is preserved for the successor program — most answers will transfer._
+
 # Digital Boost 3.0 — application draft (apply as a Business)
 
 _Program: TechImpact / CollabHub Atlantic · applications OPEN ·

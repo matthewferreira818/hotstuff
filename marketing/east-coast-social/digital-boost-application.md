@@ -64,7 +64,9 @@ Memramcook, New Brunswick
    eligible or is registration required, (b) what the assessment phase
    involves, (c) confirming the provider-path requirements for later.
 
-## Thursday nudge email to Sophie (if still silent)
+## Thursday nudge email to Sophie — ✅ SENT 2026-08-06 from ceohotstuff@yahoo.com
+
+_If no reply by ~Aug 13: proceed with the portal application anyway once the SNB registration lands; her answers are nice-to-have, not blockers._
 
 > Subject: Following up — Digital Boost 3.0 eligibility (Memramcook
 > business)

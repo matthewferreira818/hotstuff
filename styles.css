@@ -1119,3 +1119,20 @@ a.merch-card {
   letter-spacing: .06em; cursor: pointer; margin-left: 6px;
 }
 .lang-toggle:hover { border-color: rgba(255,255,255,.65); }
+
+/* catalog search + sort controls */
+.catalog-controls { display: flex; gap: 12px; flex-wrap: wrap; margin: 14px 0 20px; }
+.product-search {
+  flex: 1 1 220px; min-width: 0; padding: 11px 16px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.06);
+  color: inherit; font: inherit; font-size: 15px;
+}
+.product-search::placeholder { color: rgba(255,255,255,.45); }
+.product-search:focus { outline: none; border-color: rgba(255,255,255,.45); }
+.product-sort {
+  padding: 11px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06); color: inherit; font: inherit; font-size: 14.5px;
+  cursor: pointer;
+}
+.product-sort option { background: #1c1420; color: #f4f4f6; }
+.product-sort:focus { outline: none; border-color: rgba(255,255,255,.45); }

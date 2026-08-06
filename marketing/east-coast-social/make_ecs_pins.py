@@ -109,7 +109,7 @@ def main():
     md = ["# ECS pin pack — pitches the automation service (not products)",
           "",
           "_Board: **Small Business Marketing** (create it if it doesn't exist)._",
-          "_Link every pin to: https://findhotstuff.com/automation/?ref=pin-ecs-ecs_",
+          "_Link every pin to: https://findhotstuff.com/automation/?ref=pin-ecs_",
           "_Cadence: 1 per day, after the product pins._",
           ""]
     for i, (msg, sub, title, desc) in enumerate(PINS, 1):
@@ -121,7 +121,7 @@ def main():
                "",
                f"**Description:** {desc}",
                "",
-               "**Link:** https://findhotstuff.com/automation/?ref=pin-ecs-ecs",
+               "**Link:** https://findhotstuff.com/automation/?ref=pin-ecs",
                ""]
     (OUT / "pins-ecs.md").write_text("\n".join(md), encoding="utf-8")
     print(f"wrote {OUT / 'pins-ecs.md'}")

@@ -65,6 +65,9 @@
     "faq-6-q": "Quelle est votre politique de retour?",
     "faq-6-a": "Article endommagé, défectueux, erroné ou jamais livré : remplacement gratuit ou remboursement complet dans les 30 jours suivant la livraison. Retours par changement d'idée acceptés dans les 14 jours (frais de retour possibles). Contactez le soutien pour commencer un retour.",
     "footer-stripe": "· Paiement sécurisé par Stripe",
+    "sort-trending": "🔥 Tendances d'abord",
+    "sort-price-asc": "Prix : du moins cher au plus cher",
+    "sort-price-desc": "Prix : du plus cher au moins cher",
     "footer-note": "Soutien : <a href=\"mailto:ceohotstuff@yahoo.com\">ceohotstuff@yahoo.com</a>\n        · <a href=\"tel:+15068899737\">(506) 889-9737</a>\n        · <a href=\"automation/fr/\">Automatisation sociale pour votre entreprise</a>",
   };
 
@@ -80,6 +83,8 @@
     getApp: "📲 Get the app",
     iosHint: "Tap <b>Share</b> ▸ <b>Add to Home Screen</b> to install HotsTuff.",
     title: "HotsTuff — Shop what's trending right now",
+    searchPlaceholder: "Search products…",
+    noMatches: "No matches — try fewer or different words.",
   };
   const T_FR = {
     buyNow: "Acheter", buy: "Acheter", redirecting: "Redirection…", uploading: "Téléversement…",
@@ -92,6 +97,8 @@
     getApp: "📲 Obtenez l'app",
     iosHint: "Touchez <b>Partager</b> ▸ <b>Ajouter à l'écran d'accueil</b> pour installer HotsTuff.",
     title: "HotsTuff — Magasinez ce qui est tendance",
+    searchPlaceholder: "Chercher un produit…",
+    noMatches: "Aucun résultat — essayez d'autres mots.",
   };
 
   const saved = new Map(); // element -> original EN innerHTML
@@ -128,6 +135,9 @@
       const m = c.textContent.match(/^(All|Tout) \((\d+)\)$/);
       if (m) c.textContent = `${window.HT_T.all} (${m[2]})`;
     });
+
+    const searchBox = document.getElementById("product-search");
+    if (searchBox) searchBox.placeholder = window.HT_T.searchPlaceholder;
 
     const btn = document.getElementById("lang-toggle");
     if (btn) {

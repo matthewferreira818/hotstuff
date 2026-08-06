@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="HotsTuff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 <meta property="og:type" content="website">
 <meta property="og:title" content="HotsTuff — Shop what's trending right now">
 <meta property="og:description" content="A fresh lineup of trending products every 3 days. Free shipping, secure Stripe checkout, 30-day guarantee.">
@@ -95,6 +95,14 @@
         <p data-i18n="trending-sub">Ranked by trend score — a live blend of search volume and sell-through rate.</p>
       </div>
       <div class="category-bar" id="category-bar" role="tablist" aria-label="Filter products by category"></div>
+      <div class="catalog-controls">
+        <input type="search" id="product-search" class="product-search" placeholder="Search products…" aria-label="Search products">
+        <select id="product-sort" class="product-sort" aria-label="Sort products">
+          <option value="trending" data-i18n="sort-trending">🔥 Trending first</option>
+          <option value="price-asc" data-i18n="sort-price-asc">Price: low to high</option>
+          <option value="price-desc" data-i18n="sort-price-desc">Price: high to low</option>
+        </select>
+      </div>
       <div class="grid" id="product-grid"></div>
     </section>
 
@@ -262,8 +270,8 @@
     </div>
   </footer>
 
-  <script src="i18n.js?v=2"></script>
-  <script src="script.js?v=3"></script>
+  <script src="i18n.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 <script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

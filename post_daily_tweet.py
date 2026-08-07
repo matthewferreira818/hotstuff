@@ -45,31 +45,116 @@ def current_slot():
 
 
 def pick_product():
+    """Today's product, plus a companion used by the two-product formats."""
     products = json.loads(PRODUCTS_FILE.read_text(encoding="utf-8"))
     ranked = sorted(products, key=lambda x: x.get("trendScore", 0), reverse=True)
     offset = int(os.environ.get("SPOTLIGHT_OFFSET") or 0)
     idx = (date.today().toordinal() * 3 + current_slot() + offset) % len(ranked)
-    return ranked[idx]
+    alt = ranked[(idx + len(ranked) // 2) % len(ranked)]   # far apart = feels curated
+    return ranked[idx], alt
 
 
-def compose_spotlight(p):
+def _bits(p):
+    """Shared copy pieces for one product."""
     from generate_posts import ad_name, flavor, pick, HOOKS, TAGS
 
-    name = ad_name(p.get("name", ""), p.get("category", ""))
-    hook = pick(flavor(HOOKS, p.get("category", "*")), p["id"] + f"daily{current_slot()}")
-    tags = flavor(TAGS, p.get("category", "*"))
-    emoji = p.get("emoji", "\U0001F525")
-    price = f"${float(p['price']):.2f}"
+    return {
+        "name": ad_name(p.get("name", ""), p.get("category", "")),
+        "hook": pick(flavor(HOOKS, p.get("category", "*")), p["id"] + f"daily{current_slot()}"),
+        "tags": flavor(TAGS, p.get("category", "*")),
+        "emoji": p.get("emoji", "\U0001F525"),
+        "price": f"${float(p['price']):.2f}",
+        "desc": (p.get("description") or "").rstrip("."),
+    }
 
-    tweet = (
-        f"{hook} {emoji}\n"
-        f"{name} — just {price} at HotsTuff \U0001F525\n"
-        f"Grab it before it rotates out \U0001F440 {TAGGED_LINK}\n"
-        f"{tags}"
-    )
-    if len(tweet) > MAX_TWEET:  # drop hashtags first if somehow too long
-        tweet = tweet.rsplit("\n", 1)[0]
-    return tweet[:MAX_TWEET]
+
+def fmt_spotlight(p, alt=None):
+    b = _bits(p)
+    return (f"{b['hook']} {b['emoji']}\n"
+            f"{b['name']} — just {b['price']} at HotsTuff \U0001F525\n"
+            f"Grab it before it rotates out \U0001F440 {TAGGED_LINK}\n"
+            f"{b['tags']}")
+
+
+def fmt_this_or_that(p, alt=None):
+    if not alt:
+        return fmt_spotlight(p)
+    a, c = _bits(p), _bits(alt)
+    return (f"Pick one \U0001F440\n\n"
+            f"{a['emoji']} {a['name']} — {a['price']}\n"
+            f"{c['emoji']} {c['name']} — {c['price']}\n\n"
+            f"Both live right now: {TAGGED_LINK}")
+
+
+def fmt_price_flex(p, alt=None):
+    b = _bits(p)
+    return (f"{b['name']} for {b['price']}. {b['emoji']}\n\n"
+            f"That's it. That's the tweet.\n"
+            f"{TAGGED_LINK}\n{b['tags']}")
+
+
+def fmt_why(p, alt=None):
+    b = _bits(p)
+    line = b["desc"] or "It just makes the day a little easier"
+    return (f"Why this one made the cut:\n\n"
+            f"→ {line}\n"
+            f"→ {b['price']}, free shipping\n"
+            f"→ rotates out when the trend cools\n\n"
+            f"{b['name']} {b['emoji']} {TAGGED_LINK}")
+
+
+def fmt_automation(p, alt=None):
+    b = _bits(p)
+    lines = [
+        (f"Nobody wrote this tweet.\n\n"
+         f"The store picked {b['name']} ({b['price']}), built the card, and posted it — "
+         f"while I was at work. \U0001F916\n{TAGGED_LINK}"),
+        (f"This store restocks itself every 3 days, posts 3x a day, and has never "
+         f"asked for a day off. \U0001F916\n\n"
+         f"Today it picked: {b['name']} — {b['price']}\n{TAGGED_LINK}"),
+        (f"Running a shop with zero employees. \U0001F916\n\n"
+         f"Today's pick, chosen and posted automatically: {b['name']} at {b['price']}.\n"
+         f"{TAGGED_LINK}"),
+    ]
+    return lines[date.today().toordinal() % len(lines)]
+
+
+def fmt_countdown(p, alt=None):
+    b = _bits(p)
+    return (f"⏳ Rotating out soon\n\n"
+            f"{b['name']} — {b['price']} {b['emoji']}\n"
+            f"When the catalog refreshes, it's gone until it trends again.\n"
+            f"{TAGGED_LINK}\n{b['tags']}")
+
+
+FORMATS = [
+    ("spotlight", fmt_spotlight),
+    ("this_or_that", fmt_this_or_that),
+    ("price_flex", fmt_price_flex),
+    ("why", fmt_why),
+    ("automation", fmt_automation),
+    ("countdown", fmt_countdown),
+]
+
+
+def current_format():
+    """Rotate shapes by day+slot so consecutive posts never match."""
+    forced = (os.environ.get("TWEET_FORMAT") or "").strip()
+    if forced:
+        for name, fn in FORMATS:
+            if name == forced:
+                return name, fn
+    idx = (date.today().toordinal() * 3 + current_slot()) % len(FORMATS)
+    return FORMATS[idx]
+
+
+def compose_spotlight(p, alt=None):
+    name, fn = current_format()
+    tweet = fn(p, alt)
+    if len(tweet) > MAX_TWEET:          # shed hashtags first, then hard-trim
+        stripped = "\n".join(l for l in tweet.split("\n") if not l.startswith("#"))
+        tweet = stripped if len(stripped) <= MAX_TWEET else tweet[:MAX_TWEET]
+    return tweet
 
 
 def post(session, text, media_id=None, reply_to=None):
@@ -91,9 +176,9 @@ def main():
 
     from tweet_media import build_ad_card, build_qr_card, upload_media
 
-    product = pick_product()
-    tweet = compose_spotlight(product)
-    print(f"Slot {current_slot()} spotlight:\n{tweet}")
+    product, alt = pick_product()
+    tweet = compose_spotlight(product, alt)
+    print(f"Slot {current_slot()} / format {current_format()[0]}:\n{tweet}")
 
     session = OAuth1Session(
         os.environ["X_API_KEY"],

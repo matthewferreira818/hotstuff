@@ -227,6 +227,13 @@
   footer { text-align: center; color: var(--muted); font-size: 13.5px; padding: 28px 20px 40px; }
   .samples { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-top: 26px; }
   .samples img { width: 100%; height: auto; border-radius: 14px; box-shadow: 0 10px 26px -12px rgba(0,0,0,.45); }
+  .feed { margin-top: 26px; }
+  .feed-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .feed-item { background: var(--card, rgba(255,255,255,.03)); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .feed-item img { width: 100%; height: auto; display: block; }
+  .feed-meta { padding: 12px 14px 14px; }
+  .feed-date { font-size: 11.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--gold-deep, var(--gold)); }
+  .feed-cap { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
   .samples figure { margin: 0; }
   .samples figcaption { margin-top: 8px; font-size: 12.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); text-align: center; }
 </style>
@@ -295,6 +302,13 @@ findhotstuff.com #cozyhome</p>
       <li><b>A human keeping watch</b> — I monitor every client's engine. If something needs attention, I fix it before you notice.</li>
       <li><b>A monthly summary</b> — what posted, what's coming, and anything worth knowing. One email, once a month.</li>
     </ul>
+  </section>
+
+  <section id="own-feed">
+    <p class="eyebrow">Live, not a mockup</p>
+    <h2 class="serif">Here's what the engine posted for us this week.</h2>
+    <p class="lede">East Coast Social runs on its own engine — these cards went out to our page and our X account automatically, one a day, no hands. Yours would look like your shop.</p>
+    <div class="feed" id="ecs-feed"></div>
   </section>
 
   <section>
@@ -393,5 +407,40 @@ findhotstuff.com #cozyhome</p>
   Built on the same automation running findhotstuff.com
 </footer>
 <script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+(function () {
+  var box = document.getElementById("ecs-feed");
+  if (!box) return;
+  fetch("feed/index.json", { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+    .then(function (posts) {
+      if (!posts || !posts.length) throw new Error("empty");
+      var strip = document.createElement("div");
+      strip.className = "feed-strip";
+      posts.slice(0, 6).forEach(function (p) {
+        var d = new Date(p.date + "T12:00:00");
+        var item = document.createElement("div");
+        item.className = "feed-item";
+        var img = document.createElement("img");
+        img.src = "feed/index.json".replace("index.json", "") + p.image;
+        img.alt = p.message || "East Coast Social daily post";
+        img.loading = "lazy";
+        var meta = document.createElement("div");
+        meta.className = "feed-meta";
+        var date = document.createElement("div");
+        date.className = "feed-date";
+        date.textContent = d.toLocaleDateString("en-CA", { month: "short", day: "numeric" });
+        var cap = document.createElement("p");
+        cap.className = "feed-cap";
+        cap.textContent = p.message || "";
+        meta.appendChild(date); meta.appendChild(cap);
+        item.appendChild(img); item.appendChild(meta);
+        strip.appendChild(item);
+      });
+      box.appendChild(strip);
+    })
+    .catch(function () { box.closest("section").hidden = true; });
+})();
+</script>
 </body>
 </html>

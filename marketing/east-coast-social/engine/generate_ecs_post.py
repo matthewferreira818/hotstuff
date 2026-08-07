@@ -15,6 +15,7 @@ from post_card import render_card
 # ?ref=ecs: the caption lands on X, Facebook, and manual posts alike, so the
 # tag names the funnel (ECS daily caption), not a single platform
 SITE = "findhotstuff.com/automation/?ref=ecs"
+FEED_KEEP = 8   # how many past posts the website feed shows
 
 # (card message, caption) pairs. Card text stays short; captions carry the CTA.
 # Rotates by day-of-year so the feed never repeats back-to-back weeks.
@@ -52,14 +53,53 @@ def todays_post(today=None):
     return msg, cap.format(site=SITE)
 
 
+def archive(card_path, msg, caption, today):
+    """Keep a dated copy so the automation page can show a live feed of what
+    the engine actually published. Newest first, capped at FEED_KEEP entries."""
+    import json
+    import shutil
+
+    repo = Path(__file__).resolve().parents[3]
+    feed = repo / "automation" / "feed"
+    feed.mkdir(parents=True, exist_ok=True)
+
+    stamp = today.isoformat()
+    shutil.copyfile(card_path, feed / f"{stamp}.png")
+
+    index_file = feed / "index.json"
+    try:
+        entries = json.loads(index_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        entries = []
+
+    entries = [e for e in entries if e.get("date") != stamp]
+    entries.insert(0, {"date": stamp, "image": f"{stamp}.png",
+                       "message": msg, "caption": caption})
+    entries = entries[:FEED_KEEP]
+
+    # drop image files that fell off the end of the feed
+    keep = {e["image"] for e in entries}
+    for old in feed.glob("*.png"):
+        if old.name not in keep:
+            old.unlink()
+
+    index_file.write_text(json.dumps(entries, indent=1, ensure_ascii=False), encoding="utf-8")
+    print(f"feed archive updated: {len(entries)} posts")
+
+
 def main():
     out = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent / "out"
     out.mkdir(parents=True, exist_ok=True)
     msg, caption = todays_post()
-    render_card("East Coast Social", msg, out / "card.png",
+    card = out / "card.png"
+    render_card("East Coast Social", msg, card,
                 footer=SITE, tagline="Done-for-you social media · NB")
     (out / "caption.txt").write_text(caption, encoding="utf-8")
     print(f"card + caption written to {out}\n{msg}")
+    try:
+        archive(card, msg, caption, dt.date.today())
+    except Exception as exc:  # noqa: BLE001 - a feed hiccup must not block posting
+        print(f"feed archive skipped ({exc})")
 
 
 if __name__ == "__main__":

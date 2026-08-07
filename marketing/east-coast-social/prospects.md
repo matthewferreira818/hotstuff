@@ -75,7 +75,7 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | A & M Auto Repair | Dieppe | auto repair shop | no social seen in search; reviews call it 'the most honest garage' |
 | Blue Olive | Dieppe | Mediterranean (Tunisian/Lebanese) restaurant | no social seen in search |
 | Boulangerie Tony | Dieppe | bakery/café | FB page (facebook.com/Boulangerie.Tony) and Instagram (@boulangerie.tony) both exist |
-| CAVOK Brewing Co. | Dieppe | craft brewery/brewpub | 🔥 HOT LEAD: 08-04 owner call + samples-offer text · 08-06 bump sent (samples MADE — 7-card week in repo, Runway 11 name-drop). Bump READ 08-06 8:57am, no reply (normal). WALK-IN CONFIRMED Fri 08-07 ~5 PM with printed pack — opener: "figured texting wasn't the format, so I brought them" |
+| CAVOK Brewing Co. | Dieppe | craft brewery/brewpub | 🔥 HOT LEAD: 08-04 owner call + samples-offer text · 08-06 bump sent (samples MADE — 7-card week in repo, Runway 11 name-drop). Bump READ 08-06 8:57am, no reply (normal). 08-07 called ahead — Serge not in; walk-in NOT attempted (4 touches already, no reply). STATUS: warm but not pulling. NEXT: only when we learn a day he's actually in — one clean visit with the printed pack. No more texts/calls until he moves. Pack keeps indefinitely. |
 | Cremerie Bennic Dairy Bar | Dieppe | ice cream / dairy bar | no social seen in search |
 | Flying Boats Brewing | Dieppe | craft brewery | no social seen in search |
 | Hom Thai Cuisine | Dieppe | Thai restaurant | no social seen in search |

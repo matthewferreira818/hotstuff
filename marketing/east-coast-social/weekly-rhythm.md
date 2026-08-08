@@ -98,6 +98,11 @@ more than the rest of the week combined.
 - **Google Business Profile video** — one 2-minute recording puts ECS on Google
   Maps, where "social media help near me" gets searched. Highest-value
   unfinished task on the board.
+- **Business cards** — ordered Aug 8, 2026: 250 Standard Matte 2-sided, $31.99,
+  Staples Moncton (233 Main St) pickup. Artwork lives in `print/`
+  (`card-front-bleed.png` / `card-back-bleed.png`, 1125×675 @ 300 DPI with
+  0.125" bleed). Back QR → eastcoastsocial.ca. Once they land, every walk-in
+  and every call that ends in "send me something" gets one.
 - **Zoho email** — 20 uninterrupted minutes so replies come *from*
   hello@eastcoastsocial.ca, not a Yahoo address.
 - **SNB registration** (~$126) when the insurance money lands — unlocks the

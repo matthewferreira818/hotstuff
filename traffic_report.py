@@ -18,6 +18,7 @@ import datetime as dt
 import json
 import os
 import sys
+import urllib.parse
 import urllib.request
 
 SITE = "https://theycallmemattyb.goatcounter.com"
@@ -46,6 +47,36 @@ def public_count(start: dt.date | None = None) -> int:
         url += f"?start={start.isoformat()}"
     with urllib.request.urlopen(urllib.request.Request(url), timeout=30) as resp:
         return int(json.load(resp)["count_unique"])
+
+
+def public_path_count(path: str, start: dt.date | None = None) -> int:
+    """Unique count for one tracked path/event via the public counter API."""
+    url = f"{SITE}/counter/{urllib.parse.quote(path, safe='')}.json"
+    if start:
+        url += f"?start={start.isoformat()}"
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url), timeout=30) as resp:
+            return int(json.load(resp)["count_unique"])
+    except Exception:  # noqa: BLE001 - a missing counter is a zero, not a failure
+        return 0
+
+
+# Channel tags fired as "ref-<tag>" events by the pages (see the attribution
+# snippet in index.html). ?ref= alone never lands in GoatCounter's path list —
+# it is GoatCounter's own referrer-override parameter.
+REF_CHANNELS = [
+    ("x", "X posts"),
+    ("pin", "Pinterest product pins"),
+    ("pin-ecs", "Pinterest ECS pins"),
+    ("ecs", "ECS daily caption"),
+    ("tt", "TikTok product QR"),
+    ("tt-ecs", "TikTok agent QR"),
+]
+
+
+def channel_breakdown(start: dt.date | None = None) -> list[tuple[str, str, int]]:
+    rows = [(tag, label, public_path_count(f"ref-{tag}", start)) for tag, label in REF_CHANNELS]
+    return sorted(rows, key=lambda r: -r[2])
 
 
 def main() -> None:
@@ -82,6 +113,15 @@ def main() -> None:
 
         msg = f"{today} visitors so far today · {week} this week"
         busy = today
+    # channel attribution — always from the public counters, token or not
+    rows = channel_breakdown()
+    if any(n for _, _, n in rows):
+        print("channels (all-time):  " + " · ".join(f"{tag}={n}" for tag, _, n in rows if n))
+        top_tag, top_label, top_n = rows[0]
+        msg += f" · top channel: {top_label} ({top_n})"
+    else:
+        print("channels: no ref- events recorded yet (tracking just added, or no tagged visits)")
+
     req = urllib.request.Request(
         f"https://ntfy.sh/{topic}",
         data=msg.encode(),

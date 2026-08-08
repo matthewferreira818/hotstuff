@@ -408,6 +408,24 @@ findhotstuff.com #cozyhome</p>
 </footer>
 <script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script>
+/* Channel attribution: ?ref= is GoatCounter's own referrer-override param, so
+ * it never lands in the paths list. Fire a readable event too ("ref-pin",
+ * "ref-x"…) so /counter/ref-<name>.json reports each channel without a token. */
+(function () {
+  var ref = new URLSearchParams(location.search).get("ref");
+  if (!ref || !/^[a-z0-9_-]{1,24}$/i.test(ref)) return;
+  var tries = 0;
+  (function fire() {
+    if (window.goatcounter && typeof window.goatcounter.count === "function") {
+      window.goatcounter.count({ path: "ref-" + ref, title: "Referral: " + ref, event: true });
+    } else if (tries++ < 25) {
+      setTimeout(fire, 200);
+    }
+  })();
+})();
+</script>
+
+<script>
 (function () {
   var box = document.getElementById("ecs-feed");
   if (!box) return;

@@ -265,7 +265,7 @@ def make_cards():
     lw = d.textlength(label, font=label_f)
     badge, gap = 96, 24
     bx = int((W - (badge + gap + lw)) // 2)
-    by = 34
+    by = 46   # >= 0.125in (37px) inside the trim so trimming can't clip the badge
     crop, mask = logo_badge(badge)
     front.paste(crop, (bx, by), mask)
     d.ellipse((bx, by, bx + badge, by + badge), outline=GOLD, width=5)
@@ -280,15 +280,32 @@ def make_cards():
     centered(d, SITE_LINE, 510, _font(32, True), GOLD, W)
     front.save(OUT / "card-front.png")
 
-    # --- back: white, navy frame, gold corner ticks, QR ---
-    back = Image.new("RGB", (W, H), PAPER)
+    # --- back: full-bleed navy, white QR panel, no thin frame ---
+    # A thin border near the trim line is a print trap: commercial cutting
+    # drifts up to 1/16in, so an "even" frame comes back visibly crooked.
+    # Full bleed has nothing to misalign, and it matches the front.
+    back = Image.new("RGB", (W, H), NAVY)
     d = ImageDraw.Draw(back)
-    d.rounded_rectangle((26, 26, W - 26, H - 26), radius=24, outline=NAVY, width=6)
-    corner_brackets(d, (26, 26, W - 26, H - 26), length=46, width=10)
-    qr = qr_image(350)
-    back.paste(qr, ((W - 350) // 2, 70))
-    d.rectangle(((W - 240) // 2, 462, (W + 240) // 2, 470), fill=GOLD)
-    centered(d, "see it running → " + SITE_LINE, 498, fit(d, "see it running → " + SITE_LINE, 34, W - 160), NAVY, W)
+    v_gradient(d, (0, 0, W, H), NAVY, NAVY_3)
+    dot_grid(back, (W - 380, H - 230, W, H), alpha=30, step=44, dot_r=3)
+    radial_glow(back, (W // 2, 250), 320, peak_alpha=48)
+    # gold corner echo, mirrored from the front
+    d.polygon(((0, 0), (190, 0), (0, 190)), fill=GOLD)
+    d.line((0, 250, 250, 0), fill=GOLD, width=6)
+
+    qr_size, pad = 296, 20
+    px0 = (W - qr_size) // 2 - pad
+    py0 = 58
+    d.rounded_rectangle((px0, py0, px0 + qr_size + 2 * pad, py0 + qr_size + 2 * pad),
+                        radius=26, fill=PAPER)
+    back.paste(qr_image(qr_size), (px0 + pad, py0 + pad))
+
+    d.rectangle(((W - 200) // 2, 434, (W + 200) // 2, 441), fill=GOLD)
+    centered(d, "scan → " + SITE_LINE, 466,
+             fit(d, "scan → " + SITE_LINE, 34, W - 220), LIGHT, W)
+    centered(d, "free setup · $79/month · no contracts", 514,
+             fit(d, "free setup · $79/month · no contracts", 26, W - 220, bold=False),
+             "#a8bccf", W)
     back.save(OUT / "card-back.png")
 
     front.save(OUT / "business-card.pdf", resolution=300, save_all=True, append_images=[back])

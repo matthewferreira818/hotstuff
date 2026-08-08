@@ -31,10 +31,10 @@ FOG = "#5b7089"
 LIGHT = "#f2f6fa"
 PANEL = "#eef4fa"
 
-AUTOMATION_URL = "https://findhotstuff.com/automation/"
+AUTOMATION_URL = "https://eastcoastsocial.ca/"   # redirects to the automation page
 PHONE = "(506) 889-9737"
-EMAIL = "ceohotstuff@yahoo.com"
-SITE_LINE = "findhotstuff.com/automation"
+EMAIL = "hello@eastcoastsocial.ca"
+SITE_LINE = "eastcoastsocial.ca"
 
 
 def _rgb(hexcolor):

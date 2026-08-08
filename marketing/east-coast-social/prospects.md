@@ -308,3 +308,18 @@ _One per business, hook matched to what they sell. 5/day max._
 
 ### Nataliia's World of Beauty (Dieppe)
 > Hey! I was looking for Nataliia's World of Beauty online and noticed the page hasn't posted since [month] — and your kind of work is exactly what people scroll for. I run a local service that makes your page post every day automatically: you approve the style once, then never touch it again. Built it for my own store first — it's posted 3x a day for months without me lifting a finger. Worth a 20-minute chat? No pressure — happy to just show you how it works.
+
+## Facebook group channel — log
+
+| Group | Members | Status |
+|---|---|---|
+| Demandez Memramcook | 2.7K | ✅ Member. Website post 08-06 (FR/EN, text-only) — **0 engagement after 2 days**. Lesson: needs an image. Don't bump; post something different in ~2 weeks. |
+| Small business Moncton and area | 8.9K | ✅ APPROVED 08-07. **ECS post + price-compare image posted 08-08.** One ad/week limit — next slot ~08-15. |
+| New Brunswick small business | 547 | ⏳ Still under review 08-08. When approved: comment on their pinned service thread (text parked). Huddy Latimer's live web-design sales post = admins tolerate it. |
+| MONCTON BUSINESS ADVERTISING | 3.3K | Page joined, not Matthew. Pure ad wall (~670 posts/mo), one-shot rule. Low value — save for a Page post someday. |
+
+**Philippe Belanger (NB small business admin):** DM sent 08-07 landed in his *message requests*, unread. Do not chase — the group's pinned thread is the sanctioned path.
+
+**Competitor density in Moncton groups:** Huddy Latimer, NextGen Branding, FavourVisuals (Favour Isaac), Oguntayo Seun, iggiwebsolutions (Igor Juliao Weldt). All brands/Pages — our edge is being a named local person with public flat pricing and clickable live demos.
+
+**Gold searches:** 08-05 and 08-08 sweeps across all readable groups found ZERO requests for website/social/marketing help in the prior 2 weeks. ISO requests do happen there (hardwood floors, etc.), just not for our services yet. Keep sweeping weekly.

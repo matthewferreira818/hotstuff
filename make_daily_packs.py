@@ -118,6 +118,79 @@ def _lh_header(draw, canvas):
     draw.text((x + 40, 182), label, font=wm_font, fill=GOLD)
 
 
+# ── Agent-pack story rotation ────────────────────────────────────────────
+# The agent (East Coast Social) slides used to be byte-identical every day,
+# which meant the same TikTok went out each evening — the fastest way to get
+# an account throttled. Each day now draws a different story: its own hook,
+# sub-line, receipts framing, closing pitch, and caption.
+AGENT_STORIES = [
+    {
+        "hook": ("This store", "runs itself."),
+        "sub": "no employees. nothing scheduled by hand.",
+        "hint": "receipts →",
+        "receipts": "what's on autopilot",
+        "cta": ("your business page", "could run like this"),
+        "caption": ("day in the life of a store with zero employees \U0001F916 everything you "
+                    "just saw happened automatically. building this for local businesses now "
+                    "#automation #smallbusiness #sidehustle #ai"),
+    },
+    {
+        "hook": ("I haven't touched", "this store in days."),
+        "sub": "it restocked and posted anyway.",
+        "hint": "here's what it did →",
+        "receipts": "while I was at work",
+        "cta": ("imagine your page", "doing this daily"),
+        "caption": ("I haven't opened this store in days and it still posted every day \U0001F916 "
+                    "the whole thing runs on an engine I built — now setting it up for local "
+                    "businesses #automation #smallbusiness #ai #sidehustle"),
+    },
+    {
+        "hook": ("Zero employees.", "180 posts a month."),
+        "sub": "that's the whole business model.",
+        "hint": "the math →",
+        "receipts": "the numbers",
+        "cta": ("your shop could", "post this often"),
+        "caption": ("zero employees, 180 posts a month, and I never open the app \U0001F916 "
+                    "the engine writes, designs and publishes on its own — building this for "
+                    "local businesses now #smallbusiness #automation #ai #marketing"),
+    },
+    {
+        "hook": ("What if your shop", "posted while you slept?"),
+        "sub": "mine does. every single night.",
+        "hint": "proof →",
+        "receipts": "what runs overnight",
+        "cta": ("this is the service", "not just my store"),
+        "caption": ("what if your business page posted while you slept? \U0001F634 mine does — "
+                    "every night, automatically. now building the same thing for local shops "
+                    "#smallbusiness #automation #ai #localbusiness"),
+    },
+    {
+        "hook": ("Most local pages", "went quiet in spring."),
+        "sub": "this one hasn't missed a day.",
+        "hint": "how →",
+        "receipts": "the difference",
+        "cta": ("keep your page alive", "without touching it"),
+        "caption": ("most local business pages went quiet months ago \U0001F4A4 this one hasn't "
+                    "missed a single day — because nobody has to remember. building it for "
+                    "local businesses now #smallbusiness #socialmedia #automation #ai"),
+    },
+    {
+        "hook": ("Nobody made", "this post."),
+        "sub": "the engine did. like every other day.",
+        "hint": "seriously →",
+        "receipts": "made without me",
+        "cta": ("your page, same deal", "you approve it once"),
+        "caption": ("nobody made this post \U0001F916 the engine picked it, designed it and "
+                    "published it — same as every other day this month. setting it up for "
+                    "local businesses #automation #ai #smallbusiness #contentcreation"),
+    },
+]
+
+
+def todays_agent_story():
+    return AGENT_STORIES[date.today().toordinal() % len(AGENT_STORIES)]
+
+
 def _lh_slide_hook():
     """Slide 1: the claim."""
     from PIL import Image, ImageDraw
@@ -128,17 +201,19 @@ def _lh_slide_hook():
 
     _glow(canvas, W // 2, 210, 520)
 
+    story = todays_agent_story()
+
     y = 600
-    for line, colour in (("This store", LH_INK), ("runs itself.", GOLD)):
+    for line, colour in zip(story["hook"], (LH_INK, GOLD)):
         big = _fit(draw, line, 128, W - 2 * 90, loader=_serif)
         draw.text(((W - draw.textlength(line, font=big)) // 2, y), line, font=big, fill=colour)
         y += 152
 
-    sub = "no employees. nothing scheduled by hand."
+    sub = story["sub"]
     sub_font = _fit(draw, sub, 44, W - 2 * 90, bold=False)
     draw.text(((W - draw.textlength(sub, font=sub_font)) // 2, y + 40), sub, font=sub_font, fill=FOG)
 
-    hint = "receipts →"
+    hint = story["hint"]
     hint_font = _font(48, True)
     draw.text(((W - draw.textlength(hint, font=hint_font)) // 2, 1560), hint, font=hint_font, fill=GOLD)
 
@@ -155,17 +230,27 @@ def _lh_slide_receipts(product_count, refreshed):
     draw = ImageDraw.Draw(canvas)
     _lh_header(draw, canvas)
 
-    title = "what's on autopilot"
+    title = todays_agent_story()["receipts"]
     t_font = _fit(draw, title, 76, W - 2 * 90, loader=_serif)
     draw.text(((W - draw.textlength(title, font=t_font)) // 2, 330), title, font=t_font, fill=LH_INK)
 
-    rows = [
+    # a larger pool of true claims, rotated so the slide reads fresh each day
+    every_day = [
         "posts on X three times a day",
         f"keeps {product_count} products live on the site",
-        f"refreshes the catalog every 3 days",
-        "checks the site's pulse every hour",
-        "human hours required: zero",
+        "refreshes the catalog every 3 days",
     ]
+    extras = [
+        "checks the site's pulse every hour",
+        "writes its own captions and cards",
+        "rebuilds the storefront on its own",
+        "files an alert if anything breaks",
+        "swaps out products when trends cool",
+        "runs the site in two languages",
+    ]
+    shift = date.today().toordinal() % len(extras)
+    rows = every_day + [extras[(shift + i) % len(extras)] for i in range(2)]
+    rows.append("human hours required: zero")
     y = 560
     text_left, text_right_pad = 200, 40
     max_text_w = (W - 90) - text_left - text_right_pad
@@ -192,7 +277,7 @@ def _lh_slide_cta():
     draw = ImageDraw.Draw(canvas)
     _lh_header(draw, canvas)
 
-    for i, (line, colour) in enumerate((("your business page", LH_INK), ("could run like this", GOLD))):
+    for i, (line, colour) in enumerate(zip(todays_agent_story()["cta"], (LH_INK, GOLD))):
         hook_font = _fit(draw, line, 68, W - 2 * 90, loader=_serif)
         draw.text(((W - draw.textlength(line, font=hook_font)) // 2, 340 + i * 92),
                   line, font=hook_font, fill=colour)
@@ -254,9 +339,7 @@ def _write_captions(picks):
         "```\n",
         "\n## \U0001F5FC Agent post (agent/) — caption\n",
         "```",
-        "day in the life of a store with zero employees \U0001F916 everything you "
-        "just saw happened automatically. building this for local businesses now "
-        "#automation #smallbusiness #sidehustle #ai",
+        todays_agent_story()["caption"],
         "```\n",
         "> \U0001F3B5 Add a trending sound to each in-app. Product post: upbeat. "
         "Agent post: something calm/lofi reads as 'systems humming'.\n",

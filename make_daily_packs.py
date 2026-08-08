@@ -191,31 +191,68 @@ def todays_agent_story():
     return AGENT_STORIES[date.today().toordinal() % len(AGENT_STORIES)]
 
 
+def _lh_hint(draw, story):
+    hint_font = _font(48, True)
+    draw.text(((W - draw.textlength(story["hint"], font=hint_font)) // 2, 1560),
+              story["hint"], font=hint_font, fill=GOLD)
+
+
+def _lh_sub(draw, text, y, centered=True, size=44):
+    f = _fit(draw, text, size, W - 2 * 90, bold=False)
+    x = (W - draw.textlength(text, font=f)) // 2 if centered else 90
+    draw.text((x, y), text, font=f, fill=FOG)
+
+
+def _hook_centered(canvas, draw, story):
+    """Treatment A — big centered claim over a gold haze."""
+    _glow(canvas, W // 2, 210, 520)
+    y = 600
+    for line, colour in zip(story["hook"], (LH_INK, GOLD)):
+        big = _fit(draw, line, 128, W - 2 * 90, loader=_serif)
+        draw.text(((W - draw.textlength(line, font=big)) // 2, y), line, font=big, fill=colour)
+        y += 152
+    _lh_sub(draw, story["sub"], y + 40)
+
+
+def _hook_left_rule(canvas, draw, story):
+    """Treatment B — left-aligned with a gold rule, editorial feel."""
+    draw.rectangle((90, 520, 90 + 180, 532), fill=GOLD)
+    y = 600
+    for line, colour in zip(story["hook"], (LH_INK, GOLD)):
+        big = _fit(draw, line, 120, W - 2 * 90, loader=_serif)
+        draw.text((90, y), line, font=big, fill=colour)
+        y += 146
+    _lh_sub(draw, story["sub"], y + 44, centered=False)
+
+
+def _hook_panel(canvas, draw, story):
+    """Treatment C — claim inside a raised navy panel."""
+    _glow(canvas, W // 2, 900, 620)
+    draw.rounded_rectangle((70, 520, W - 70, 1180), radius=44, fill=NAVY_2)
+    y = 600
+    for line, colour in zip(story["hook"], (LH_INK, GOLD)):
+        big = _fit(draw, line, 112, W - 2 * 130, loader=_serif)
+        draw.text(((W - draw.textlength(line, font=big)) // 2, y), line, font=big, fill=colour)
+        y += 138
+    _lh_sub(draw, story["sub"], y + 36, size=40)
+
+
+HOOK_TREATMENTS = [_hook_centered, _hook_left_rule, _hook_panel]
+
+
 def _lh_slide_hook():
-    """Slide 1: the claim."""
+    """Slide 1: the claim. Visual treatment rotates with the story so the
+    pack changes shape, not just wording."""
     from PIL import Image, ImageDraw
 
     canvas = Image.new("RGB", (W, H), NAVY)
     draw = ImageDraw.Draw(canvas)
     _lh_header(draw, canvas)
 
-    _glow(canvas, W // 2, 210, 520)
-
     story = todays_agent_story()
-
-    y = 600
-    for line, colour in zip(story["hook"], (LH_INK, GOLD)):
-        big = _fit(draw, line, 128, W - 2 * 90, loader=_serif)
-        draw.text(((W - draw.textlength(line, font=big)) // 2, y), line, font=big, fill=colour)
-        y += 152
-
-    sub = story["sub"]
-    sub_font = _fit(draw, sub, 44, W - 2 * 90, bold=False)
-    draw.text(((W - draw.textlength(sub, font=sub_font)) // 2, y + 40), sub, font=sub_font, fill=FOG)
-
-    hint = story["hint"]
-    hint_font = _font(48, True)
-    draw.text(((W - draw.textlength(hint, font=hint_font)) // 2, 1560), hint, font=hint_font, fill=GOLD)
+    treatment = HOOK_TREATMENTS[date.today().toordinal() % len(HOOK_TREATMENTS)]
+    treatment(canvas, draw, story)
+    _lh_hint(draw, story)
 
     buf = io.BytesIO()
     canvas.save(buf, format="PNG")

@@ -18,33 +18,33 @@ _Upload each pin with its title, description, and link below. Board suggestion: 
 - **Link:** https://findhotstuff.com/?ref=pin
 
 ## pin-4.png
-- **Title:** Touchscreen Winter Gloves — Trending Now
-- **Description:** Keeps you comfortable when the temperature drops. Only $18.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #sports #trendingproducts #onlinefinds
+- **Title:** Fleece Winter Jacket — Trending Now
+- **Description:** Cozy, practical, and right on time for the season. Only $21.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
 - **Link:** https://findhotstuff.com/?ref=pin
 
 ## pin-5.png
-- **Title:** Distance Measuring Instrument Electronic — Trending Now
-- **Description:** A small gadget that earns its keep fast. Only $35.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #electronics #trendingproducts #onlinefinds
+- **Title:** LED sensor light bar — Trending Now
+- **Description:** Instant cozy — lighting that transforms a room. Only $24.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #home #trendingproducts #onlinefinds
 - **Link:** https://findhotstuff.com/?ref=pin
 
 ## pin-6.png
-- **Title:** Booty Lifting Anti Cellulite — Trending Now
-- **Description:** An easy way to make workouts feel more solid. Only $35.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #trendingfinds #trendingproducts #onlinefinds
+- **Title:** Makeup Brushes Kit Maquiagem — Trending Now
+- **Description:** A small beauty win that becomes a daily go-to. Only $15.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #beauty #trendingproducts #onlinefinds
 - **Link:** https://findhotstuff.com/?ref=pin
 
 ## pin-7.png
-- **Title:** Womens Clothing Long Sleeve — Trending Now
-- **Description:** Wardrobe-ready and easy to style multiple ways. Only $27.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
+- **Title:** Dog Chew Toys — Trending Now
+- **Description:** Pet-approved, parent-approved. Only $18.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #pet #trendingproducts #onlinefinds
 - **Link:** https://findhotstuff.com/?ref=pin
 
 ## pin-8.png
-- **Title:** Telescopic Car Phone Mount — Trending Now
-- **Description:** A handy phone upgrade that smooths out your day. Only $13.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #auto #trendingproducts #onlinefinds
+- **Title:** Arm Shaping Sleeves Slimming — Trending Now
+- **Description:** An easy, comfy layer under any outfit. Only $11.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #trendingfinds #trendingproducts #onlinefinds
 - **Link:** https://findhotstuff.com/?ref=pin
 
 ## pin-9.png
-- **Title:** Grip & Forearm Trainer — Trending Now
-- **Description:** Built for the gym, comfy enough for the couch after. Only $31.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fitness #trendingproducts #onlinefinds
+- **Title:** Harajuku Canvas Bags Students — Trending Now
+- **Description:** Fits the essentials and still looks put-together. Only $27.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #bags #trendingproducts #onlinefinds
 - **Link:** https://findhotstuff.com/?ref=pin
 
 ## pin-10.png

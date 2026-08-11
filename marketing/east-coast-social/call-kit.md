@@ -52,13 +52,13 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 | CAVOK Brewing Co. | Dieppe (250 Dieppe Blvd) | (506) 961-5835 | No social seen; breweries thrive on daily taps/events posts | 08-04 🔥 HOT: staff gave owner's cell, owner answered, asked for TEXT — sent free-week-of-samples offer. If quiet, bump ~08-06 |
 | Norm's Pizza | Dieppe (4-438 Paul St) | (506) 859-8180 | No social seen; pizza = easiest daily content there is | 08-04 owner out — left contact info with staff (touch 1). Call back ~08-06 in the 2-4 window |
 
-## Call sheet — round 2 (added 08-11; have C.C verify FB activity before calling)
+## Call sheet — round 2 (added 08-11; C.C recon done 08-11)
 
 | Business | Town | Phone | Why calling | Outcome |
 |---|---|---|---|---|
-| Salon Coupe Chic | Memramcook (280 La Vallée Rte) | (506) 758-9390 | Salon in the home village — "your neighbour" opener is literal here. Hours Mon–Thu 8–4:30, Fri 8–12 | |
-| LeBlanc Restaurant (Ben's) | Memramcook (583 rue Centrale) | (506) 758-2554 | Village restaurant, pizza menu = daily-special content. NOT the same as LeBlancs Meat Market | |
-| La Boulangerie Léger | Shediac (482 Main St) | (506) 532-3137 | Long-running bakery on Shediac's main drag; daily bakes = perfect feed | |
+| La Boulangerie Léger | Shediac (482 Main St) | (506) 532-3137 | 🔥 BEST DATA ON THE SHEET: FB page has 2.2K followers but silent since July 4 — and that last post pulled 50 reactions + 34 shares. Their audience responds; they just stopped posting. Opener writes itself. | |
+| LeBlanc Restaurant (Ben's) | Memramcook (583 rue Centrale) | (506) 758-2554 | Recon: NO Facebook page at all, yet notable enough that Dominic LeBlanc posted about lunching there with Premier Holt. Village restaurant, pizza menu = daily specials. NOT LeBlancs Meat Market | |
+| Salon Coupe Chic | Memramcook (280 La Vallée Rte) | (506) 758-9390 | ⚠️ DOWNGRADED: no FB page found, and a resident posted in the Memramcook group that the salon isn't answering its phone (no voicemail), asking if it closed. One verify-call at most; expect nothing. | |
 
 _Skipped in research: Culinanny Bakery Shediac (reported closed), Sackville
 "902" listings (that's Sackville Nova Scotia — wrong province trap)._

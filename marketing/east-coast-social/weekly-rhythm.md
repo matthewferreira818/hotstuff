@@ -44,7 +44,7 @@ Not five. **One.** Doable on a lunch break, and it compounds to ~5/week.
 
 | Day | The action |
 |---|---|
-| **Monday** | Spend the weekly Moncton group ad slot (rules reset weekly). Image + question format — the one that beat text-only. |
+| **Monday** | Group-ad check: the Moncton slot is one ad per **rolling 7 days** (rule 4, confirmed 08-11 — no set day). If 7+ days since the last ad, post; otherwise note the next open date. Image + caption, prices public. |
 | **Tuesday** | One call. Shops 10:00–11:30, restaurants 2:00–4:00. |
 | **Wednesday** | One warm-lead follow-up (a callback owed, or a text bump on someone who went quiet ≥3 days). |
 | **Thursday** | One call — a fresh name off the call sheet. |

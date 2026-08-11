@@ -313,13 +313,15 @@ _One per business, hook matched to what they sell. 5/day max._
 
 | Group | Members | Status |
 |---|---|---|
-| Demandez Memramcook | 2.7K | ✅ Member. Website post 08-06 (FR/EN, text-only) — **0 engagement after 2 days**. Lesson: needs an image. Don't bump; post something different in ~2 weeks. |
-| Small business Moncton and area | 8.9K | ✅ APPROVED 08-07. **ECS post + price-compare image posted 08-08.** One ad/week limit — next slot ~08-15. |
-| New Brunswick small business | 547 | ⏳ Still under review 08-08. When approved: comment on their pinned service thread (text parked). Huddy Latimer's live web-design sales post = admins tolerate it. |
+| Demandez Memramcook | 2.7K | ✅ Member. Website post 08-06 (FR/EN, text-only) — **0 engagement after 5 days (final)**. Lesson: needs an image. Don't bump; post something different in ~2 weeks. |
+| Small business Moncton and area | 8.9K | ✅ Member. ECS post 08-08 (navy daily card — NOT price-compare as first logged) — **0 engagement after 3 days**. Rule 4 confirmed 08-11: one ad per **rolling 7 days**, no set day — next clean slot **Fri 08-15**. |
+| New Brunswick small business | 547 | ⏳ STILL pending 08-11 (5+ days). Competitors actively pitching inside: Huddy Latimer (websites/SEO/AI, 2 posts), NexGen Branding (web design). When approved: pinned-thread comment (text parked). NOTE: rules-agreement status flickered in C.C's sweep — verify "Agreed to Group Rules" shows before first post. |
 | MONCTON BUSINESS ADVERTISING | 3.3K | Page joined, not Matthew. Pure ad wall (~670 posts/mo), one-shot rule. Low value — save for a Page post someday. |
 
 **Philippe Belanger (NB small business admin):** DM sent 08-07 landed in his *message requests*, unread. Do not chase — the group's pinned thread is the sanctioned path.
 
 **Competitor density in Moncton groups:** Huddy Latimer, NextGen Branding, FavourVisuals (Favour Isaac), Oguntayo Seun, iggiwebsolutions (Igor Juliao Weldt). All brands/Pages — our edge is being a named local person with public flat pricing and clickable live demos.
 
-**Gold searches:** 08-05 and 08-08 sweeps across all readable groups found ZERO requests for website/social/marketing help in the prior 2 weeks. ISO requests do happen there (hardwood floors, etc.), just not for our services yet. Keep sweeping weekly.
+**Gold searches:** 08-05, 08-08 and 08-11 sweeps across all readable groups found ZERO requests for website/social/marketing help. 08-11 sweep was thorough: ~50 recent Moncton-group posts read + EN/FR keyword searches in all three groups. Everyone recent is selling, nobody's asking. Keep sweeping weekly.
+
+**08-11 engagement reality check:** every group post sits at zero engagement, and the personal announcement post's 3 reactions are all friends. BUT the automation page pulled 14-15 visitors/day exactly on the post days (Aug 6-8) vs ~2-4 baseline — group readers click without reacting. Reach without applause. The channel works quietly; don't judge it by likes.

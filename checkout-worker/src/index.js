@@ -441,6 +441,39 @@ async function recordOrder(session, env) {
 
   await env.ORDERS_KV.put(key, JSON.stringify(record));
   console.log("Recorded order", session.id, "status", record.status);
+  await notifyOrder(record, env);
+}
+
+// Push an order alert to Matthew's phone via ntfy (same private topic as the
+// traffic reports). Without this, money can arrive silently: CJ auto-place
+// usually fails from Cloudflare's IP, so most paid orders sit in /orders
+// waiting for a human who doesn't know they exist. Best-effort — an ntfy
+// hiccup must never block the order log. Deliberately no street address or
+// email in the push body; name + country is enough to act on.
+async function notifyOrder(record, env) {
+  if (!env.NTFY_TOPIC) return;
+  const needsAction = record.status !== "auto-placed";
+  const what = record.product.name || record.product.sku || "Custom-design tee";
+  const body = [
+    `${what} — $${record.amount} ${record.currency}`,
+    `${record.customer.name || "(no name)"} · ${record.ship ? record.ship.country : "NO ADDRESS"}`,
+    needsAction
+      ? "CJ auto-place did not go through — place it from the /orders page."
+      : `Auto-placed with CJ (#${record.cj?.orderId || "?"}). Nothing to do.`,
+  ].join("\n");
+  try {
+    await fetch(`https://ntfy.sh/${env.NTFY_TOPIC}`, {
+      method: "POST",
+      body,
+      headers: {
+        Title: needsAction ? "ORDER PAID — needs fulfillment" : "Order paid + auto-placed",
+        Tags: needsAction ? "rotating_light,moneybag" : "white_check_mark,moneybag",
+        Priority: needsAction ? "high" : "default",
+      },
+    });
+  } catch (err) {
+    console.log("ntfy order alert failed:", String(err));
+  }
 }
 
 function escapeHtml(s) {

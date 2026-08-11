@@ -28,7 +28,7 @@
     "@type": "FAQPage",
     "mainEntity": [
       {"@type": "Question", "name": "Can I see it before I pay anything?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Yes — that's the deal. The first thing I build is a free week of sample posts in your branding. You look them over, we adjust, and only when you say go does anything get scheduled or billed."}},
+       "acceptedAnswer": {"@type": "Answer", "text": "Yes — that's the deal. The first thing I build is a free week of sample posts in your branding — no card, no account, nothing on file. You look them over, we adjust, and if it's not for you, the samples are yours to keep."}},
       {"@type": "Question", "name": "Do I have to give you my passwords?",
        "acceptedAnswer": {"@type": "Answer", "text": "No. Platforms provide official connected-app access that you grant and can revoke any time from your own account. Your password never leaves you."}},
       {"@type": "Question", "name": "What if I don't like what it says?",
@@ -135,6 +135,21 @@
     max-width: 34em; margin: 0 auto 34px;
   }
   .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  /* sticky text-me bar: phones only, appears after the hero scrolls away */
+  .sticky-text {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    display: none; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+    background: var(--gold); color: #14202e;
+    font-weight: 800; font-size: 15.5px; text-decoration: none;
+    box-shadow: 0 -6px 22px -8px rgba(0, 0, 0, 0.45);
+    transform: translateY(110%); transition: transform 0.22s ease;
+  }
+  .sticky-text.show { transform: none; }
+  @media (max-width: 700px) { .sticky-text { display: flex; } }
+  @media (prefers-reduced-motion: reduce) { .sticky-text { transition: none; } }
+
   .free-week { margin: 18px auto 0; font-size: 14.5px; color: var(--muted); max-width: 520px; }
   .free-week b { color: var(--gold); }
   .btn {
@@ -255,7 +270,7 @@
       <a class="btn btn-ghost" href="sms:+15068899737?body=Hi%20Matthew%20-%20saw%20East%20Coast%20Social%20online%2C%20interested%20in%20daily%20posts%20for%20my%20business.">Text me instead</a>
       <a class="btn btn-ghost" href="#proof">See it running live ↓</a>
     </div>
-    <p class="free-week">Your first week of sample posts is <b>free</b> — see your feed in your branding before you pay a cent.</p>
+    <p class="free-week">Your first week of sample posts is <b>free</b> — no card, no account, nothing on file. If it's not for you, the samples are yours to keep.</p>
   </div>
 </header>
 
@@ -374,7 +389,7 @@ findhotstuff.com #cozyhome</p>
     <h2 class="serif">Fair questions, straight answers.</h2>
     <details>
       <summary>Can I see it before I pay anything?</summary>
-      <p>Yes — that's the deal. The first thing I build is a <b>free week of sample posts</b> in your branding. You look them over, we adjust, and only when you say go does anything get scheduled or billed.</p>
+      <p>Yes — that's the deal. The first thing I build is a <b>free week of sample posts</b> in your branding. No card, no account, nothing on file. You look them over, we adjust — and if you decide it's not for you, the samples are yours to keep and you'll never hear a sales pitch again.</p>
     </details>
     <details>
       <summary>Do I have to give you my passwords?</summary>
@@ -467,6 +482,35 @@ findhotstuff.com #cozyhome</p>
       box.appendChild(strip);
     })
     .catch(function () { box.closest("section").hidden = true; });
+})();
+</script>
+<a class="sticky-text" id="sticky-text" href="sms:+15068899737?body=Hi%20Matthew%20-%20saw%20East%20Coast%20Social%20online%2C%20I%27d%20like%20the%20free%20week%20of%20sample%20posts.">💬 Text Matthew — free week of samples</a>
+
+<script>
+/* Sticky bar: show once the hero's own CTAs have scrolled away; and count
+ * contact taps (cta-text / cta-call / cta-email events) — at this traffic
+ * level, taps are the only conversion number that matters. */
+(function () {
+  var bar = document.getElementById("sticky-text");
+  if (bar) {
+    var onScroll = function () {
+      if (window.scrollY > 520) bar.classList.add("show");
+      else bar.classList.remove("show");
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+  function tag(kind) {
+    if (window.goatcounter && typeof window.goatcounter.count === "function") {
+      try {
+        window.goatcounter.count({ path: "cta-" + kind, title: "Contact tap: " + kind, event: true });
+      } catch (e) { /* never block the tap */ }
+    }
+  }
+  document.querySelectorAll('a[href^="sms:"], a[href^="tel:"], a[href^="mailto:"]').forEach(function (a) {
+    var kind = a.href.indexOf("sms:") === 0 ? "text" : a.href.indexOf("tel:") === 0 ? "call" : "email";
+    a.addEventListener("click", function () { tag(kind); });
+  });
 })();
 </script>
 </body>

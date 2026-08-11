@@ -51,7 +51,7 @@
     "ship-2-title": "Retours et remboursements",
     "ship-2-body": "Si votre article arrive endommagé, défectueux, erroné, ou n'arrive jamais, on arrange ça avec un <strong>remplacement gratuit ou un remboursement complet</strong> — écrivez-nous dans les <strong>30 jours</strong> suivant la livraison. Pour un retour par changement d'idée, contactez-nous dans les 14 jours (des frais de retour peuvent s'appliquer).",
     "ship-3-title": "Service à la clientèle",
-    "ship-3-body": "Des vraies personnes, contentes d'aider. Écrivez-nous et on vous répond en 1 à 2 jours ouvrables.<br>\n            📞 <a href=\"tel:+15068899737\">(506) 889-9737</a><br>\n            ✉️ <a href=\"mailto:ceohotstuff@yahoo.com\">ceohotstuff@yahoo.com</a>",
+    "ship-3-body": "HotsTuff est tenu par une vraie personne — Matthew, au Nouveau-Brunswick, Canada. Les articles partent directement de nos fournisseurs : c'est pourquoi la livraison prend 1 à 3 semaines et que les prix restent aussi bas. Un pépin? Textez-moi et je m'en occupe.<br>\n            📞 <a href=\"tel:+15068899737\">(506) 889-9737</a><br>\n            ✉️ <a href=\"mailto:ceohotstuff@yahoo.com\">ceohotstuff@yahoo.com</a>",
     "faq-1-q": "À quelle fréquence le catalogue change-t-il?",
     "faq-1-a": "Assez souvent — de nouveaux produits s'ajoutent et d'autres sortent au rythme des tendances, pas sur un horaire fixe.",
     "faq-2-q": "Est-ce une boutique à produit unique?",

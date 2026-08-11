@@ -71,6 +71,16 @@ REF_CHANNELS = [
     ("ecs", "ECS daily caption"),
     ("tt", "TikTok product QR"),
     ("tt-ecs", "TikTok agent QR"),
+    ("print", "Print QR (flyers/cards)"),
+    ("sample", "Sample-pack QR"),
+]
+
+# Contact-tap events fired by the automation pages (sms:/tel:/mailto: links).
+# At this traffic level a tap IS the conversion — report them alongside views.
+CTA_EVENTS = [
+    ("cta-text", "Text taps"),
+    ("cta-call", "Call taps"),
+    ("cta-email", "Email taps"),
 ]
 
 
@@ -121,6 +131,15 @@ def main() -> None:
         msg += f" · top channel: {top_label} ({top_n})"
     else:
         print("channels: no ref- events recorded yet (tracking just added, or no tagged visits)")
+
+    # contact taps — the ECS conversion signal. A tap today belongs in the ping.
+    taps_today = [(t, lbl, public_path_count(t, start=atlantic_now.date())) for t, lbl in CTA_EVENTS]
+    taps_all = [(t, lbl, public_path_count(t)) for t, lbl in CTA_EVENTS]
+    if any(n for _, _, n in taps_all):
+        print("contact taps (all-time): " + " · ".join(f"{t}={n}" for t, _, n in taps_all if n))
+    today_taps = sum(n for _, _, n in taps_today)
+    if today_taps:
+        msg += f" · 🎯 {today_taps} contact tap{'s' if today_taps != 1 else ''} today!"
 
     req = urllib.request.Request(
         f"https://ntfy.sh/{topic}",

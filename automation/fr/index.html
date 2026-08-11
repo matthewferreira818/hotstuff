@@ -28,7 +28,7 @@
     "@type": "FAQPage",
     "mainEntity": [
       {"@type": "Question", "name": "Est-ce que je peux voir avant de payer?",
-       "acceptedAnswer": {"@type": "Answer", "text": "Oui — c'est le principe. La première chose que je bâtis, c'est une semaine gratuite de publications d'exemple à votre image. Vous les regardez, on ajuste, et rien n'est planifié ni facturé tant que vous n'avez pas dit oui."}},
+       "acceptedAnswer": {"@type": "Answer", "text": "Oui — c'est le principe. La première chose que je bâtis, c'est une semaine gratuite de publications d'exemple à votre image — aucune carte, aucun compte, rien au dossier. Vous les regardez, on ajuste, et si ce n'est pas pour vous, les exemples restent à vous."}},
       {"@type": "Question", "name": "Est-ce que je dois vous donner mes mots de passe?",
        "acceptedAnswer": {"@type": "Answer", "text": "Non. Les plateformes offrent un accès officiel de type application connectée, que vous accordez et pouvez révoquer en tout temps depuis votre propre compte. Votre mot de passe ne quitte jamais vos mains."}},
       {"@type": "Question", "name": "Et si je n'aime pas ce que ça dit?",
@@ -135,6 +135,21 @@
     max-width: 34em; margin: 0 auto 34px;
   }
   .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  /* sticky text-me bar: phones only, appears after the hero scrolls away */
+  .sticky-text {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    display: none; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom));
+    background: var(--gold); color: #14202e;
+    font-weight: 800; font-size: 15.5px; text-decoration: none;
+    box-shadow: 0 -6px 22px -8px rgba(0, 0, 0, 0.45);
+    transform: translateY(110%); transition: transform 0.22s ease;
+  }
+  .sticky-text.show { transform: none; }
+  @media (max-width: 700px) { .sticky-text { display: flex; } }
+  @media (prefers-reduced-motion: reduce) { .sticky-text { transition: none; } }
+
   .free-week { margin: 18px auto 0; font-size: 14.5px; color: var(--muted); max-width: 520px; }
   .free-week b { color: var(--gold); }
   .btn {
@@ -257,7 +272,7 @@
       <a class="btn btn-ghost" href="#proof">Voyez-le rouler en direct ↓</a>
     </div>
     <p class="cta-note">Matthew Ferreira · Memramcook, N.-B. · réponse habituellement la journée même</p>
-    <p class="free-week">Votre première semaine d'exemples est <b>gratuite</b> — voyez votre fil à votre image avant de payer un sou.</p>
+    <p class="free-week">Votre première semaine d'exemples est <b>gratuite</b> — aucune carte, aucun compte, rien au dossier. Si ce n'est pas pour vous, les exemples restent à vous.</p>
   </div>
 </header>
 
@@ -376,7 +391,7 @@ findhotstuff.com #cozyhome</p>
     <h2 class="serif">Bonnes questions, réponses franches.</h2>
     <details>
       <summary>Est-ce que je peux voir avant de payer?</summary>
-      <p>Oui — c'est le principe. La première chose que je bâtis, c'est une <b>semaine gratuite de publications d'exemple</b> à votre image. Vous les regardez, on ajuste, et rien n'est planifié ni facturé tant que vous n'avez pas dit oui.</p>
+      <p>Oui — c'est le principe. La première chose que je bâtis, c'est une <b>semaine gratuite de publications d'exemple</b> à votre image. Aucune carte, aucun compte, rien au dossier. Vous les regardez, on ajuste — et si vous décidez que ce n'est pas pour vous, les exemples restent à vous, sans relance de vente.</p>
     </details>
     <details>
       <summary>Est-ce que je dois vous donner mes mots de passe?</summary>
@@ -464,6 +479,35 @@ findhotstuff.com #cozyhome</p>
       box.appendChild(strip);
     })
     .catch(function () { box.closest("section").hidden = true; });
+})();
+</script>
+<a class="sticky-text" id="sticky-text" href="sms:+15068899737?body=Bonjour%20Matthew%20-%20j%27ai%20vu%20East%20Coast%20Social%20en%20ligne%2C%20je%20veux%20la%20semaine%20d%27exemples%20gratuite.">💬 Textez Matthew — semaine d'exemples gratuite</a>
+
+<script>
+/* Sticky bar: show once the hero's own CTAs have scrolled away; and count
+ * contact taps (cta-text / cta-call / cta-email events) — at this traffic
+ * level, taps are the only conversion number that matters. */
+(function () {
+  var bar = document.getElementById("sticky-text");
+  if (bar) {
+    var onScroll = function () {
+      if (window.scrollY > 520) bar.classList.add("show");
+      else bar.classList.remove("show");
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+  function tag(kind) {
+    if (window.goatcounter && typeof window.goatcounter.count === "function") {
+      try {
+        window.goatcounter.count({ path: "cta-" + kind, title: "Contact tap: " + kind, event: true });
+      } catch (e) { /* never block the tap */ }
+    }
+  }
+  document.querySelectorAll('a[href^="sms:"], a[href^="tel:"], a[href^="mailto:"]').forEach(function (a) {
+    var kind = a.href.indexOf("sms:") === 0 ? "text" : a.href.indexOf("tel:") === 0 ? "call" : "email";
+    a.addEventListener("click", function () { tag(kind); });
+  });
 })();
 </script>
 </body>

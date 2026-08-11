@@ -1,6 +1,6 @@
 # HotsTuff — TikTok Photo Pack (auto-generated)
 
-_Generated 2026-08-10 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
+_Generated 2026-08-11 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
 
 
 ## 🖼️ Slides
@@ -8,11 +8,11 @@ _Generated 2026-08-10 · 8 slides · post all slides as one TikTok photo (swipe)
 1. `slide-01.png` — Portable USB Blender — $24.99 (Kitchen)
 2. `slide-02.png` — Projector Humidifier — $13.99 (Auto)
 3. `slide-03.png` — Statement Necklace — $35.99 (Fashion)
-4. `slide-04.png` — Fleece Winter Jacket — $21.99 (Fashion)
-5. `slide-05.png` — LED sensor light bar — $24.99 (Home)
-6. `slide-06.png` — Makeup Brushes Kit Maquiagem — $15.99 (Beauty)
-7. `slide-07.png` — Dog Chew Toys — $18.99 (Pet)
-8. `slide-08.png` — Arm Shaping Sleeves Slimming — $11.99 (Trending Finds)
+4. `slide-04.png` — LED sensor light bar — $24.99 (Home)
+5. `slide-05.png` — Summer Outing Sunscreen Hat — $27.99 (Trending Finds)
+6. `slide-06.png` — Men's Blank Long Sleeve — $15.99 (Trending Finds)
+7. `slide-07.png` — Printed Sofa Cushion Cover — $18.99 (Trending Finds)
+8. `slide-08.png` — LED Luminous Balloon Rose — $21.99 (Home)
 
 
 ## 📝 Captions — pick one, paste as-is

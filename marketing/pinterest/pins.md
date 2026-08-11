@@ -18,34 +18,34 @@ _Upload each pin with its title, description, and link below. Board suggestion: 
 - **Link:** https://findhotstuff.com/?p=CJLX1237838&ref=pin
 
 ## pin-4.png
-- **Title:** Fleece Winter Jacket — Trending Now
-- **Description:** Cozy, practical, and right on time for the season. Only $21.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJZP1334369&ref=pin
-
-## pin-5.png
 - **Title:** LED sensor light bar — Trending Now
 - **Description:** Instant cozy — lighting that transforms a room. Only $24.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #home #trendingproducts #onlinefinds
 - **Link:** https://findhotstuff.com/?p=CJJZLELE00235&ref=pin
 
+## pin-5.png
+- **Title:** Summer Outing Sunscreen Hat — Trending Now
+- **Description:** One of this week's most-loved trending finds. Only $27.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #trendingfinds #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJNSFSMZ00337&ref=pin
+
 ## pin-6.png
-- **Title:** Makeup Brushes Kit — Trending Now
-- **Description:** A small beauty win that becomes a daily go-to. Only $15.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #beauty #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJBJHZHZ00001&ref=pin
+- **Title:** Men's Blank Long Sleeve — Trending Now
+- **Description:** Simple support that fits under whatever you're wearing. Only $15.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #trendingfinds #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJNSTXDS00413&ref=pin
 
 ## pin-7.png
-- **Title:** Dog Chew Toys — Trending Now
-- **Description:** Pet-approved, parent-approved. Only $18.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #pet #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJWJWJMR00974&ref=pin
+- **Title:** LED Luminous Balloon Rose — Trending Now
+- **Description:** Set the mood with a warm, ambient glow. Only $21.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #home #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJJJJTJT35232&ref=pin
 
 ## pin-8.png
-- **Title:** Arm Shaping Sleeves Slimming — Trending Now
-- **Description:** An easy, comfy layer under any outfit. Only $11.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #trendingfinds #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJNSSYCS00008&ref=pin
+- **Title:** Nylon backpack — Trending Now
+- **Description:** Simple, roomy, and easy to style. Only $35.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #bags #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJBHNSNS09408&ref=pin
 
 ## pin-9.png
-- **Title:** Harajuku Canvas Bags Students — Trending Now
-- **Description:** Fits the essentials and still looks put-together. Only $27.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #bags #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJNS1024208&ref=pin
+- **Title:** Fleece Winter Jacket — Trending Now
+- **Description:** Cute meets useful for babies and toddlers. Only $24.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJWJXDBB00095&ref=pin
 
 ## pin-10.png
 - **Title:** HotsTuff Flame Tee — Official HotsTuff Merch

@@ -73,6 +73,7 @@ REF_CHANNELS = [
     ("tt-ecs", "TikTok agent QR"),
     ("print", "Print QR (flyers/cards)"),
     ("sample", "Sample-pack QR"),
+    ("merch", "Merch QR (the sweater)"),
 ]
 
 # Contact-tap events fired by the automation pages (sms:/tel:/mailto: links).

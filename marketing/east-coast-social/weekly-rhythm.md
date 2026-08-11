@@ -61,6 +61,20 @@ more than the rest of the week combined.
 - Or **one walk-in** with the printed sample pack if a lead has earned it
   (owner known to be in, samples already made).
 
+**Making a sample pack** (~5 min per prospect, do these Sunday for the week):
+
+```
+cd marketing/east-coast-social/engine
+python sample_week.py --new "Their Name" --town "Shediac, NB" --category bakery
+# open samples/<slug>/profile.json, fill items/hours/facts from their own page
+python sample_week.py samples/<slug>/profile.json
+```
+
+Out comes seven days of posts in their colours, `captions.md`, and
+`contact-sheet.png` — the one page to print and put in front of an owner.
+Filling in the real details is the whole point: a pack on defaults renders,
+but it pitches like a stranger, and the script says so when you skip them.
+
 ---
 
 ## Sunday — ten minutes of housekeeping

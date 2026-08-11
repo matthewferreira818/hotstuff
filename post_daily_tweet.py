@@ -27,11 +27,18 @@ HERE = Path(__file__).parent
 PRODUCTS_FILE = HERE / "products.json"
 LINK = "findhotstuff.com"
 # ?ref= tags let GoatCounter attribute visits to each surface (tweet link
-# clicks vs QR-card scans) so we can see which channels actually pull
+# clicks vs QR-card scans) so we can see which channels actually pull.
+# ?p= deep-links to the product the post is about — the spotlight advertises
+# one item, so landing on the 120-card grid made people hunt for it.
 TAGGED_LINK = f"{LINK}/?ref=x"
 MAX_TWEET = 280
 
-CREDS = ["X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_TOKEN_SECRET"]
+
+def product_link(product_id, ref="x"):
+    return f"{LINK}/?p={product_id}&ref={ref}"
+
+
+CREDS =["X_API_KEY", "X_API_SECRET", "X_ACCESS_TOKEN", "X_ACCESS_TOKEN_SECRET"]
 
 
 def current_slot():
@@ -60,6 +67,9 @@ def _bits(p):
 
     return {
         "name": ad_name(p.get("name", ""), p.get("category", "")),
+        # deep link — a single-product post should land on that product, not
+        # on the 120-card grid with the item left to find
+        "link": product_link(p["id"]),
         "hook": pick(flavor(HOOKS, p.get("category", "*")), p["id"] + f"daily{current_slot()}"),
         "tags": flavor(TAGS, p.get("category", "*")),
         "emoji": p.get("emoji", "\U0001F525"),
@@ -72,7 +82,7 @@ def fmt_spotlight(p, alt=None):
     b = _bits(p)
     return (f"{b['hook']} {b['emoji']}\n"
             f"{b['name']} — just {b['price']} at HotsTuff \U0001F525\n"
-            f"Grab it before it rotates out \U0001F440 {TAGGED_LINK}\n"
+            f"Grab it before it rotates out \U0001F440 {b['link']}\n"
             f"{b['tags']}")
 
 
@@ -90,7 +100,7 @@ def fmt_price_flex(p, alt=None):
     b = _bits(p)
     return (f"{b['name']} for {b['price']}. {b['emoji']}\n\n"
             f"That's it. That's the tweet.\n"
-            f"{TAGGED_LINK}\n{b['tags']}")
+            f"{b['link']}\n{b['tags']}")
 
 
 def fmt_why(p, alt=None):
@@ -100,7 +110,7 @@ def fmt_why(p, alt=None):
             f"→ {line}\n"
             f"→ {b['price']}, free shipping\n"
             f"→ rotates out when the trend cools\n\n"
-            f"{b['name']} {b['emoji']} {TAGGED_LINK}")
+            f"{b['name']} {b['emoji']} {b['link']}")
 
 
 def fmt_automation(p, alt=None):
@@ -108,13 +118,13 @@ def fmt_automation(p, alt=None):
     lines = [
         (f"Nobody wrote this tweet.\n\n"
          f"The store picked {b['name']} ({b['price']}), built the card, and posted it — "
-         f"while I was at work. \U0001F916\n{TAGGED_LINK}"),
+         f"while I was at work. \U0001F916\n{b['link']}"),
         (f"This store restocks itself every 3 days, posts 3x a day, and has never "
          f"asked for a day off. \U0001F916\n\n"
-         f"Today it picked: {b['name']} — {b['price']}\n{TAGGED_LINK}"),
+         f"Today it picked: {b['name']} — {b['price']}\n{b['link']}"),
         (f"Running a shop with zero employees. \U0001F916\n\n"
          f"Today's pick, chosen and posted automatically: {b['name']} at {b['price']}.\n"
-         f"{TAGGED_LINK}"),
+         f"{b['link']}"),
     ]
     return lines[date.today().toordinal() % len(lines)]
 
@@ -124,7 +134,7 @@ def fmt_countdown(p, alt=None):
     return (f"⏳ Rotating out soon\n\n"
             f"{b['name']} — {b['price']} {b['emoji']}\n"
             f"When the catalog refreshes, it's gone until it trends again.\n"
-            f"{TAGGED_LINK}\n{b['tags']}")
+            f"{b['link']}\n{b['tags']}")
 
 
 FORMATS = [
@@ -208,10 +218,11 @@ def main():
     # reply with the link + QR card so the shop is one scan away
     qr_id = None
     try:
-        qr_id = upload_media(session, build_qr_card())
+        qr_id = upload_media(session, build_qr_card(
+            ref="x-qr", path=f"?p={product['id']}&ref=x-qr"))
     except Exception as exc:  # noqa: BLE001
         print(f"QR card skipped ({exc}) - replying with link only")
-    reply = post(session, f"Tap or scan to shop \U0001F447\nhttps://{TAGGED_LINK}",
+    reply = post(session, f"Tap or scan to shop \U0001F447\nhttps://{product_link(product['id'], 'x-qr')}",
                  media_id=qr_id, reply_to=tweet_id)
     if reply.status_code in (200, 201):
         print("QR reply posted:", reply.json().get("data", {}).get("id"))

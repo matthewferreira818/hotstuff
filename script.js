@@ -32,6 +32,45 @@ async function loadProducts() {
   if (countSuffix) countSuffix.hidden = false;
   buildCategoryBar();
   renderGrid();
+  focusLinkedProduct();
+}
+
+/* --- Deep link: /?p=<product id> ---------------------------------------
+   Every post advertises ONE product but the link used to land on the full
+   120-card grid, leaving the visitor to hunt for the thing that interested
+   them. When ?p= names a product that's still in the catalog, scroll to its
+   card and highlight it. If it has rotated out, say so plainly instead of
+   dropping the visitor into the grid with no explanation. */
+function focusLinkedProduct() {
+  const wanted = new URLSearchParams(window.location.search).get("p");
+  if (!wanted) return;
+
+  const product = allProducts.find((p) => p.id === wanted);
+  const grid = document.getElementById("product-grid");
+  if (!product) {
+    const note = document.createElement("div");
+    note.className = "order-banner order-banner-canceled";
+    note.textContent = T("linkedGone",
+      "That item has rotated out of the catalog — here's what's trending right now.");
+    grid.parentElement.insertBefore(note, grid);
+    return;
+  }
+
+  // the linked card must be visible whatever the default filters are
+  activeCategory = "All";
+  searchQuery = "";
+  const search = document.getElementById("product-search");
+  if (search) search.value = "";
+  document.querySelectorAll(".category-chip").forEach((c) =>
+    c.classList.toggle("is-active", c.textContent === "All"));
+  renderGrid();
+
+  const card = grid.querySelector(`.card[data-product-id="${CSS.escape(wanted)}"]`);
+  if (!card) return;
+
+  card.classList.add("card-linked");
+  card.style.animationDelay = "0s";   // no stagger on the card they came for
+  requestAnimationFrame(() => card.scrollIntoView({ behavior: "smooth", block: "center" }));
 }
 
 function renderSkeletons(grid, n) {
@@ -93,7 +132,7 @@ function renderGrid() {
   const q = searchQuery.trim().toLowerCase();
   const visible = allProducts
     .filter((p) => activeCategory === "All" || (p.category || "Other") === activeCategory)
-    .filter((p) => !q || `${p.name || ""} ${p.description || ""} ${p.category || ""}`.toLowerCase().includes(q))
+    .filter((p) => !q || `${p.name || ""} ${p.fullName || ""} ${p.description || ""} ${p.category || ""}`.toLowerCase().includes(q))
     .sort((a, b) => {
       if (sortMode === "price-asc") return (Number(a.price) || 0) - (Number(b.price) || 0);
       if (sortMode === "price-desc") return (Number(b.price) || 0) - (Number(a.price) || 0);
@@ -156,6 +195,7 @@ function buildCard(p) {
 
   const card = document.createElement("article");
   card.className = "card";
+  card.dataset.productId = p.id || "";   // lets /?p=<id> find its card
   card.style.setProperty("--cat-color", categoryColor(p.category || "Other"));
 
   const thumb = document.createElement("div");
@@ -203,7 +243,8 @@ function buildCard(p) {
   const name = document.createElement("h3");
   name.className = "card-name";
   name.textContent = p.name || T("untitled", "Untitled product");
-  name.title = p.name || ""; // full name on hover when the card clamps it
+  // hover shows the supplier's full title; the card itself stays punchy
+  name.title = p.fullName || p.name || "";
 
   const desc = document.createElement("p");
   desc.className = "card-desc";

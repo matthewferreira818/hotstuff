@@ -86,6 +86,11 @@ but it pitches like a stranger, and the script says so when you skip them.
 3. **Glance at the traffic report's channel line** — once `ref-` events start
    landing, this tells you which channel to feed.
 
+_Traffic data note: Matthew's laptop browser excluded from GoatCounter as of
+Aug 11, 2026 (#toggle-goatcounter). Phone NOT yet excluded. Numbers before
+Aug 11 include his own visits — treat them as inflated; the clean baseline
+starts Aug 12._
+
 ---
 
 ## Rules that keep this honest

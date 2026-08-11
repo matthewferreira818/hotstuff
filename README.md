@@ -60,11 +60,15 @@ so the interval around a month boundary is a little shorter than 3 days.)
 
 The site shows **120 products** each cycle (`DISPLAY_COUNT`), selected from a
 pool of the top **800** trending items (`POOL_SIZE`, fetched in pages of
-`PAGE_SIZE`). `MAX_REPEATS` is **4**: the four items customers interacted
-with most (Buy-now clicks, tracked as GoatCounter `buy-<id>` events) carry
-over each cycle; everything else is replaced. Until click data accrues, the
-top-trending carry-overs stand in. Previous items also reappear as backfill
-if the trending pool has fewer than `DISPLAY_COUNT` new products.
+`PAGE_SIZE`). `MAX_REPEATS` is **4**: up to four items carry over each cycle,
+and only ones a customer actually clicked Buy on (tracked as GoatCounter
+`buy-<id>` events); everything else is replaced. **No clicks means no
+carry-over** — a fully fresh catalog. Carrying the top-*trending* items when
+there was no click data instead made the same handful permanent: the blender,
+humidifier and necklace sat on the site unchanged from Aug 4 to Aug 11. A
+carried item also gets only one bonus cycle before it rotates out regardless,
+so nothing becomes furniture. Previous items still reappear as backfill if the
+trending pool has fewer than `DISPLAY_COUNT` new products.
 
 **Rotation memory.** Everything shown in the last `ROTATION_MEMORY` (**4**)
 cycles is held back, so an item can't return for ~12 days. The ids of those

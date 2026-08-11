@@ -65,11 +65,9 @@ def make_front():
     # gold rule between wordmark and tagline
     d.rectangle(((W - 900) // 2, 3210, (W + 900) // 2, 3238), fill=GOLD)
 
+    # no URL on the front — the back's QR carries the link; the front stays clean
     tag_f = _serif(230, False)
     centered(d, "social media that runs itself.", 3340, tag_f, LIGHT, W)
-
-    site_f = _font(150, True)
-    centered(d, "EASTCOASTSOCIAL.CA", 3760, site_f, MIST, W)
 
     art.save(OUT / "ecs-front.png")
     print("front art done")

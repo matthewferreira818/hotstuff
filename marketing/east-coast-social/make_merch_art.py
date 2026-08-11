@@ -74,6 +74,31 @@ def make_front():
     return art
 
 
+def make_front_hoodie():
+    """Wide layout for hoodie chests: the zone between collar and kangaroo
+    pocket is short (Print Geek: 14in x 9.33in), so the stack goes wide.
+    Canvas matches that print area exactly at 300 DPI — upload and fill."""
+    from PIL import Image, ImageDraw
+    HW, HH = 4200, 2799
+    art = Image.new("RGBA", (HW, HH), (0, 0, 0, 0))
+    d = ImageDraw.Draw(art)
+
+    disc = logo_disc(960)
+    art.paste(disc, ((HW - 960) // 2, 60), disc)
+
+    word_f = _font(330, True)
+    centered(d, "EAST COAST SOCIAL", 1180, word_f, GOLD, HW)
+
+    d.rectangle(((HW - 760) // 2, 1700, (HW + 760) // 2, 1724), fill=GOLD)
+
+    tag_f = _serif(195, False)
+    centered(d, "social media that runs itself.", 1810, tag_f, LIGHT, HW)
+
+    art.save(OUT / "ecs-front-hoodie.png")
+    print("hoodie front art done")
+    return art
+
+
 def make_back():
     """Upper-back conversation starter: white QR panel + one line."""
     import segno
@@ -117,9 +142,17 @@ def preview(art, name, scale_to=1400, chest_offset=430):
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     front = make_front()
+    hoodie = make_front_hoodie()
     back = make_back()
     preview(front, "front", chest_offset=260)
     preview(back, "back", chest_offset=180)
+    # hoodie canvas is wide (4200x2799): scale by width, sit mid-chest
+    from PIL import Image
+    panel = Image.new("RGB", (1800, 2000), NAVY)
+    scaled = hoodie.resize((1400, int(1400 * 2799 / 4200)), Image.LANCZOS)
+    panel.paste(scaled, (200, 480), scaled)
+    panel.save(OUT / "preview-front-hoodie.png")
+    print("preview-front-hoodie done")
     print(f"merch art -> {OUT}")
 
 

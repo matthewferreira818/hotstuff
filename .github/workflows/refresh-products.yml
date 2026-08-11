@@ -68,7 +68,7 @@ jobs:
         id: commit
         if: steps.gate.outputs.run == 'true'
         run: |
-          git add products.json marketing/latest-posts.md marketing/tiktok marketing/pinterest
+          git add products.json rotation-history.json marketing/latest-posts.md marketing/tiktok marketing/pinterest
           if ! git diff --cached --quiet; then
             git config user.name "wavelist-bot"
             git config user.email "actions@users.noreply.github.com"

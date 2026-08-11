@@ -85,6 +85,8 @@
     title: "HotsTuff — Shop what's trending right now",
     searchPlaceholder: "Search products…",
     noMatches: "No matches — try fewer or different words.",
+    sheetClose: "Close", sheetTrend: "Trend score",
+    sheetListed: "Listed as:",
   };
   const T_FR = {
     buyNow: "Acheter", buy: "Acheter", redirecting: "Redirection…", uploading: "Téléversement…",
@@ -99,6 +101,8 @@
     title: "HotsTuff — Magasinez ce qui est tendance",
     searchPlaceholder: "Chercher un produit…",
     noMatches: "Aucun résultat — essayez d'autres mots.",
+    sheetClose: "Fermer", sheetTrend: "Indice de tendance",
+    sheetListed: "Nom complet :",
   };
 
   const saved = new Map(); // element -> original EN innerHTML

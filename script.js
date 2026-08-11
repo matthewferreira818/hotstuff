@@ -233,6 +233,16 @@ function buildCard(p) {
   badge.textContent = p.badge || "";
   thumb.appendChild(badge);
 
+  // tap the photo -> detail sheet with the full listing name + description
+  thumb.classList.add("thumb-tappable");
+  thumb.setAttribute("role", "button");
+  thumb.tabIndex = 0;
+  thumb.setAttribute("aria-label", p.name || T("untitled", "Untitled product"));
+  thumb.addEventListener("click", () => openProductSheet(p));
+  thumb.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openProductSheet(p); }
+  });
+
   const body = document.createElement("div");
   body.className = "card-body";
 
@@ -273,6 +283,129 @@ function buildCard(p) {
   card.append(thumb, body);
 
   return card;
+}
+
+/* --- Product detail sheet: tap a product photo and it opens large, with the
+   full supplier listing name, the description, and a Buy button. Bottom sheet
+   on phones, centered dialog on desktop. Closes on X, backdrop, Escape, or
+   the phone's back button (via a history entry). --- */
+let sheetEls = null;
+
+function ensureSheet() {
+  if (sheetEls) return sheetEls;
+
+  const backdrop = document.createElement("div");
+  backdrop.className = "sheet-backdrop";
+  backdrop.hidden = true;
+
+  const sheet = document.createElement("article");
+  sheet.className = "product-sheet";
+  sheet.setAttribute("role", "dialog");
+  sheet.setAttribute("aria-modal", "true");
+
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "sheet-close";
+  closeBtn.type = "button";
+  closeBtn.setAttribute("aria-label", T("sheetClose", "Close"));
+  closeBtn.innerHTML = "&times;";
+
+  const media = document.createElement("div");
+  media.className = "sheet-media";
+  const body = document.createElement("div");
+  body.className = "sheet-body";
+
+  sheet.append(closeBtn, media, body);
+  backdrop.appendChild(sheet);
+  document.body.appendChild(backdrop);
+
+  closeBtn.addEventListener("click", () => closeProductSheet(true));
+  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) closeProductSheet(true); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !backdrop.hidden) closeProductSheet(true);
+  });
+  window.addEventListener("popstate", () => { if (!backdrop.hidden) closeProductSheet(false); });
+
+  sheetEls = { backdrop, sheet, media, body, closeBtn };
+  return sheetEls;
+}
+
+function openProductSheet(p) {
+  const els = ensureSheet();
+  els.sheet.style.setProperty("--cat-color", categoryColor(p.category || "Other"));
+  els.media.innerHTML = "";
+  els.body.innerHTML = "";
+  els.media.style.background = typeof p.gradient === "string" ? p.gradient : "";
+
+  const showEmoji = () => {
+    const span = document.createElement("span");
+    span.textContent = p.emoji || "";
+    span.setAttribute("aria-hidden", "true");
+    els.media.prepend(span);
+  };
+  if (typeof p.image === "string" && p.image) {
+    const img = document.createElement("img");
+    img.src = p.image;
+    img.alt = p.name || "";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => { img.remove(); showEmoji(); }, { once: true });
+    els.media.appendChild(img);
+  } else {
+    showEmoji();
+  }
+
+  const category = document.createElement("div");
+  category.className = "sheet-category";
+  category.textContent = p.category || "";
+
+  const name = document.createElement("h3");
+  name.className = "sheet-name";
+  name.textContent = p.name || T("untitled", "Untitled product");
+
+  const desc = document.createElement("p");
+  desc.className = "sheet-desc";
+  desc.textContent = p.description || "";
+
+  const meta = document.createElement("div");
+  meta.className = "sheet-meta";
+  const price = document.createElement("span");
+  price.className = "sheet-price";
+  price.textContent = `$${(Number(p.price) || 0).toFixed(2)}`;
+  const trend = document.createElement("span");
+  trend.className = "sheet-trend";
+  trend.textContent = `${T("sheetTrend", "Trend score")} ${Number.isFinite(Number(p.trendScore)) ? p.trendScore : "—"}`;
+  meta.append(price, trend);
+
+  const buyButton = document.createElement("button");
+  buyButton.className = "btn btn-primary card-buy";
+  buyButton.type = "button";
+  buyButton.textContent = T("buyNow", "Buy now");
+  buyButton.addEventListener("click", () => startCheckout(p.id, buyButton));
+
+  els.body.append(category, name, desc);
+  // the supplier's full listing title often carries extra spec words the short
+  // name drops — show it when it genuinely adds something
+  if (p.fullName && p.fullName !== p.name) {
+    const listed = document.createElement("p");
+    listed.className = "sheet-fullname";
+    listed.textContent = `${T("sheetListed", "Listed as:")} ${p.fullName}`;
+    els.body.appendChild(listed);
+  }
+  els.body.append(meta, buyButton);
+
+  els.backdrop.hidden = false;
+  requestAnimationFrame(() => els.backdrop.classList.add("open"));
+  document.body.style.overflow = "hidden";
+  try { history.pushState({ sheet: p.id || 1 }, ""); } catch (e) { /* sandboxed iframes */ }
+}
+
+function closeProductSheet(viaUi) {
+  const els = sheetEls;
+  if (!els || els.backdrop.hidden) return;
+  els.backdrop.classList.remove("open");
+  els.backdrop.hidden = true;
+  document.body.style.overflow = "";
+  // pop the history entry we pushed on open, so Back doesn't need two taps
+  if (viaUi && history.state && history.state.sheet) history.back();
 }
 
 async function startCheckout(productId, button, designId) {

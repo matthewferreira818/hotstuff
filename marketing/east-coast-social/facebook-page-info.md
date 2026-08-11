@@ -18,13 +18,13 @@ this folder. Regenerate with `python make_fb_branding.py`.
   > day, every day, hands-free. Now I set up the same engine for shops around
   > Sackville, Memramcook, and the greater Moncton area.
   >
-  > Starter — $299 setup + $49/mo: one platform, one branded post daily.
-  > Plus — $499 setup + $99/mo: two platforms, up to 3 posts/day, QR image cards.
+  > Starter — free setup, $79/mo: one platform, one branded post daily.
+  > Plus — free setup, $129/mo: two platforms, up to 3 posts/day, QR image cards.
   > No contracts. You approve sample posts before anything goes live.
   >
-  > Book a free 20-minute chat: matthew.ferreira818@gmail.com
-- **Website:** https://findhotstuff.com/automation/
-- **Email:** matthew.ferreira818@gmail.com
+  > Book a free 20-minute chat: hello@eastcoastsocial.ca
+- **Website:** https://findhotstuff.com/automation/?ref=fb
+- **Email:** hello@eastcoastsocial.ca
 - **Phone:** (506) 889-9737 — optional, skip if you don't want calls
 - **Service area:** Sackville · Memramcook · Dorchester · Shediac · Dieppe · Moncton, NB
 - **Price range:** $$

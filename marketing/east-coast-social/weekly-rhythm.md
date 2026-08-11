@@ -109,9 +109,11 @@ but it pitches like a stranger, and the script says so when you skip them.
 
 ## Standing items that aren't weekly
 
-- **Google Business Profile video** — one 2-minute recording puts ECS on Google
-  Maps, where "social media help near me" gets searched. Highest-value
-  unfinished task on the board.
+- **Google Business Profile** — puts ECS on Google Maps, where "social media
+  help near me" gets searched. Highest-value unfinished task on the board.
+  Every field is pre-written in [`google-business-profile.md`](google-business-profile.md) —
+  paste it through, then be ready for the verification step (likely a live
+  video call: have the business cards and a printed flyer physically in hand).
 - **Business cards** — ordered Aug 8, 2026: 250 Standard Matte 2-sided, $31.99,
   Staples Moncton (233 Main St) pickup. Artwork lives in `print/`
   (`card-front-bleed.png` / `card-back-bleed.png`, 1125×675 @ 300 DPI with

@@ -21,13 +21,26 @@ from pathlib import Path
 HERE = Path(__file__).parent
 ENV_FILE = HERE / ".env"
 PRODUCTS_FILE = HERE / "products.json"
+HISTORY_FILE = HERE / "rotation-history.json"
 
 AUTH_URL = "https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken"
 PRODUCT_LIST_URL = "https://developers.cjdropshipping.com/api2.0/v1/product/listV2"
 
 DISPLAY_COUNT = 120  # products shown on the site each cycle
-POOL_SIZE = 300      # trending pool to rotate from, fetched in pages
+POOL_SIZE = 800      # trending pool to rotate from, fetched in pages. CJ
+                     # serves ~1080 trending products (run measure_pool.py to
+                     # re-check). Selection always takes the hottest eligible
+                     # items first, so extra depth costs nothing in product
+                     # quality — it is headroom that keeps the rotation from
+                     # running out of fresh items and collapsing to a shallow
+                     # cycle. 300 was the cap that forced the old A/B flip.
 PAGE_SIZE = 100      # CJ list-endpoint page max
+ROTATION_MEMORY = 4  # cycles an item must sit out before it may return, so
+                     # the catalog can't alternate between the same sets
+                     # (~12 days at the 3-day cadence). Kept below
+                     # POOL_SIZE // DISPLAY_COUNT so the pool can always fill
+                     # a catalog with this much held back; select_rotating
+                     # forgives the oldest cycles if it ever can't.
 MAX_REPEATS = 4      # keep the 4 most-interacted-with items each cycle; the
                      # other 116 fully rotate. "Interacted" = Buy-now clicks
                      # tracked as GoatCounter `buy-<id>` events (script.js);
@@ -193,6 +206,33 @@ def load_previous_ids() -> set[str]:
         return set()
 
 
+def load_history() -> list[list[str]]:
+    """Product ids of recent cycles, most recent first.
+
+    Seeded from the live catalog when the file doesn't exist yet, so the
+    first run after this lands still knows what's currently on the site.
+    """
+    if HISTORY_FILE.exists():
+        try:
+            data = json.loads(HISTORY_FILE.read_text())
+            cycles = data.get("cycles", []) if isinstance(data, dict) else data
+            return [[str(i) for i in c] for c in cycles if isinstance(c, list)]
+        except (json.JSONDecodeError, OSError):
+            pass  # unreadable history is not worth failing a refresh over
+    prev = sorted(i for i in load_previous_ids() if i)
+    return [prev] if prev else []
+
+
+def save_history(history: list[list[str]], current_ids: list[str]) -> None:
+    """Prepend this cycle and keep only what the rotation still consults."""
+    cycles = [current_ids] + history
+    HISTORY_FILE.write_text(json.dumps(
+        {"note": ("Product ids of recent cycles, most recent first. "
+                  "refresh_products.py holds these back so the catalog "
+                  "cannot ping-pong between the same few sets."),
+         "cycles": cycles[:ROTATION_MEMORY]}, indent=2) + "\n")
+
+
 def buy_clicks(pid: str) -> int:
     """Buy-now clicks for a product, from GoatCounter's public counter
     (script.js logs a `buy-<id>` event per click). 0 on any failure — the
@@ -219,20 +259,42 @@ def rank_by_interaction(repeats: list[dict]) -> list[dict]:
     return sorted(repeats, key=lambda p: -clicks.get(product_id(p), 0))
 
 
-def select_rotating(pool: list[dict], prev_ids: set[str]) -> list[dict]:
-    """Choose DISPLAY_COUNT products from the trending pool so that at most
-    MAX_REPEATS carry over from last cycle (0 = every item is new whenever the
-    pool allows). Pool is already sorted by trend, so 'first N' keeps the
-    hottest items; previous items are used only as backfill when the pool
-    doesn't have enough new products."""
-    fresh = [p for p in pool if product_id(p) not in prev_ids]
-    repeats = rank_by_interaction([p for p in pool if product_id(p) in prev_ids])
+def select_rotating(pool: list[dict], history: list[list[str]]) -> list[dict]:
+    """Choose DISPLAY_COUNT products from the trending pool, holding back
+    everything shown in the last ROTATION_MEMORY cycles so an item cannot
+    return until it has genuinely sat out.
 
+    Excluding only the previous cycle is what made the catalog alternate
+    between two fixed sets: the pool is sorted by trend, so as soon as last
+    cycle's items became eligible again the selection snapped straight back
+    to the top of that order (A -> B -> A -> B).
+
+    If the pool is too small to fill a catalog with that much held back, the
+    oldest remembered cycle is forgiven one at a time — the rotation gets
+    shallower rather than failing. At most MAX_REPEATS items carry over from
+    the immediately previous cycle, chosen by real customer interest.
+    """
+    prev_ids = set(history[0]) if history else set()
+    depth = min(len(history), ROTATION_MEMORY)
+    while True:
+        held = {pid for cycle in history[:depth] for pid in cycle}
+        fresh = [p for p in pool if product_id(p) not in held]
+        if len(fresh) >= DISPLAY_COUNT - MAX_REPEATS or depth == 0:
+            break
+        depth -= 1
+
+    repeats = rank_by_interaction([p for p in pool if product_id(p) in prev_ids])
     kept_repeats = repeats[:MAX_REPEATS]           # the most-interacted-with carry-overs
+    kept_ids = {product_id(p) for p in kept_repeats}
+    fresh = [p for p in fresh if product_id(p) not in kept_ids]
+
     chosen = fresh[: DISPLAY_COUNT - len(kept_repeats)] + kept_repeats
+    print(f"Rotation: held back {len(held)} ids from the last {depth} cycle(s); "
+          f"{len(fresh)} eligible.")
 
     if len(chosen) < DISPLAY_COUNT:                # pool smaller than expected — backfill
-        extra = [p for p in repeats[MAX_REPEATS:] if p not in chosen]
+        chosen_ids = {product_id(p) for p in chosen}
+        extra = [p for p in pool if product_id(p) not in chosen_ids]
         chosen += extra[: DISPLAY_COUNT - len(chosen)]
 
     return chosen[:DISPLAY_COUNT]
@@ -656,8 +718,9 @@ def main():
     if not pool:
         raise SystemExit("CJ returned no trending products — leaving products.json untouched.")
 
-    prev_ids = load_previous_ids()
-    selected = select_rotating(pool, prev_ids)
+    history = load_history()
+    prev_ids = set(history[0]) if history else set()
+    selected = select_rotating(pool, history)
 
     changed = sum(1 for p in selected if product_id(p) not in prev_ids)
     print(f"Selected {len(selected)} products ({changed} new vs. last cycle).")
@@ -665,6 +728,10 @@ def main():
     site_products = to_site_products(selected)
     PRODUCTS_FILE.write_text(json.dumps(site_products, indent=2) + "\n")
     print(f"Wrote {len(site_products)} products to {PRODUCTS_FILE}")
+
+    save_history(history, [p["id"] for p in site_products])
+    print(f"Rotation history now spans {min(len(history) + 1, ROTATION_MEMORY)} "
+          f"cycle(s) -> {HISTORY_FILE.name}")
 
 
 if __name__ == "__main__":

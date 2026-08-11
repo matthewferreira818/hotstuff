@@ -59,12 +59,35 @@ is on. (The cron `0 9 */3 * *` fires on days 1, 4, 7 … 28, 31 of each month,
 so the interval around a month boundary is a little shorter than 3 days.)
 
 The site shows **120 products** each cycle (`DISPLAY_COUNT`), selected from a
-pool of the top **300** trending items (`POOL_SIZE`, fetched in pages of
+pool of the top **800** trending items (`POOL_SIZE`, fetched in pages of
 `PAGE_SIZE`). `MAX_REPEATS` is **4**: the four items customers interacted
 with most (Buy-now clicks, tracked as GoatCounter `buy-<id>` events) carry
 over each cycle; everything else is replaced. Until click data accrues, the
 top-trending carry-overs stand in. Previous items also reappear as backfill
 if the trending pool has fewer than `DISPLAY_COUNT` new products.
+
+**Rotation memory.** Everything shown in the last `ROTATION_MEMORY` (**4**)
+cycles is held back, so an item can't return for ~12 days. The ids of those
+cycles live in [`rotation-history.json`](rotation-history.json), committed
+with each refresh. This matters because excluding only the *previous* cycle
+is not enough: the pool is sorted by trend, so the moment last cycle's items
+became eligible again the selection snapped back to the top of that order and
+the catalog alternated between two fixed sets (A→B→A→B, a 6-day loop that ran
+Aug 4–10). If the pool is ever too small to fill a catalog with that much
+held back, the oldest remembered cycle is forgiven one at a time — the
+rotation gets shallower instead of failing.
+
+`POOL_SIZE` must stay comfortably above `ROTATION_MEMORY × DISPLAY_COUNT`
+(480) or the rotation collapses to a shallow cycle. To check what CJ can
+actually serve before changing either number:
+
+```
+CJ_API_KEY=... python measure_pool.py
+```
+
+It pages until CJ runs out and reports the unique-product count plus how many
+distinct catalogs that supports (last measured: **1082 products → 9
+catalogs**). Read-only; it changes nothing.
 
 - **Trigger it manually:** GitHub repo → Actions tab → "Refresh trending
   products" → Run workflow. Or: `gh workflow run refresh-products.yml`.

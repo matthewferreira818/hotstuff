@@ -119,8 +119,11 @@ but it pitches like a stranger, and the script says so when you skip them.
   (`card-front-bleed.png` / `card-back-bleed.png`, 1125×675 @ 300 DPI with
   0.125" bleed). Back QR → eastcoastsocial.ca. Once they land, every walk-in
   and every call that ends in "send me something" gets one.
-- **Zoho email** — 20 uninterrupted minutes so replies come *from*
-  hello@eastcoastsocial.ca, not a Yahoo address.
+- **Business email** — 20 uninterrupted minutes so replies come *from*
+  hello@eastcoastsocial.ca. Full steps in [`email-setup.md`](email-setup.md).
+  Note: the address already *receives* (Porkbun forwarding); only sending is
+  missing. Zoho's free plan covers it at $0, with the catch that there's no
+  IMAP, so it won't land in your usual phone mail app.
 - **SNB registration** (~$126) when the insurance money lands — unlocks the
   business bank account and the October ACOA grant path.
 - **Grant follow-up** — reminder already set for late September (Cathy at

@@ -157,17 +157,19 @@ def build_ad_card(product):
     return buf.getvalue()
 
 
-def build_qr_card(ref="x-qr"):
+def build_qr_card(ref="x-qr", path=None):
     """Compose the scan-to-shop QR reply card. Returns PNG bytes.
 
     ref lands in the QR's URL as ?ref=<ref> so GoatCounter attributes the
-    visit to the surface the code was scanned from.
+    visit to the surface the code was scanned from. Pass path (e.g.
+    "?p=<id>&ref=x-qr") to send the scan straight to one product instead of
+    the full grid — callers advertising a single item should.
     """
     import segno
     from PIL import Image, ImageDraw
 
     qr_buf = io.BytesIO()
-    segno.make(f"{SITE_URL}?ref={ref}", error="m").save(
+    segno.make(f"{SITE_URL}{path or f'?ref={ref}'}", error="m").save(
         qr_buf, kind="png", scale=24, border=2, dark="#111111", light="#ffffff")
     qr = Image.open(qr_buf).convert("RGB")
     if qr.width > 660:

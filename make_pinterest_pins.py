@@ -153,7 +153,7 @@ def main():
                 f"- **Description:** {p.get('description', '')} Only ${p['price']} at "
                 f"HotsTuff — a fresh drop of trending finds every 3 days, free shipping. "
                 f"#{p.get('category', 'trending').replace(' ', '').lower()} #trendingproducts #onlinefinds\n"
-                f"- **Link:** https://findhotstuff.com/?ref=pin\n")
+                f"- **Link:** https://findhotstuff.com/?p={p['id']}&ref=pin\n")
         print(f"pin-{i}.png — {name} (${p['price']})")
     (OUT / "pins.md").write_text(
         "# Pinterest upload pack\n\n_Upload each pin with its title, description, "

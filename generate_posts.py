@@ -48,6 +48,18 @@ AD_NAMES = [
 ]
 
 
+# Words that only ever trail awkwardly once a title is cut short.
+CONNECTORS = {"for", "with", "and", "of", "to", "in", "on", "the", "a", "an",
+              "by", "from", "or", "&"}
+
+# Suppliers pad titles by restating the product in other languages for search
+# reach ("Makeup Brushes Kit Maquiagem Maquillaje"). Dropped so the storefront
+# reads as English.
+FOREIGN_ECHOES = {"maquiagem", "maquillaje", "maquillage", "hombre", "mujer",
+                  "para", "femme", "homme", "bebe", "nino", "nina", "kinder",
+                  "herren", "damen", "mujeres", "hombres", "enfant"}
+
+
 def ad_name(raw: str, category: str) -> str:
     low = (raw or "").lower()
     # necklaces get a descriptor-aware name
@@ -63,7 +75,11 @@ def ad_name(raw: str, category: str) -> str:
     # fallback: first 4 meaningful words, no trailing ellipsis / spec noise
     words = re.sub(r"[…]", "", raw or "").split()
     words = [w for w in words if not re.fullmatch(r"\d+(ml|g|cm|mm|pcs)?", w.lower())]
+    words = [w for w in words if w.lower().strip(",") not in FOREIGN_ECHOES]
     short = " ".join(words[:4]).strip()
+    # cutting at four words can strand a connector ("Dog Chew Toys For")
+    while short and short.rsplit(" ", 1)[-1].lower() in CONNECTORS:
+        short = short.rsplit(" ", 1)[0].rstrip(" ,")
     return short or (raw or "Trending Find")
 
 

@@ -680,15 +680,23 @@ def describe(name: str, category: str, sku: str) -> str:
 
 
 def to_site_products(cj_products: list[dict]) -> list[dict]:
+    from generate_posts import ad_name  # same short names the ad copy uses
+
     listed_nums = [int(p.get("listedNum", 0)) for p in cj_products]
     site_products = []
     for i, p in enumerate(cj_products):
         category, emoji = classify_name(p.get("nameEn", ""))
         cost_price = parse_price(p.get("nowPrice") or p.get("sellPrice"))
         sku = product_id(p) or f"cj{i}"
+        full_name = clean_name(p.get("nameEn", "Untitled product"))
         site_products.append({
             "id": sku,
-            "name": clean_name(p.get("nameEn", "Untitled product")),
+            # The punchy name the ads already use, so a shopper sees the same
+            # wording in the post, on the card, and on the Stripe page. The
+            # supplier's keyword-soup title is kept as fullName for search and
+            # the card's hover text, so no detail is lost.
+            "name": ad_name(full_name, category),
+            "fullName": full_name,
             "category": category,
             "price": assign_price(sku, cost_price),
             "trendScore": normalize_trend_score(int(p.get("listedNum", 0)), listed_nums),

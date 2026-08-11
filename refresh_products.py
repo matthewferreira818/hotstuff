@@ -41,12 +41,14 @@ ROTATION_MEMORY = 4  # cycles an item must sit out before it may return, so
                      # POOL_SIZE // DISPLAY_COUNT so the pool can always fill
                      # a catalog with this much held back; select_rotating
                      # forgives the oldest cycles if it ever can't.
-MAX_REPEATS = 4      # keep the 4 most-interacted-with items each cycle; the
-                     # other 116 fully rotate. "Interacted" = Buy-now clicks
-                     # tracked as GoatCounter `buy-<id>` events (script.js);
-                     # until click data accrues, the top-trending carry-overs
-                     # stand in. (Previous items also backfill if the trending
-                     # pool has fewer than DISPLAY_COUNT new products.)
+MAX_REPEATS = 4      # at most 4 carry-overs a cycle, and only items a customer
+                     # actually clicked Buy on (GoatCounter `buy-<id>` events
+                     # from script.js). No clicks means no carry-over and a
+                     # fully fresh catalog — carrying the top-trending items
+                     # instead made the same handful permanent. A carried item
+                     # gets one bonus cycle, then rotates out regardless.
+                     # (Previous items still backfill if the trending pool has
+                     # fewer than DISPLAY_COUNT new products.)
 MARKUP_MULTIPLIER = 1.6  # legacy wholesale-only floor (cost * this). Kept as an
                           # extra always-on safety margin on top of the real
                           # profit guarantee below; for cost > ~$16.80 this
@@ -247,16 +249,23 @@ def buy_clicks(pid: str) -> int:
 
 
 def rank_by_interaction(repeats: list[dict]) -> list[dict]:
-    """Order last cycle's still-trending items by real customer interest:
-    Buy-now clicks first (fetched concurrently), pool trend order as the
-    tiebreak (the sort is stable, so zero-click items keep trend order)."""
+    """Last cycle's items customers ACTUALLY interacted with, best first.
+
+    Only items with at least one Buy-now click qualify. Ranking by clicks but
+    falling back to trend order when nobody has clicked is what froze the top
+    few products onto the site: the highest-trending item is always the
+    highest-trending item, so the same handful was re-kept every cycle
+    forever. Three products sat on the site unchanged from Aug 4 to Aug 11
+    that way. No clicks now means no carry-over, i.e. a fully fresh catalog.
+    """
     if not repeats:
-        return repeats
+        return []
     from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(10) as ex:
         clicks = dict(zip((product_id(p) for p in repeats),
                           ex.map(lambda p: buy_clicks(product_id(p)), repeats)))
-    return sorted(repeats, key=lambda p: -clicks.get(product_id(p), 0))
+    clicked = [p for p in repeats if clicks.get(product_id(p), 0) > 0]
+    return sorted(clicked, key=lambda p: -clicks[product_id(p)])
 
 
 def select_rotating(pool: list[dict], history: list[list[str]]) -> list[dict]:
@@ -284,6 +293,11 @@ def select_rotating(pool: list[dict], history: list[list[str]]) -> list[dict]:
         depth -= 1
 
     repeats = rank_by_interaction([p for p in pool if product_id(p) in prev_ids])
+    # a clicked item earns ONE bonus cycle, not tenure: if it already sat
+    # through the two most recent cycles it rotates out regardless, so no
+    # product can quietly become permanent furniture
+    carried_already = set(history[1]) if len(history) > 1 else set()
+    repeats = [p for p in repeats if product_id(p) not in carried_already]
     kept_repeats = repeats[:MAX_REPEATS]           # the most-interacted-with carry-overs
     kept_ids = {product_id(p) for p in kept_repeats}
     fresh = [p for p in fresh if product_id(p) not in kept_ids]

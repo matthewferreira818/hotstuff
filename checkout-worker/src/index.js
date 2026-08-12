@@ -465,6 +465,10 @@ async function ntfyPush(env, title, tags, priority, body) {
   const topic = (env.NTFY_TOPIC || "").trim();
   if (!topic) return "skipped-no-topic";
 
+  // relayNote makes the relay outcome visible in the returned status, so a
+  // quiet phone diagnoses itself: "no-relay-token+..." = the secret isn't
+  // reaching the code; "relay-http-404+..." = the PAT lacks repo access; etc.
+  let relayNote = "no-relay-token+";
   const ghToken = (env.GH_DISPATCH_TOKEN || "").trim();
   if (ghToken) {
     try {
@@ -486,9 +490,11 @@ async function ntfyPush(env, title, tags, priority, body) {
         }
       );
       if (res.status === 204) return "relayed";
-      console.log("relay dispatch failed:", res.status); // fall through to direct
+      relayNote = `relay-http-${res.status}+`; // fall through to direct
+      console.log("relay dispatch failed:", res.status);
     } catch (err) {
-      console.log("relay dispatch error:", String(err)); // fall through to direct
+      relayNote = "relay-network+"; // fall through to direct
+      console.log("relay dispatch error:", String(err));
     }
   }
 
@@ -501,10 +507,10 @@ async function ntfyPush(env, title, tags, priority, body) {
       await new Promise((r) => setTimeout(r, 3000));
       res = await fetch(`https://ntfy.sh/${topic}`, { method: "POST", body, headers });
     }
-    return res.ok ? "sent" : `failed-http-${res.status}`;
+    return relayNote + (res.ok ? "sent" : `failed-http-${res.status}`);
   } catch (err) {
     console.log("ntfy push failed:", String(err));
-    return "failed-network";
+    return relayNote + "failed-network";
   }
 }
 

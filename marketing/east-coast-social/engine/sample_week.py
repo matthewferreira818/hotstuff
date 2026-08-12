@@ -131,6 +131,89 @@ def fit(d, text, max_w, size, bold=True, floor=20):
     return text, f
 
 
+# ── per-category style kits ──────────────────────────────────────────────
+# The palette says "your colors"; the kit says "your kind of place". Texture,
+# header and footer change per category so two packs side by side read as two
+# different designers, not one template repainted. (Same lesson as the CAVOK
+# week: individuality is what makes an owner say "that's US".)
+
+def _tex_flour(card):
+    """Bakery: soft flour-dust speckle drifting from the top corners."""
+    import random
+    rnd = random.Random(card.p.get("slug", "seed"))
+    for _ in range(140):
+        x = rnd.randint(0, S)
+        y = int(abs(rnd.gauss(0, S * 0.22)))
+        if rnd.random() < 0.5:
+            x = S - x
+        r = rnd.choice((2, 2, 3, 4))
+        card.d.ellipse((x - r, y - r, x + r, y + r), fill=card.dim)
+
+
+def _tex_checker(card):
+    """Restaurant: gingham strips along the top and bottom edges."""
+    sq = 36
+    for row, y0 in ((0, 118), (1, 154)):
+        for i, x in enumerate(range(0, S, sq)):
+            if (i + row) % 2 == 0:
+                card.d.rectangle((x, y0, x + sq, y0 + 36), fill=card.dim)
+
+
+def _tex_bubbles(card):
+    """Brewery/café: sparse rising bubbles up the right side."""
+    import random
+    rnd = random.Random(card.p.get("slug", "seed"))
+    for _ in range(16):
+        x = rnd.randint(int(S * 0.72), S - 30)
+        y = rnd.randint(200, S - 160)
+        r = rnd.choice((6, 9, 12, 16))
+        card.d.ellipse((x - r, y - r, x + r, y + r), outline=card.dim, width=3)
+
+
+def _tex_pinstripe(card):
+    """Barber: thin vertical pinstripes down the left margin."""
+    for x in (28, 40, 52):
+        card.d.line((x, 130, x, S - 130), fill=card.dim, width=3)
+
+
+def _tex_petals(card):
+    """Salon: soft overlapping discs in the top-right corner."""
+    for cx, cy, r in ((S - 60, 90, 90), (S - 150, 40, 60), (S - 30, 190, 55)):
+        card.d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=card.dim, width=4)
+
+
+def _tex_diag(card):
+    """Trades/fitness: bold diagonal strokes cutting the bottom-left corner."""
+    for i in range(4):
+        off = i * 46
+        card.d.line((0, S - 220 + off, 220 - off, S), fill=card.dim, width=10)
+
+
+def _tex_grid(card):
+    """Retail: fine dot grid in the top-left quarter."""
+    for yy in range(150, 440, 46):
+        for xx in range(40, 460, 46):
+            card.d.ellipse((xx - 3, yy - 3, xx + 3, yy + 3), fill=card.dim)
+
+
+STYLES = {
+    "bakery":     {"texture": _tex_flour,     "header": "warm",  "footer": "scallop"},
+    "cafe":       {"texture": _tex_bubbles,   "header": "warm",  "footer": "band"},
+    "restaurant": {"texture": _tex_checker,   "header": "menu",  "footer": "band"},
+    "brewery":    {"texture": _tex_bubbles,   "header": "dot",   "footer": "band"},
+    "barber":     {"texture": _tex_pinstripe, "header": "sharp", "footer": "lines"},
+    "salon":      {"texture": _tex_petals,    "header": "warm",  "footer": "lines"},
+    "fitness":    {"texture": _tex_diag,      "header": "sharp", "footer": "band"},
+    "retail":     {"texture": _tex_grid,      "header": "dot",   "footer": "band"},
+    "trades":     {"texture": _tex_diag,      "header": "sharp", "footer": "band"},
+    "*":          {"texture": None,           "header": "dot",   "footer": "band"},
+}
+
+
+def style_of(profile):
+    return STYLES.get(profile.get("category", "*"), STYLES["*"])
+
+
 class Card:
     """One 1080x1080 post in the prospect's colors.
 
@@ -147,9 +230,13 @@ class Card:
         self.muted = mix(self.bg, self.ink, 0.45)      # small print
         self.img = Image.new("RGB", (S, S), self.bg)
         self.d = ImageDraw.Draw(self.img)
+        self.style = style_of(profile)
+        if self.style["texture"]:
+            self.style["texture"](self)
 
     def header(self, day_label):
-        """Brand band: accent dot + name on the left, day label on the right.
+        """Brand band, in the pack's style. Same height in every variant so
+        the seven devices never have to care which one is active.
 
         The label is measured first so a long business name gets whatever
         width is genuinely left, instead of running underneath it.
@@ -158,20 +245,65 @@ class Card:
         lf = _font(26, bold=True)
         label = day_label.upper()
         label_w = d.textlength(label, font=lf)
-        d.text((S - 64 - label_w, 72), label, font=lf, fill=self.muted)
+        variant = self.style["header"]
 
-        d.ellipse((64, 70, 92, 98), fill=self.accent)
-        name, f = fit(d, self.p["name"].upper(), S - 112 - label_w - 100, 40)
-        d.text((112, 64), name, font=f, fill=self.accent)
+        if variant == "warm":
+            # centered name between short accent rules; day tucked right
+            name, f = fit(d, self.p["name"].upper(), S - 420, 40)
+            nw = d.textlength(name, font=f)
+            x = (S - nw) // 2
+            d.text((x, 64), name, font=f, fill=self.accent)
+            d.line((max(30, x - 90), 88, x - 26, 88), fill=self.accent, width=4)
+            # right rule must stop short of the day label, never run into it
+            rule_end = min(x + nw + 90, S - 84 - label_w)
+            if rule_end > x + nw + 26:
+                d.line((x + nw + 26, 88, rule_end, 88), fill=self.accent, width=4)
+            d.text((S - 64 - label_w, 72), label, font=lf, fill=self.muted)
+        elif variant == "menu":
+            # menu-card look: name left, double rule underneath, boxed day
+            name, f = fit(d, self.p["name"].upper(), S - 128 - label_w - 90, 40)
+            d.text((64, 58), name, font=f, fill=self.accent)
+            d.line((64, 112, S - 64, 112), fill=self.accent, width=3)
+            d.line((64, 120, S - 64, 120), fill=self.dim, width=2)
+            d.rectangle((S - 84 - label_w, 62, S - 48, 100), outline=self.accent, width=2)
+            d.text((S - 66 - label_w, 72), label, font=lf, fill=self.muted)
+        elif variant == "sharp":
+            # heavy accent slab behind the day; name flush left, no dot
+            d.rectangle((S - 96 - label_w, 58, S, 104), fill=self.accent)
+            d.text((S - 64 - label_w, 72), label, font=lf, fill=self.bg)
+            name, f = fit(d, self.p["name"].upper(), S - 128 - label_w - 110, 40)
+            d.text((64, 64), name, font=f, fill=self.accent)
+        else:
+            # classic: accent dot + name left, day right
+            d.text((S - 64 - label_w, 72), label, font=lf, fill=self.muted)
+            d.ellipse((64, 70, 92, 98), fill=self.accent)
+            name, f = fit(d, self.p["name"].upper(), S - 112 - label_w - 100, 40)
+            d.text((112, 64), name, font=f, fill=self.accent)
 
     def footer(self):
         d = self.d
-        d.rectangle((0, S - 92, S, S), fill=self.accent)
+        variant = self.style["footer"]
         town = self.p.get("town", "")
-        tw = 0
+        tf = _font(28, bold=True)
+        tw = d.textlength(town, font=tf) if town else 0
+
+        if variant == "lines":
+            # elegant: no band, twin rules with copy in the pack colors
+            d.line((64, S - 96, S - 64, S - 96), fill=self.accent, width=3)
+            d.line((64, S - 88, S - 64, S - 88), fill=self.dim, width=2)
+            if town:
+                d.text((S - 64 - tw, S - 64), town, font=tf, fill=self.muted)
+            left, f = fit(d, f"{self.p['name']} — posted automatically",
+                          S - 128 - tw - 40, 32)
+            d.text((64, S - 68), left, font=f, fill=self.accent)
+            return
+
+        if variant == "scallop":
+            r = 22
+            for cx in range(0, S + r, r * 2):
+                d.ellipse((cx - r, S - 92 - r, cx + r, S - 92 + r), fill=self.accent)
+        d.rectangle((0, S - 92, S, S), fill=self.accent)
         if town:
-            tf = _font(28, bold=True)
-            tw = d.textlength(town, font=tf)
             d.text((S - 64 - tw, S - 64), town,
                    font=tf, fill=mix(self.accent, self.bg, 0.45))
         left, f = fit(d, f"{self.p['name']} — posted automatically",
@@ -359,8 +491,9 @@ def card_teaser(p):
                  fill=c.dim, width=3)
     c.d.ellipse((cx - 54, cy - 54, cx + 54, cy + 54), fill=c.accent)
     c.header("Sunday")
+    # two lines max above the footer — a third line would run into it
     c.message(p.get("teaser") or "Something new this week.", 760,
-              size=72, center=True)
+              size=72, center=True, max_lines=2)
     c.footer()
     return c
 

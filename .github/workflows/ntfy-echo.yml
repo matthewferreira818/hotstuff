@@ -1,0 +1,25 @@
+name: Ntfy topic echo
+
+# One-shot helper: sends the NTFY_TOPIC value TO the topic itself, so the
+# only person who can read it is whoever is subscribed (Matthew). Used to
+# hand over the exact string for the Cloudflare worker variable without the
+# value ever appearing in chat or logs (GitHub masks secrets in run logs).
+
+on:
+  workflow_dispatch:
+
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Send the topic name to the topic itself
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC secret not set"; exit 1; fi
+          curl -sS -o /dev/null -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
+            -H "Title: Topic check - the exact value is below" \
+            -H "Tags: wrench" -H "Priority: high" \
+            -d "Cloudflare's NTFY_TOPIC needs this exact value: ${NTFY_TOPIC}"
+          echo "sent"

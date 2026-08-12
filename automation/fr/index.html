@@ -242,6 +242,20 @@
   .cta-final h2 { color: var(--hero-ink); }
   .cta-final p { color: var(--hero-muted); max-width: 30em; margin: 0 auto 26px; }
   .cta-note { font-size: 13.5px; color: var(--hero-muted); margin-top: 20px !important; }
+  .lead-wrap { max-width: 520px; margin: 30px auto 0; position: relative; z-index: 1; }
+  .lead-or { color: var(--hero-muted); font-size: 12.5px; font-weight: 800; letter-spacing: .14em;
+    text-transform: uppercase; margin: 0 0 16px; }
+  .lead-grid { display: grid; gap: 10px; text-align: left; }
+  .lead-grid input, .lead-grid textarea {
+    width: 100%; box-sizing: border-box; border-radius: 10px; border: 1px solid rgba(242,246,250,.28);
+    background: rgba(255,255,255,.07); color: var(--hero-ink); padding: 12px 14px;
+    font: inherit; font-size: 15px;
+  }
+  .lead-grid input::placeholder, .lead-grid textarea::placeholder { color: var(--hero-muted); opacity: 1; }
+  .lead-grid input:focus-visible, .lead-grid textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+  #lead-form button { margin-top: 14px; }
+  .lead-hp { position: absolute; left: -9999px; top: -9999px; height: 0; width: 0; opacity: 0; }
+  .lead-done { color: var(--ok); font-weight: 650; margin-top: 18px; }
   .lang-link { position: absolute; top: 16px; right: 18px; z-index: 3; color: inherit;
     font-weight: 700; letter-spacing: .08em; font-size: 13px; text-decoration: none;
     border: 1px solid rgba(255,255,255,.35); padding: 5px 14px; border-radius: 999px; }
@@ -456,7 +470,27 @@ findhotstuff.com #cozyhome</p>
     <div class="beam" aria-hidden="true"></div>
     <h2 class="serif">Vos concurrents sont devenus silencieux. Pas vous.</h2>
     <p>Une courte conversation suffit pour voir de quoi ça aurait l'air pour votre entreprise. Aucune pression, aucune obligation — je vous montrerai même l'engin de ma propre boutique en marche.</p>
-    <a class="btn btn-gold" href="mailto:hello@eastcoastsocial.ca?subject=Mon%20engin%20de%20publication">Écrivez à Matthew — obtenez votre engin</a>
+    <div class="cta-row">
+      <a class="btn btn-gold" href="sms:+15068899737?body=Bonjour%20Matthew%20-%20j%27ai%20vu%20East%20Coast%20Social%20en%20ligne%2C%20je%20suis%20int%C3%A9ress%C3%A9%20pour%20mon%20entreprise.">💬 Textez-moi</a>
+      <a class="btn btn-ghost" href="tel:+15068899737">📞 (506) 889-9737</a>
+      <a class="btn btn-ghost" href="mailto:hello@eastcoastsocial.ca?subject=Mon%20engin%20de%20publication">✉️ Courriel</a>
+    </div>
+    <div class="lead-wrap">
+      <p class="lead-or" aria-hidden="true">— ou —</p>
+      <form id="lead-form">
+        <div class="lead-grid">
+          <input type="text" name="name" required maxlength="80" placeholder="Votre nom" aria-label="Votre nom">
+          <input type="text" name="business" maxlength="120" placeholder="Nom de l'entreprise (facultatif)" aria-label="Nom de l'entreprise (facultatif)">
+          <input type="text" name="contact" required minlength="5" maxlength="120" placeholder="Téléphone ou courriel" aria-label="Téléphone ou courriel">
+          <textarea name="message" maxlength="600" rows="3" placeholder="Autre chose à savoir? (facultatif)" aria-label="Autre chose à savoir? (facultatif)"></textarea>
+        </div>
+        <input type="text" name="website" class="lead-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit" class="btn btn-gold" id="lead-send">Envoyer — je vous réponds vite</button>
+        <p class="cta-note" id="lead-note">Ça arrive direct sur mon téléphone — une vraie réponse, pas de liste d'envoi.</p>
+      </form>
+      <p class="lead-done" id="lead-done" hidden>✅ Bien reçu — je vous réponds d'ici un jour, souvent bien plus vite.</p>
+    </div>
+    <p class="cta-note">Matthew Ferreira · Memramcook, N.-B. · réponse habituellement le jour même</p>
   </div>
 </main>
 
@@ -560,6 +594,51 @@ findhotstuff.com #cozyhome</p>
   document.querySelectorAll('a[href^="sms:"], a[href^="tel:"], a[href^="mailto:"]').forEach(function (a) {
     var kind = a.href.indexOf("sms:") === 0 ? "text" : a.href.indexOf("tel:") === 0 ? "call" : "email";
     a.addEventListener("click", function () { tag(kind); });
+  });
+})();
+</script>
+
+<script>
+/* Formulaire de contact → worker Cloudflare → notification instantanée sur le
+ * téléphone de Matthew. C'est le chemin de conversion sur ordinateur : les
+ * liens sms:/tel: ne font rien sur la plupart des ordinateurs. */
+(function () {
+  var form = document.getElementById("lead-form");
+  if (!form) return;
+  var API = "https://wavelist-checkout.wavelist-mf818.workers.dev/lead";
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var btn = document.getElementById("lead-send");
+    var note = document.getElementById("lead-note");
+    btn.disabled = true;
+    btn.textContent = "Envoi…";
+    var f = new FormData(form);
+    fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: f.get("name") || "",
+        business: f.get("business") || "",
+        contact: f.get("contact") || "",
+        message: f.get("message") || "",
+        website: f.get("website") || "",
+        lang: "fr"
+      })
+    }).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      form.hidden = true;
+      var or = document.querySelector(".lead-or");
+      if (or) or.hidden = true;
+      document.getElementById("lead-done").hidden = false;
+      if (window.goatcounter && typeof window.goatcounter.count === "function") {
+        try { window.goatcounter.count({ path: "cta-form", title: "Lead form submitted", event: true }); } catch (err) { /* never block */ }
+      }
+    }).catch(function () {
+      btn.disabled = false;
+      btn.textContent = "Envoyer — je vous réponds vite";
+      note.textContent = "Hmm, ça n'a pas passé — textez-moi au (506) 889-9737 et on s'en occupe.";
+      note.style.color = "var(--gold)";
+    });
   });
 })();
 </script>

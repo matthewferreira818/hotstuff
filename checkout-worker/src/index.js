@@ -81,6 +81,14 @@ export default {
       return handleDesignDownload(url, env);
     }
 
+    if (url.pathname === "/lead" && request.method === "POST") {
+      return handleLead(request, env);
+    }
+
+    if (url.pathname === "/leads" && request.method === "GET") {
+      return handleLeadsList(url, env);
+    }
+
     return new Response("Not found", { status: 404 });
   },
 };
@@ -480,6 +488,124 @@ function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
+}
+
+// ECS lead capture: the automation page's contact form posts here. The lead is
+// stored durably in KV BEFORE the phone push — a missed notification must
+// never mean a lost lead. This is the desktop conversion path: sms:/tel:
+// links do nothing on most desktops, so without it those visitors bounce.
+const LEAD_TTL_SECONDS = 60 * 60 * 24 * 180; // keep leads 6 months
+const LEAD_MAX_PER_DAY = 5; // per IP — a real owner submits once
+
+async function handleLead(request, env) {
+  try {
+    const data = await request.json();
+    // honeypot: bots fill every field; humans never see this one
+    if (data.website) return jsonResponse({ ok: true }, 200, request);
+
+    const name = String(data.name || "").trim().slice(0, 80);
+    const business = String(data.business || "").trim().slice(0, 120);
+    const contact = String(data.contact || "").trim().slice(0, 120);
+    const message = String(data.message || "").trim().slice(0, 600);
+    const lang = data.lang === "fr" ? "fr" : "en";
+    if (!name || contact.length < 5) {
+      return jsonResponse({ error: "a name and a way to reach you are required" }, 400, request);
+    }
+
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const ipKey = `leadip:${ip}`;
+    const seen = parseInt((await env.ORDERS_KV.get(ipKey)) || "0", 10);
+    if (seen >= LEAD_MAX_PER_DAY) {
+      return jsonResponse({ error: "too many requests — text or call instead" }, 429, request);
+    }
+    await env.ORDERS_KV.put(ipKey, String(seen + 1), { expirationTtl: 86400 });
+
+    const lead = { name, business, contact, message, lang, createdAt: new Date().toISOString() };
+    await env.ORDERS_KV.put(
+      `lead:${lead.createdAt}:${crypto.randomUUID().slice(0, 8)}`,
+      JSON.stringify(lead),
+      { expirationTtl: LEAD_TTL_SECONDS }
+    );
+
+    if (env.NTFY_TOPIC) {
+      try {
+        await fetch(`https://ntfy.sh/${env.NTFY_TOPIC}`, {
+          method: "POST",
+          body: [
+            `${name}${business ? " — " + business : ""}`,
+            `Reach them at: ${contact}`,
+            message ? `"${message}"` : "",
+            lang === "fr" ? "(submitted on the French page)" : "",
+          ].filter(Boolean).join("\n"),
+          headers: {
+            Title: "NEW ECS LEAD — reply today",
+            Tags: "star,telephone_receiver",
+            Priority: "high",
+          },
+        });
+      } catch (err) {
+        console.log("ntfy lead alert failed:", String(err)); // lead already stored
+      }
+    }
+    return jsonResponse({ ok: true }, 200, request);
+  } catch (err) {
+    return jsonResponse({ error: String(err) }, 500, request);
+  }
+}
+
+// Private lead log: GET /leads?token=<ORDERS_ADMIN_TOKEN>. Backup surface for
+// the ntfy pushes — check it any time a notification might have been missed.
+async function handleLeadsList(url, env) {
+  const token = url.searchParams.get("token") || "";
+  if (!env.ORDERS_ADMIN_TOKEN || token !== env.ORDERS_ADMIN_TOKEN) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  const list = await env.ORDERS_KV.list({ prefix: "lead:" });
+  const leads = [];
+  for (const k of list.keys) {
+    const v = await env.ORDERS_KV.get(k.name);
+    if (v) {
+      try {
+        leads.push(JSON.parse(v));
+      } catch {
+        /* skip malformed */
+      }
+    }
+  }
+  leads.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+  const rows = leads
+    .map(
+      (l) => `<tr>
+    <td>${escapeHtml((l.createdAt || "").slice(0, 16).replace("T", " "))}</td>
+    <td><b>${escapeHtml(l.name)}</b>${l.business ? `<br><small>${escapeHtml(l.business)}</small>` : ""}</td>
+    <td>${escapeHtml(l.contact)}</td>
+    <td>${escapeHtml(l.message || "")}</td>
+    <td>${escapeHtml(l.lang || "en")}</td>
+  </tr>`
+    )
+    .join("");
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>ECS Leads</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#fff9f2;color:#2a1a2e;}
+  header{padding:18px 24px;border-bottom:1px solid #eadfd5;}
+  h1{margin:0;font-size:20px;} .sub{color:#7a6a72;font-size:13px;margin-top:4px;}
+  .wrap{overflow-x:auto;padding:16px 24px;}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:13px;}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #eadfd5;vertical-align:top;}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#7a6a72;}
+  small{color:#7a6a72;}
+  .empty{padding:40px;text-align:center;color:#7a6a72;}
+</style></head><body>
+<header><h1>East Coast Social — Leads</h1>
+<div class="sub">${leads.length} lead(s), newest first. Every one of these also fired a phone push.</div></header>
+<div class="wrap">${
+    leads.length
+      ? `<table><thead><tr><th>Date (UTC)</th><th>Who</th><th>Reach them at</th><th>Message</th><th>Lang</th></tr></thead><tbody>${rows}</tbody></table>`
+      : '<div class="empty">No leads yet.</div>'
+  }</div>
+</body></html>`;
+  return new Response(html, { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
 // Private orders page: GET /orders?token=<ORDERS_ADMIN_TOKEN>

@@ -145,6 +145,7 @@ CTA_EVENTS = [
     ("cta-text", "Text taps"),
     ("cta-call", "Call taps"),
     ("cta-email", "Email taps"),
+    ("cta-form", "Lead form submits"),
 ]
 
 

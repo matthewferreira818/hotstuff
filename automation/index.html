@@ -242,6 +242,20 @@
   .cta-final h2 { color: var(--hero-ink); }
   .cta-final p { color: var(--hero-muted); max-width: 30em; margin: 0 auto 26px; }
   .cta-note { font-size: 13.5px; color: var(--hero-muted); margin-top: 20px !important; }
+  .lead-wrap { max-width: 520px; margin: 30px auto 0; position: relative; z-index: 1; }
+  .lead-or { color: var(--hero-muted); font-size: 12.5px; font-weight: 800; letter-spacing: .14em;
+    text-transform: uppercase; margin: 0 0 16px; }
+  .lead-grid { display: grid; gap: 10px; text-align: left; }
+  .lead-grid input, .lead-grid textarea {
+    width: 100%; box-sizing: border-box; border-radius: 10px; border: 1px solid rgba(242,246,250,.28);
+    background: rgba(255,255,255,.07); color: var(--hero-ink); padding: 12px 14px;
+    font: inherit; font-size: 15px;
+  }
+  .lead-grid input::placeholder, .lead-grid textarea::placeholder { color: var(--hero-muted); opacity: 1; }
+  .lead-grid input:focus-visible, .lead-grid textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+  #lead-form button { margin-top: 14px; }
+  .lead-hp { position: absolute; left: -9999px; top: -9999px; height: 0; width: 0; opacity: 0; }
+  .lead-done { color: var(--ok); font-weight: 650; margin-top: 18px; }
   .lang-link { position: absolute; top: 16px; right: 18px; z-index: 3; color: inherit;
     font-weight: 700; letter-spacing: .08em; font-size: 13px; text-decoration: none;
     border: 1px solid rgba(255,255,255,.35); padding: 5px 14px; border-radius: 999px; }
@@ -459,6 +473,21 @@ findhotstuff.com #cozyhome</p>
       <a class="btn btn-ghost" href="tel:+15068899737">📞 (506) 889-9737</a>
       <a class="btn btn-ghost" href="mailto:hello@eastcoastsocial.ca?subject=Set%20up%20my%20posting%20engine">✉️ Email</a>
     </div>
+    <div class="lead-wrap">
+      <p class="lead-or" aria-hidden="true">— or —</p>
+      <form id="lead-form">
+        <div class="lead-grid">
+          <input type="text" name="name" required maxlength="80" placeholder="Your name" aria-label="Your name">
+          <input type="text" name="business" maxlength="120" placeholder="Business name (optional)" aria-label="Business name (optional)">
+          <input type="text" name="contact" required minlength="5" maxlength="120" placeholder="Phone or email" aria-label="Phone or email">
+          <textarea name="message" maxlength="600" rows="3" placeholder="Anything I should know? (optional)" aria-label="Anything I should know? (optional)"></textarea>
+        </div>
+        <input type="text" name="website" class="lead-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit" class="btn btn-gold" id="lead-send">Send it — I'll reach out</button>
+        <p class="cta-note" id="lead-note">Goes straight to my phone — one real reply, no mailing list.</p>
+      </form>
+      <p class="lead-done" id="lead-done" hidden>✅ Got it — I'll reach out within a day, usually much faster.</p>
+    </div>
     <p class="cta-note">Matthew Ferreira · Memramcook, NB · usually replies same day</p>
   </div>
 </main>
@@ -563,6 +592,51 @@ findhotstuff.com #cozyhome</p>
   document.querySelectorAll('a[href^="sms:"], a[href^="tel:"], a[href^="mailto:"]').forEach(function (a) {
     var kind = a.href.indexOf("sms:") === 0 ? "text" : a.href.indexOf("tel:") === 0 ? "call" : "email";
     a.addEventListener("click", function () { tag(kind); });
+  });
+})();
+</script>
+
+<script>
+/* Lead form → Cloudflare worker → instant push to Matthew's phone. This is
+ * the desktop conversion path: sms:/tel: links do nothing on most desktops,
+ * so without it those visitors have no easy next step. */
+(function () {
+  var form = document.getElementById("lead-form");
+  if (!form) return;
+  var API = "https://wavelist-checkout.wavelist-mf818.workers.dev/lead";
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var btn = document.getElementById("lead-send");
+    var note = document.getElementById("lead-note");
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+    var f = new FormData(form);
+    fetch(API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: f.get("name") || "",
+        business: f.get("business") || "",
+        contact: f.get("contact") || "",
+        message: f.get("message") || "",
+        website: f.get("website") || "",
+        lang: "en"
+      })
+    }).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      form.hidden = true;
+      var or = document.querySelector(".lead-or");
+      if (or) or.hidden = true;
+      document.getElementById("lead-done").hidden = false;
+      if (window.goatcounter && typeof window.goatcounter.count === "function") {
+        try { window.goatcounter.count({ path: "cta-form", title: "Lead form submitted", event: true }); } catch (err) { /* never block */ }
+      }
+    }).catch(function () {
+      btn.disabled = false;
+      btn.textContent = "Send it — I'll reach out";
+      note.textContent = "Hmm, that didn't go through — text me at (506) 889-9737 instead and I'll take it from there.";
+      note.style.color = "var(--gold)";
+    });
   });
 })();
 </script>

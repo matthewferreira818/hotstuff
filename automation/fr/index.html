@@ -224,6 +224,9 @@
   .plan ul li { padding-left: 24px; position: relative; }
   .plan ul li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 800; }
   .plans-note { font-size: 13.5px; color: var(--muted); margin-top: 12px; }
+  .feed-fresh { font-size: 13.5px; font-weight: 700; color: var(--ok); margin: 0 0 14px; }
+  .feed-follow { font-size: 14px; color: var(--muted); margin-top: 16px; }
+  .feed-follow a { color: var(--gold-deep); font-weight: 700; }
 
   details {
     border-bottom: 1px solid var(--line); padding: 4px 0;
@@ -330,7 +333,13 @@ findhotstuff.com #cozyhome</p>
     <p class="eyebrow">En direct, pas une maquette</p>
     <h2 class="serif">Voici ce que l'engin a publié pour nous cette semaine.</h2>
     <p class="lede">East Coast Social roule sur son propre engin — ces cartes sont parties vers notre page et notre compte X automatiquement, une par jour, sans intervention. Les vôtres ressembleraient à votre commerce.</p>
+    <p class="feed-fresh" id="feed-fresh" data-today="Dernière publication de l'engin : aujourd'hui"
+       data-yesterday="Dernière publication de l'engin : hier" data-on="Dernière publication :"
+       style="visibility:hidden">&nbsp;</p>
     <div class="feed" id="ecs-feed"></div>
+    <p class="feed-follow">Voyez-le publier en direct :
+      <a href="https://www.tiktok.com/@find.hotstuff" target="_blank" rel="noopener">TikTok @find.hotstuff</a> ·
+      <a href="https://x.com/FindHotsTuff" target="_blank" rel="noopener">X @FindHotsTuff</a></p>
   </section>
 
   <section>
@@ -454,6 +463,22 @@ findhotstuff.com #cozyhome</p>
     .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
     .then(function (posts) {
       if (!posts || !posts.length) throw new Error("empty");
+      // freshness stamp: derived from the feed's own data, not a claim
+      var stamp = document.getElementById("feed-fresh");
+      if (stamp && posts[0] && posts[0].date) {
+        var newest = posts[0].date;
+        var today = new Date();
+        var iso = function (dt) {
+          return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0")
+            + "-" + String(dt.getDate()).padStart(2, "0");
+        };
+        var yest = new Date(today.getTime() - 864e5);
+        var label = newest === iso(today) ? stamp.dataset.today
+          : newest === iso(yest) ? stamp.dataset.yesterday
+          : (stamp.dataset.on + " " + newest);
+        stamp.textContent = "\u25CF " + label;
+        stamp.style.visibility = "visible";
+      }
       var strip = document.createElement("div");
       strip.className = "feed-strip";
       posts.slice(0, 6).forEach(function (p) {

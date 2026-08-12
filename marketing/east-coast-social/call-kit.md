@@ -48,7 +48,7 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 | Carlos Barber Shop | Sackville (22 Lansdowne St) | (902) 297-3433 | No social page at all — needs it most | 08-04 voicemail (touch 1) — call back ~08-07 |
 | LeBlancs Meat Market | Memramcook (32 La Montain Rd) | (506) 758-2222 | Page messaging disabled; email drafted; French-first greeting is a nice touch: "Bonjour! Je peux continuer en anglais?" | |
 | Boulangerie Tony | Dieppe (50 Rue du Marché) | (506) 388-2253 | Has FB but low activity; bakery = perfect daily-post client | 08-04 no answer, no voicemail — appears open Wed-Fri only. Call Wed 08-05 ~10:30 AM |
-| A & M Auto Repair | Riverview (569 Pine Glen Rd — listing says Riverview, not Dieppe) | (506) 387-4151 | No social seen; "most honest garage" reviews = great content to automate | 08-04 closed — on vacation until 08-10. Call Tue 08-11 AM |
+| A & M Auto Repair | Riverview (569 Pine Glen Rd — listing says Riverview, not Dieppe) | (506) 387-4151 | No social seen; "most honest garage" reviews = great content to automate | 08-04 closed (vacation). 08-11 AM no answer, voicemail left (touch 1). One callback ~Fri 08-14 or Mon, then rest |
 | CAVOK Brewing Co. | Dieppe (250 Dieppe Blvd) | (506) 961-5835 | No social seen; breweries thrive on daily taps/events posts | 08-04 🔥 HOT: staff gave owner's cell, owner answered, asked for TEXT — sent free-week-of-samples offer. If quiet, bump ~08-06 |
 | Norm's Pizza | Dieppe (4-438 Paul St) | (506) 859-8180 | No social seen; pizza = easiest daily content there is | 08-04 owner out — left contact info with staff (touch 1). Call back ~08-06 in the 2-4 window |
 

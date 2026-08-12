@@ -389,7 +389,7 @@ def build_daily():
 
     for d in (PRODUCT_DIR, AGENT_DIR):
         d.mkdir(parents=True, exist_ok=True)
-        for stale in d.glob("*.png"):
+        for stale in list(d.glob("*.png")) + list(d.glob("*.jpg")):
             stale.unlink()
 
     picks = _pick_daily(products)
@@ -416,7 +416,22 @@ def build_daily():
     print("wrote agent-1..3.png — East Coast Social receipts pack")
 
     _write_captions(made if made else picks)
+    _write_jpeg_twins()
     print(f"Done → {DAILY_DIR}")
+
+
+def _write_jpeg_twins():
+    """JPEG copy of every slide: TikTok's photo API rejects PNG
+    (file_format_check_failed), so the draft pusher pulls the .jpg twins.
+    The .png versions stay for humans and manual posting."""
+    from PIL import Image
+    for d in (PRODUCT_DIR, AGENT_DIR):
+        for stale in d.glob("*.jpg"):
+            stale.unlink()
+        for png in sorted(d.glob("*.png")):
+            Image.open(png).convert("RGB").save(
+                png.with_suffix(".jpg"), quality=92, optimize=True)
+    print("wrote JPEG twins for the TikTok draft pusher")
 
 
 if __name__ == "__main__":

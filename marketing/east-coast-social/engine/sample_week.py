@@ -524,10 +524,9 @@ def card_spotlight(p):
         for y in range(300, 850, 26):
             c.d.line((320, y, 320, y + 12), fill=c.dim, width=3)
         c.header("Thursday")
-        lf = _font(28, bold=True)
-        label = voice(p)[0].upper()
-        for i, ch in enumerate(label[:10]):
-            c.d.text((196, 330 + i * 46), ch, font=lf, fill=c.accent)
+        lf = _font(30, bold=True)
+        for i, ch in enumerate("TONIGHT"):   # stub reads top-to-bottom
+            c.d.text((200, 350 + i * 62), ch, font=lf, fill=c.accent)
         c.message(hero, 430, size=74, center=True, max_w=470)
         if price:
             pf = _font(56, bold=True)

@@ -63,12 +63,19 @@ def http_json(url, data=None, headers=None, form=False):
             return {"error": str(exc)}, exc.code
 
 
-def ntfy(topic, title, message, priority="default", tags="robot"):
+EMAIL = "ceohotstuff@yahoo.com"   # already public on the site's support card
+
+
+def ntfy(topic, title, message, priority="default", tags="robot", email=None):
+    """Push to the ntfy topic; with email=, ntfy.sh also forwards to an
+    inbox — the reliable channel until the phone app exists."""
     if not topic:
         return
+    headers = {"Title": title, "Tags": tags, "Priority": priority}
+    if email:
+        headers["Email"] = email
     req = urllib.request.Request(
-        f"https://ntfy.sh/{topic}", data=message.encode(),
-        headers={"Title": title, "Tags": tags, "Priority": priority})
+        f"https://ntfy.sh/{topic}", data=message.encode(), headers=headers)
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             resp.read()
@@ -110,8 +117,8 @@ def connect():
     print("refresh token delivered via ntfy (not logged — public repo)")
     ntfy(topic, "TikTok connected - one paste left",
          "Refresh token (paste into GitHub secret TIKTOK_REFRESH_TOKEN, "
-         "then delete this notification):\n\n" + refresh,
-         "high", "white_check_mark")
+         "then delete this message):\n\n" + refresh,
+         "high", "white_check_mark", email=EMAIL)
     return 0
 
 
@@ -127,7 +134,7 @@ def refresh_access_token(key, secret, refresh_token, topic):
         ntfy(topic, "TikTok drafts broken - reconnect needed",
              "The stored TikTok token stopped working. Re-run the connect "
              "flow (authorize link + connect workflow) to fix drafts.",
-             "high", "warning")
+             "high", "warning", email=EMAIL)
         return None
     # TikTok can rotate the refresh token; ours lives in a GitHub secret we
     # can't rewrite from here, so shout if the stored one goes stale.
@@ -136,7 +143,7 @@ def refresh_access_token(key, secret, refresh_token, topic):
         ntfy(topic, "TikTok refresh token rotated - update the secret",
              "Paste this new value into the TIKTOK_REFRESH_TOKEN secret "
              "(the old one may stop working):\n\n" + new_refresh,
-             "high", "warning")
+             "high", "warning", email=EMAIL)
     return access
 
 

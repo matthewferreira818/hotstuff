@@ -56,7 +56,7 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 
 | Business | Town | Phone | Why calling | Outcome |
 |---|---|---|---|---|
-| La Boulangerie Léger | Shediac (482 Main St) | (506) 532-3137 | 🔥 BEST DATA ON THE SHEET: FB page has 2.2K followers but silent since July 4 — and that last post pulled 50 reactions + 34 shares. Their audience responds; they just stopped posting. Opener writes itself. | |
+| La Boulangerie Léger | Shediac (482 Main St) | (506) 532-3137 | 🔥 BEST DATA ON THE SHEET: FB page has 2.2K followers but silent since July 4 — and that last post pulled 50 reactions + 34 shares. Their audience responds; they just stopped posting. Opener writes itself. | 08-12 ~1 PM no answer, voicemail left (touch 1). Callback Fri 08-14 early afternoon, then rest |
 | LeBlanc Restaurant (Ben's) | Memramcook (583 rue Centrale) | (506) 758-2554 | Recon: NO Facebook page at all, yet notable enough that Dominic LeBlanc posted about lunching there with Premier Holt. Village restaurant, pizza menu = daily specials. NOT LeBlancs Meat Market | |
 | Salon Coupe Chic | Memramcook (280 La Vallée Rte) | (506) 758-9390 | ⚠️ DOWNGRADED: no FB page found, and a resident posted in the Memramcook group that the salon isn't answering its phone (no voicemail), asking if it closed. One verify-call at most; expect nothing. | |
 

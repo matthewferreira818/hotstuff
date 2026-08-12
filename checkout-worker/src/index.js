@@ -452,6 +452,30 @@ async function recordOrder(session, env) {
   await notifyOrder(record, env);
 }
 
+// Publish to ntfy. Anonymous pushes share Cloudflare's egress-IP rate bucket
+// with every other worker on the internet — ntfy.sh answers 429 when strangers
+// have drained it — so an account access token (env.NTFY_TOKEN) is what makes
+// delivery reliable: authenticated pushes get their own personal budget.
+// One retry on 429 as extra armor. Returns a status string for diagnostics.
+async function ntfyPush(env, title, tags, priority, body) {
+  const topic = (env.NTFY_TOPIC || "").trim();
+  if (!topic) return "skipped-no-topic";
+  const token = (env.NTFY_TOKEN || "").trim();
+  const headers = { Title: title, Tags: tags, Priority: priority };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  try {
+    let res = await fetch(`https://ntfy.sh/${topic}`, { method: "POST", body, headers });
+    if (res.status === 429) {
+      await new Promise((r) => setTimeout(r, 3000));
+      res = await fetch(`https://ntfy.sh/${topic}`, { method: "POST", body, headers });
+    }
+    return res.ok ? "sent" : `failed-http-${res.status}`;
+  } catch (err) {
+    console.log("ntfy push failed:", String(err));
+    return "failed-network";
+  }
+}
+
 // Push an order alert to Matthew's phone via ntfy (same private topic as the
 // traffic reports). Without this, money can arrive silently: CJ auto-place
 // usually fails from Cloudflare's IP, so most paid orders sit in /orders
@@ -459,8 +483,6 @@ async function recordOrder(session, env) {
 // hiccup must never block the order log. Deliberately no street address or
 // email in the push body; name + country is enough to act on.
 async function notifyOrder(record, env) {
-  const topic = (env.NTFY_TOPIC || "").trim();
-  if (!topic) return;
   const needsAction = record.status !== "auto-placed";
   const what = record.product.name || record.product.sku || "Custom-design tee";
   const body = [
@@ -470,19 +492,14 @@ async function notifyOrder(record, env) {
       ? "CJ auto-place did not go through — place it from the /orders page."
       : `Auto-placed with CJ (#${record.cj?.orderId || "?"}). Nothing to do.`,
   ].join("\n");
-  try {
-    await fetch(`https://ntfy.sh/${topic}`, {
-      method: "POST",
-      body,
-      headers: {
-        Title: needsAction ? "ORDER PAID — needs fulfillment" : "Order paid + auto-placed",
-        Tags: needsAction ? "rotating_light,moneybag" : "white_check_mark,moneybag",
-        Priority: needsAction ? "high" : "default",
-      },
-    });
-  } catch (err) {
-    console.log("ntfy order alert failed:", String(err));
-  }
+  const pushed = await ntfyPush(
+    env,
+    needsAction ? "ORDER PAID — needs fulfillment" : "Order paid + auto-placed",
+    needsAction ? "rotating_light,moneybag" : "white_check_mark,moneybag",
+    needsAction ? "high" : "default",
+    body
+  );
+  if (pushed !== "sent") console.log("order alert push:", pushed);
 }
 
 function escapeHtml(s) {
@@ -530,31 +547,20 @@ async function handleLead(request, env) {
 
     // push status is reported in the response ("sent" / "failed-http-###" /
     // "failed-network" / "skipped-no-topic") so a quiet phone can be
-    // diagnosed from the outside without dashboard spelunking.
-    let push = "skipped-no-topic";
-    const topic = (env.NTFY_TOPIC || "").trim();
-    if (topic) {
-      try {
-        const nres = await fetch(`https://ntfy.sh/${topic}`, {
-          method: "POST",
-          body: [
-            `${name}${business ? " — " + business : ""}`,
-            `Reach them at: ${contact}`,
-            message ? `"${message}"` : "",
-            lang === "fr" ? "(submitted on the French page)" : "",
-          ].filter(Boolean).join("\n"),
-          headers: {
-            Title: "NEW ECS LEAD — reply today",
-            Tags: "star,telephone_receiver",
-            Priority: "high",
-          },
-        });
-        push = nres.ok ? "sent" : `failed-http-${nres.status}`;
-      } catch (err) {
-        push = "failed-network";
-        console.log("ntfy lead alert failed:", String(err)); // lead already stored
-      }
-    }
+    // diagnosed from the outside without dashboard spelunking. The lead is
+    // already stored above — a failed push never loses it.
+    const push = await ntfyPush(
+      env,
+      "NEW ECS LEAD — reply today",
+      "star,telephone_receiver",
+      "high",
+      [
+        `${name}${business ? " — " + business : ""}`,
+        `Reach them at: ${contact}`,
+        message ? `"${message}"` : "",
+        lang === "fr" ? "(submitted on the French page)" : "",
+      ].filter(Boolean).join("\n")
+    );
     return jsonResponse({ ok: true, push }, 200, request);
   } catch (err) {
     return jsonResponse({ error: String(err) }, 500, request);

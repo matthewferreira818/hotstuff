@@ -452,14 +452,46 @@ async function recordOrder(session, env) {
   await notifyOrder(record, env);
 }
 
-// Publish to ntfy. Anonymous pushes share Cloudflare's egress-IP rate bucket
-// with every other worker on the internet — ntfy.sh answers 429 when strangers
-// have drained it — so an account access token (env.NTFY_TOKEN) is what makes
-// delivery reliable: authenticated pushes get their own personal budget.
-// One retry on 429 as extra armor. Returns a status string for diagnostics.
+// Phone push, with a twist ntfy.sh forces on us: it rate-limits per source
+// address unless the account has a PAID tier, and Cloudflare workers share
+// egress addresses with the whole internet — direct pushes from here get 429
+// almost always. GitHub Actions runners' pushes deliver reliably, so the
+// primary path hands the message to GitHub via repository_dispatch
+// (GH_DISPATCH_TOKEN = fine-grained PAT, Contents R/W on the hotstuff repo)
+// and .github/workflows/ntfy-relay.yml does the actual send. Direct ntfy
+// stays as the no-token fallback and the relay's safety net.
+// Returns a status string for diagnostics ("relayed" / "sent" / "failed-*").
 async function ntfyPush(env, title, tags, priority, body) {
   const topic = (env.NTFY_TOPIC || "").trim();
   if (!topic) return "skipped-no-topic";
+
+  const ghToken = (env.GH_DISPATCH_TOKEN || "").trim();
+  if (ghToken) {
+    try {
+      const res = await fetch(
+        "https://api.github.com/repos/matthewferreira818/hotstuff/dispatches",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${ghToken}`,
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            "User-Agent": "hotstuff-worker",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            event_type: "ntfy-relay",
+            client_payload: { title, tags, priority, body },
+          }),
+        }
+      );
+      if (res.status === 204) return "relayed";
+      console.log("relay dispatch failed:", res.status); // fall through to direct
+    } catch (err) {
+      console.log("relay dispatch error:", String(err)); // fall through to direct
+    }
+  }
+
   const token = (env.NTFY_TOKEN || "").trim();
   const headers = { Title: title, Tags: tags, Priority: priority };
   if (token) headers.Authorization = `Bearer ${token}`;

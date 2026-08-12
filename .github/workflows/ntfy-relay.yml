@@ -1,0 +1,43 @@
+name: Ntfy relay
+
+# The Cloudflare worker cannot push to ntfy.sh directly (ntfy rate-limits per
+# source address unless the account has a paid tier, and workers share egress
+# addresses with the whole internet — permanent 429s). GitHub runners' pushes
+# deliver reliably, so the worker hands messages here via repository_dispatch
+# and this workflow does the actual send.
+#
+# PRIVACY: this is a public repo, so its run logs are public. The payload can
+# contain a lead's name and contact info — it must NEVER be echoed. Values
+# only flow through env vars into a silent curl; do not add any step that
+# prints the payload.
+
+on:
+  repository_dispatch:
+    types: [ntfy-relay]
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Send the push
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          TITLE: ${{ github.event.client_payload.title }}
+          TAGS: ${{ github.event.client_payload.tags }}
+          PRIORITY: ${{ github.event.client_payload.priority }}
+          BODY: ${{ github.event.client_payload.body }}
+        run: |
+          if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC secret not set"; exit 1; fi
+          for i in 1 2 3; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
+              -H "Title: ${TITLE:-HotsTuff}" \
+              -H "Tags: ${TAGS:-bell}" \
+              -H "Priority: ${PRIORITY:-default}" \
+              --data-raw "${BODY:-'(empty)'}")
+            if [ "${code:0:1}" = "2" ]; then echo "delivered (attempt $i)"; exit 0; fi
+            echo "attempt $i: HTTP $code"
+            sleep 5
+          done
+          echo "all attempts failed"
+          exit 1

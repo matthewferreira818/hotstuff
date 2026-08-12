@@ -56,6 +56,7 @@ PALETTES = {
     "fitness":    ("#101418", "#7ee081"),
     "retail":     ("#161824", "#8fa2e6"),
     "trades":     ("#171a14", "#e6c34a"),
+    "auto":       ("#14171b", "#f2762e"),
     "*":          ("#141821", "#f0b429"),
 }
 
@@ -71,6 +72,7 @@ VOICE = {
     "fitness":    ("on the schedule", "THIS WEEK", "Doors are open."),
     "retail":     ("in the shop", "IN STORE NOW", "Come have a look."),
     "trades":     ("on the truck", "WHAT WE DO", "Booking this week."),
+    "auto":       ("in the bay", "WHAT WE DO", "Book your appointment."),
     "*":          ("today", "TODAY", "We're open."),
 }
 
@@ -129,6 +131,24 @@ def fit(d, text, max_w, size, bold=True, floor=20):
     while d.textlength(text, font=f) > max_w and len(text) > 4:
         text = text[:-2].rstrip() + "…"
     return text, f
+
+
+# Sample pro-tips per service category — generic craft knowledge for the demo
+# pack only; a real client's tips replace these at setup (profile "tips").
+DEMO_TIPS = {
+    "auto": "Slow crank on a cold morning? Get the battery tested before it "
+            "strands you — five minutes now beats a tow later.",
+    "barber": "A trim every 3-4 weeks keeps the shape — waiting until it's "
+              "'long enough to bother' is why it never sits right.",
+    "salon": "Heat protectant isn't optional — one spray before the iron "
+             "saves months of repair.",
+    "trades": "Little leak, big bill: the drip you ignore in August is the "
+              "ceiling stain you pay for in November.",
+    "fitness": "Consistency beats intensity — three honest sessions a week "
+               "outwork one heroic Saturday.",
+    "*": "The small maintenance you skip is always the expensive repair "
+         "you meet later.",
+}
 
 
 # ── per-category style kits ──────────────────────────────────────────────
@@ -201,11 +221,12 @@ STYLES = {
     "cafe":       {"texture": _tex_bubbles,   "header": "warm",  "footer": "band", "family": "artisan"},
     "restaurant": {"texture": _tex_checker,   "header": "menu",  "footer": "band", "family": "diner"},
     "brewery":    {"texture": _tex_bubbles,   "header": "dot",   "footer": "band", "family": "diner"},
-    "barber":     {"texture": _tex_pinstripe, "header": "sharp", "footer": "lines"},
-    "salon":      {"texture": _tex_petals,    "header": "warm",  "footer": "lines", "family": "artisan"},
-    "fitness":    {"texture": _tex_diag,      "header": "sharp", "footer": "band"},
+    "barber":     {"texture": _tex_pinstripe, "header": "sharp", "footer": "lines", "family": "service"},
+    "salon":      {"texture": _tex_petals,    "header": "warm",  "footer": "lines", "family": "service"},
+    "fitness":    {"texture": _tex_diag,      "header": "sharp", "footer": "band", "family": "service"},
     "retail":     {"texture": _tex_grid,      "header": "dot",   "footer": "band"},
-    "trades":     {"texture": _tex_diag,      "header": "sharp", "footer": "band"},
+    "trades":     {"texture": _tex_diag,      "header": "sharp", "footer": "band", "family": "service"},
+    "auto":       {"texture": _tex_diag,      "header": "sharp", "footer": "band", "family": "service"},
     "*":          {"texture": None,           "header": "dot",   "footer": "band"},
 }
 
@@ -680,9 +701,179 @@ DEVICES = [card_lineup, card_statement, card_hours, card_spotlight,
            card_quote, card_stat, card_teaser]
 
 
+# ── the service-week devices ─────────────────────────────────────────────
+# A garage or a barber doesn't sell a list of fresh items — it sells trust,
+# expertise and the booking. The service pack swaps the maker week for a
+# trust-and-expertise week: services, reputation, tip, before/after, booking.
+
+def card_services(p):
+    """Monday — what we do, as a bold checklist."""
+    c = Card(p)
+    c.header("Monday")
+    _, board, _ = voice(p)
+    c.d.text((64, 200), board, font=_font(36, bold=True), fill=c.accent)
+    items = (p.get("items") or ["Add their real services to profile.json"])[:5]
+    y = 296 + max(0, (560 - len(items) * 106) // 2)
+    for item in items:
+        # drawn check: accent square with a tick
+        c.d.rounded_rectangle((64, y, 122, y + 58), radius=10, fill=c.accent)
+        c.d.line((78, y + 30, 92, y + 44), fill=c.bg, width=7)
+        c.d.line((92, y + 44, 112, y + 16), fill=c.bg, width=7)
+        label, f = fit(c.d, item.upper(), S - 220, 40)
+        c.d.text((150, y + 6), label, font=f, fill=c.ink)
+        c.d.line((150, y + 74, S - 64, y + 74), fill=mix(c.bg, c.ink, 0.12), width=2)
+        y += 106
+    extra = (p.get("facts") or [""])[0]
+    if extra:
+        c.small(extra, min(y + 24, 880))
+    c.footer()
+    return c
+
+
+def card_review_spot(p):
+    """Tuesday — the trust post. A real review if the profile has one;
+    otherwise the researched reputation line under a shield. Never invents
+    a testimonial."""
+    c = Card(p)
+    c.header("Tuesday")
+    review = p.get("review") or {}
+    text, author = review.get("text"), review.get("author")
+    if text:
+        c.d.text((64, 210), "\u201C", font=_font(230, serif=True), fill=c.dim)
+        c.message(text, 400, size=66, max_w=S - 160, max_lines=4)
+        c.small(f"\u2014 {author}" if author else "\u2014 a customer", 820,
+                fill=c.accent, size=36)
+    else:
+        # shield: trust motif, then the strongest researched fact
+        cx, top, w, h = S // 2, 250, 300, 350
+        pts = [(cx - w // 2, top), (cx + w // 2, top),
+               (cx + w // 2, top + h - 120), (cx, top + h),
+               (cx - w // 2, top + h - 120)]
+        c.d.polygon(pts, outline=c.accent, width=6)
+        c.d.line((cx - 60, top + 150, cx - 10, top + 210), fill=c.accent, width=10)
+        c.d.line((cx - 10, top + 210, cx + 70, top + 100), fill=c.accent, width=10)
+        lf = _font(30, bold=True)
+        label = "KNOWN FOR"
+        c.d.text(((S - c.d.textlength(label, font=lf)) // 2, 660), label,
+                 font=lf, fill=c.accent)
+        fact = (p.get("facts") or ["doing right by people"])[0]
+        c.message(fact, 720, size=62, center=True, max_w=S - 200, max_lines=3)
+    c.footer()
+    return c
+
+
+def card_tip(p):
+    """Thursday — the expertise post: one useful thing, freely given."""
+    c = Card(p)
+    c.header("Thursday")
+    c.d.rounded_rectangle((64, 196, 296, 268), radius=14, fill=c.accent)
+    c.d.text((96, 212), "PRO TIP", font=_font(34, bold=True), fill=c.bg)
+    tips = p.get("tips") or []
+    tip = tips[0] if tips else DEMO_TIPS.get(p.get("category", "*"), DEMO_TIPS["*"])
+    c.message(tip, 340, size=64, max_w=S - 150, max_lines=6)
+    c.small("free advice from people who do this every day", 860)
+    c.footer()
+    return c
+
+
+def card_before_after(p):
+    """Friday — the difference a visit makes, as a split panel."""
+    c = Card(p)
+    mid = S // 2
+    c.d.rectangle((0, 180, mid - 4, 900), fill=mix(c.bg, c.ink, 0.05))
+    c.d.rectangle((mid + 4, 180, S, 900), fill=mix(c.bg, c.accent, 0.16))
+    c.d.line((mid, 160, mid, 920), fill=c.accent, width=6)
+    bf = _font(40, bold=True)
+    for label, cx, col in (("BEFORE", mid // 2, c.muted),
+                           ("AFTER", mid + mid // 2, c.accent)):
+        c.d.text((cx - c.d.textlength(label, font=bf) // 2, 250), label,
+                 font=bf, fill=col)
+    # center badge over the divider
+    c.d.ellipse((mid - 80, 460, mid + 80, 620), fill=c.accent)
+    c.d.text((mid - c.d.textlength("VS", font=_font(52, bold=True)) // 2, 505),
+             "VS", font=_font(52, bold=True), fill=c.bg)
+    c.header("Friday")
+    c.message("The difference one visit makes.", 926, size=46, center=True,
+              max_lines=1)
+    c.footer()
+    return c
+
+
+def card_booking(p):
+    """Sunday — the booking nudge that closes the week."""
+    c = Card(p)
+    c.header("Sunday")
+    _, _, invite = voice(p)
+    c.message(invite, 260, size=96, center=True, max_lines=2)
+    c.d.text(((S - c.d.textlength("THIS WEEK", font=_font(34, bold=True))) // 2, 500),
+             "THIS WEEK", font=_font(34, bold=True), fill=c.accent)
+    chips = ["CALL", "MESSAGE", "WALK IN"]
+    cf = _font(36, bold=True)
+    widths = [c.d.textlength(t, font=cf) + 88 for t in chips]
+    total = sum(widths) + 40 * (len(chips) - 1)
+    x = (S - total) // 2
+    for t, w in zip(chips, widths):
+        c.d.rounded_rectangle((x, 580, x + w, 668), radius=44,
+                              outline=c.accent, width=4)
+        c.d.text((x + 44, 600), t, font=cf, fill=c.ink)
+        x += w + 40
+    c.small("spots go first-come — the page will say when we're full", 740,
+            center=True)
+    c.footer()
+    return c
+
+
+SERVICE_DEVICES = [card_services, card_review_spot, card_hours,
+                   card_tip, card_before_after, card_stat, card_booking]
+
+
+def devices_for(p):
+    """The maker week (sell things) or the service week (sell trust)."""
+    if style_of(p).get("family") == "service":
+        return SERVICE_DEVICES
+    return DEVICES
+
+
+
+
 # ── captions ──────────────────────────────────────────────────────────────
 
+def service_captions_for(p):
+    """Captions for the trust-and-expertise week — matched to the service
+    devices (services, review, hours, tip, before/after, stat, booking)."""
+    sells, _, invite = voice(p)
+    town = p.get("town", "")
+    items = p.get("items") or []
+    facts = p.get("facts") or []
+    fact = facts[0] if facts else ""
+    lineup = ", ".join(items[:3]) or "everything your day needs"
+    review = p.get("review") or {}
+    review_text = review.get("text")
+    tips = p.get("tips") or []
+    tip = tips[0] if tips else DEMO_TIPS.get(p.get("category", "*"), DEMO_TIPS["*"])
+    in_town = f" in {town}" if town else ""
+
+    return [
+        ("Monday", f"What we do, all week long: {lineup} and more. "
+                   f"{invite}"),
+        ("Tuesday", f"\"{review_text}\" — reviews like this are why we "
+                    f"open the doors." if review_text else
+                    (f"{fact}. We work to earn that every single day."
+                     if fact else "We work to earn your trust every day.")),
+        ("Wednesday", f"Planning your week? Here's when we're open{in_town}. "
+                      f"Save the post so you've got it when you need it."),
+        ("Thursday", f"Pro tip, free of charge: {tip}"),
+        ("Friday", "The before is why you call. The after is why you come "
+                   "back. " + invite),
+        ("Saturday", "A little about us, by the numbers."),
+        ("Sunday", f"{invite} First come, first served this week — call, "
+                   f"message, or just walk in."),
+    ]
+
+
 def captions_for(p):
+    if style_of(p).get("family") == "service":
+        return service_captions_for(p)
     sells, _, invite = voice(p)
     town = p.get("town", "")
     items = p.get("items") or []
@@ -868,7 +1059,7 @@ def render(profile_path):
     out.mkdir(parents=True, exist_ok=True)
 
     paths = []
-    for i, device in enumerate(DEVICES, 1):
+    for i, device in enumerate(devices_for(p), 1):
         path = out / f"day-{i}.png"
         device(p).save(path)
         paths.append(path)

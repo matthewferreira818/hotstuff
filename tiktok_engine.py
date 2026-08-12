@@ -76,11 +76,16 @@ def ntfy(topic, title, message, priority="default", tags="robot"):
         print(f"ntfy failed: {exc}")
 
 
+def env(name):
+    """Secrets arrive via copy-paste; scrub stray whitespace/newlines."""
+    return (os.environ.get(name) or "").strip()
+
+
 def connect():
-    key = os.environ.get("TIKTOK_CLIENT_KEY")
-    secret = os.environ.get("TIKTOK_CLIENT_SECRET")
-    code = (os.environ.get("TIKTOK_CODE") or "").strip()
-    topic = os.environ.get("NTFY_TOPIC")
+    key = env("TIKTOK_CLIENT_KEY")
+    secret = env("TIKTOK_CLIENT_SECRET")
+    code = env("TIKTOK_CODE")
+    topic = env("NTFY_TOPIC")
     if not (key and secret and code):
         print("connect needs TIKTOK_CLIENT_KEY, TIKTOK_CLIENT_SECRET and TIKTOK_CODE")
         return 1
@@ -177,10 +182,10 @@ def push_draft(access, image_urls, caption, label, topic):
 
 
 def post():
-    key = os.environ.get("TIKTOK_CLIENT_KEY")
-    secret = os.environ.get("TIKTOK_CLIENT_SECRET")
-    refresh = os.environ.get("TIKTOK_REFRESH_TOKEN")
-    topic = os.environ.get("NTFY_TOPIC")
+    key = env("TIKTOK_CLIENT_KEY")
+    secret = env("TIKTOK_CLIENT_SECRET")
+    refresh = env("TIKTOK_REFRESH_TOKEN")
+    topic = env("NTFY_TOPIC")
     missing = [n for n, v in [("TIKTOK_CLIENT_KEY", key),
                               ("TIKTOK_CLIENT_SECRET", secret),
                               ("TIKTOK_REFRESH_TOKEN", refresh)] if not v]

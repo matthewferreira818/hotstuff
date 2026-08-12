@@ -197,12 +197,12 @@ def _tex_grid(card):
 
 
 STYLES = {
-    "bakery":     {"texture": _tex_flour,     "header": "warm",  "footer": "scallop"},
-    "cafe":       {"texture": _tex_bubbles,   "header": "warm",  "footer": "band"},
-    "restaurant": {"texture": _tex_checker,   "header": "menu",  "footer": "band"},
-    "brewery":    {"texture": _tex_bubbles,   "header": "dot",   "footer": "band"},
+    "bakery":     {"texture": _tex_flour,     "header": "warm",  "footer": "scallop", "family": "artisan"},
+    "cafe":       {"texture": _tex_bubbles,   "header": "warm",  "footer": "band", "family": "artisan"},
+    "restaurant": {"texture": _tex_checker,   "header": "menu",  "footer": "band", "family": "diner"},
+    "brewery":    {"texture": _tex_bubbles,   "header": "dot",   "footer": "band", "family": "diner"},
     "barber":     {"texture": _tex_pinstripe, "header": "sharp", "footer": "lines"},
-    "salon":      {"texture": _tex_petals,    "header": "warm",  "footer": "lines"},
+    "salon":      {"texture": _tex_petals,    "header": "warm",  "footer": "lines", "family": "artisan"},
     "fitness":    {"texture": _tex_diag,      "header": "sharp", "footer": "band"},
     "retail":     {"texture": _tex_grid,      "header": "dot",   "footer": "band"},
     "trades":     {"texture": _tex_diag,      "header": "sharp", "footer": "band"},
@@ -343,45 +343,113 @@ class Card:
 # a prospect is afraid of.
 
 def card_lineup(p):
-    """Rows of what they sell — the 'today's board' post."""
+    """What they sell — composed differently per family so two packs never
+    share a skeleton: chalkboard (artisan), menu panel with dotted leaders
+    (diner), or boxed rows (default)."""
     c = Card(p)
+    fam = c.style.get("family", "default")
     c.header("Monday")
     _, board, _ = voice(p)
-    c.d.text((64, 200), board, font=_font(34, bold=True), fill=c.accent)
     items = (p.get("items") or ["Add their real items to profile.json"])[:5]
-    # nudge a short list down a little, but stay tucked under its heading —
-    # fully centring it leaves an odd gap below the label
-    y = 280 + min(80, max(0, (620 - len(items) * 112) // 2))
-    for i, item in enumerate(items):
-        c.d.rectangle((64, y, S - 64, y + 92), fill=mix(c.bg, c.ink, 0.06))
-        tag = "TODAY" if i < 3 else "FRESH"
-        tf = _font(28, bold=True)
-        tag_w = c.d.textlength(tag, font=tf)
-        c.d.text((S - 96 - tag_w, y + 32), tag, font=tf, fill=c.accent)
-        # the row label gets what's left after the tag, never the tag's space
-        label, f = fit(c.d, item.upper(), S - 192 - tag_w - 32, 36)
-        c.d.text((96, y + 26), label, font=f, fill=c.ink)
-        y += 112
-    extra = (p.get("facts") or [""])[0]
-    if extra:
-        c.small(extra, y + 20)
+
+    if fam == "artisan":
+        # chalkboard: everything centered, serif, ornaments between lines
+        bf = _font(40, bold=True)
+        c.d.text(((S - c.d.textlength(board, font=bf)) // 2, 200), board,
+                 font=bf, fill=c.accent)
+        y = 300 + max(0, (560 - len(items) * 108) // 2)
+        for i, item in enumerate(items):
+            label, f = fit(c.d, item, S - 260, 54 if i == 0 else 44)
+            f = _font(f.size, serif=True)
+            c.d.text(((S - c.d.textlength(label, font=f)) // 2, y), label,
+                     font=f, fill=c.ink if i else c.accent)
+            y += f.size + 20
+            if i < len(items) - 1:
+                c.d.ellipse((S // 2 - 5, y + 2, S // 2 + 5, y + 12), fill=c.dim)
+                y += 34
+        extra = (p.get("facts") or [""])[0]
+        if extra:
+            c.small(extra, min(y + 30, 880), center=True)
+    elif fam == "diner":
+        # menu card: inset panel, double border, dotted leader to the tag
+        c.d.rounded_rectangle((56, 196, S - 56, 900), radius=18,
+                              fill=mix(c.bg, c.ink, 0.05))
+        c.d.rounded_rectangle((72, 212, S - 72, 884), radius=12,
+                              outline=c.dim, width=3)
+        bf = _font(34, bold=True)
+        c.d.text(((S - c.d.textlength(board, font=bf)) // 2, 244), board,
+                 font=bf, fill=c.accent)
+        y = 330 + max(0, (480 - len(items) * 96) // 2)
+        for i, item in enumerate(items):
+            tag = "TODAY" if i < 3 else "FRESH"
+            tf = _font(26, bold=True)
+            tag_w = c.d.textlength(tag, font=tf)
+            label, f = fit(c.d, item.upper(), S - 320 - tag_w, 36)
+            lw = c.d.textlength(label, font=f)
+            c.d.text((120, y), label, font=f, fill=c.ink)
+            dot_y = y + f.size - 10
+            x = 120 + lw + 18
+            while x < S - 150 - tag_w:
+                c.d.ellipse((x, dot_y, x + 4, dot_y + 4), fill=c.dim)
+                x += 16
+            c.d.text((S - 128 - tag_w, y + 4), tag, font=tf, fill=c.accent)
+            y += 96
+        extra = (p.get("facts") or [""])[0]
+        if extra:
+            c.small(extra, 916, center=True)
+    else:
+        c.d.text((64, 200), board, font=_font(34, bold=True), fill=c.accent)
+        y = 280 + min(80, max(0, (620 - len(items) * 112) // 2))
+        for i, item in enumerate(items):
+            c.d.rectangle((64, y, S - 64, y + 92), fill=mix(c.bg, c.ink, 0.06))
+            tag = "TODAY" if i < 3 else "FRESH"
+            tf = _font(28, bold=True)
+            tag_w = c.d.textlength(tag, font=tf)
+            c.d.text((S - 96 - tag_w, y + 32), tag, font=tf, fill=c.accent)
+            label, f = fit(c.d, item.upper(), S - 192 - tag_w - 32, 36)
+            c.d.text((96, y + 26), label, font=f, fill=c.ink)
+            y += 112
+        extra = (p.get("facts") or [""])[0]
+        if extra:
+            c.small(extra, y + 20)
     c.footer()
     return c
 
 
 def card_statement(p):
-    """One big line — the post that reads at arm's length in a feed."""
+    """One big line, staged per family: sunrise arcs (artisan), ticket frame
+    (diner), or the off-center disc (default)."""
     c = Card(p)
-    # soft disc low and right, kept clear of the copy: a shape behind the type
-    # fights it, and the day label lives in the top-right corner
-    c.d.ellipse((640, 660, 1300, 1320), fill=c.dim)
-    c.header("Tuesday")
+    fam = c.style.get("family", "default")
     sells, _, _ = voice(p)
     line = p.get("statement") or f"Fresh {sells} at {p['name']}."
-    # a statement that wraps to four lines isn't a statement any more
-    y = c.message(line, 280, size=92, max_lines=3)
-    c.d.rectangle((64, y + 26, 344, y + 38), fill=c.accent)   # rule, not a void
-    c.small(p.get("town", ""), y + 78)
+
+    if fam == "artisan":
+        # rising sun: concentric arcs from the bottom edge, copy up top
+        cx = S // 2
+        for r in (520, 400, 280, 160):
+            c.d.arc((cx - r, 980 - r, cx + r, 980 + r), 180, 360,
+                    fill=c.dim, width=6)
+        c.d.ellipse((cx - 70, 910, cx + 70, 1050), fill=c.accent)
+        c.header("Tuesday")
+        y = c.message(line, 250, size=88, center=True, max_lines=3)
+        c.small(p.get("town", ""), y + 30, center=True)
+    elif fam == "diner":
+        # ticket: double frame with corner squares, copy centered inside
+        c.d.rectangle((72, 200, S - 72, 880), outline=c.accent, width=5)
+        c.d.rectangle((92, 220, S - 92, 860), outline=c.dim, width=2)
+        for cx, cy in ((72, 200), (S - 72, 200), (72, 880), (S - 72, 880)):
+            c.d.rectangle((cx - 14, cy - 14, cx + 14, cy + 14), fill=c.accent)
+        c.header("Tuesday")
+        y = c.message(line, 300, size=82, center=True, max_w=S - 260,
+                      max_lines=3)
+        c.small(p.get("town", ""), min(y + 26, 800), center=True)
+    else:
+        c.d.ellipse((640, 660, 1300, 1320), fill=c.dim)
+        c.header("Tuesday")
+        y = c.message(line, 280, size=92, max_lines=3)
+        c.d.rectangle((64, y + 26, 344, y + 38), fill=c.accent)
+        c.small(p.get("town", ""), y + 78)
     c.footer()
     return c
 
@@ -417,23 +485,68 @@ def card_hours(p):
 
 
 def card_spotlight(p):
-    """One item, centered and large — the 'this is the thing' post."""
+    """One hero item: scalloped plate (artisan), perforated ticket stub
+    (diner), or the plain ring (default)."""
     c = Card(p)
+    fam = c.style.get("family", "default")
     items = p.get("items") or []
     hero = p.get("spotlight") or (items[0] if items else p["name"])
-    c.d.ellipse((190, 250, 890, 950), outline=c.accent, width=6)
-    c.d.ellipse((240, 300, 840, 900), fill=c.dim)
-    c.header("Thursday")
-    f = _font(30, bold=True)
-    label = voice(p)[0].upper()
-    c.d.text(((S - c.d.textlength(label, font=f)) // 2, 400), label,
-             font=f, fill=c.accent)
-    c.message(hero, 470, size=72, center=True, max_w=560)
     price = p.get("spotlight_price")
-    if price:
-        pf = _font(56, bold=True)
-        c.d.text(((S - c.d.textlength(price, font=pf)) // 2, 760), price,
-                 font=pf, fill=c.accent)
+
+    if fam == "artisan":
+        # doily plate: ring of small discs around the hero circle
+        import math as _m
+        cx, cy, R = S // 2, 590, 330
+        for i in range(22):
+            a = 2 * _m.pi * i / 22
+            bx, by = cx + R * _m.cos(a), cy + R * _m.sin(a)
+            c.d.ellipse((bx - 22, by - 22, bx + 22, by + 22), fill=c.dim)
+        c.d.ellipse((cx - R + 26, cy - R + 26, cx + R - 26, cy + R - 26),
+                    fill=mix(c.bg, c.ink, 0.05))
+        c.d.ellipse((cx - R + 56, cy - R + 56, cx + R - 56, cy + R - 56),
+                    outline=c.accent, width=4)
+        c.header("Thursday")
+        f = _font(30, bold=True)
+        label = voice(p)[0].upper()
+        c.d.text(((S - c.d.textlength(label, font=f)) // 2, 430), label,
+                 font=f, fill=c.accent)
+        c.message(hero, 500, size=70, center=True, max_w=470)
+        if price:
+            pf = _font(54, bold=True)
+            c.d.text(((S - c.d.textlength(price, font=pf)) // 2, 740), price,
+                     font=pf, fill=c.accent)
+    elif fam == "diner":
+        # ticket stub: perforation line splits the stub from the body
+        c.d.rounded_rectangle((110, 280, S - 110, 860), radius=26,
+                              fill=mix(c.bg, c.ink, 0.06))
+        c.d.rounded_rectangle((110, 280, S - 110, 860), radius=26,
+                              outline=c.accent, width=4)
+        for y in range(300, 850, 26):
+            c.d.line((320, y, 320, y + 12), fill=c.dim, width=3)
+        c.header("Thursday")
+        lf = _font(28, bold=True)
+        label = voice(p)[0].upper()
+        for i, ch in enumerate(label[:10]):
+            c.d.text((196, 330 + i * 46), ch, font=lf, fill=c.accent)
+        c.message(hero, 430, size=74, center=True, max_w=470)
+        if price:
+            pf = _font(56, bold=True)
+            pw = c.d.textlength(price, font=pf)
+            c.d.text(((320 + (S - 110) - pw) // 2, 730), price,
+                     font=pf, fill=c.accent)
+    else:
+        c.d.ellipse((190, 250, 890, 950), outline=c.accent, width=6)
+        c.d.ellipse((240, 300, 840, 900), fill=c.dim)
+        c.header("Thursday")
+        f = _font(30, bold=True)
+        label = voice(p)[0].upper()
+        c.d.text(((S - c.d.textlength(label, font=f)) // 2, 400), label,
+                 font=f, fill=c.accent)
+        c.message(hero, 470, size=72, center=True, max_w=560)
+        if price:
+            pf = _font(56, bold=True)
+            c.d.text(((S - c.d.textlength(price, font=pf)) // 2, 760), price,
+                     font=pf, fill=c.accent)
     c.footer()
     return c
 
@@ -461,39 +574,105 @@ def card_quote(p):
 
 
 def card_stat(p):
-    """A single number — the most-scrolled-past-proof shape there is."""
+    """A single number: starburst badge (artisan), dinner plate (diner), or
+    bare and huge (default)."""
     c = Card(p)
+    fam = c.style.get("family", "default")
     stat = p.get("stat") or {}
     value = str(stat.get("value") or len(p.get("items") or []) or "7")
     label = stat.get("label") or f"things {voice(p)[0]}"
     c.header("Saturday")
-    f = _font(300, bold=True)
-    w = c.d.textlength(value, font=f)
-    while w > S - 200 and f.size > 90:
-        f = _font(f.size - 20, bold=True)
+
+    if fam == "artisan":
+        import math as _m
+        cx, cy = S // 2, 470
+        pts = []
+        for i in range(28):
+            a = 2 * _m.pi * i / 28
+            r = 320 if i % 2 == 0 else 268
+            pts.append((cx + r * _m.cos(a), cy + r * _m.sin(a)))
+        c.d.polygon(pts, fill=c.dim)
+        c.d.ellipse((cx - 240, cy - 240, cx + 240, cy + 240), fill=c.bg)
+        c.d.ellipse((cx - 240, cy - 240, cx + 240, cy + 240),
+                    outline=c.accent, width=5)
+        f = _font(220, bold=True)
         w = c.d.textlength(value, font=f)
-    c.d.text(((S - w) // 2, 300), value, font=f, fill=c.accent)
-    c.message(label, 660, size=64, center=True, max_w=S - 200, fill=c.ink)
+        while w > 400 and f.size > 80:
+            f = _font(f.size - 20, bold=True)
+            w = c.d.textlength(value, font=f)
+        c.d.text(((S - w) // 2, cy - f.size // 2 - 30), value, font=f, fill=c.accent)
+        c.message(label, 800, size=58, center=True, max_w=S - 200, fill=c.ink,
+                  max_lines=2)
+    elif fam == "diner":
+        cx, cy = S // 2, 480
+        c.d.ellipse((cx - 300, cy - 300, cx + 300, cy + 300),
+                    fill=mix(c.bg, c.ink, 0.05))
+        c.d.ellipse((cx - 300, cy - 300, cx + 300, cy + 300),
+                    outline=c.dim, width=4)
+        c.d.ellipse((cx - 225, cy - 225, cx + 225, cy + 225),
+                    outline=c.accent, width=4)
+        for x in (150, 168, 186):                       # fork tines, abstract
+            c.d.line((x, cy - 90, x, cy + 90), fill=c.dim, width=6)
+        c.d.line((S - 165, cy - 90, S - 165, cy + 90), fill=c.dim, width=10)
+        f = _font(230, bold=True)
+        w = c.d.textlength(value, font=f)
+        while w > 380 and f.size > 80:
+            f = _font(f.size - 20, bold=True)
+            w = c.d.textlength(value, font=f)
+        c.d.text(((S - w) // 2, cy - f.size // 2 - 25), value, font=f, fill=c.accent)
+        c.message(label, 820, size=58, center=True, max_w=S - 200, fill=c.ink,
+                  max_lines=2)
+    else:
+        f = _font(300, bold=True)
+        w = c.d.textlength(value, font=f)
+        while w > S - 200 and f.size > 90:
+            f = _font(f.size - 20, bold=True)
+            w = c.d.textlength(value, font=f)
+        c.d.text(((S - w) // 2, 300), value, font=f, fill=c.accent)
+        c.message(label, 660, size=64, center=True, max_w=S - 200, fill=c.ink)
     c.footer()
     return c
 
 
 def card_teaser(p):
-    """A radial burst — 'something's coming', the post that gets replies."""
+    """The 'something's coming' post: sunrise glow (artisan), marquee bulbs
+    (diner), or the radial burst (default)."""
     c = Card(p)
-    cx, cy = S // 2, 430
-    for r in (300, 210, 120):
-        c.d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=c.dim, width=4)
-    for i in range(12):                      # spokes, fading outward
-        a = math.radians(i * 30)
-        c.d.line((cx + 90 * math.cos(a), cy + 90 * math.sin(a),
-                  cx + 300 * math.cos(a), cy + 300 * math.sin(a)),
-                 fill=c.dim, width=3)
-    c.d.ellipse((cx - 54, cy - 54, cx + 54, cy + 54), fill=c.accent)
-    c.header("Sunday")
-    # two lines max above the footer — a third line would run into it
-    c.message(p.get("teaser") or "Something new this week.", 760,
-              size=72, center=True, max_lines=2)
+    fam = c.style.get("family", "default")
+
+    if fam == "artisan":
+        cx = S // 2
+        for r, wdt in ((430, 8), (330, 6), (230, 5), (130, 4)):
+            c.d.arc((cx - r, 560 - r, cx + r, 560 + r), 0, 180,
+                    fill=c.dim, width=wdt)
+        c.d.ellipse((cx - 64, 500, cx + 64, 628), fill=c.accent)
+        c.header("Sunday")
+        c.message(p.get("teaser") or "Something new this week.", 240,
+                  size=72, center=True, max_lines=2)
+    elif fam == "diner":
+        step = 62
+        for x in range(60, S - 40, step):
+            c.d.ellipse((x, 160, x + 22, 182), fill=c.accent)
+            c.d.ellipse((x, S - 150, x + 22, S - 128), fill=c.accent)
+        for y in range(220, S - 190, step):
+            c.d.ellipse((52, y, 74, y + 22), fill=c.accent)
+            c.d.ellipse((S - 74, y, S - 52, y + 22), fill=c.accent)
+        c.header("Sunday")
+        c.message(p.get("teaser") or "Something new this week.", 430,
+                  size=76, center=True, max_w=S - 260, max_lines=3)
+    else:
+        cx, cy = S // 2, 430
+        for r in (300, 210, 120):
+            c.d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=c.dim, width=4)
+        for i in range(12):
+            a = math.radians(i * 30)
+            c.d.line((cx + 90 * math.cos(a), cy + 90 * math.sin(a),
+                      cx + 300 * math.cos(a), cy + 300 * math.sin(a)),
+                     fill=c.dim, width=3)
+        c.d.ellipse((cx - 54, cy - 54, cx + 54, cy + 54), fill=c.accent)
+        c.header("Sunday")
+        c.message(p.get("teaser") or "Something new this week.", 760,
+                  size=72, center=True, max_lines=2)
     c.footer()
     return c
 

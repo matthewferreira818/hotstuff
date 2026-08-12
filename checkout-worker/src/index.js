@@ -459,7 +459,8 @@ async function recordOrder(session, env) {
 // hiccup must never block the order log. Deliberately no street address or
 // email in the push body; name + country is enough to act on.
 async function notifyOrder(record, env) {
-  if (!env.NTFY_TOPIC) return;
+  const topic = (env.NTFY_TOPIC || "").trim();
+  if (!topic) return;
   const needsAction = record.status !== "auto-placed";
   const what = record.product.name || record.product.sku || "Custom-design tee";
   const body = [
@@ -470,7 +471,7 @@ async function notifyOrder(record, env) {
       : `Auto-placed with CJ (#${record.cj?.orderId || "?"}). Nothing to do.`,
   ].join("\n");
   try {
-    await fetch(`https://ntfy.sh/${env.NTFY_TOPIC}`, {
+    await fetch(`https://ntfy.sh/${topic}`, {
       method: "POST",
       body,
       headers: {
@@ -527,9 +528,14 @@ async function handleLead(request, env) {
       { expirationTtl: LEAD_TTL_SECONDS }
     );
 
-    if (env.NTFY_TOPIC) {
+    // push status is reported in the response ("sent" / "failed-http-###" /
+    // "failed-network" / "skipped-no-topic") so a quiet phone can be
+    // diagnosed from the outside without dashboard spelunking.
+    let push = "skipped-no-topic";
+    const topic = (env.NTFY_TOPIC || "").trim();
+    if (topic) {
       try {
-        await fetch(`https://ntfy.sh/${env.NTFY_TOPIC}`, {
+        const nres = await fetch(`https://ntfy.sh/${topic}`, {
           method: "POST",
           body: [
             `${name}${business ? " — " + business : ""}`,
@@ -543,11 +549,13 @@ async function handleLead(request, env) {
             Priority: "high",
           },
         });
+        push = nres.ok ? "sent" : `failed-http-${nres.status}`;
       } catch (err) {
+        push = "failed-network";
         console.log("ntfy lead alert failed:", String(err)); // lead already stored
       }
     }
-    return jsonResponse({ ok: true }, 200, request);
+    return jsonResponse({ ok: true, push }, 200, request);
   } catch (err) {
     return jsonResponse({ error: String(err) }, 500, request);
   }

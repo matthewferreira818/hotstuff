@@ -151,36 +151,66 @@ def todays_captions():
     return product, agent
 
 
-def push_draft(access, image_urls, caption, label, topic):
-    payload = {
-        "media_type": "PHOTO",
-        "post_mode": "MEDIA_UPLOAD",
-        "post_info": {
-            "title": caption[:90],
-            "description": caption[:4000],
-        },
-        "source_info": {
-            "source": "PULL_FROM_URL",
-            "photo_cover_index": 0,
-            "photo_images": image_urls,
-        },
-    }
-    data, status = http_json(CONTENT_INIT_URL, data=payload,
-                             headers={"Authorization": f"Bearer {access}"})
-    err = (data.get("error") or {})
-    code = err.get("code", "")
-    if status == 200 and code in ("ok", ""):
-        publish_id = (data.get("data") or {}).get("publish_id", "?")
-        print(f"{label}: draft pushed (publish_id {publish_id})")
-        return True
-    if code == "spam_risk_too_many_pending_share":
-        print(f"{label}: skipped — 5 unposted drafts are already waiting in TikTok")
-        ntfy(topic, "TikTok drafts piling up",
-             "5 unposted drafts are waiting in your TikTok inbox — post or "
-             "discard some so new ones can arrive.", "default", "warning")
-        return False
-    print(f"{label}: draft failed (HTTP {status}): {err.get('message') or data}")
-    return False
+def _payload_variants(image_urls, caption):
+    """TikTok's photo-draft endpoint is picky about post_info and thin on
+    error detail ("post info is empty or incorrect"). Try the documented
+    shape first, then known-good variations, in order."""
+    def src(cover=None):
+        d = {"source": "PULL_FROM_URL", "photo_images": image_urls}
+        if cover is not None:
+            d["photo_cover_index"] = cover
+        return d
+
+    return [
+        ("title+desc+music", {
+            "media_type": "PHOTO", "post_mode": "MEDIA_UPLOAD",
+            "post_info": {"title": caption[:90], "description": caption[:4000],
+                          "auto_add_music": True},
+            "source_info": src(0)}),
+        ("cover1", {
+            "media_type": "PHOTO", "post_mode": "MEDIA_UPLOAD",
+            "post_info": {"title": caption[:90], "description": caption[:4000],
+                          "auto_add_music": True},
+            "source_info": src(1)}),
+        ("no-cover", {
+            "media_type": "PHOTO", "post_mode": "MEDIA_UPLOAD",
+            "post_info": {"title": caption[:90], "description": caption[:4000]},
+            "source_info": src()}),
+        ("plain-title", {
+            "media_type": "PHOTO", "post_mode": "MEDIA_UPLOAD",
+            "post_info": {"title": "Today's drop", "description": caption[:4000],
+                          "auto_add_music": True},
+            "source_info": src(0)}),
+        ("original", {
+            "media_type": "PHOTO", "post_mode": "MEDIA_UPLOAD",
+            "post_info": {"title": caption[:90], "description": caption[:4000]},
+            "source_info": src(0)}),
+    ]
+
+
+def push_draft(access, image_urls, caption, label, topic, variants=None):
+    """Returns the name of the variant that worked, or None."""
+    import time
+    tried = variants or _payload_variants(image_urls, caption)
+    for i, (name, payload) in enumerate(tried):
+        if i:
+            time.sleep(12)   # posting endpoints allow 6 requests/minute
+        data, status = http_json(CONTENT_INIT_URL, data=payload,
+                                 headers={"Authorization": f"Bearer {access}"})
+        err = (data.get("error") or {})
+        code = err.get("code", "")
+        if status == 200 and code in ("ok", ""):
+            publish_id = (data.get("data") or {}).get("publish_id", "?")
+            print(f"{label}: draft pushed via variant '{name}' (publish_id {publish_id})")
+            return name
+        if code == "spam_risk_too_many_pending_share":
+            print(f"{label}: 5 unposted drafts already waiting in TikTok — stopping")
+            ntfy(topic, "TikTok drafts piling up",
+                 "5 unposted drafts are waiting in your TikTok inbox — post or "
+                 "discard some so new ones can arrive.", "default", "warning")
+            return None
+        print(f"{label}: variant '{name}' failed (HTTP {status}): {json.dumps(err) or data}")
+    return None
 
 
 def post():
@@ -202,19 +232,21 @@ def post():
     product_caption, agent_caption = todays_captions()
     stamp = date.today().isoformat()
 
-    ok = push_draft(
-        access,
-        [f"{SITE}/{SLIDES}/product/product-{n}.png" for n in (1, 2, 3)]
-        + [f"{SITE}/{SLIDES}/product/product-4-qr.png"],
-        product_caption, "product pack", topic)
+    product_urls = ([f"{SITE}/{SLIDES}/product/product-{n}.png" for n in (1, 2, 3)]
+                    + [f"{SITE}/{SLIDES}/product/product-4-qr.png"])
+    winner = push_draft(access, product_urls, product_caption, "product pack", topic)
 
-    ok2 = True
-    if agent_caption:
-        ok2 = push_draft(
-            access,
-            [f"{SITE}/{SLIDES}/agent/agent-{n}.png" for n in (1, 2, 3)],
-            agent_caption, "agent pack", topic)
+    ok2 = None
+    if agent_caption and winner:
+        # reuse only the shape that just worked — no duplicate experiments
+        agent_urls = [f"{SITE}/{SLIDES}/agent/agent-{n}.png" for n in (1, 2, 3)]
+        import time
+        time.sleep(12)
+        chosen = [(n, p) for n, p in _payload_variants(agent_urls, agent_caption) if n == winner]
+        ok2 = push_draft(access, agent_urls, agent_caption, "agent pack", topic,
+                         variants=chosen)
 
+    ok = winner
     if ok and ok2:
         ntfy(topic, "TikTok drafts ready",
              f"Both of today's packs ({stamp}) are in your TikTok inbox as "

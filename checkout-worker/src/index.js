@@ -469,9 +469,6 @@ async function notifyOrder(record, env) {
         Title: needsAction ? "ORDER PAID — needs fulfillment" : "Order paid + auto-placed",
         Tags: needsAction ? "rotating_light,moneybag" : "white_check_mark,moneybag",
         Priority: needsAction ? "high" : "default",
-        // ntfy.sh forwards a copy to the inbox — the channel that reliably
-        // reaches Matthew until the phone app is set up
-        Email: "ceohotstuff@yahoo.com",
       },
     });
   } catch (err) {

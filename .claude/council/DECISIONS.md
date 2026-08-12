@@ -17,6 +17,13 @@ Format per entry:
 
 ---
 
+## 2026-08-12 — Which 2-4 items make up the next website build wave (backlog + new ideas) toward a first ECS client by Aug 31?
+- Seats: Operator GO-IF(4) · Marketer GO(4) · Treasurer GO-IF(4) · Skeptic GO-IF(4) · Customer GO-IF(4)
+- Clash: everyone wants a wave, but the seats split on the odometer (3 want it gated-honest, Skeptic says not until ~30 days of artifacts, Operator offers the "N posts since Aug 7" stored-counter compromise) and on store-side polish (Customer wants trust line + countdown; Treasurer kills them on collapsed EV; Skeptic bans public copy changes during the clean-baseline week). Unanimous cross-seat finding: the UNDEPLOYED worker order-alert is worth more than any new item.
+- Right Hand's call: GO-IF — wave = (0) Matthew deploys the worker alert + NTFY_TOPIC before Friday's ad [gate, non-negotiable]; (1) traffic_report.py fixes: 7-day window (line-128 bug, channel_breakdown called with no start) + missing tags fb/fb-ad/card/gbp/x-qr — before Fri Aug 15; (2) proof-asset armor: backup crons + gate for ecs-daily-post.yml + staleness watchdog in traffic-report.yml (newest feed entry silently stale is the existential failure); (3) per-prospect sample-pack QR (ref=sample-<slug>, slug ≤17 chars) ready before the next pack prints. Odometer deferred to next wave in Operator's honest form only; trust strip/chips/badges/dates/countdown killed or deferred per Treasurer. Build capped ~4h; calls outrank commits.
+- Matthew's decision: pending
+- Next moves: Matthew worker paste-deploy + NTFY_TOPIC (10 min), Claude ships items 1-3 today, Léger call 1-2 PM unaffected, odometer revisited after watchdog runs clean
+
 ## 2026-08-06 — Take the Printify logo-merch pop-up store fully live and announce it this August, rather than deferring?
 - Seats: Operator GO-IF(4) · Marketer GO-IF(4) · Treasurer GO(4) · Skeptic GO-IF(4) · Customer GO-IF(4)
 - Clash: no seat wants to defer — the fight is over sequencing. The site already claims the lineup is "live now" but all five Printify product pages dead-end at "coming soon" with no Add to Cart, so the current half-launched state is the worst of the three worlds; announcement must come after publish + verification, not before.

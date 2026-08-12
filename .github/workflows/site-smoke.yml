@@ -1,0 +1,32 @@
+name: Site smoke test
+
+# Daily deep health check: pages carry their critical features, assets
+# resolve, the checkout worker routes, the lead endpoint answers. The hourly
+# watchdog covers uptime; this covers "does it all still work". Runs before
+# the day's content fires (drafts 11:30 UTC, brief 13:00 UTC) so breakage
+# surfaces first. Green = silent; failures ntfy-push to the phone.
+
+on:
+  schedule:
+    - cron: "15 10 * * *"
+  workflow_dispatch:
+    inputs:
+      quiet:
+        description: "Skip the ntfy push (supervised test run)"
+        type: boolean
+        default: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run smoke test
+        run: python smoke_test.py
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          QUIET: ${{ inputs.quiet && '1' || '' }}

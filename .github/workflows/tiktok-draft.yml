@@ -1,0 +1,38 @@
+name: TikTok draft push
+
+# Pushes today's slide packs into the store's TikTok account as DRAFTS via
+# the Content Posting API (MEDIA_UPLOAD mode). They land as inbox
+# notifications; Matthew opens each in the app, adds a sound, and taps Post.
+# Runs after the daily pack generates (~10:52 UTC). Skips silently until
+# the TIKTOK_* secrets are configured.
+#
+# Deliberately a single cron: a duplicate fire would push duplicate drafts
+# (TikTok caps pending drafts at 5, and doesn't dedupe content), so a
+# missed morning is recovered with workflow_dispatch, not a backup cron —
+# the morning slide-drop routine checks whether drafts went out.
+
+on:
+  schedule:
+    - cron: "30 11 * * *"   # 11:30 UTC = 8:30 AM Atlantic
+  workflow_dispatch: {}
+
+concurrency:
+  group: tiktok-draft
+  cancel-in-progress: false
+
+jobs:
+  push-drafts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Push today's packs as TikTok drafts
+        env:
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python tiktok_engine.py post

@@ -1,0 +1,36 @@
+name: TikTok connect (one-time)
+
+# Exchanges the OAuth code from the authorize flow for tokens. The refresh
+# token is delivered to Matthew's phone via the private ntfy topic — never
+# printed to logs, because this repo is public. Run it manually with the
+# code from https://findhotstuff.com/tiktok-callback/ (codes expire in
+# minutes, so run this right after authorizing).
+
+on:
+  workflow_dispatch:
+    inputs:
+      auth_code:
+        description: "Authorization code from the tiktok-callback page"
+        required: true
+        type: string
+
+concurrency:
+  group: tiktok-connect
+  cancel-in-progress: false
+
+jobs:
+  connect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Exchange code for tokens (refresh token goes to phone, not logs)
+        env:
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_CODE: ${{ github.event.inputs.auth_code }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python tiktok_engine.py connect

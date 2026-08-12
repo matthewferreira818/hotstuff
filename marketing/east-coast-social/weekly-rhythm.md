@@ -25,15 +25,18 @@ effort there. Calls, walk-ins and search are the channels that respond.
 
 ## The daily minimum (5–10 minutes, any time)
 
-1. **Morning brief lands ~10 AM** — slides, captions, traffic, callbacks due.
-2. **Posting session** — paste `marketing/daily-post-session-prompt.md` into
+1. **~8:30 AM: TikTok drafts land in your inbox** — the engine pushes both
+   packs via TikTok's API (since Aug 12). Open each from the TikTok inbox
+   notification, add a sound (product: upbeat, agent: calm/lofi), tap Post —
+   product in the day, agent in the evening.
+2. **Morning brief lands ~10 AM** — traffic, captions, callbacks due, and
+   confirmation the drafts went out (with an automatic re-push if not).
+3. **Posting session** — paste `marketing/daily-post-session-prompt.md` into
    Chrome Claude: X post + 2 product pins + 1 ECS pin. Click the buttons.
-3. **Product TikTok** — from the phone, whenever.
-4. **Agent TikTok ~8 PM** — the evening ping reminds you.
-5. **Check for replies** — comments on group posts, DMs, texts. Reply fast;
+4. **Check for replies** — comments on group posts, DMs, texts. Reply fast;
    on Facebook, every reply lifts the post back into feeds.
 
-That's it. If a day goes sideways, do only step 5 — replying to a real human
+That's it. If a day goes sideways, do only step 4 — replying to a real human
 beats any post.
 
 ---

@@ -89,6 +89,29 @@ def slugify(name):
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
+def ref_tag(slug):
+    """Per-prospect attribution tag. The site's ref regex caps tags at 24
+    chars; 'sample-' takes 7, so the slug part gets 17."""
+    return "sample-" + slug[:17].strip("-")
+
+
+def tracked_link(slug):
+    return f"findhotstuff.com/automation/?ref={ref_tag(slug)}"
+
+
+def register_slug(slug):
+    """Keep samples/registry.json current so traffic_report.py can report
+    ref-sample-<slug> scans by name. A scan = the hottest signal we have."""
+    reg = SAMPLES / "registry.json"
+    try:
+        slugs = set(json.loads(reg.read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        slugs = set()
+    slugs.add(slug[:17].strip("-"))
+    SAMPLES.mkdir(parents=True, exist_ok=True)
+    reg.write_text(json.dumps(sorted(slugs), indent=1), encoding="utf-8")
+
+
 def voice(profile):
     return VOICE.get(profile.get("category", "*"), VOICE["*"])
 
@@ -399,7 +422,7 @@ def write_captions(p, out):
         lines += [f"## Day {i} — {day} (day-{i}.png)",
                   f"**Caption:** {caption}", ""]
     lines += ["---", "",
-              "Built by East Coast Social — findhotstuff.com/automation/?ref=sample",
+              f"Built by East Coast Social — {tracked_link(p['slug'])}",
               "", "Your page posts every day. You approve the style once."]
     (out / "captions.md").write_text("\n".join(lines), encoding="utf-8")
 
@@ -434,10 +457,28 @@ def contact_sheet(p, out, paths):
 
     d.ellipse((gap, 54, gap + 34, 88), fill=accent)
     d.text((gap + 52, 48), p["name"].upper(), font=_font(46, bold=True), fill=accent)
-    d.text((gap, 116), "One week of posts — already built for you.",
-           font=_font(36, serif=True), fill=rgb(p.get("ink", "#f4f6fa")))
+    d.text((gap, 118), "One week of posts — already built for you.",
+           font=_font(31, serif=True), fill=rgb(p.get("ink", "#f4f6fa")))
     d.text((gap, 164), "East Coast Social · findhotstuff.com/automation",
            font=_font(28), fill=mix(rgb(p["bg"]), accent, 0.7))
+
+    # per-prospect QR: when THIS sheet gets scanned, the traffic ping says
+    # this prospect's name — the highest-intent signal on the board
+    try:
+        import io as _io
+        import segno
+        qs = 150
+        buf = _io.BytesIO()
+        segno.make(f"https://{tracked_link(p['slug'])}", error="m").save(
+            buf, kind="png", scale=10, border=1, dark="#111111", light="#ffffff")
+        qr = Image.open(buf).convert("RGB").resize((qs, qs), Image.NEAREST)
+        pad = 12
+        qx = W - gap - qs - pad * 2
+        d.rounded_rectangle((qx, 28, qx + qs + pad * 2, 28 + qs + pad * 2),
+                            radius=14, fill="#ffffff")
+        sheet.paste(qr, (qx + pad, 28 + pad))
+    except Exception as exc:  # noqa: BLE001 - a missing QR lib never blocks a pack
+        print(f"  (QR skipped: {exc})")
 
     for i, path in enumerate(paths):
         card = Image.open(path).resize((thumb, thumb), Image.LANCZOS)
@@ -523,7 +564,8 @@ def render(profile_path):
         print(f"  day-{i}.png  {device.__name__.replace('card_', '')}")
     write_captions(p, out)
     contact_sheet(p, out, paths)
-    print(f"captions.md + contact-sheet.png -> {out}")
+    register_slug(p["slug"])
+    print(f"captions.md + contact-sheet.png -> {out}  (ref tag: {ref_tag(p['slug'])})")
 
     todo = missing_fields(p)
     if todo:

@@ -15,6 +15,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          # the watchdog asks git when products.json last changed; a depth-1
+          # checkout can't answer that
+          fetch-depth: 300
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

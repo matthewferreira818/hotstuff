@@ -3,6 +3,12 @@ name: ECS daily post
 on:
   schedule:
     - cron: "0 12 * * *"   # 12:00 UTC = 9:00 AM Atlantic — morning-coffee slot
+    # backup crons: GitHub's scheduler skips or delays fires often enough that
+    # refresh-products needed three. A silently-missed day punches a hole in
+    # the /automation proof feed — the one asset every channel points at.
+    # The gate step below makes whichever fires first win; the rest no-op.
+    - cron: "30 13 * * *"
+    - cron: "0 16 * * *"
   workflow_dispatch:
     inputs:
       only_x:
@@ -23,13 +29,28 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 80
+      - name: Skip if today's post already went out (backup-cron guard)
+        id: gate
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && git log --since=midnight --oneline | grep -q "ECS daily card"; then
+            echo "Today's ECS post already published — duplicate scheduled fire. Skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.run == 'true'
         with:
           python-version: "3.12"
-      - run: pip install pillow requests requests_oauthlib
+      - if: steps.gate.outputs.run == 'true'
+        run: pip install pillow requests requests_oauthlib
       - name: Generate today's card + caption
+        if: steps.gate.outputs.run == 'true'
         run: python marketing/east-coast-social/engine/generate_ecs_post.py
       - name: Publish today's materials to the repo (for manual posting sessions)
+        if: steps.gate.outputs.run == 'true'
         run: |
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
@@ -40,12 +61,13 @@ jobs:
             git push origin HEAD:master
           fi
       - name: Publish to Facebook Page
-        if: ${{ github.event.inputs.only_x != 'true' }}
+        if: ${{ steps.gate.outputs.run == 'true' && github.event.inputs.only_x != 'true' }}
         env:
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
         run: python marketing/east-coast-social/engine/post_to_facebook.py
       - name: Publish to X (East Coast Social account)
+        if: steps.gate.outputs.run == 'true'
         env:
           ECS_X_API_KEY: ${{ secrets.ECS_X_API_KEY }}
           ECS_X_API_SECRET: ${{ secrets.ECS_X_API_SECRET }}

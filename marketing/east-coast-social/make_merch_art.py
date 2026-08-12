@@ -26,7 +26,9 @@ LIGHT = "#f2f6fa"
 MIST = "#a8bccf"
 NAVY = "#0d1f33"
 W, H = 4500, 5100                      # Printify DTG max print area @300dpi
-QR_URL = "https://eastcoastsocial.ca/?ref=merch"
+# direct domain, not eastcoastsocial.ca: the forward strips query strings,
+# which would silently untag every sweater scan
+QR_URL = "https://findhotstuff.com/automation/?ref=merch"
 
 
 def logo_disc(size):

@@ -20,6 +20,7 @@ import os
 import sys
 import urllib.parse
 import urllib.request
+from pathlib import Path
 
 SITE = "https://theycallmemattyb.goatcounter.com"
 
@@ -66,15 +67,77 @@ def public_path_count(path: str, start: dt.date | None = None) -> int:
 # it is GoatCounter's own referrer-override parameter.
 REF_CHANNELS = [
     ("x", "X posts"),
+    ("x-qr", "X QR replies"),
     ("pin", "Pinterest product pins"),
     ("pin-ecs", "Pinterest ECS pins"),
     ("ecs", "ECS daily caption"),
+    ("fb", "Facebook posts/groups"),
+    ("fb-ad", "Moncton group ad slot"),
+    ("gbp", "Google Business Profile"),
     ("tt", "TikTok product QR"),
     ("tt-ecs", "TikTok agent QR"),
-    ("print", "Print QR (flyers/cards)"),
-    ("sample", "Sample-pack QR"),
+    ("print", "Print QR (flyers)"),
+    ("card", "Business cards"),
+    ("sample", "Sample-pack QR (generic)"),
     ("merch", "Merch QR (the sweater)"),
 ]
+
+# Own-visit exclusion took effect Aug 12 (laptop toggled out of GoatCounter);
+# numbers before this date include Matthew's own browsing. Channel windows
+# never reach back past it, so the phone ping stays decision-grade.
+CLEAN_BASELINE = dt.date(2026, 8, 12)
+
+
+def window_start(today: dt.date) -> dt.date:
+    """Rolling 7-day window, clipped so it never includes pre-baseline days."""
+    return max(today - dt.timedelta(days=7), CLEAN_BASELINE)
+
+
+def sample_slugs() -> list[str]:
+    """Per-prospect sample-pack slugs (ref-sample-<slug> events), from the
+    registry sample_week.py maintains. Missing registry = no packs yet."""
+    import json as _json
+    reg = (Path(__file__).parent / "marketing" / "east-coast-social"
+           / "engine" / "samples" / "registry.json")
+    try:
+        return list(_json.loads(reg.read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        return []
+
+
+def staleness_alerts(today: dt.date) -> list[str]:
+    """Watchdog for the two assets that must never silently rot: the store
+    catalog (refreshes every 3 days) and the ECS proof feed (daily post)."""
+    import json as _json
+    import subprocess
+    alerts = []
+    root = Path(__file__).parent
+
+    try:
+        entries = _json.loads((root / "automation" / "feed" / "index.json")
+                              .read_text(encoding="utf-8"))
+        newest = dt.date.fromisoformat(entries[0]["date"])
+        age = (today - newest).days
+        if age >= 2:
+            alerts.append(f"ECS proof feed stale: newest post {newest} ({age} days old)")
+    except (OSError, ValueError, KeyError, IndexError) as exc:
+        alerts.append(f"ECS proof feed unreadable: {exc}")
+
+    try:
+        out = subprocess.run(
+            ["git", "log", "-1", "--format=%ct", "--", "products.json"],
+            cwd=root, capture_output=True, text=True, timeout=30)
+        ts = int(out.stdout.strip() or 0)
+        if ts:
+            age_days = (dt.datetime.now(dt.timezone.utc).timestamp() - ts) / 86400
+            if age_days > 4:
+                alerts.append(f"Catalog stale: products.json last refreshed {age_days:.1f} days ago")
+        # empty ts = shallow checkout without the file's history; stay quiet
+        # rather than cry wolf (the workflow fetches enough depth normally)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass
+
+    return alerts
 
 # Contact-tap events fired by the automation pages (sms:/tel:/mailto: links).
 # At this traffic level a tap IS the conversion — report them alongside views.
@@ -124,14 +187,28 @@ def main() -> None:
 
         msg = f"{today} visitors so far today · {week} this week"
         busy = today
-    # channel attribution — always from the public counters, token or not
-    rows = channel_breakdown()
-    if any(n for _, _, n in rows):
-        print("channels (all-time):  " + " · ".join(f"{tag}={n}" for tag, _, n in rows if n))
-        top_tag, top_label, top_n = rows[0]
-        msg += f" · top channel: {top_label} ({top_n})"
+    # channel attribution — always from the public counters, token or not.
+    # Windowed to the last 7 clean days so the ping reflects what's pulling
+    # NOW, not inflated all-time history.
+    wstart = window_start(atlantic_now.date())
+    rows = channel_breakdown(start=wstart)
+    rows_all = channel_breakdown()
+    if any(n for _, _, n in rows_all):
+        print(f"channels (since {wstart}): " + (" · ".join(f"{tag}={n}" for tag, _, n in rows if n) or "none"))
+        print("channels (all-time):  " + " · ".join(f"{tag}={n}" for tag, _, n in rows_all if n))
     else:
-        print("channels: no ref- events recorded yet (tracking just added, or no tagged visits)")
+        print("channels: no ref- events recorded yet (no tagged visits)")
+    if any(n for _, _, n in rows):
+        top_tag, top_label, top_n = rows[0]
+        msg += f" · top channel 7d: {top_label} ({top_n})"
+
+    # per-prospect sample packs — a scan is the highest-intent signal there is
+    scans = [(slug, public_path_count(f"ref-sample-{slug}", start=wstart))
+             for slug in sample_slugs()]
+    hot = [(slug, n) for slug, n in scans if n]
+    if hot:
+        print("sample-pack scans (7d): " + " · ".join(f"{s}={n}" for s, n in hot))
+        msg += " · 📦 pack scanned: " + ", ".join(s for s, _ in hot)
 
     # contact taps — the ECS conversion signal. A tap today belongs in the ping.
     taps_today = [(t, lbl, public_path_count(t, start=atlantic_now.date())) for t, lbl in CTA_EVENTS]
@@ -151,6 +228,20 @@ def main() -> None:
     with urllib.request.urlopen(req, timeout=30) as resp:
         resp.read()
     print(f"sent: {msg}")
+
+    # watchdog: separate, loud ping only when a proof asset has gone stale
+    alerts = staleness_alerts(atlantic_now.date())
+    if alerts:
+        body = "\n".join(alerts)
+        print("WATCHDOG: " + " | ".join(alerts))
+        wreq = urllib.request.Request(
+            f"https://ntfy.sh/{topic}",
+            data=body.encode(),
+            headers={"Title": "Engine watchdog - something is stale",
+                     "Tags": "warning", "Priority": "high"},
+        )
+        with urllib.request.urlopen(wreq, timeout=30) as resp:
+            resp.read()
 
 
 if __name__ == "__main__":

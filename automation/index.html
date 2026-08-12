@@ -248,6 +248,9 @@
   .lang-link:hover { border-color: rgba(255,255,255,.8); }
   footer { text-align: center; color: var(--muted); font-size: 13.5px; padding: 28px 20px 40px; }
   .samples { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-top: 26px; }
+  .weeks { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 26px; }
+  .weeks h3 { font-size: 16.5px; margin: 0 0 4px; }
+  @media (max-width: 760px) { .weeks { grid-template-columns: 1fr; } }
   .samples img { width: 100%; height: auto; border-radius: 14px; box-shadow: 0 10px 26px -12px rgba(0,0,0,.45); }
   .feed { margin-top: 26px; }
   .feed-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
@@ -353,6 +356,31 @@ findhotstuff.com #cozyhome</p>
       <figure><img src="samples/fmt-bts.png" alt="Behind-the-scenes-format sample post: a woodworking studio's maker quote" width="720" height="720" loading="lazy"><figcaption>Behind the scenes</figcaption></figure>
     </div>
   </section>
+
+  <section>
+    <p class="eyebrow">Same engine, different playbooks</p>
+    <h2 class="serif">A bakery's week isn't a garage's week.</h2>
+    <p class="lede">Businesses that <em>make things</em> get a maker's week — what's fresh, the hero item, the daily rhythm. Businesses that <em>do things</em> get a trust week — reputation, free know-how, the booking. Two fictional shops, straight out of the engine:</p>
+    <div class="weeks">
+      <div class="week-col">
+        <h3>Sunrise Bakery — the maker week</h3>
+        <div class="samples">
+          <figure><img src="samples/week-bakery-1.jpg" alt="Bakery sample: chalkboard-style list of what's fresh today" width="540" height="540" loading="lazy"><figcaption>What's fresh</figcaption></figure>
+          <figure><img src="samples/week-bakery-2.jpg" alt="Bakery sample: cinnamon buns on a scalloped doily plate" width="540" height="540" loading="lazy"><figcaption>The hero item</figcaption></figure>
+          <figure><img src="samples/week-bakery-3.jpg" alt="Bakery sample: 4:30, when the ovens come on, in a starburst badge" width="540" height="540" loading="lazy"><figcaption>The number</figcaption></figure>
+        </div>
+      </div>
+      <div class="week-col">
+        <h3>Main Street Garage — the service week</h3>
+        <div class="samples">
+          <figure><img src="samples/week-garage-1.jpg" alt="Garage sample: reputation post under a trust shield" width="540" height="540" loading="lazy"><figcaption>The reputation</figcaption></figure>
+          <figure><img src="samples/week-garage-2.jpg" alt="Garage sample: a free pro tip about cold-morning batteries" width="540" height="540" loading="lazy"><figcaption>Free know-how</figcaption></figure>
+          <figure><img src="samples/week-garage-3.jpg" alt="Garage sample: booking post with call, message and walk-in options" width="540" height="540" loading="lazy"><figcaption>The booking</figcaption></figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <section>
     <p class="eyebrow">How it works</p>

@@ -1,0 +1,38 @@
+{
+ "_note": "Fill in items/hours/facts from their own page before rendering — that is what makes an owner say 'they actually looked at us'.",
+ "name": "Sunrise Bakery",
+ "slug": "sunrise-bakery",
+ "town": "Anytown, NB",
+ "category": "bakery",
+ "bg": "#2b1c11",
+ "accent": "#e8a33d",
+ "items": [
+  "sourdough",
+  "butter croissants",
+  "cinnamon buns",
+  "date squares"
+ ],
+ "hours": {
+  "Mon": "8–5",
+  "Tue": "8–5",
+  "Wed": "8–5",
+  "Thu": "8–5",
+  "Fri": "8–6",
+  "Sat": "8–4"
+ },
+ "facts": [
+  "Everything baked before the town wakes up"
+ ],
+ "statement": "Warm bread, cold morning. Perfect.",
+ "spotlight": "Cinnamon buns",
+ "spotlight_price": "",
+ "teaser": "Weekend bake list drops Friday.",
+ "stat": {
+  "value": "4:30",
+  "label": "when the ovens come on"
+ },
+ "review": {
+  "text": "",
+  "author": ""
+ }
+}

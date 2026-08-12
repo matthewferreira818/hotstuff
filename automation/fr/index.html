@@ -248,6 +248,9 @@
   .lang-link:hover { border-color: rgba(255,255,255,.8); }
   footer { text-align: center; color: var(--muted); font-size: 13.5px; padding: 28px 20px 40px; }
   .samples { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-top: 26px; }
+  .weeks { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 26px; }
+  .weeks h3 { font-size: 16.5px; margin: 0 0 4px; }
+  @media (max-width: 760px) { .weeks { grid-template-columns: 1fr; } }
   .samples img { width: 100%; height: auto; border-radius: 14px; box-shadow: 0 10px 26px -12px rgba(0,0,0,.45); }
   .feed { margin-top: 26px; }
   .feed-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
@@ -355,6 +358,31 @@ findhotstuff.com #cozyhome</p>
       <figure><img src="../samples/fmt-bts.png" alt="Exemple format coulisses : la citation de l'artisan ébéniste" width="720" height="720" loading="lazy"><figcaption>Dans les coulisses</figcaption></figure>
     </div>
   </section>
+
+  <section>
+    <p class="eyebrow">Le même engin, deux stratégies</p>
+    <h2 class="serif">La semaine d'une boulangerie n'est pas celle d'un garage.</h2>
+    <p class="lede">Les commerces qui <em>fabriquent</em> reçoivent une semaine d'artisan — les fraîcheurs du jour, le produit vedette, le rythme quotidien. Ceux qui <em>rendent service</em> reçoivent une semaine de confiance — la réputation, les conseils gratuits, la réservation. Deux commerces fictifs, directement de l'engin :</p>
+    <div class="weeks">
+      <div class="week-col">
+        <h3>Sunrise Bakery — la semaine d'artisan</h3>
+        <div class="samples">
+          <figure><img src="../samples/week-bakery-1.jpg" alt="Exemple boulangerie : liste du jour façon tableau noir" width="540" height="540" loading="lazy"><figcaption>Les fraîcheurs</figcaption></figure>
+          <figure><img src="../samples/week-bakery-2.jpg" alt="Exemple boulangerie : brioches à la cannelle sur assiette festonnée" width="540" height="540" loading="lazy"><figcaption>Le produit vedette</figcaption></figure>
+          <figure><img src="../samples/week-bakery-3.jpg" alt="Exemple boulangerie : 4 h 30, l'heure des fours, dans un écusson" width="540" height="540" loading="lazy"><figcaption>Le chiffre</figcaption></figure>
+        </div>
+      </div>
+      <div class="week-col">
+        <h3>Main Street Garage — la semaine de service</h3>
+        <div class="samples">
+          <figure><img src="../samples/week-garage-1.jpg" alt="Exemple garage : publication de réputation sous un écusson de confiance" width="540" height="540" loading="lazy"><figcaption>La réputation</figcaption></figure>
+          <figure><img src="../samples/week-garage-2.jpg" alt="Exemple garage : un conseil de pro gratuit sur les batteries" width="540" height="540" loading="lazy"><figcaption>Le conseil gratuit</figcaption></figure>
+          <figure><img src="../samples/week-garage-3.jpg" alt="Exemple garage : publication de réservation — appel, message, sans rendez-vous" width="540" height="540" loading="lazy"><figcaption>La réservation</figcaption></figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <section>
     <p class="eyebrow">Comment ça marche</p>

@@ -1,0 +1,38 @@
+{
+ "_note": "Fill in items/hours/facts from their own page before rendering — that is what makes an owner say 'they actually looked at us'.",
+ "name": "Main Street Garage",
+ "slug": "main-street-garage",
+ "town": "Anytown, NB",
+ "category": "auto",
+ "bg": "#14171b",
+ "accent": "#f2762e",
+ "items": [
+  "oil changes",
+  "brakes",
+  "inspections",
+  "tires"
+ ],
+ "hours": {
+  "Mon": "8–5",
+  "Tue": "8–5",
+  "Wed": "8–5",
+  "Thu": "8–5",
+  "Fri": "8–5"
+ },
+ "facts": [
+  "The shop your neighbours recommend"
+ ],
+ "statement": "Fixed right, priced straight.",
+ "spotlight": "",
+ "spotlight_price": "",
+ "teaser": "",
+ "stat": {
+  "value": "40",
+  "label": "years of keeping Anytown moving"
+ },
+ "review": {
+  "text": "",
+  "author": ""
+ },
+ "tips": []
+}

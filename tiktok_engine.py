@@ -37,6 +37,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/"
 CONTENT_INIT_URL = "https://open.tiktokapis.com/v2/post/publish/content/init/"
+STATUS_URL = "https://open.tiktokapis.com/v2/post/publish/status/fetch/"
 REDIRECT_URI = "https://findhotstuff.com/tiktok-callback/"
 SITE = "https://findhotstuff.com"
 SLIDES = "marketing/tiktok/daily"
@@ -188,6 +189,30 @@ def _payload_variants(image_urls, caption):
     ]
 
 
+def watch_status(access, publish_id, label):
+    """The init call only creates a task; the draft can still die during
+    TikTok's async download/processing. Poll until a terminal state and
+    print the truth (this is where PNG-vs-JPEG or size errors surface)."""
+    import time
+    last = ""
+    for _ in range(9):
+        time.sleep(10)
+        data, status = http_json(STATUS_URL, data={"publish_id": publish_id},
+                                 headers={"Authorization": f"Bearer {access}"})
+        d = data.get("data") or {}
+        state = d.get("status", f"http-{status}")
+        reason = d.get("fail_reason", "")
+        if state != last:
+            print(f"{label}: status {state}" + (f" — {reason}" if reason else ""))
+            last = state
+        if state in ("SEND_TO_USER_INBOX", "PUBLISH_COMPLETE"):
+            return True
+        if state == "FAILED":
+            return False
+    print(f"{label}: still {last or 'processing'} after 90s — check again later")
+    return None
+
+
 def push_draft(access, image_urls, caption, label, topic, variants=None):
     """Returns the name of the variant that worked, or None."""
     import time
@@ -201,7 +226,11 @@ def push_draft(access, image_urls, caption, label, topic, variants=None):
         code = err.get("code", "")
         if status == 200 and code in ("ok", ""):
             publish_id = (data.get("data") or {}).get("publish_id", "?")
-            print(f"{label}: draft pushed via variant '{name}' (publish_id {publish_id})")
+            print(f"{label}: draft accepted via variant '{name}' (publish_id {publish_id})")
+            outcome = watch_status(access, publish_id, label)
+            if outcome is False:
+                print(f"{label}: TikTok failed it during processing — trying next variant")
+                continue
             return name
         if code == "spam_risk_too_many_pending_share":
             print(f"{label}: 5 unposted drafts already waiting in TikTok — stopping")

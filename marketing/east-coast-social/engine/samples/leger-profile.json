@@ -1,0 +1,43 @@
+{
+ "_note": "Fill in items/hours/facts from their own page before rendering — that is what makes an owner say 'they actually looked at us'.",
+ "name": "Boulangerie Léger",
+ "slug": "boulangerie-leger",
+ "town": "Shediac, NB",
+ "category": "bakery",
+ "bg": "#2b1c11",
+ "accent": "#e8a33d",
+ "items": [
+  "fresh bread",
+  "cinnamon rolls",
+  "meat pies",
+  "doughnuts",
+  "muffins",
+  "homemade pizza dough",
+  "cakes"
+ ],
+ "hours": {
+  "Mon": "9–6",
+  "Tue": "9–6",
+  "Wed": "9–6",
+  "Thu": "9–6",
+  "Fri": "9–6",
+  "Sat": "9–5"
+ },
+ "facts": [
+  "Known around Shediac for the bread",
+  "Gluten-free and vegan desserts available",
+  "Take-home frozen meals — lasagna, soups, meat pies"
+ ],
+ "statement": "Fresh out of the oven on Main Street — every day.",
+ "spotlight": "Meat pies",
+ "spotlight_price": "",
+ "teaser": "Saturday bake is on — 9 to 5.",
+ "stat": {
+  "value": "",
+  "label": ""
+ },
+ "review": {
+  "text": "",
+  "author": ""
+ }
+}

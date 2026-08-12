@@ -1,0 +1,32 @@
+{
+ "_note": "Fill in items/hours/facts from their own page before rendering — that is what makes an owner say 'they actually looked at us'.",
+ "name": "A & M Auto Repair",
+ "slug": "a-m-auto-repair",
+ "town": "Riverview, NB",
+ "category": "auto",
+ "bg": "#14171b",
+ "accent": "#f2762e",
+ "items": [
+  "oil changes",
+  "brakes",
+  "tires & seasonal swaps",
+  "inspections (MVI)",
+  "diagnostics"
+ ],
+ "hours": {},
+ "facts": [
+  "Reviews call them one of the most honest garages around"
+ ],
+ "statement": "Fixed right, priced straight.",
+ "spotlight": "",
+ "spotlight_price": "",
+ "teaser": "",
+ "stat": {
+  "value": "",
+  "label": ""
+ },
+ "review": {
+  "text": "",
+  "author": ""
+ }
+}

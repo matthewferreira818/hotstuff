@@ -1,0 +1,31 @@
+{
+ "_note": "Fill in items/hours/facts from their own page before rendering — that is what makes an owner say 'they actually looked at us'.",
+ "name": "Carlos Barber Shop",
+ "slug": "carlos-barber-shop",
+ "town": "Sackville, NB",
+ "category": "barber",
+ "bg": "#14161c",
+ "accent": "#c9a227",
+ "items": [
+  "cuts",
+  "skin fades",
+  "beard trims",
+  "kids' cuts"
+ ],
+ "hours": {},
+ "facts": [
+  "The Lansdowne Street barbershop"
+ ],
+ "statement": "A good cut doesn't need an appointment app.",
+ "spotlight": "",
+ "spotlight_price": "",
+ "teaser": "",
+ "stat": {
+  "value": "",
+  "label": ""
+ },
+ "review": {
+  "text": "",
+  "author": ""
+ }
+}

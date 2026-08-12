@@ -1,0 +1,35 @@
+{
+ "_note": "Fill in items/hours/facts from their own page before rendering — that is what makes an owner say 'they actually looked at us'.",
+ "name": "LeBlanc Restaurant",
+ "slug": "leblanc-resto",
+ "town": "Memramcook, NB",
+ "category": "restaurant",
+ "bg": "#1a1614",
+ "accent": "#d97757",
+ "items": [
+  "pizza",
+  "fried chicken",
+  "poutine",
+  "fish & chips",
+  "home-cooked dinners",
+  "fresh coleslaw"
+ ],
+ "hours": {},
+ "facts": [
+  "Homemade gravies and home-cooked plates",
+  "The fries have their own fan club",
+  "A Memramcook institution on rue Centrale"
+ ],
+ "statement": "Home cooking in the heart of the village.",
+ "spotlight": "Pizza night",
+ "spotlight_price": "from $11",
+ "teaser": "Homemade gravy on everything that deserves it.",
+ "stat": {
+  "value": "",
+  "label": ""
+ },
+ "review": {
+  "text": "",
+  "author": ""
+ }
+}

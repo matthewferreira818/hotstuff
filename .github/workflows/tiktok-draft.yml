@@ -14,7 +14,13 @@ name: TikTok draft push
 on:
   schedule:
     - cron: "30 11 * * *"   # 11:30 UTC = 8:30 AM Atlantic
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      pack:
+        description: "Which pack to push"
+        type: choice
+        options: [both, product, agent]
+        default: both
 
 concurrency:
   group: tiktok-draft
@@ -31,6 +37,7 @@ jobs:
           python-version: "3.12"
       - name: Push today's packs as TikTok drafts
         env:
+          TIKTOK_PACK: ${{ github.event.inputs.pack || 'both' }}
           TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}

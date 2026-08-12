@@ -236,14 +236,19 @@ def post():
     product_caption, agent_caption = todays_captions()
     stamp = date.today().isoformat()
 
-    product_urls = ([f"{SITE}/{SLIDES}/product/product-{n}.jpg" for n in (1, 2, 3)]
-                    + [f"{SITE}/{SLIDES}/product/product-4-qr.jpg"])
-    ok = push_draft(access, product_urls, product_caption, "product pack", topic)
+    which = env("TIKTOK_PACK") or "both"   # both | product | agent
+
+    ok = True
+    if which in ("both", "product"):
+        product_urls = ([f"{SITE}/{SLIDES}/product/product-{n}.jpg" for n in (1, 2, 3)]
+                        + [f"{SITE}/{SLIDES}/product/product-4-qr.jpg"])
+        ok = push_draft(access, product_urls, product_caption, "product pack", topic)
 
     ok2 = True
-    if agent_caption:
-        import time
-        time.sleep(12)   # posting endpoints allow 6 requests/minute
+    if agent_caption and which in ("both", "agent"):
+        if which == "both":
+            import time
+            time.sleep(12)   # posting endpoints allow 6 requests/minute
         agent_urls = [f"{SITE}/{SLIDES}/agent/agent-{n}.jpg" for n in (1, 2, 3)]
         ok2 = push_draft(access, agent_urls, agent_caption, "agent pack", topic)
 

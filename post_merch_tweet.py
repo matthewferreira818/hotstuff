@@ -75,7 +75,7 @@ def main():
     post(session, "Tap or scan to shop \U0001F447\nhttps://findhotstuff.com/?ref=x",
          media_id=qr_id, reply_to=tweet_id)
 
-    return finish(f"POSTED: https://x.com/hotstuff2213/status/{tweet_id}")
+    return finish(f"POSTED: https://x.com/FindHotsTuff/status/{tweet_id}")
 
 
 if __name__ == "__main__":

@@ -71,7 +71,7 @@ let it rest._
 ## Walk-in playbook (hotels, no-page shops, DM ghosts)
 
 **Bring:** 2 dark flyers, 3 business cards, phone with two tabs ready:
-findhotstuff.com/automation and the X feed x.com/hotstuff2213 (live proof — TikTok is @find.hotstuff).
+findhotstuff.com/automation and the X feed x.com/FindHotsTuff (live proof — TikTok is @find.hotstuff).
 
 **Timing:** mid-morning (10–11) or mid-afternoon (2–4), midweek. For a
 hotel, ask the front desk: "Is the GM or whoever handles marketing around?

@@ -80,6 +80,7 @@ REF_CHANNELS = [
     ("card", "Business cards"),
     ("sample", "Sample-pack QR (generic)"),
     ("merch", "Merch QR (the sweater)"),
+    ("buyer", "Post-purchase page"),
 ]
 
 # Own-visit exclusion took effect Aug 12 (laptop toggled out of GoatCounter);

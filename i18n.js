@@ -64,7 +64,7 @@
     "faq-5-a": "Les commandes sont traitées en 1 à 3 jours ouvrables et arrivent généralement en 1 à 3 semaines, puisque les articles partent directement de nos fournisseurs. Vous recevrez le suivi par courriel. Voir <a href=\"#shipping\">Livraison et retours</a> pour tous les détails.",
     "faq-6-q": "Quelle est votre politique de retour?",
     "faq-6-a": "Article endommagé, défectueux, erroné ou jamais livré : remplacement gratuit ou remboursement complet dans les 30 jours suivant la livraison. Retours par changement d'idée acceptés dans les 14 jours (frais de retour possibles). Contactez le soutien pour commencer un retour.",
-    "footer-stripe": "· Paiement sécurisé par Stripe",
+    "footer-stripe": "· Paiement sécurisé par Stripe · Tous les prix en USD",
     "sort-trending": "🔥 Tendances d'abord",
     "sort-price-asc": "Prix : du moins cher au plus cher",
     "sort-price-desc": "Prix : du plus cher au moins cher",

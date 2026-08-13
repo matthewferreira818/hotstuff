@@ -13,7 +13,7 @@
  * installed apps pick the new shell up on their next visit.
  */
 
-const VERSION = "v18";
+const VERSION = "v19";
 const SHELL_CACHE = `hotstuff-shell-${VERSION}`;
 const RUNTIME_CACHE = `hotstuff-runtime-${VERSION}`;
 const IMAGE_CACHE = `hotstuff-images-${VERSION}`;

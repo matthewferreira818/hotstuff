@@ -1262,3 +1262,21 @@ a.merch-card {
 @media (prefers-reduced-motion: reduce) {
   .sheet-backdrop, .product-sheet { transition: none; }
 }
+
+.price-cur {
+  font-weight: 600;
+  font-size: 0.72em;
+  opacity: 0.65;
+  letter-spacing: 0.03em;
+}
+
+.engine-plug {
+  max-width: 560px;
+  margin: 26px auto 8px;
+  padding: 14px 18px;
+  border: 1px dashed var(--line, rgba(0,0,0,.15));
+  border-radius: 12px;
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+.engine-plug a { font-weight: 700; }

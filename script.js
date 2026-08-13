@@ -266,6 +266,10 @@ function buildCard(p) {
   const priceEl = document.createElement("span");
   priceEl.className = "card-price";
   priceEl.textContent = `$${price}`;
+  const cardCur = document.createElement("small");
+  cardCur.className = "price-cur";
+  cardCur.textContent = " USD";
+  priceEl.appendChild(cardCur);
 
   const trendEl = document.createElement("span");
   trendEl.className = "card-trend";
@@ -370,6 +374,10 @@ function openProductSheet(p) {
   const price = document.createElement("span");
   price.className = "sheet-price";
   price.textContent = `$${(Number(p.price) || 0).toFixed(2)}`;
+  const sheetCur = document.createElement("small");
+  sheetCur.className = "price-cur";
+  sheetCur.textContent = " USD";
+  price.appendChild(sheetCur);
   const trend = document.createElement("span");
   trend.className = "sheet-trend";
   trend.textContent = `${T("sheetTrend", "Trend score")} ${Number.isFinite(Number(p.trendScore)) ? p.trendScore : "—"}`;

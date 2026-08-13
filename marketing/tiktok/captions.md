@@ -1,18 +1,18 @@
 # HotsTuff — TikTok Photo Pack (auto-generated)
 
-_Generated 2026-08-11 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
+_Generated 2026-08-13 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
 
 
 ## 🖼️ Slides
 
-1. `slide-01.png` — Couple's Hug Necklace — $31.99 (Fashion)
-2. `slide-02.png` — Baby shoes toddler — $13.99 (Footwear)
-3. `slide-03.png` — Car Diamond Crystal Wax — $15.99 (Auto)
-4. `slide-04.png` — Anti-drop phone case — $11.99 (Phone Accessories)
-5. `slide-05.png` — Portable Kids Baby High — $35.99 (Toys)
-6. `slide-06.png` — Cars Pass Through Big — $35.99 (Auto)
-7. `slide-07.png` — Womens Lapel Cashmere coat — $24.99 (Trending Finds)
-8. `slide-08.png` — Statement Necklace — $31.99 (Jewelry)
+1. `slide-01.png` — Europe And America Female — $13.99 (Bags)
+2. `slide-02.png` — Monochrome Lipstick Eyeshadow Stick — $35.99 (Beauty)
+3. `slide-03.png` — Constellations Seven Chakras Colored — $11.99 (Jewelry)
+4. `slide-04.png` — Cozy 2-in-1 Pet Bed — $35.99 (Trending Finds)
+5. `slide-05.png` — 3D Gold Plated PiXiu — $24.99 (Jewelry)
+6. `slide-06.png` — Violet fluorescent agent detection — $31.99 (Trending Finds)
+7. `slide-07.png` — Faceshield Protective Glasses Goggles — $13.99 (Trending Finds)
+8. `slide-08.png` — Fleece Winter Jacket — $35.99 (Fashion)
 
 
 ## 📝 Captions — pick one, paste as-is
@@ -20,19 +20,19 @@ _Generated 2026-08-11 · 8 slides · post all slides as one TikTok photo (swipe)
 **Variant 1 — curiosity hook**
 
 ```
-ok this week's finds are actually unreal 👀 everything under $36 #tiktokmademebuyit #trending #fashiontok #shoetok #cartok
+ok this week's finds are actually unreal 👀 everything under $36 #tiktokmademebuyit #trending #bagtok #beautytok #jewelrytok
 ```
 
 **Variant 2 — POV hook**
 
 ```
-POV: your fyp finally delivered 🔥 slide 1 is the couple's hug necklace btw #tiktokmademebuyit #trending #fashiontok #shoetok #cartok
+POV: your fyp finally delivered 🔥 slide 1 is the europe and america female btw #tiktokmademebuyit #trending #bagtok #beautytok #jewelrytok
 ```
 
 **Variant 3 — ranked-list hook**
 
 ```
-ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #fashiontok #shoetok #cartok
+ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #bagtok #beautytok #jewelrytok
 ```
 
 > 🎵 Add a trending sound in-app before posting — photo posts ride the sound's reach.

@@ -18,6 +18,10 @@ on:
         description: "Log alerts but don't push to the phone (test run)"
         type: boolean
         default: false
+      test_alert:
+        description: "Send a test ping to verify the phone pipe end-to-end"
+        type: boolean
+        default: false
 
 concurrency:
   group: watch-changes
@@ -49,6 +53,7 @@ jobs:
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           QUIET: ${{ inputs.quiet && '1' || '' }}
+          TEST_ALERT: ${{ inputs.test_alert && '1' || '' }}
         run: python watch_changes.py
 
       - name: Save state for the next run

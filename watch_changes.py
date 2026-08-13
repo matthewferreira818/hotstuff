@@ -199,6 +199,13 @@ def main() -> None:
     state = {k: cur[k] for k in ("buy", "ref", "success", "spike_day", "stale_marker")}
     STATE_FILE.write_text(json.dumps(state, indent=1) + "\n")
 
+    if os.environ.get("TEST_ALERT"):
+        # end-to-end pipe check: workflow -> secret -> ntfy -> phone
+        alerts.append(("🔔 Change watcher test",
+                       "The pipe works. Real pings only happen on: buy click, "
+                       "tagged visit, checkout, traffic spike, stale catalog.",
+                       "default"))
+
     if not alerts:
         print("no changes worth a ping")
         return

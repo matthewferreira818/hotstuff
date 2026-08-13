@@ -323,8 +323,24 @@ FILLER_WORDS = {
     "trendy", "brand", "quality", "product", "products", "item",
     "new", "arrival", "arrivals", "style", "ins", "creative",
     "dropshipping", "explosive", "amazon", "aliexpress",
-    "2024", "2025", "2026",
+    "2023", "2024", "2025", "2026", "wish", "temu", "ebay",
 }
+
+# Supplier boilerplate that only makes sense as a phrase — stripped verbatim
+# (case-insensitive) before word-level cleaning, so "Europe And America" never
+# survives as three separate innocent-looking words.
+FLUFF_PHRASES = [
+    "europe and america", "european and american", "europe and the united states",
+    "cross-border", "cross border", "foreign trade", "ins style",
+    "internet celebrity", "live broadcast", "hot sale", "new style",
+    "explosion models", "spot wholesale", "factory direct",
+]
+
+# Supplier audience-words that read awkwardly bare ("Female Shoulder Bag");
+# swapped for the retail-normal possessive.
+AUDIENCE_WORDS = {"female": "Women's", "male": "Men's",
+                  "woman": "Women's", "women": "Women's",
+                  "man": "Men's", "men": "Men's"}
 
 # Words that read as dangling clutter at the END of a name ("...Holder For",
 # "...Gloves Touch And") — stripped after cleaning/truncation so every name
@@ -357,22 +373,34 @@ def _strip_trailing_connectors(words: list[str]) -> list[str]:
 
 
 def clean_name(name: str) -> str:
-    words = " ".join((name or "").split()).split(" ")
+    flat = " ".join((name or "").split())
+    lowered = f" {flat.lower()} "
+    for phrase in FLUFF_PHRASES:
+        idx = lowered.find(f" {phrase} ")
+        while idx != -1:
+            flat = flat[:idx] + flat[idx + len(phrase) + 1:]
+            lowered = f" {flat.lower()} "
+            idx = lowered.find(f" {phrase} ")
+    words = flat.split(" ")
     out, seen = [], set()
     for w in words:
         key = _dedupe_key(w)
         if not key or key in FILLER_WORDS or key in seen:
             continue  # drop filler puffery and repeated words (incl. plurals)
         seen.add(key)
-        out.append(_tidy_case(w))
+        out.append(AUDIENCE_WORDS.get(key, _tidy_case(w)))
 
     out = _strip_trailing_connectors(out)
     cleaned = " ".join(out).strip() or " ".join((name or "").split())
     if len(cleaned) <= MAX_NAME_LENGTH:
         return cleaned
-    truncated = cleaned[:MAX_NAME_LENGTH].rsplit(" ", 1)[0]
-    truncated = " ".join(_strip_trailing_connectors(truncated.split(" ")))
-    return truncated
+    # CJ listings put the actual product noun LAST ("... Shoulder Messenger
+    # Bag"), so a too-long name loses words from the FRONT — never the noun.
+    while out and len(" ".join(out)) > MAX_NAME_LENGTH:
+        out.pop(0)
+    while len(out) > 1 and out[0].lower().strip(".,;:") in TRAILING_CONNECTORS:
+        out.pop(0)
+    return " ".join(out).strip() or cleaned[:MAX_NAME_LENGTH].rsplit(" ", 1)[0]
 
 
 def load_api_key() -> str:
@@ -694,7 +722,6 @@ def describe(name: str, category: str, sku: str) -> str:
 
 
 def to_site_products(cj_products: list[dict]) -> list[dict]:
-    from generate_posts import ad_name  # same short names the ad copy uses
 
     listed_nums = [int(p.get("listedNum", 0)) for p in cj_products]
     site_products = []
@@ -709,7 +736,7 @@ def to_site_products(cj_products: list[dict]) -> list[dict]:
             # wording in the post, on the card, and on the Stripe page. The
             # supplier's keyword-soup title is kept as fullName for search and
             # the card's hover text, so no detail is lost.
-            "name": ad_name(full_name, category),
+            "name": full_name,  # honest display name — the cleaned real title
             "fullName": full_name,
             "category": category,
             "price": assign_price(sku, cost_price),

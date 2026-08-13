@@ -32,20 +32,11 @@ def pick(options, sku):
 # Raw supplier titles are long and get truncated with "…". For ad copy we want
 # a punchy short name. Keyword match first (great names for common trending
 # types); fall back to the first few words of the title if nothing matches.
-AD_NAMES = [
-    (("humidifier",), "Projector Humidifier"),
-    (("juicer", "blender"), "Portable USB Blender"),
-    (("protein", "shaker", "stirrer"), "Electric Protein Shaker"),
-    (("finder", "tracker", "anti lost", "anti-lost"), "Bluetooth Item Finder"),
-    (("trainer", "grip"), "Grip & Forearm Trainer"),
-    (("seat belt", "seat vehicle", "car seat"), "Pet Car Seat Belt"),
-    (("hair remover", "lint"), "Reusable Pet Hair Remover"),
-    (("phone holder", "car mount", "dashboard"), "Telescopic Car Phone Mount"),
-    (("gloves",), "Touchscreen Winter Gloves"),
-    (("jacket",), "Fleece Winter Jacket"),
-    (("bed",), "Cozy 2-in-1 Pet Bed"),
-    (("humidifier",), "Projector Humidifier"),
-]
+# The old canned-name table is gone on purpose: it invented attributes the
+# product may not have ("Fleece", "Touchscreen", "Glowing") and its substring
+# matching once sold bedroom wallpaper as a "Cozy 2-in-1 Pet Bed". Ad names
+# now only SHORTEN the product's real (already-cleaned) name — never replace
+# it with fiction.
 
 
 # Words that only ever trail awkwardly once a title is cut short.
@@ -61,23 +52,18 @@ FOREIGN_ECHOES = {"maquiagem", "maquillaje", "maquillage", "hombre", "mujer",
 
 
 def ad_name(raw: str, category: str) -> str:
-    low = (raw or "").lower()
-    # necklaces get a descriptor-aware name
-    if "necklace" in low or "pendant" in low:
-        if "moon" in low:
-            return "Glowing Moon Necklace"
-        if any(w in low for w in ("couple", "hug", "love")):
-            return "Couple's Hug Necklace"
-        return "Statement Necklace"
-    for keywords, label in AD_NAMES:
-        if any(k in low for k in keywords):
-            return label
-    # fallback: first 4 meaningful words, no trailing ellipsis / spec noise
+    """Shorten the product's real name for ad copy: strip spec noise and
+    foreign search-echoes, then keep the LAST four meaningful words — CJ
+    titles put the actual product noun at the end, so the tail is the part
+    that names the thing."""
     words = re.sub(r"[…]", "", raw or "").split()
     words = [w for w in words if not re.fullmatch(r"\d+(ml|g|cm|mm|pcs)?", w.lower())]
     words = [w for w in words if w.lower().strip(",") not in FOREIGN_ECHOES]
-    short = " ".join(words[:4]).strip()
-    # cutting at four words can strand a connector ("Dog Chew Toys For")
+    if len(words) > 4:
+        words = words[-4:]
+        while len(words) > 1 and words[0].lower().strip(".,") in CONNECTORS:
+            words.pop(0)
+    short = " ".join(words).strip()
     while short and short.rsplit(" ", 1)[-1].lower() in CONNECTORS:
         short = short.rsplit(" ", 1)[0].rstrip(" ,")
     return short or (raw or "Trending Find")

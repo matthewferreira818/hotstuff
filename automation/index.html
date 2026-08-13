@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -285,24 +285,23 @@
 <header class="hero">
   <div class="beam" aria-hidden="true"></div>
   <a class="lang-link" href="fr/" lang="fr" hreflang="fr">FR</a>
-  <a class="store-link" href="../">Live website: the store this engine runs →</a>
   <div class="hero-inner">
     <p class="brand"><span class="dot"></span>East Coast Social</p>
     <h1 class="serif">Your business posts every day.<br><em>You don't lift a finger.</em></h1>
     <p class="sub">Done-for-you social media automation for local businesses. I build a posting engine tuned to your shop — it writes, designs, and publishes on schedule, and I keep watch so you never have to think about it.</p>
     <div class="cta-row">
-      <a class="btn btn-gold" href="mailto:hello@eastcoastsocial.ca?subject=Set%20up%20my%20posting%20engine">Get your posting engine</a>
-      <a class="btn btn-ghost" href="sms:+15068899737?body=Hi%20Matthew%20-%20saw%20East%20Coast%20Social%20online%2C%20interested%20in%20daily%20posts%20for%20my%20business.">Text me instead</a>
+      <a class="btn btn-gold" href="sms:+15068899737?body=Hi%20Matthew%20-%20saw%20East%20Coast%20Social%20online%2C%20interested%20in%20daily%20posts%20for%20my%20business.">💬 Text me — free sample week</a>
+      <a class="btn btn-ghost" href="tel:+15068899737">📞 (506) 889-9737</a>
       <a class="btn btn-ghost" href="#proof">See it running live ↓</a>
     </div>
-    <p class="free-week">Your first week of sample posts is <b>free</b> — no card, no account, nothing on file. If it's not for you, the samples are yours to keep.</p>
+    <p class="free-week">Your first week of sample posts is <b>free</b> — no card, no account, nothing on file. If it's not for you, the samples are yours to keep. <b>$79/mo CAD</b> after, no contracts.</p>
   </div>
 </header>
 
 <div class="stats">
-  <div class="stat"><b>180+</b><span>posts a month, hands-free</span></div>
-  <div class="stat"><b>3×</b><span>branded posts daily</span></div>
-  <div class="stat"><b>0 min</b><span>of your time after setup</span></div>
+  <div class="stat"><b>$79/mo</b><span>CAD · free setup · no contracts</span></div>
+  <div class="stat"><b>Every day</b><span>our own feed posts hands-free — live count below</span></div>
+  <div class="stat"><b>$0</b><span>until you approve your free sample week</span></div>
 </div>
 
 <main>
@@ -312,12 +311,12 @@
     <p class="lede">HotsTuff is a trending-products storefront I operate. I don't write its posts, refresh its catalog, or schedule anything. The system I'd build for you does it all:</p>
     <ul class="got">
       <li><b>Re-curates its own catalog every 3 days</b> from live trending data, then redeploys the site — automatically.</li>
-      <li><b>Posts three times a day</b> on X with branded image cards and QR-code replies that link straight to the store.</li>
+      <li><b>Publishes branded image cards every day</b> — captions, design and QR codes all generated and scheduled by the engine.</li>
       <li><b>Watches its own health</b> — if posting credits run low or anything fails, it files an alert on its own. It even skips redundant posts on catalog-refresh days.</li>
     </ul>
     <figure class="store">
-      <img src="store-live.jpg" alt="The HotsTuff storefront — 'Welcome to HotsTuff! where we sell products everyone seems to love' with 40 products live" width="1280" height="800">
-      <figcaption>findhotstuff.com — every product and every post on its feed got there without a human touching it.</figcaption>
+      <img src="store-live.jpg" alt="The HotsTuff storefront — its trending-product catalog, live" width="1280" height="800">
+      <figcaption><a href="../">findhotstuff.com</a> — my own store, not a client’s: every product and post got there without a human touching it. Yours would be your shop, your voice.</figcaption>
     </figure>
     <div class="posts">
       <div class="post">
@@ -351,8 +350,8 @@ findhotstuff.com #cozyhome</p>
 
   <section id="own-feed">
     <p class="eyebrow">Live, not a mockup</p>
-    <h2 class="serif">Here's what the engine posted for us this week.</h2>
-    <p class="lede">East Coast Social runs on its own engine — these cards went out to our page and our X account automatically, one a day, no hands. Yours would look like your shop.</p>
+    <h2 class="serif">Straight from our own feed — posted by the engine.</h2>
+    <p class="lede">East Coast Social runs on its own engine — these cards went out to our page automatically, one a day, no hands. Yours would look like your shop — in English, French, or both. Your call.</p>
     <p class="feed-fresh" id="feed-fresh" data-today="The engine's latest post: today"
        data-yesterday="The engine's latest post: yesterday" data-on="Latest post:"
        style="visibility:hidden">&nbsp;</p>
@@ -538,6 +537,12 @@ findhotstuff.com #cozyhome</p>
     .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
     .then(function (posts) {
       if (!posts || !posts.length) throw new Error("empty");
+      // curation: keep the scary-sounding "written by a machine" card out of
+      // the proof strip - it reads as AI-slop to the exact owner we want
+      posts = posts.filter(function (p) {
+        return !/by a machine|nobody typed|par une machine/i.test((p.message || "") + (p.caption || ""));
+      });
+      if (!posts.length) throw new Error("empty");
       // freshness stamp: derived from the feed's own data, not a claim
       var stamp = document.getElementById("feed-fresh");
       if (stamp && posts[0] && posts[0].date) {

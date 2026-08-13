@@ -24,12 +24,12 @@ POOL = [
      "Quiet page, lost customer — it's that simple. East Coast Social keeps your business posting every single day, automatically. You approve the style once. 📍 Sackville · Memramcook · Shediac · Moncton ➜ {site}"),
     ("A page that posts daily looks open. A quiet one looks closed.",
      "When did your business last post? If you have to think about it, that's the problem we fix — daily posts, zero effort from you. ➜ {site}"),
-    ("This post was written, designed, and published by a machine.",
-     "Really. Nobody typed this. The East Coast Social engine wrote it, built the card, and published it on schedule — the same way it can for your business, every day. ➜ {site}"),
+    ("Your day off shouldn't mean your page's day off.",
+     "The engine keeps posting when you're closed, on vacation, or slammed — daily branded posts, approved by you once. ➜ {site}"),
     ("Most local pages die because nobody has time. Yours doesn't have to.",
      "You run the business. The engine runs the feed. You approve the style once and never touch it again. ➜ {site}"),
-    ("180+ posts a month. Zero minutes of the owner's time.",
-     "That's what our own store runs on — findhotstuff.com posts 3x a day, every day, hands-free. Your business could too. ➜ {site}"),
+    ("One less job every single morning.",
+     "Posting daily is a part-time job nobody hired for. The engine does it — you approve the style once, then it's handled. ➜ {site}"),
     ("Daily specials could announce themselves.",
      "Restaurants, cafés, food trucks: your feature board is content. The engine turns it into daily posts your customers actually see. ➜ {site}"),
     ("Fresh cuts, new arrivals, today's bake — that's a feed, not a chore.",
@@ -43,7 +43,7 @@ POOL = [
     ("One 20-minute chat. Then your page runs itself.",
      "That's the whole setup: we talk about your business, you approve sample posts, the engine takes it from there. ➜ {site}"),
     ("Built on our own store first. Proven every single day.",
-     "We don't sell anything we don't run ourselves — findhotstuff.com has posted 3x a day on full autopilot since launch. ➜ {site}"),
+     "We don't sell anything we don't run ourselves — our own store's feed, catalog and daily cards run on this exact engine. ➜ {site}"),
 ]
 
 

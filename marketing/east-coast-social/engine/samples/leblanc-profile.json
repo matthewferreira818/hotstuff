@@ -12,9 +12,18 @@
   "poutine",
   "fish & chips",
   "home-cooked dinners",
-  "fresh coleslaw"
+  "fresh coleslaw",
+  "homemade pies & cheesecake"
  ],
- "hours": {},
+ "hours": {
+  "Mon": "11:30–8",
+  "Tue": "11:30–8",
+  "Wed": "11:30–8",
+  "Thu": "11:30–8",
+  "Fri": "11:30–9",
+  "Sat": "11:30–9",
+  "Sun": "11:30–8"
+ },
  "facts": [
   "Homemade gravies and home-cooked plates",
   "The fries have their own fan club",

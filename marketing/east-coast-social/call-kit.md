@@ -57,7 +57,7 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 | Business | Town | Phone | Why calling | Outcome |
 |---|---|---|---|---|
 | La Boulangerie Léger | Shediac (482 Main St) | (506) 532-3137 | 🔥 BEST DATA ON THE SHEET: FB page has 2.2K followers but silent since July 4 — and that last post pulled 50 reactions + 34 shares. Their audience responds; they just stopped posting. Opener writes itself. | 08-12 ~1 PM no answer, voicemail left (touch 1). Callback Fri 08-14 early afternoon, then rest |
-| LeBlanc Restaurant (Ben's) | Memramcook (583 rue Centrale) | (506) 758-2554 | Recon: NO Facebook page at all, yet notable enough that Dominic LeBlanc posted about lunching there with Premier Holt. Village restaurant, pizza menu = daily specials. NOT LeBlancs Meat Market | |
+| LeBlanc Restaurant (Ben's) | Memramcook (583 rue Centrale) | (506) 758-2554 | Recon: NO Facebook page at all, yet notable enough that Dominic LeBlanc posted about lunching there with Premier Holt. Village restaurant, pizza menu = daily specials. NOT LeBlancs Meat Market. Hours found via directory: 11:30–8 daily, Fri/Sat till 9 (2021 listing — confirm at door); pack rendered COMPLETE. | 08-13 ~2 PM no answer, voicemail left (touch 1). Best next move: Friday-evening WALK-IN with the printed pack (own village, restaurant open + owner likely in); else callback Mon 08-17, then rest |
 | Salon Coupe Chic | Memramcook (280 La Vallée Rte) | (506) 758-9390 | ⚠️ DOWNGRADED: no FB page found, and a resident posted in the Memramcook group that the salon isn't answering its phone (no voicemail), asking if it closed. One verify-call at most; expect nothing. | |
 
 _Skipped in research: Culinanny Bakery Shediac (reported closed), Sackville

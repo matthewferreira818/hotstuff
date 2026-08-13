@@ -26,9 +26,11 @@ effort there. Calls, walk-ins and search are the channels that respond.
 ## The daily minimum (5–10 minutes, any time)
 
 1. **~8:30 AM: TikTok drafts land in your inbox** — the engine pushes both
-   packs via TikTok's API (since Aug 12). Open each from the TikTok inbox
-   notification, add a sound (product: upbeat, agent: calm/lofi), tap Post —
-   product in the day, agent in the evening.
+   packs via TikTok's API (since Aug 12). Each caption also arrives as its
+   own phone ping (since Aug 13): long-press the ping text → Copy. Open each
+   draft from the TikTok inbox notification, paste the caption, add a sound
+   (product: upbeat, agent: calm/lofi), tap Post — product in the day, agent
+   in the evening.
 2. **Morning brief lands ~10 AM** — traffic, captions, callbacks due, and
    confirmation the drafts went out (with an automatic re-push if not).
 3. **Posting session** — paste `marketing/daily-post-session-prompt.md` into

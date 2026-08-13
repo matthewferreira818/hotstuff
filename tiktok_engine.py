@@ -206,7 +206,15 @@ def push_draft(access, image_urls, caption, label, topic):
     if status == 200 and code in ("ok", ""):
         publish_id = (data.get("data") or {}).get("publish_id", "?")
         print(f"{label}: draft accepted (publish_id {publish_id})")
-        return watch_status(access, publish_id, label) is not False
+        delivered = watch_status(access, publish_id, label) is not False
+        if delivered:
+            # TikTok accepts the caption in the API call but opens the draft
+            # editor blank (inbox-draft limitation), so hand the caption to
+            # the phone too: long-press the notification text in ntfy ->
+            # Copy -> paste into TikTok's caption box.
+            ntfy(topic, f"Caption for the {label} - long-press to copy",
+                 caption, "low", "clipboard")
+        return delivered
     if code == "spam_risk_too_many_pending_share":
         print(f"{label}: 5 unposted drafts already waiting in TikTok — stopping")
         ntfy(topic, "TikTok drafts piling up",
@@ -255,7 +263,8 @@ def post():
     if ok and ok2:
         ntfy(topic, "TikTok drafts ready",
              f"Both of today's packs ({stamp}) are in your TikTok inbox as "
-             "drafts. Open the notification in TikTok, add a sound, tap Post.",
+             "drafts. Open each, add a sound, paste its caption from the "
+             "ping above, tap Post.",
              "default", "rocket")
     return 0
 

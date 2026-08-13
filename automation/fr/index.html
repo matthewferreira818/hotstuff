@@ -540,7 +540,7 @@ findhotstuff.com #maison</p>
       // curation: keep the scary-sounding "written by a machine" card out of
       // the proof strip - it reads as AI-slop to the exact owner we want
       posts = posts.filter(function (p) {
-        return !/by a machine|nobody typed|par une machine/i.test((p.message || "") + (p.caption || ""));
+        return !/by a machine|nobody typed|par une machine|180\+ posts/i.test((p.message || "") + (p.caption || ""));
       });
       if (!posts.length) throw new Error("empty");
       // freshness stamp: derived from the feed's own data, not a claim

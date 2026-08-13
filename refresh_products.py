@@ -403,6 +403,121 @@ def clean_name(name: str) -> str:
     return " ".join(out).strip() or cleaned[:MAX_NAME_LENGTH].rsplit(" ", 1)[0]
 
 
+# --- Optional AI name polish -------------------------------------------
+# clean_name() above is honest but mechanical, so it can leave supplier
+# word order intact ("Handheld Juicer Manual High Citrus Orange Lemon").
+# When an ANTHROPIC_API_KEY secret is configured, polish_names() asks
+# Claude to rewrite each cleaned title into natural retail word order
+# under one hard rule, enforced twice — in the prompt, then mechanically
+# by honest_name(): a pretty name may only reorder, trim, re-case, and
+# hyphenate words already present in the real title. It can never add an
+# attribute the supplier didn't claim (inventing attributes is what once
+# sold wallpaper as a "Cozy 2-in-1 Pet Bed"). A suggestion that fails the
+# check keeps its mechanical name; any API problem skips the polish
+# entirely — a refresh can never fail, and never lie, because of this
+# pass. Without the secret the pass is dormant (the repo's usual
+# skip-quietly pattern) and the mechanical names stand.
+
+POLISH_MODEL = "claude-opus-5"
+POLISH_CHUNK = 40  # titles per API request
+
+# Pure grammar words the polish may add freely: they carry no product
+# attribute, so they can't smuggle in a false claim.
+GLUE_WORDS = {"and", "&", "with", "for", "the", "of", "a", "an",
+              "to", "in", "on", "or"}
+
+_WORD_EQUIVALENTS = {"female": "women", "woman": "women",
+                     "male": "men", "man": "men"}
+
+
+def _honest_key(word: str) -> str:
+    """Normalize one word for the honesty check: case, punctuation,
+    possessives, and simple plurals fold together, so "Women's" satisfies
+    "female" and "Stones" satisfies "stone"."""
+    w = word.lower().replace("’", "'").strip(".,;:()!?'\"")
+    if w.endswith("'s"):
+        w = w[:-2]
+    if len(w) > 3 and w.endswith("s"):
+        w = w[:-1]
+    return _WORD_EQUIVALENTS.get(w, w)
+
+
+def _honest_vocab(text: str) -> set[str]:
+    return {_honest_key(w) for chunk in (text or "").split()
+            for w in chunk.split("-")} - {""}
+
+
+def honest_name(candidate: str, source: str) -> bool:
+    """True iff every word of candidate already appears in source (after
+    normalization), glue words aside — the one guarantee this store's
+    display names make: nothing the supplier's title didn't say."""
+    vocab = _honest_vocab(source)
+    for chunk in (candidate or "").split():
+        for w in chunk.split("-"):
+            key = _honest_key(w)
+            if key and key not in vocab and key not in GLUE_WORDS:
+                return False
+    return True
+
+
+def polish_names(products: list[dict]) -> None:
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    if not api_key:
+        print("ANTHROPIC_API_KEY not set; keeping mechanical names")
+        return
+    try:
+        import anthropic
+    except ImportError:
+        print("anthropic package not installed; keeping mechanical names")
+        return
+
+    client = anthropic.Anthropic(api_key=api_key)
+    polished = 0
+    for start in range(0, len(products), POLISH_CHUNK):
+        chunk = products[start:start + POLISH_CHUNK]
+        numbered = "\n".join(f"{i + 1}. {p['name']}" for i, p in enumerate(chunk))
+        prompt = (
+            "You are naming products for a small online store that never "
+            "overstates what an item is.\n"
+            "Rewrite each product title below as a natural, shopper-friendly "
+            "product name.\n"
+            "HARD RULES:\n"
+            "1. Use ONLY words that already appear in that same title. You "
+            "may reorder words, drop words, fix capitalization, and hyphenate "
+            "adjacent words — but NEVER add a new word, material, size, or "
+            "attribute. The only additions allowed are grammar glue words "
+            "(and, &, with, for, the, of).\n"
+            "2. Keep the word that says what the item IS (its product noun).\n"
+            "3. At most 52 characters. Use Title Case.\n"
+            f"Reply with ONLY a JSON array of exactly {len(chunk)} strings in "
+            "the same order — no other text.\n\n"
+            f"Titles:\n{numbered}"
+        )
+        try:
+            resp = client.messages.create(
+                model=POLISH_MODEL,
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            text = "".join(b.text for b in resp.content
+                           if getattr(b, "type", "") == "text")
+            names = json.loads(text[text.index("["):text.rindex("]") + 1])
+            if not isinstance(names, list) or len(names) != len(chunk):
+                raise ValueError("reply did not match the title count")
+        except Exception as exc:  # noqa: BLE001 - polish is best-effort by design
+            print(f"name polish skipped for items {start + 1}-"
+                  f"{start + len(chunk)} ({exc})")
+            continue
+        for p, suggestion in zip(chunk, names):
+            s = " ".join(str(suggestion).split())
+            if (s and s != p["name"] and len(s) <= MAX_NAME_LENGTH
+                    and honest_name(s, p["fullName"])):
+                p["name"] = s
+                polished += 1
+    print(f"AI polish: {polished} name(s) improved; the rest keep their "
+          f"mechanical cleaning")
+
+
 def load_api_key() -> str:
     env_key = os.environ.get("CJ_API_KEY")
     if env_key:
@@ -775,6 +890,7 @@ def main():
     print(f"Selected {len(selected)} products ({changed} new vs. last cycle).")
 
     site_products = to_site_products(selected)
+    polish_names(site_products)
     PRODUCTS_FILE.write_text(json.dumps(site_products, indent=2) + "\n")
     print(f"Wrote {len(site_products)} products to {PRODUCTS_FILE}")
 

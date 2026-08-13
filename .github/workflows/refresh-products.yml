@@ -48,7 +48,13 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         env:
           CJ_API_KEY: ${{ secrets.CJ_API_KEY }}
-        run: python refresh_products.py
+          # Optional. When set, refresh_products.py asks Claude to tidy the
+          # display names — word order/case only; its honesty gate rejects
+          # any word not in the real title. Absent = mechanical names.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          pip install --quiet anthropic
+          python refresh_products.py
 
       - name: Generate fresh social posts
         if: steps.gate.outputs.run == 'true'

@@ -17,6 +17,13 @@ Format per entry:
 
 ---
 
+## 2026-08-13 — Ship a half-day "credibility surgery" design wave on both live sites this week (then freeze design until Aug 31), rather than leaving them as-is or redesigning?
+- Seats: Operator GO-IF(4) · Marketer GO-IF(4) · Treasurer GO-IF(4) · Skeptic GO-IF(4) · Customer GO-IF(4)
+- Clash: none on direction — all five converged on the same wounds (stat band over-claims that the page's own odometer fact-checks; price buried 6+ sections deep with CAD/USD ambiguity; EN hero's gold CTA a silent-failing mailto; "written by a machine" proof card scaring the exact audience; FR proof in English). Only tension was scope: Treasurer/Skeptic hard-capped hours (2h/half-day) vs the breadth of combined lists. Resolved: Right Hand executes (Claude-time), founder review ≈ minutes, then hard freeze.
+- Right Hand's call: GO-IF — executed same-session: stat band → $79/mo CAD + odometer-backed streak + $0-until-approved; hero text-first with visible number + price in free-week line (EN/FR converged); proof feed curated ("machine" card filtered + pool entry rewritten); FR example posts translated + bilingual-service line; store link demoted into proof figure; theme follows system preference; store "worldwide"→24 countries + hero grammar fix. Deferred: store-live.jpg mobile recrop, FR dynamic feed captions (engine change, post-first-client). DESIGN FROZEN until Aug 31 — remaining founder-hours go to calls.
+- Matthew's decision: pending
+- Next moves: verify deploy + screenshots, LeBlanc call 2 PM, Léger + A&M callbacks Friday, design freeze
+
 ## 2026-08-12 — Which 2-4 items make up the next website build wave (backlog + new ideas) toward a first ECS client by Aug 31?
 - Seats: Operator GO-IF(4) · Marketer GO(4) · Treasurer GO-IF(4) · Skeptic GO-IF(4) · Customer GO-IF(4)
 - Clash: everyone wants a wave, but the seats split on the odometer (3 want it gated-honest, Skeptic says not until ~30 days of artifacts, Operator offers the "N posts since Aug 7" stored-counter compromise) and on store-side polish (Customer wants trust line + countdown; Treasurer kills them on collapsed EV; Skeptic bans public copy changes during the clean-baseline week). Unanimous cross-seat finding: the UNDEPLOYED worker order-alert is worth more than any new item.

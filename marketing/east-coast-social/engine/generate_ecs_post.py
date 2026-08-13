@@ -86,6 +86,21 @@ def archive(card_path, msg, caption, today):
     index_file.write_text(json.dumps(entries, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"feed archive updated: {len(entries)} posts")
 
+    # odometer: all-time distinct-day count for the honest proof line on the
+    # automation page — the rolling index above can't say it. Bumps once per
+    # calendar day (re-runs and re-renders of the same day never double-count).
+    stats_file = feed / "stats.json"
+    try:
+        stats = json.loads(stats_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        stats = {"total": 0, "since": stamp, "last": ""}
+    if stamp > stats.get("last", ""):
+        stats["total"] = int(stats.get("total", 0)) + 1
+        stats["last"] = stamp
+        stats.setdefault("since", stamp)
+        stats_file.write_text(json.dumps(stats), encoding="utf-8")
+        print(f"odometer: {stats['total']} posts since {stats['since']}")
+
 
 def main():
     out = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).parent / "out"

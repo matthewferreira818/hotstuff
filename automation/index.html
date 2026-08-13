@@ -225,6 +225,8 @@
   .plan ul li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 800; }
   .plans-note { font-size: 13.5px; color: var(--muted); margin-top: 12px; }
   .feed-fresh { font-size: 13.5px; font-weight: 700; color: var(--ok); margin: 0 0 14px; }
+  .feed-odometer { font-size: 15px; font-weight: 650; margin: 18px 0 0; }
+  .feed-odometer b { color: var(--gold-deep); font-variant-numeric: tabular-nums; }
   .feed-follow { font-size: 14px; color: var(--muted); margin-top: 16px; }
   .feed-follow a { color: var(--gold-deep); font-weight: 700; }
 
@@ -246,13 +248,16 @@
   .lead-or { color: var(--hero-muted); font-size: 12.5px; font-weight: 800; letter-spacing: .14em;
     text-transform: uppercase; margin: 0 0 16px; }
   .lead-grid { display: grid; gap: 10px; text-align: left; }
-  .lead-grid input, .lead-grid textarea {
+  .lead-grid input, .lead-grid textarea, .lead-grid select {
     width: 100%; box-sizing: border-box; border-radius: 10px; border: 1px solid rgba(242,246,250,.28);
     background: rgba(255,255,255,.07); color: var(--hero-ink); padding: 12px 14px;
     font: inherit; font-size: 15px;
   }
+  .lead-grid select { appearance: auto; }
+  .lead-grid select:invalid, .lead-grid select option[value=""] { color: var(--hero-muted); }
+  .lead-grid select option { color: initial; }
   .lead-grid input::placeholder, .lead-grid textarea::placeholder { color: var(--hero-muted); opacity: 1; }
-  .lead-grid input:focus-visible, .lead-grid textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .lead-grid input:focus-visible, .lead-grid textarea:focus-visible, .lead-grid select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
   #lead-form button { margin-top: 14px; }
   .lead-hp { position: absolute; left: -9999px; top: -9999px; height: 0; width: 0; opacity: 0; }
   .lead-done { color: var(--ok); font-weight: 650; margin-top: 18px; }
@@ -352,6 +357,7 @@ findhotstuff.com #cozyhome</p>
        data-yesterday="The engine's latest post: yesterday" data-on="Latest post:"
        style="visibility:hidden">&nbsp;</p>
     <div class="feed" id="ecs-feed"></div>
+    <p class="feed-odometer" id="feed-odometer" data-line="{n} posts published automatically since {d}" data-streak=" — one every single day, none written by hand." hidden></p>
     <p class="feed-follow">Watch it post in the wild:
       <a href="https://www.tiktok.com/@find.hotstuff" target="_blank" rel="noopener">TikTok @find.hotstuff</a> ·
       <a href="https://x.com/FindHotsTuff" target="_blank" rel="noopener">X @FindHotsTuff</a></p>
@@ -480,6 +486,15 @@ findhotstuff.com #cozyhome</p>
           <input type="text" name="name" required maxlength="80" placeholder="Your name" aria-label="Your name">
           <input type="text" name="business" maxlength="120" placeholder="Business name (optional)" aria-label="Business name (optional)">
           <input type="text" name="contact" required minlength="5" maxlength="120" placeholder="Phone or email" aria-label="Phone or email">
+          <select name="category" aria-label="What kind of business? (optional)">
+            <option value="">What kind of business? (optional)</option>
+            <option value="restaurant/cafe">Restaurant · café · bar</option>
+            <option value="bakery/food">Bakery · food shop</option>
+            <option value="salon/barber">Salon · barber</option>
+            <option value="garage/trades">Garage · trades · services</option>
+            <option value="retail">Retail · boutique</option>
+            <option value="other">Something else</option>
+          </select>
           <textarea name="message" maxlength="600" rows="3" placeholder="Anything I should know? (optional)" aria-label="Anything I should know? (optional)"></textarea>
         </div>
         <input type="text" name="website" class="lead-hp" tabindex="-1" autocomplete="off" aria-hidden="true">
@@ -566,6 +581,30 @@ findhotstuff.com #cozyhome</p>
     .catch(function () { box.closest("section").hidden = true; });
 })();
 </script>
+
+<script>
+/* Odometer: all-time post count from the engine's own stats file. The
+ * every-single-day claim renders only when the math proves it (count equals
+ * the number of calendar days, inclusive) — the line can never overstate. */
+(function () {
+  var el = document.getElementById("feed-odometer");
+  if (!el) return;
+  fetch("feed/stats.json", { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+    .then(function (s) {
+      var total = +s.total;
+      if (!total || total < 7 || !s.since || !s.last) return;
+      var day = 864e5;
+      var span = Math.round((new Date(s.last + "T12:00:00") - new Date(s.since + "T12:00:00")) / day) + 1;
+      var d = new Date(s.since + "T12:00:00").toLocaleDateString(document.documentElement.lang === "fr" ? "fr-CA" : "en-CA", { month: "long", day: "numeric" });
+      var text = el.dataset.line.replace("{n}", "<b>" + total + "</b>").replace("{d}", d);
+      if (total === span) text += el.dataset.streak;
+      el.innerHTML = "⚡ " + text;
+      el.hidden = false;
+    })
+    .catch(function () { /* no stats, no line */ });
+})();
+</script>
 <a class="sticky-text" id="sticky-text" href="sms:+15068899737?body=Hi%20Matthew%20-%20saw%20East%20Coast%20Social%20online%2C%20I%27d%20like%20the%20free%20week%20of%20sample%20posts.">💬 Text Matthew — free week of samples</a>
 
 <script>
@@ -618,7 +657,8 @@ findhotstuff.com #cozyhome</p>
         name: f.get("name") || "",
         business: f.get("business") || "",
         contact: f.get("contact") || "",
-        message: f.get("message") || "",
+        // category rides inside the message so the worker needs no changes
+        message: ((f.get("category") ? "[" + f.get("category") + "] " : "") + (f.get("message") || "")).trim(),
         website: f.get("website") || "",
         lang: "en"
       })

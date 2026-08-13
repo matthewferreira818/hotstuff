@@ -174,10 +174,20 @@ def diff_alerts(prev: dict, cur: dict) -> list[tuple[str, str, str]]:
     return alerts
 
 
+PRIORITY_NUM = {"min": 1, "low": 2, "default": 3, "high": 4, "urgent": 5}
+
+
 def push(topic: str, title: str, body: str, priority: str) -> None:
+    """Publish via ntfy's JSON endpoint. The header style used elsewhere in
+    this repo can't carry the emoji in these titles — HTTP headers are
+    latin-1 and urllib refuses — but a JSON body is plain UTF-8."""
+    payload = json.dumps({
+        "topic": topic, "title": title, "message": body,
+        "priority": PRIORITY_NUM.get(priority, 3), "tags": ["eyes"],
+    }).encode()
     req = urllib.request.Request(
-        f"https://ntfy.sh/{topic}", data=body.encode(),
-        headers={"Title": title, "Tags": "eyes", "Priority": priority})
+        "https://ntfy.sh", data=payload,
+        headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=20) as r:
         r.read()
 

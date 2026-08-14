@@ -145,24 +145,24 @@ AGENT_STORIES = [
                     "businesses #automation #smallbusiness #ai #sidehustle"),
     },
     {
-        "hook": ("Zero employees.", "180 posts a month."),
+        "hook": ("Zero employees.", "A post every single day."),
         "sub": "that's the whole business model.",
         "hint": "the math →",
         "receipts": "the numbers",
         "cta": ("your shop could", "post this often"),
-        "caption": ("zero employees, 180 posts a month, and I never open the app \U0001F916 "
+        "caption": ("zero employees and this store still posts every single day \U0001F916 "
                     "the engine writes, designs and publishes on its own — building this for "
                     "local businesses now #smallbusiness #automation #ai #marketing"),
     },
     {
-        "hook": ("What if your shop", "posted while you slept?"),
-        "sub": "mine does. every single night.",
+        "hook": ("What if your shop", "posted before you woke?"),
+        "sub": "mine did. this morning. automatically.",
         "hint": "proof →",
-        "receipts": "what runs overnight",
+        "receipts": "what ran this morning",
         "cta": ("this is the service", "not just my store"),
-        "caption": ("what if your business page posted while you slept? \U0001F634 mine does — "
-                    "every night, automatically. now building the same thing for local shops "
-                    "#smallbusiness #automation #ai #localbusiness"),
+        "caption": ("what if your business page posted before you even woke up? \U0001F634 mine "
+                    "did this morning — automatically. now building the same thing for local "
+                    "shops #smallbusiness #automation #ai #localbusiness"),
     },
     {
         "hook": ("Most local pages", "went quiet in spring."),
@@ -271,22 +271,25 @@ def _lh_slide_receipts(product_count, refreshed):
     t_font = _fit(draw, title, 76, W - 2 * 90, loader=_serif)
     draw.text(((W - draw.textlength(title, font=t_font)) // 2, 330), title, font=t_font, fill=LH_INK)
 
-    # a larger pool of true claims, rotated so the slide reads fresh each day
-    every_day = [
-        "posts on X three times a day",
+    # a larger pool of TRUE claims, rotated so a different mix — and a
+    # different first line — leads the slide each day. Every line here must
+    # describe something the stack actually does today: no "3× a day on X"
+    # while X posting waits on credits, no "every hour" when the reports run
+    # every three. The website's proof copy already holds this bar (see the
+    # 2026-08-13 council); the slides hold it too.
+    claims = [
+        "publishes a branded card every day",
         f"keeps {product_count} products live on the site",
         "refreshes the catalog every 3 days",
-    ]
-    extras = [
-        "checks the site's pulse every hour",
+        "sends traffic reports every 3 hours",
         "writes its own captions and cards",
         "rebuilds the storefront on its own",
         "files an alert if anything breaks",
         "swaps out products when trends cool",
         "runs the site in two languages",
     ]
-    shift = date.today().toordinal() % len(extras)
-    rows = every_day + [extras[(shift + i) % len(extras)] for i in range(2)]
+    shift = date.today().toordinal() % len(claims)
+    rows = [claims[(shift + i) % len(claims)] for i in range(5)]
     rows.append("human hours required: zero")
     y = 560
     text_left, text_right_pad = 200, 40

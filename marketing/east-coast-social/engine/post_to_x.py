@@ -14,6 +14,7 @@ X app is configured. Fails loudly on real API errors.
 """
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -23,12 +24,28 @@ SITE = "https://findhotstuff.com/automation/?ref=ecs"
 CREDS = ["ECS_X_API_KEY", "ECS_X_API_SECRET",
          "ECS_X_ACCESS_TOKEN", "ECS_X_ACCESS_TOKEN_SECRET"]
 
+# X's pay-per-use tier bills a tweet containing a URL at ~13x the linkless
+# rate ($0.20 vs $0.015), so by default the daily post drops the site link —
+# the card's QR and the profile bio carry it instead. Set X_LINKLESS=0 to
+# put the URL back if the economics ever change.
+LINKLESS = os.environ.get("X_LINKLESS", "1").strip() != "0"
+
+
+def strip_links(text: str) -> str:
+    """Remove the site URL (and its arrow) so X doesn't detect a link."""
+    text = re.sub(r"[➜→]?\s*(https?://)?\S*findhotstuff\.com\S*", "", text)
+    return text.strip(" ,.;—-") + " · link in bio"
+
 
 def x_text(caption: str) -> str:
     """Fit the caption into a tweet; X counts any URL as 23 chars."""
+    if LINKLESS:
+        caption = strip_links(caption)
     if len(caption) <= 270:
         return caption
     trimmed = caption[:230].rsplit(" ", 1)[0].rstrip(" ,.;—-")
+    if LINKLESS:
+        return f"{trimmed}… (link in bio)"
     return f"{trimmed}… ➜ {SITE}"
 
 

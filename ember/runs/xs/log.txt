@@ -1,3 +1,7 @@
 step 50/3000  loss 0.9568  617 ms/step
 step 100/3000  loss 0.6197  635 ms/step
 step 150/3000  loss 0.2107  629 ms/step
+step 200/3000  loss 0.0861  631 ms/step
+step 250/3000  loss 0.0652  626 ms/step
+step 300/3000  loss 0.0556  622 ms/step
+step 350/3000  loss 0.0421  651 ms/step

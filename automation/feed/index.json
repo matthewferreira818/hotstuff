@@ -1,5 +1,11 @@
 [
  {
+  "date": "2026-08-18",
+  "image": "2026-08-18.png",
+  "message": "One 20-minute chat. Then your page runs itself.",
+  "caption": "That's the whole setup: we talk about your business, you approve sample posts, the engine takes it from there. ➜ findhotstuff.com/automation/?ref=ecs"
+ },
+ {
   "date": "2026-08-17",
   "image": "2026-08-17.png",
   "message": "Your competition posted today. Did you?",
@@ -40,11 +46,5 @@
   "image": "2026-08-11.png",
   "message": "Most local pages die because nobody has time. Yours doesn't have to.",
   "caption": "You run the business. The engine runs the feed. You approve the style once and never touch it again. ➜ findhotstuff.com/automation/?ref=ecs"
- },
- {
-  "date": "2026-08-10",
-  "image": "2026-08-10.png",
-  "message": "This post was written, designed, and published by a machine.",
-  "caption": "Really. Nobody typed this. The East Coast Social engine wrote it, built the card, and published it on schedule — the same way it can for your business, every day. ➜ findhotstuff.com/automation/?ref=ecs"
  }
 ]

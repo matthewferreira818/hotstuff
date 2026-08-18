@@ -1,0 +1,14 @@
+{
+  "out": "runs/xs",
+  "size": 32,
+  "base_ch": 48,
+  "batch": 32,
+  "steps": 3000,
+  "lr": 0.0002,
+  "warmup": 100,
+  "timesteps": 1000,
+  "sample_every": 500,
+  "ckpt_every": 250,
+  "workers": 2,
+  "params": 7000515
+}

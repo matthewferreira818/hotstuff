@@ -35,3 +35,4 @@ step 1700/3000  loss 0.0203  798 ms/step
 step 1750/3000  loss 0.0199  792 ms/step
 step 1800/3000  loss 0.0196  787 ms/step
 step 1850/3000  loss 0.0197  783 ms/step
+step 1900/3000  loss 0.0190  780 ms/step

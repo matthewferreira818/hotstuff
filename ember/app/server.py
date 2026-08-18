@@ -26,25 +26,35 @@ from PIL import Image
 from ember import EmberUNet, Diffusion, img2img
 from ember.utils import tensor_to_pil
 
-CKPT = os.environ.get("EMBER_CKPT", os.path.join(os.path.dirname(__file__), "..", "runs", "xs", "ckpt.pt"))
+_ROOT = os.path.join(os.path.dirname(__file__), "..")
+_RUN_CKPT = os.path.join(_ROOT, "runs", "xs", "ckpt.pt")
+_SLIM_CKPT = os.path.join(_ROOT, "weights", "ember-xs.pt")
+# prefer a live training run; fall back to the committed slim weights
+CKPT = os.environ.get("EMBER_CKPT") or (_RUN_CKPT if os.path.exists(_RUN_CKPT) else _SLIM_CKPT)
 STATIC = os.path.join(os.path.dirname(__file__), "static")
 
 app = FastAPI(title="Ember Studio")
 _state = {"model": None, "diffusion": None, "cfg": None, "mtime": 0, "step": 0}
-_lock = threading.Lock()
+_lock = threading.RLock()
 
 
 def _ensure_model():
-    mtime = os.path.getmtime(CKPT)
-    if _state["model"] is None or mtime > _state["mtime"]:
-        ck = torch.load(CKPT, map_location="cpu")
-        cfg = ck["config"]
-        model = EmberUNet(base_ch=cfg["base_ch"])
-        model.load_state_dict(ck["ema"])
-        model.eval()
-        _state.update(model=model, cfg=cfg, mtime=mtime, step=ck["step"],
-                      diffusion=Diffusion(cfg["timesteps"]))
-    return _state
+    with _lock:
+        try:
+            mtime = os.path.getmtime(CKPT)
+            if _state["model"] is None or mtime > _state["mtime"]:
+                ck = torch.load(CKPT, map_location="cpu")
+                cfg = ck["config"]
+                model = EmberUNet(base_ch=cfg["base_ch"])
+                model.load_state_dict(ck["ema"])
+                model.eval()
+                _state.update(model=model, cfg=cfg, mtime=mtime, step=ck["step"],
+                              diffusion=Diffusion(cfg["timesteps"]))
+        except Exception:
+            # a reload hiccup must never kill serving — keep the loaded model
+            if _state["model"] is None:
+                raise
+        return _state
 
 
 class GenerateReq(BaseModel):

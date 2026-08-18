@@ -85,17 +85,19 @@ def main():
         running += loss.item()
         if step % 50 == 0:
             msg = (f"step {step}/{args.steps}  loss {running/50:.4f}  "
-                   f"{(time.time()-t0)/step*1000:.0f} ms/step")
+                   f"{(time.time()-t0)/(step-start_step)*1000:.0f} ms/step")
             running = 0.0
             print(msg, flush=True)
             with open(log_path, "a") as f:
                 f.write(msg + "\n")
 
         if step % args.ckpt_every == 0 or step == args.steps:
+            # write-then-rename so the studio server never reads a half-written file
+            ckpt_path = os.path.join(args.out, "ckpt.pt")
             torch.save({"model": model.state_dict(), "ema": ema.shadow,
                         "opt": opt.state_dict(), "step": step,
-                        "config": config},
-                       os.path.join(args.out, "ckpt.pt"))
+                        "config": config}, ckpt_path + ".tmp")
+            os.replace(ckpt_path + ".tmp", ckpt_path)
 
         if step % args.sample_every == 0 or step == args.steps:
             sampler = EmberUNet(base_ch=args.base_ch).to(device)

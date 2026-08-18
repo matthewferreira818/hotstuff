@@ -45,6 +45,8 @@ class Diffusion:
         g = torch.Generator(device=device)
         if seed is not None:
             g.manual_seed(seed)
+        else:
+            g.seed()  # fresh Generators start from a FIXED seed; draw real entropy
         x = torch.randn(shape, generator=g, device=device)
 
         ts = torch.linspace(self.T - 1, 0, steps, device=device).long()
@@ -90,6 +92,7 @@ class EMA:
         model.load_state_dict(self.shadow)
 
 
+@torch.no_grad()
 def img2img(diffusion, model, init, strength=0.6, steps=50, seed=None):
     """Reimagine a reference image: noise it partway into the diffusion process,
     then denoise. strength 0 = return the reference, 1 = ignore it entirely."""
@@ -97,6 +100,8 @@ def img2img(diffusion, model, init, strength=0.6, steps=50, seed=None):
     g = torch.Generator(device=device)
     if seed is not None:
         g.manual_seed(seed)
+    else:
+        g.seed()
 
     t_start = min(diffusion.T - 1, max(1, int(diffusion.T * strength)))
     noise = torch.randn(init.shape, generator=g, device=device)

@@ -112,6 +112,9 @@
 
 <script>
   const $ = (s) => document.querySelector(s);
+  // a drop that misses the refbox must not navigate away and wipe the canvas
+  window.addEventListener('dragover', (e) => e.preventDefault());
+  window.addEventListener('drop', (e) => e.preventDefault());
   let n = 4, reference = null;
 
   $('#numseg').addEventListener('click', (e) => {
@@ -128,7 +131,7 @@
   refbox.addEventListener('drop', (e) => { e.preventDefault(); loadRef(e.dataTransfer.files[0]); });
   reffile.addEventListener('change', () => loadRef(reffile.files[0]));
   function loadRef(file) {
-    if (!file) return;
+    if (!file || !file.type.startsWith('image/')) return;
     const r = new FileReader();
     r.onload = () => {
       reference = r.result;
@@ -160,9 +163,11 @@
                      seed: $('#seed').value === '' ? null : +$('#seed').value,
                      reference, strength: +$('#strength').value / 100 };
       const t0 = performance.now();
-      const res = await (await fetch('/api/generate', {
+      const r = await fetch('/api/generate', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body) })).json();
+        body: JSON.stringify(body) });
+      if (!r.ok) throw new Error('server ' + r.status + ': ' + (await r.text()).slice(0, 200));
+      const res = await r.json();
       const grid = $('#grid'); grid.innerHTML = '';
       res.images.forEach((src, i) => {
         const img = new Image(); img.src = src; img.title = 'click to download';

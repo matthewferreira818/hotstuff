@@ -477,6 +477,7 @@ findhotstuff.com #cozyhome</p>
       <a class="btn btn-gold" href="sms:+15068899737?body=Hi%20Matthew%20-%20saw%20East%20Coast%20Social%20online%2C%20interested%20in%20daily%20posts%20for%20my%20business.">💬 Text me</a>
       <a class="btn btn-ghost" href="tel:+15068899737">📞 (506) 889-9737</a>
       <a class="btn btn-ghost" href="mailto:hello@eastcoastsocial.ca?subject=Set%20up%20my%20posting%20engine">✉️ Email</a>
+      <a class="btn btn-ghost" href="https://calendly.com/matthew-ferreira818/30min" target="_blank" rel="noopener">📅 Book a call</a>
     </div>
     <div class="lead-wrap">
       <p class="lead-or" aria-hidden="true">— or —</p>
@@ -633,8 +634,8 @@ findhotstuff.com #cozyhome</p>
       } catch (e) { /* never block the tap */ }
     }
   }
-  document.querySelectorAll('a[href^="sms:"], a[href^="tel:"], a[href^="mailto:"]').forEach(function (a) {
-    var kind = a.href.indexOf("sms:") === 0 ? "text" : a.href.indexOf("tel:") === 0 ? "call" : "email";
+  document.querySelectorAll('a[href^="sms:"], a[href^="tel:"], a[href^="mailto:"], a[href*="calendly.com"]').forEach(function (a) {
+    var kind = a.href.indexOf("sms:") === 0 ? "text" : a.href.indexOf("tel:") === 0 ? "call" : a.href.indexOf("calendly.com") !== -1 ? "book" : "email";
     a.addEventListener("click", function () { tag(kind); });
   });
 })();

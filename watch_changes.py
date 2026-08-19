@@ -43,15 +43,18 @@ GC = "https://theycallmemattyb.goatcounter.com"
 SITE = "https://findhotstuff.com"
 SAMPLE_REGISTRY = HERE / "marketing" / "east-coast-social" / "engine" / "samples" / "registry.json"
 
-REF_TAGS = ["x", "x-qr", "pin", "pin-ecs", "ecs", "tt", "tt-ecs",
-            "gbp", "print", "card", "fb", "tt-bio", "ig"]
-CHANNEL_LABELS = {
-    "x": "X posts", "x-qr": "X QR card", "pin": "Pinterest pins",
-    "pin-ecs": "Pinterest ECS pins", "ecs": "ECS daily caption",
-    "tt": "TikTok QR", "tt-ecs": "TikTok agent QR", "gbp": "Google Business",
-    "print": "print flyer QR", "card": "business card QR",
-    "tt-bio": "TikTok bio", "ig": "Instagram", "fb": "Facebook",
-}
+# Channel tags come from traffic_report — the one list every new channel is
+# added to. This watcher kept its own copy at first, which went stale within
+# a week: the Moncton group ad (ref-fb-ad) delivered the site's FIRST tagged
+# visits ever and no ping fired because the tag wasn't in the copy. Extras
+# below are tags that only exist as aspirations (bio links) until someone
+# sets them; the union keeps both alive.
+from traffic_report import REF_CHANNELS
+
+EXTRA_TAGS = ["tt-bio", "ig"]
+REF_TAGS = [tag for tag, _ in REF_CHANNELS] + EXTRA_TAGS
+CHANNEL_LABELS = {**dict(REF_CHANNELS),
+                  "tt-bio": "TikTok bio", "ig": "Instagram"}
 
 SPIKE_FACTOR = 3.0   # today >= this x the 7-day daily pace ...
 SPIKE_MIN = 15       # ... and at least this many, so small numbers can't trip it

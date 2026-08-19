@@ -1,0 +1,30 @@
+{
+ "name": "150 Bridge Salon",
+ "slug": "150-bridge-salon",
+ "town": "Sackville, NB",
+ "category": "salon",
+ "items": [
+  "cuts & styling",
+  "colour & highlights",
+  "foils",
+  "wedding updos",
+  "perms",
+  "facials & waxing"
+ ],
+ "hours": {
+  "Mon": "9:30–5",
+  "Tue": "9:30–5",
+  "Wed": "9:30–5",
+  "Thu": "9:30–7",
+  "Fri": "9:30–5"
+ },
+ "facts": [
+  "Full colourist services — foils to semi-permanent",
+  "Wedding hair and updos",
+  "Lash, brow and waxing too"
+ ],
+ "statement": "Good hair days, made on Bridge Street.",
+ "spotlight": "Wedding updos",
+ "spotlight_price": "",
+ "teaser": "Thursday evenings — open till 7."
+}

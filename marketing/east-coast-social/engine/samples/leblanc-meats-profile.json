@@ -1,0 +1,26 @@
+{
+ "name": "Viandes LeBlanc Meats",
+ "slug": "leblanc-meats",
+ "town": "Memramcook, NB",
+ "category": "retail",
+ "items": [
+  "fresh beef & lamb",
+  "pork, chicken & fish",
+  "house-made gluten-free sausages",
+  "smoked bacon",
+  "custom cutting & sides of beef"
+ ],
+ "hours": {
+  "Fri": "8–6",
+  "Sat": "8–4"
+ },
+ "facts": [
+  "Atlantic Canada's first halal-certified slaughterhouse",
+  "Sausages and bacon made fresh in-house",
+  "Custom orders and sides of beef"
+ ],
+ "statement": "Fresh from the block, right in Memramcook.",
+ "spotlight": "House-made sausages",
+ "spotlight_price": "",
+ "teaser": "Fridays 8–6 · Saturdays 8–4."
+}

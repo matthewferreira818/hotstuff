@@ -16,6 +16,16 @@ button myself — you prep everything and stop before submitting.
   findhotstuff.com/automation), I'll attach the saved card image, you fill
   the text. STOP — I'll click Post.
 
+**1b. Same card on the East Coast Social Facebook PAGE (daily, non-negotiable):**
+- Same image + caption as step 1 (the card is already in Downloads).
+- Open facebook.com and make sure we're posting AS the East Coast Social
+  page, not my personal profile. New post: attach the card, paste the full
+  caption (keep the link findhotstuff.com/automation/?ref=ecs exactly as
+  written). STOP — I'll click Post.
+- Why this can't be skipped: this page sells "your page never goes quiet"
+  and it sat silent from July 29 to Aug 19. The streak holds until the
+  auto-posting hookup lands.
+
 **2. Three Pinterest pins (product drip + service pitch):**
 - Open https://github.com/matthewferreira818/hotstuff/blob/master/marketing/pinterest/pins.md
   and ask me which pin numbers I haven't posted yet. (The pack regenerates

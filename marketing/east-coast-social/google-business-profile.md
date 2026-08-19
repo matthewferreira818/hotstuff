@@ -130,7 +130,7 @@ East Coast Social keeps your business page posting every day, without you liftin
 
 Most local pages go quiet because nobody has time to feed them. We set up a posting engine tuned to your shop — your logo, your colours, your specials — that writes, designs and publishes a branded post daily. You approve the style once; after that it runs.
 
-Proven on our own store first: findhotstuff.com has posted three times a day, every day, hands-free.
+Proven on our own store first: findhotstuff.com publishes a fresh branded card every single day, hands-free — the live day-count is right on the site.
 
 Serving Sackville, Memramcook, Dorchester, Shediac, Dieppe, Riverview and greater Moncton.
 
@@ -148,6 +148,15 @@ the pricing objection gets answered before a call:
 | Two-platform posting | $129/month | Up to 3 posts a day across two platforms, plus scannable QR image cards. |
 | Free sample week | Free | Seven days of posts built for your business before you pay anything — see exactly what your feed would look like. |
 | Social media setup | Free | Page setup, branding and posting schedule configured for you. |
+
+### Appointment link
+When Google offers a booking/appointments URL field (sometimes under
+"Bookings" after setup):
+```
+https://calendly.com/matthew-ferreira818/30min
+```
+Same link as the website's "Book a call" button — bookings land straight on
+the calendar.
 
 ### Attributes
 Tick these where offered:

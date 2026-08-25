@@ -3,49 +3,49 @@
 _Upload each pin with its title, description, and link below. Board suggestion: "Trending Finds"._
 
 ## pin-1.png
-- **Title:** Cup Kitchen Tool Kit — Trending Now
-- **Description:** Small gadget, big everyday kitchen win. Only $24.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #kitchen #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJJD1123188&ref=pin
-
-## pin-2.png
-- **Title:** Maker Mini Office Purifier — Trending Now
-- **Description:** Fixes a real car annoyance you didn't know you could. Only $13.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #auto #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJJJJTJT09042&ref=pin
-
-## pin-3.png
-- **Title:** Life Pendant Necklace — Trending Now
-- **Description:** A little extra shine for an everyday outfit. Only $35.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJLX1237838&ref=pin
-
-## pin-4.png
 - **Title:** LED sensor light bar — Trending Now
 - **Description:** Instant cozy — lighting that transforms a room. Only $24.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #home #trendingproducts #onlinefinds
 - **Link:** https://findhotstuff.com/?p=CJJZLELE00235&ref=pin
 
+## pin-2.png
+- **Title:** Heart Shaped Cross Pendant — Trending Now
+- **Description:** Simple, pretty, and easy to layer with anything. Only $31.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJLX1329466&ref=pin
+
+## pin-3.png
+- **Title:** Waxing Polishing Sewage Hard — Trending Now
+- **Description:** Simple gear that makes commuting a little smoother. Only $15.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #auto #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJQC1043907&ref=pin
+
+## pin-4.png
+- **Title:** Baby shoes toddler — Trending Now
+- **Description:** The kind of thing new parents quietly love. Only $13.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #footwear #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJWJYEYE01270&ref=pin
+
 ## pin-5.png
-- **Title:** Straw Holiday Cool Beach — Trending Now
-- **Description:** One of this week's most-loved trending finds. Only $27.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #trendingfinds #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJNSFSMZ00337&ref=pin
+- **Title:** Belt Feeding Care Accessory — Trending Now
+- **Description:** Playtime, sorted — and it's trending for a reason. Only $35.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #toys #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJWJYEYE01852&ref=pin
 
 ## pin-6.png
-- **Title:** Long Sleeve Compression Top — Trending Now
-- **Description:** Simple support that fits under whatever you're wearing. Only $15.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #trendingfinds #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJNSTXDS00413&ref=pin
+- **Title:** Anti-drop phone case — Trending Now
+- **Description:** Small accessory, surprisingly big daily payoff. Only $11.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #phoneaccessories #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJSJBHFG00066&ref=pin
 
 ## pin-7.png
-- **Title:** Bouquet Transparent Bobo Ball — Trending Now
-- **Description:** Set the mood with a warm, ambient glow. Only $21.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #home #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJJJJTJT35232&ref=pin
+- **Title:** Women's Lapel Cashmere coat — Trending Now
+- **Description:** Practical, well-priced, and quietly popular. Only $24.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #trendingfinds #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJNSWTFY00277&ref=pin
 
 ## pin-8.png
-- **Title:** Nylon backpack — Trending Now
-- **Description:** Simple, roomy, and easy to style. Only $35.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #bags #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJBHNSNS09408&ref=pin
+- **Title:** Rail Toy Track Kids — Trending Now
+- **Description:** A sweet, easy pick for baby's everyday routine. Only $35.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #auto #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJWJWJYZ08656&ref=pin
 
 ## pin-9.png
-- **Title:** fashionable baby shoes, toddler — Trending Now
-- **Description:** Cute meets useful for babies and toddlers. Only $24.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJWJXDBB00095&ref=pin
+- **Title:** Jewelry Anniversary Valentine's Day — Trending Now
+- **Description:** Simple, pretty, and easy to layer with anything. Only $31.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #jewelry #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJLX1214580&ref=pin
 
 ## pin-10.png
 - **Title:** HotsTuff Flame Tee — Official HotsTuff Merch

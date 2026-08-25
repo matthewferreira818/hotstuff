@@ -1,5 +1,11 @@
 [
  {
+  "date": "2026-08-25",
+  "image": "2026-08-25.png",
+  "message": "Daily specials could announce themselves.",
+  "caption": "Restaurants, cafés, food trucks: your feature board is content. The engine turns it into daily posts your customers actually see. ➜ findhotstuff.com/automation/?ref=ecs"
+ },
+ {
   "date": "2026-08-24",
   "image": "2026-08-24.png",
   "message": "One less job every single morning.",
@@ -40,11 +46,5 @@
   "image": "2026-08-18.png",
   "message": "One 20-minute chat. Then your page runs itself.",
   "caption": "That's the whole setup: we talk about your business, you approve sample posts, the engine takes it from there. ➜ findhotstuff.com/automation/?ref=ecs"
- },
- {
-  "date": "2026-08-17",
-  "image": "2026-08-17.png",
-  "message": "Your competition posted today. Did you?",
-  "caption": "The engine never forgets, never gets busy, never takes a vacation. Daily branded posts for your business. ➜ findhotstuff.com/automation/?ref=ecs"
  }
 ]

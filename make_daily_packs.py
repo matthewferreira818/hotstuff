@@ -368,7 +368,11 @@ def _write_captions(picks):
         c = (p.get("category") or p["_ad"].split()[0]).lower()
         if c not in cats:
             cats.append(c)
-    tag_items = " + ".join(cats) + (" finds" if len(cats) == 1 else "")
+    # " finds" reads as a noun for a bare category ("jewelry finds"), but
+    # the catch-all category is literally "Trending Finds" — appending it
+    # there produced "trending finds finds" in a public caption.
+    solo = len(cats) == 1 and not cats[0].endswith("finds")
+    tag_items = " + ".join(cats) + (" finds" if solo else "")
     L = [
         "# Daily TikTok posts (auto-generated)\n",
         f"_Generated {date.today().isoformat()} · post PRODUCT in the daytime, AGENT in the evening._\n",

@@ -14,6 +14,16 @@ ones already looking. It is the only free channel that works while you sleep.
 
 ---
 
+## STATUS (updated 2026-08-26)
+
+Profile fields completed 2026-08-19. **Video verification recorded and
+submitted 2026-08-26** — now in Google's review queue (up to 5 business
+days; often faster). Do NOT re-submit while pending: a duplicate request
+resets the queue position. When approval lands, the first-week tasks at
+the bottom of this file become live (first GBP post, Q&A seeding).
+
+---
+
 ## Before you start
 
 - The Google account that should own it long-term.

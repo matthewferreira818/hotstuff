@@ -16,11 +16,14 @@ ones already looking. It is the only free channel that works while you sleep.
 
 ## STATUS (updated 2026-08-26)
 
-Profile fields completed 2026-08-19. **Video verification recorded and
-submitted 2026-08-26** — now in Google's review queue (up to 5 business
-days; often faster). Do NOT re-submit while pending: a duplicate request
-resets the queue position. When approval lands, the first-week tasks at
-the bottom of this file become live (first GBP post, Q&A seeding).
+Profile fields completed 2026-08-19. **Video FILMED on Matthew's phone
+2026-08-26 — NOT yet submitted to Google.** Correction to an earlier log
+entry that said "submitted"; the footage exists, the verification flow has
+not been completed. Next action is his: open the verification flow and
+either upload that file (if the flow offers an upload) or re-shoot inside
+Google's own recorder (some flows require a live in-tool take). Only after
+Google confirms receipt does the review clock start — up to 5 business
+days. Do NOT re-submit once it IS pending: a duplicate resets the queue.
 
 ---
 

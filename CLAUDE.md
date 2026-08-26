@@ -54,8 +54,8 @@ Frugal until client #1: paid items are SHELVED (Anthropic API key for the
 name polisher, X API credits, hoodie sample). Don't pitch paid anything in
 briefs until Matthew says the first invoice cleared. Everything currently
 running costs $0/month. Free unlocks still open: Meta/Facebook auto-post
-hookup, TikTok app review, Zoho mail. GBP: video verification submitted
-2026-08-26, awaiting Google review.
+hookup, TikTok app review, Zoho mail. GBP: fields done 08-19, verification video
+filmed 08-26 but NOT yet submitted through Google's flow.
 
 ## Where the real ledgers live (read before answering "what's next")
 

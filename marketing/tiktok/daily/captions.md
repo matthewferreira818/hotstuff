@@ -1,19 +1,19 @@
 # Daily TikTok posts (auto-generated)
 
-_Generated 2026-08-25 · post PRODUCT in the daytime, AGENT in the evening._
+_Generated 2026-08-26 · post PRODUCT in the daytime, AGENT in the evening._
 
 
 ## 🔥 Product post (product/) — caption
 
 ```
-today's heat check 🔥 trending finds + fashion and more — all under one link #tiktokmademebuyit #trending #dailyfinds
+today's heat check 🔥 trending finds finds and more — all under one link #tiktokmademebuyit #trending #dailyfinds
 ```
 
 
 ## 🗼 Agent post (agent/) — caption
 
 ```
-nobody made this post 🤖 the engine picked it, designed it and published it — same as every other day this month. setting it up for local businesses #automation #ai #smallbusiness #contentcreation
+day in the life of a store with zero employees 🤖 everything you just saw happened automatically. building this for local businesses now #automation #smallbusiness #sidehustle #ai
 ```
 
 > 🎵 Add a trending sound to each in-app. Product post: upbeat. Agent post: something calm/lofi reads as 'systems humming'.

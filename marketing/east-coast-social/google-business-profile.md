@@ -219,16 +219,32 @@ call) and you can't choose. Service-area businesses without a storefront
 frequently get **video**, so be ready for it. Review can take up to 5 business
 days; some verify instantly.
 
-If you get video, you'll be asked to show three things. What to have ready:
+**Confirmed 2026-08-26: video is the ONLY method offered** for this profile —
+no phone, postcard, email or live-call alternative behind "More options",
+and **no upload control**. The screen states "Do not submit pre-recorded
+videos": it must be captured live inside Google's tool, on a phone
+(business.google.com in the phone browser — a laptop webcam makes the
+outdoor walk-in shot impractical). Do not route around this.
 
-1. **That the location is real** — step outside, show the street sign or house
-   number, then walk back in. This is why the home address matters.
-2. **That the business operates** — branded materials and tools. Your business
-   cards, a printed flyer from `print/`, and the laptop with the engine
-   actually running (`findhotstuff.com` posting, or a sample pack rendering)
-   are exactly what they're asking for.
-3. **That you're the one who runs it** — show the ECS accounts logged in, the
-   repo, the scheduled posts.
+Google's three requirements, in its own words:
+
+1. **Show surrounding area** — street signs or neighbouring businesses.
+   *"Your location should match the service area you entered."* So the
+   filming location must be inside the profile's own service-area list —
+   check that list BEFORE recording.
+2. **Show the business name** — printed on a business card, licence or
+   vehicle. *"Your business name should match the name you entered."*
+3. **Show you're authorized to represent the business** — Google's examples
+   are business equipment, a **booking system**, or unlocking a branded
+   vehicle. The strongest asset we own for this is the **Calendly booking
+   dashboard logged in as owner** (literally Google's own example), backed
+   by the ECS Facebook page in admin view. A public website alone is
+   weaker proof than it looks.
+
+Its own tips: one continuous take, 1–2 minutes, start outside and move in.
+Two on-screen prohibitions: avoid capturing faces, and avoid sensitive
+documents — so no bystanders, and nothing with prospect or client data on
+screen.
 
 Have the business cards and one printed flyer physically in hand before you
 start the call. Fumbling for proof mid-call is the usual reason these fail.

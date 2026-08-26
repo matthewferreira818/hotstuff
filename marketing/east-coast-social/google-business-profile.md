@@ -27,6 +27,22 @@ days. Do NOT re-submit once it IS pending: a duplicate resets the queue.
 
 ---
 
+## DUPLICATE LISTING — one must go (found 2026-08-26)
+
+The dashboard shows TWO unverified "East Coast Social" profiles:
+
+- **KEEPER** — the service-area profile (Dieppe / Moncton + 3 other areas,
+  address hidden). This is the one carrying the description, services,
+  hours and photos, and it matches the configuration this pack specifies.
+  Verify this one.
+- **DELETE** — a second profile configured storefront-style with the home
+  address visible. Matthew removes it once the keeper is verified (holding
+  it as a fallback until then, deliberately).
+
+Rule: **never run verification on the duplicate.** Two pending listings is
+merely untidy; two *verified* listings for one business is a documented
+suspension trigger.
+
 ## Before you start
 
 - The Google account that should own it long-term.

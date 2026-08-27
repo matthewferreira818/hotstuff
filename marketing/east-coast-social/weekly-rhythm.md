@@ -49,7 +49,7 @@ Not five. **One.** Doable on a lunch break, and it compounds to ~5/week.
 
 | Day | The action |
 |---|---|
-| **Monday** | Group-ad check: the Moncton slot is one ad per **rolling 7 days** (rule 4, confirmed 08-11 — no set day). If 7+ days since the last ad, post; otherwise note the next open date. Image + caption, prices public. |
+| **Monday** | Group-ad check: the group is **"Small business Moncton and area"** (public, ~9.0K members). Rule 4 = **one advertising post per week**, worded "refrain from spamming posts about your products or services" (rules re-read 08-26). No rule about prices either way, so the $79/mo line is fine. **Post as Matthew's personal profile, not the ECS Page** — the Page's join request is still pending, and the personal profile is what pulled 6 click-throughs on 08-19. **No promo self-comment**: a follow-up comment carrying more links is what rule 4 is aimed at; reply to real comments instead. If 7+ days since the last ad, post; otherwise note the next open date. Second venue not yet used: MONCTON BUSINESS ADVERTISING (Official Group Page) — no ECS posts there, rules unread. |
 | **Tuesday** | One call. Shops 10:00–11:30, restaurants 2:00–4:00. |
 | **Wednesday** | One warm-lead follow-up (a callback owed, or a text bump on someone who went quiet ≥3 days). |
 | **Thursday** | One call — a fresh name off the call sheet. |

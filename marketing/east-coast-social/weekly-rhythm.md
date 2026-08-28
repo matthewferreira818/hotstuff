@@ -49,6 +49,18 @@ Not five. **One.** Doable on a lunch break, and it compounds to ~5/week.
 
 | Day | The action |
 |---|---|
+**Moncton ad log** (rule 4 = one advertising post per week, so track the date):
+
+| Posted | Creative | Copy angle | Result |
+|---|---|---|---|
+| 2026-08-08 | — | — | not measured |
+| 2026-08-19 11:03 | pin-ecs-4 (quiet-page before/after) | quiet page = closed sign | **6 tracked click-throughs** — best channel ever measured |
+| 2026-08-28 07:43 | pin-ecs-7 ("Three steps. One week.") | named founder, "posts go on your own page, not into groups like this one", 25-day feed streak as proof | baseline at post time: fb-ad all-time = 6, automation page all-time = 97 |
+
+Next slot opens **2026-09-04**. Posted from Matthew's personal profile
+(the ECS Page's join request is still pending). No promo self-comment —
+reply to real comments instead.
+
 | **Monday** | Group-ad check: the group is **"Small business Moncton and area"** (public, ~9.0K members). Rule 4 = **one advertising post per week**, worded "refrain from spamming posts about your products or services" (rules re-read 08-26). No rule about prices either way, so the $79/mo line is fine. **Post as Matthew's personal profile, not the ECS Page** — the Page's join request is still pending, and the personal profile is what pulled 6 click-throughs on 08-19. **No promo self-comment**: a follow-up comment carrying more links is what rule 4 is aimed at; reply to real comments instead. If 7+ days since the last ad, post; otherwise note the next open date. Second venue not yet used: MONCTON BUSINESS ADVERTISING (Official Group Page) — no ECS posts there, rules unread. |
 | **Tuesday** | One call. Shops 10:00–11:30, restaurants 2:00–4:00. |
 | **Wednesday** | One warm-lead follow-up (a callback owed, or a text bump on someone who went quiet ≥3 days). |

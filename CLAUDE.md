@@ -35,6 +35,12 @@ than discovering something was papered over.
    true TODAY (past sins: "3× a day on X" while X was off; wallpaper sold
    as a pet bed; "180 posts a month"). When a claim's basis stops, the
    claim comes down the same day.
+   **The odometer measures the SITE FEED, not any social page.** It counts
+   daily cards published to automation/feed. Never phrase it as "my page
+   has posted N days straight" — in a Facebook group that reads as the
+   Facebook page, and the ECS page was silent 07-29 to 08-19. Say "my own
+   store's feed has published a new post every day for N days" and link
+   findhotstuff.com/automation, where the reader can verify it.
 2. **Secrets never appear in chat.** API keys/tokens go straight into
    GitHub secret boxes or the Cloudflare dashboard, pasted by Matthew only.
    Claude never reads, types, or transcribes a secret value. The ntfy

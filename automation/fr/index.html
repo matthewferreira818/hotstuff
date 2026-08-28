@@ -225,6 +225,15 @@
   .plan ul li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 800; }
   .plans-note { font-size: 13.5px; color: var(--muted); margin-top: 12px; }
   .feed-fresh { font-size: 13.5px; font-weight: 700; color: var(--ok); margin: 0 0 14px; }
+  .hero-proof {
+    display: inline-block; margin: 0 auto 22px; padding: 7px 15px;
+    border: 1px solid rgba(240, 180, 41, .45); border-radius: 999px;
+    background: rgba(240, 180, 41, .08);
+    color: var(--hero-ink); font-size: 14px; font-weight: 600;
+  }
+  .hero-proof b { color: var(--gold); font-variant-numeric: tabular-nums; }
+  a.hero-proof { text-decoration: none; }
+  a.hero-proof:hover { border-color: var(--gold); background: rgba(240, 180, 41, .14); }
   .feed-odometer { font-size: 15px; font-weight: 650; margin: 18px 0 0; }
   .feed-odometer b { color: var(--gold-deep); font-variant-numeric: tabular-nums; }
   .feed-follow { font-size: 14px; color: var(--muted); margin-top: 16px; }
@@ -288,7 +297,8 @@
   <div class="hero-inner">
     <p class="brand"><span class="dot"></span>East Coast Social</p>
     <h1 class="serif">Votre entreprise publie chaque jour.<br><em>Sans lever le petit doigt.</em></h1>
-    <p class="sub">Gestion automatisée et clés en main de vos médias sociaux. Je bâtis un engin de publication ajusté à votre commerce — il rédige, conçoit et publie selon l'horaire, et je veille dessus pour que vous n'ayez jamais à y penser.</p>
+    <p class="sub">Gestion clés en main de vos médias sociaux pour entreprises locales. Je bâtis un engin de publication ajusté à votre commerce — vous approuvez le style une fois, puis ça roule.</p>
+    <a class="hero-proof" id="hero-proof" href="#proof" data-label="jours d'affilée sur notre propre fil — voyez-le ↓" hidden></a>
     <div class="cta-row">
       <a class="btn btn-gold" href="sms:+15068899737?body=Bonjour%20Matthew%20-%20j%27ai%20vu%20East%20Coast%20Social%20en%20ligne%2C%20je%20suis%20int%C3%A9ress%C3%A9%20pour%20mon%20entreprise.">💬 Textez-moi</a>
       <a class="btn btn-ghost" href="tel:+15068899737">📞 (506) 889-9737</a>
@@ -606,6 +616,11 @@ findhotstuff.com #maison</p>
       if (total === span) text += el.dataset.streak;
       el.innerHTML = "⚡ " + text;
       el.hidden = false;
+      var hero = document.getElementById("hero-proof");
+      if (hero && total === span) {
+        hero.innerHTML = "⚡ <b>" + total + "</b> " + (hero.dataset.label || "days straight, posted hands-free");
+        hero.hidden = false;
+      }
     })
     .catch(function () { /* pas de stats, pas de ligne */ });
 })();

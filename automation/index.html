@@ -225,6 +225,15 @@
   .plan ul li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 800; }
   .plans-note { font-size: 13.5px; color: var(--muted); margin-top: 12px; }
   .feed-fresh { font-size: 13.5px; font-weight: 700; color: var(--ok); margin: 0 0 14px; }
+  .hero-proof {
+    display: inline-block; margin: 0 auto 22px; padding: 7px 15px;
+    border: 1px solid rgba(240, 180, 41, .45); border-radius: 999px;
+    background: rgba(240, 180, 41, .08);
+    color: var(--hero-ink); font-size: 14px; font-weight: 600;
+  }
+  .hero-proof b { color: var(--gold); font-variant-numeric: tabular-nums; }
+  a.hero-proof { text-decoration: none; }
+  a.hero-proof:hover { border-color: var(--gold); background: rgba(240, 180, 41, .14); }
   .feed-odometer { font-size: 15px; font-weight: 650; margin: 18px 0 0; }
   .feed-odometer b { color: var(--gold-deep); font-variant-numeric: tabular-nums; }
   .feed-follow { font-size: 14px; color: var(--muted); margin-top: 16px; }
@@ -288,7 +297,8 @@
   <div class="hero-inner">
     <p class="brand"><span class="dot"></span>East Coast Social</p>
     <h1 class="serif">Your business posts every day.<br><em>You don't lift a finger.</em></h1>
-    <p class="sub">Done-for-you social media automation for local businesses. I build a posting engine tuned to your shop — it writes, designs, and publishes on schedule, and I keep watch so you never have to think about it.</p>
+    <p class="sub">Done-for-you social media for local businesses. I build a posting engine tuned to your shop — you approve the style once, and it runs.</p>
+    <a class="hero-proof" id="hero-proof" href="#proof" hidden></a>
     <div class="cta-row">
       <a class="btn btn-gold" href="sms:+15068899737?body=Hi%20Matthew%20-%20saw%20East%20Coast%20Social%20online%2C%20interested%20in%20daily%20posts%20for%20my%20business.">💬 Text me — free sample week</a>
       <a class="btn btn-ghost" href="tel:+15068899737">📞 (506) 889-9737</a>
@@ -607,6 +617,13 @@ findhotstuff.com #cozyhome</p>
       if (total === span) text += el.dataset.streak;
       el.innerHTML = "⚡ " + text;
       el.hidden = false;
+      // Same numbers, compact, above the fold: proof is the strongest thing
+      // this page owns and it was previously buried below three screens.
+      var hero = document.getElementById("hero-proof");
+      if (hero && total === span) {
+        hero.innerHTML = "⚡ <b>" + total + "</b> " + (hero.dataset.label || "days straight on our own feed — see it ↓");
+        hero.hidden = false;
+      }
     })
     .catch(function () { /* no stats, no line */ });
 })();

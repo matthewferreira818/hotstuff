@@ -445,19 +445,26 @@ section {
 
 .card-footer {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
+  /* Two columns on a 170px phone card is a collision waiting to happen: the
+     price wrapped to "$13.99 / USD" and landed on top of the trend score.
+     Wrapping to two rows is the honest failure mode. */
+  flex-wrap: wrap;
+  gap: 2px 10px;
 }
 
 .card-price {
   font-weight: 700;
   font-size: 15px;
+  white-space: nowrap;
 }
 
 .card-trend {
   font-size: 12px;
   letter-spacing: 0.02em;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .card-buy {
@@ -651,8 +658,31 @@ details p {
 }
 
 @media (max-width: 640px) {
+  /* The hero used to fill an entire phone screen, so the first thing a
+     shopper saw on a shop was a paragraph. Trimmed so the top row of
+     products is visible without scrolling. */
+  .hero {
+    padding: 34px 20px 30px;
+  }
   .hero h1 {
-    font-size: 34px;
+    font-size: 31px;
+    margin-bottom: 16px;
+  }
+  .eyebrow {
+    margin-bottom: 16px;
+  }
+  .hero-sub {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+  /* Three buttons in three columns wrapped every label onto three lines and
+     left tap targets the width of a thumb. One per row, full width. */
+  .hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-actions .btn {
+    width: 100%;
   }
   .nav-links {
     display: none;

@@ -70,11 +70,15 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         run: python make_pinterest_pins.py
 
+      - name: Rebuild evergreen category pages + sitemap
+        if: steps.gate.outputs.run == 'true'
+        run: python make_category_pages.py
+
       - name: Commit and push if anything changed
         id: commit
         if: steps.gate.outputs.run == 'true'
         run: |
-          git add products.json rotation-history.json marketing/latest-posts.md marketing/tiktok marketing/pinterest
+          git add products.json rotation-history.json marketing/latest-posts.md marketing/tiktok marketing/pinterest c sitemap.xml
           if ! git diff --cached --quiet; then
             git config user.name "wavelist-bot"
             git config user.email "actions@users.noreply.github.com"

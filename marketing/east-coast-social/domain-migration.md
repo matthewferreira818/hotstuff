@@ -24,28 +24,48 @@ asset; the store being the *address* is not.
 - GitHub Pages allows **one custom domain per repository**, and
   `findhotstuff.com` holds it
 
+## Registrar: Porkbun (confirmed by Matthew 2026-08-28)
+
+Porkbun's URL-forwarding advanced settings offer a redirect type and
+"Include the requested URI path in the redirection" — **no query-string
+option is documented**, which matches the observed stripping. So option C
+below is probably not available here; the 30-second test is to enable the
+URI-path toggle and re-check `eastcoastsocial.ca/?ref=card`, but expect it
+to change nothing for query strings.
+
+That collapses the decision: **the card-tracking fix and the separation are
+the same project.** Once the domain serves the site directly instead of
+forwarding to it, `?ref=` works natively because no forward is involved.
+
+Porkbun's own DNS is free and sufficient — an apex domain on GitHub Pages
+needs four A records (GitHub publishes the addresses; re-check them at
+migration time rather than trusting a copy here) plus a CNAME for `www`.
+No need to move nameservers anywhere.
+
 ## The two real options
 
-**A — Second GitHub repo (cleanest, recommended).**
+**A — Second GitHub repo (cleanest, and the recommendation now that the
+registrar is known).**
 A new repo serves `eastcoastsocial.ca` with its own CNAME. Proper separate
 site, correct SEO, no proxy tricks. Cost: the daily engine writes feed cards
 into *this* repo, so `ecs-daily-post.yml` must publish those assets to both
 repos (it already holds a token that can do it).
 
-**B — Cloudflare in front.**
+**B — Cloudflare in front.** *(now the weaker option — Porkbun's own DNS
+already does what's needed, so this adds a moving part for no gain.)*
 Move the domain's nameservers to the existing Cloudflare account, then serve
 ECS at the apex. Keeps one repo. Cost: a nameserver change at the registrar,
 and if done as a proxy, relative links and canonical tags need care to avoid
 duplicate-content penalties.
 
-**C — Do nothing but fix the forward.** If the registrar offers "forward with
-query string", enabling it recovers card tracking immediately for zero risk.
-Not separation, but it fixes the bleeding today. **Do this regardless of A/B.**
+**C — Do nothing but fix the forward.** ~~Enable query-string forwarding.~~
+**Likely unavailable on Porkbun** — the documented advanced settings cover
+redirect type and URI path only. Worth a 30-second test of the URI-path
+toggle, but do not plan around it.
 
 ## Execution order (when triggered)
 
-1. **Decide A or B.** Needs one fact nobody has written down yet: *where is
-   eastcoastsocial.ca registered?* Answer that first.
+1. **Decide A or B.** Registrar is Porkbun; option A is recommended.
 2. Point the domain at the new host; confirm HTTPS issues correctly.
 3. Change `HOST` and `PATH` in `/ecs_site.py` — the only code edit required.
 4. Re-run the generators that bake the URL into artwork:

@@ -1,18 +1,18 @@
 # HotsTuff — TikTok Photo Pack (auto-generated)
 
-_Generated 2026-08-25 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
+_Generated 2026-08-28 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
 
 
 ## 🖼️ Slides
 
-1. `slide-01.png` — LED sensor light bar — $24.99 (Home)
-2. `slide-02.png` — Heart Shaped Cross Pendant — $31.99 (Fashion)
-3. `slide-03.png` — Waxing Polishing Sewage Hard — $15.99 (Auto)
-4. `slide-04.png` — Baby shoes toddler — $13.99 (Footwear)
-5. `slide-05.png` — Belt Feeding Care Accessory — $35.99 (Toys)
-6. `slide-06.png` — Anti-drop phone case — $11.99 (Phone Accessories)
-7. `slide-07.png` — Women's Lapel Cashmere coat — $24.99 (Trending Finds)
-8. `slide-08.png` — Rail Toy Track Kids — $35.99 (Auto)
+1. `slide-01.png` — Women's Shoulder Messenger Bag — $13.99 (Bags)
+2. `slide-02.png` — Chakras Colored Stones Bracelet — $11.99 (Jewelry)
+3. `slide-03.png` — Anti-spray Mask Glass Sunglasses — $13.99 (Trending Finds)
+4. `slide-04.png` — Lipstick Eyeshadow Stick Makeup — $35.99 (Beauty)
+5. `slide-05.png` — Lazy Stick Portable Invisible — $15.99 (Phone Accessories)
+6. `slide-06.png` — Bedside Wall Sticker Wallpaper — $35.99 (Trending Finds)
+7. `slide-07.png` — fluorescent agent detection flashlight — $31.99 (Trending Finds)
+8. `slide-08.png` — Gold Plated PiXiu Bracelet — $24.99 (Jewelry)
 
 
 ## 📝 Captions — pick one, paste as-is
@@ -20,19 +20,19 @@ _Generated 2026-08-25 · 8 slides · post all slides as one TikTok photo (swipe)
 **Variant 1 — curiosity hook**
 
 ```
-ok this week's finds are actually unreal 👀 everything under $36 #tiktokmademebuyit #trending #cozy #fashiontok #cartok
+ok this week's finds are actually unreal 👀 everything under $36 #tiktokmademebuyit #trending #bagtok #jewelrytok #trendingfinds
 ```
 
 **Variant 2 — POV hook**
 
 ```
-POV: your fyp finally delivered 🔥 slide 1 is the led sensor light bar btw #tiktokmademebuyit #trending #cozy #fashiontok #cartok
+POV: your fyp finally delivered 🔥 slide 1 is the women's shoulder messenger bag btw #tiktokmademebuyit #trending #bagtok #jewelrytok #trendingfinds
 ```
 
 **Variant 3 — ranked-list hook**
 
 ```
-ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #cozy #fashiontok #cartok
+ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #bagtok #jewelrytok #trendingfinds
 ```
 
 > 🎵 Add a trending sound in-app before posting — photo posts ride the sound's reach.

@@ -19,6 +19,9 @@ than discovering something was papered over.
   (deploys from `master`); CJ Dropshipping supplier; Stripe checkout via
   Cloudflare Worker `wavelist-checkout` (also handles /lead capture and
   order/lead alerts to his phone via ntfy through a GitHub-relay hop).
+  **Domains are registered at Porkbun.** eastcoastsocial.ca currently sits
+  there as a URL-forward to findhotstuff.com/automation/ that STRIPS the
+  query string (verified 08-28), so every ?ref= tag through it is lost.
 - **East Coast Social (ECS)** — findhotstuff.com/automation (EN + /fr).
   Done-for-you daily social posting for local NB businesses: free setup,
   free sample week, **$79/mo CAD, no contracts**. Standing goal: **first

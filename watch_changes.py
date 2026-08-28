@@ -206,10 +206,20 @@ def main() -> None:
     else:
         # first run (or cache evicted): seed silently so old news can't replay
         print("no previous state — seeding silently")
+        prev = {}
         diff_alerts(cur, cur)   # still populates spike/stale markers
         alerts = []
 
-    state = {k: cur[k] for k in ("buy", "ref", "success", "spike_day", "stale_marker")}
+    # Carry forward counts for products/tags not in this run's view. gather()
+    # can only count buy- events for the CURRENT catalog, so a product that
+    # rotates out drops out of state — and when the rotation brings it back,
+    # its months-old click count looks brand new and pings the phone again.
+    # (That fired for real on Aug 22: a click from ~Aug 10 re-alerted when the
+    # LED light bar rotated back in.) Merging keeps the high-water mark, so
+    # only a genuinely higher count can alert.
+    state = {k: cur[k] for k in ("success", "spike_day", "stale_marker")}
+    for key in ("buy", "ref"):
+        state[key] = {**prev.get(key, {}), **cur[key]}
     STATE_FILE.write_text(json.dumps(state, indent=1) + "\n")
 
     if os.environ.get("TEST_ALERT"):

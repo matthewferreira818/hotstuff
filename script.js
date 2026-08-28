@@ -246,7 +246,6 @@ function categoryColor(cat) {
 
 function buildCard(p) {
   const price = (Number(p.price) || 0).toFixed(2);
-  const trendScore = Number.isFinite(Number(p.trendScore)) ? p.trendScore : "—";
 
   const card = document.createElement("article");
   card.className = "card";
@@ -328,11 +327,13 @@ function buildCard(p) {
   cardCur.textContent = " USD";
   priceEl.appendChild(cardCur);
 
-  const trendEl = document.createElement("span");
-  trendEl.className = "card-trend";
-  trendEl.textContent = `Trend score ${trendScore}`;
-
-  footer.append(priceEl, trendEl);
+  // The trend score used to sit here beside the price. "95" out of what? It
+  // meant nothing to a shopper and took the second-most valuable spot on the
+  // card to say it. The score still decides which products get picked and
+  // drives the "Trending first" sort -- it just isn't shown as a bare number.
+  // It stays on the detail sheet, where someone who opened a product has room
+  // for it and the "Trending" badge above already sets the context.
+  footer.append(priceEl);
 
   const buyButton = document.createElement("button");
   buyButton.className = "btn btn-primary card-buy";

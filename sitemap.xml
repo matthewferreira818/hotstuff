@@ -92,6 +92,11 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://findhotstuff.com/c/baby/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://findhotstuff.com/c/auto/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>

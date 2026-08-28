@@ -95,6 +95,12 @@ CATEGORIES = [
      "No age ratings or safety certifications are claimed here, because this "
      "shop can't verify them — the supplier's full product title is shown on "
      "every listing so you can see exactly what is being described."),
+    ("baby", "Baby", "Trending baby gear — feeding, sleep, diapering, on the go",
+     "Baby items are the ones this shop is strictest about naming, because a "
+     "parent buying blind deserves the supplier's exact words. Nothing here is "
+     "described as safety-tested or certified, since that isn't something this "
+     "shop can verify — the full supplier title stays on every listing so you "
+     "can judge it yourself."),
     ("auto", "Auto", "Trending car accessories and interior gear",
      "Mounts, interior gear, cleaning tools and lighting for a car. Fit is the "
      "usual problem with car accessories bought online, so the supplier's full "

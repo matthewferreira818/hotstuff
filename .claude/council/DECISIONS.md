@@ -17,6 +17,13 @@ Format per entry:
 
 ---
 
+## 2026-08-28 — Matthew lifts the design freeze early (3 days before its Aug 31 expiry) to build portfolio/case-study assets
+- Seats: not convened — founder's call on his own standing decision, logged per the rules.
+- Context: the 08-13 freeze existed to stop engineering eating selling hours ("calls outrank commits"), not to protect the design itself. The work now unblocked — a build case study, a LinkedIn profile, a one-page capability summary — is Claude-time, not founder-time, and doubles as ECS sales proof and employability material while the business is pre-revenue.
+- Right Hand's note: the freeze's purpose survives only if the prospect work continues in parallel. Fener's Place and 150 Bridge Salon have rendered packs and have never been contacted; LeBlanc is 13 days into holding one. If a build week displaces those, the freeze should snap back on.
+- Matthew's decision: LIFTED 2026-08-28.
+- Next moves: case-study page (site), LinkedIn profile + About, one-page build summary; prospect contact continues unchanged.
+
 ## 2026-08-14 — Add one-time downsell offers (week-of-posts ~$49, GBP fix-up ~$75, print bundle ~$99) as verbal fallbacks in ECS sales conversations, and at what prices?
 - Seats: Operator NO-GO(4) · Marketer GO-IF(4) · Treasurer GO-IF(4) · Skeptic GO-IF(4) · Customer GO-IF(4)
 - Clash: first split council. Operator says the trio shouldn't exist (the $49 week sells what two public surfaces promise free; GBP undeliverable by a novice mid-verification; honest fallback already in the kit: "no contracts = try one month for $79"). The four GO-IFs converge on the same repairs from different angles: no paid line until price objections are actually logged (zero to date — the funnel dies at contact, not price), the paid week must become a LIVE posted "Launch Week" credited toward month one (a deposit, not a downsell), GBP gated behind Matthew's own verification surviving cleanly (2026 video-reverification suspension wave), print bundle killed from the script.

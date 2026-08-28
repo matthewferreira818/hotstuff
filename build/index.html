@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How this store runs itself — the build behind East Coast Social</title>
+<meta name="description" content="A working case study: a solo, non-technical founder in Memramcook NB built an automation engine that refreshes a 120-product storefront, publishes a branded post every single day, and runs on $0/month. Live proof, honest numbers.">
+<meta property="og:title" content="How this store runs itself — the build">
+<meta property="og:description" content="An automation engine that has published every single day since Aug 4, hands-free. Here's exactly what it does, what it runs on, and what it cost.">
+<meta property="og:type" content="article">
+<style>
+  :root {
+    --navy: #0d1f33; --navy-2: #14304d; --gold: #f0b429; --gold-deep: #b98207;
+    --bg: #f5f8fb; --card: #ffffff; --ink: #16283c; --muted: #5b7089;
+    --line: rgba(22, 40, 60, 0.12); --ok: #217a63;
+    --hero-ink: #f2f6fa; --hero-muted: #a8bccf;
+    --shadow: 0 1px 2px rgba(13,31,51,.06), 0 14px 34px -18px rgba(13,31,51,.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101820; --card: #17222d; --ink: #e8eff6; --muted: #93a9bd;
+      --line: rgba(232,239,246,.13); --ok: #4cc9a4; --gold-deep: #f0b429;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101820; --card: #17222d; --ink: #e8eff6; --muted: #93a9bd;
+    --line: rgba(232,239,246,.13); --ok: #4cc9a4; --gold-deep: #f0b429;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 34px -18px rgba(0,0,0,.6);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.65; -webkit-font-smoothing: antialiased;
+  }
+  .serif { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 22px; }
+  a { color: var(--gold-deep); }
+
+  header.hero { background: var(--navy); color: var(--hero-ink); padding: 54px 0 46px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700;
+           letter-spacing: .08em; font-size: .78rem; color: var(--gold); text-transform: uppercase; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); flex: none; }
+  h1 { font-size: clamp(1.9rem, 5.4vw, 2.9rem); line-height: 1.12; margin: 20px 0 14px; }
+  h1 em { font-style: normal; color: var(--gold); }
+  .lede { color: var(--hero-muted); font-size: 1.08rem; margin: 0 0 26px; max-width: 34em; }
+
+  .counter { display: inline-flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+             background: var(--navy-2); border: 1px solid rgba(240,180,41,.35);
+             border-radius: 12px; padding: 14px 18px; }
+  .counter b { color: var(--gold); font-size: 1.5rem; }
+  .counter span { color: var(--hero-muted); font-size: .93rem; }
+
+  main { padding: 44px 0 10px; }
+  h2 { font-size: clamp(1.3rem, 3.6vw, 1.65rem); margin: 42px 0 12px; line-height: 1.25; }
+  h3 { font-size: 1.02rem; margin: 26px 0 6px; }
+  p { margin: 0 0 16px; }
+  .muted { color: var(--muted); }
+
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+           gap: 12px; margin: 26px 0 8px; padding: 0; list-style: none; }
+  .facts li { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+              padding: 14px 16px; box-shadow: var(--shadow); }
+  .facts b { display: block; font-size: 1.45rem; color: var(--gold-deep); line-height: 1.1; }
+  .facts span { font-size: .88rem; color: var(--muted); }
+
+  .stack { list-style: none; padding: 0; margin: 14px 0 0; }
+  .stack li { border-left: 3px solid var(--gold); padding: 2px 0 2px 16px; margin: 0 0 18px; }
+  .stack b { display: block; }
+  .stack span { color: var(--muted); font-size: .95rem; }
+
+  .callout { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--ok);
+             border-radius: 12px; padding: 18px 20px; margin: 26px 0; box-shadow: var(--shadow); }
+  .callout h3 { margin-top: 0; }
+  code { background: rgba(127,127,127,.14); padding: .12em .4em; border-radius: 5px;
+         font-size: .92em; word-break: break-word; }
+
+  .cta { background: var(--navy); color: var(--hero-ink); border-radius: 16px;
+         padding: 30px 26px; margin: 46px 0 0; text-align: center; }
+  .cta h2 { margin-top: 0; color: var(--hero-ink); }
+  .cta p { color: var(--hero-muted); }
+  .btn { display: inline-block; margin: 6px 6px 0; padding: 12px 20px; border-radius: 10px;
+         font-weight: 600; text-decoration: none; }
+  .btn-gold { background: var(--gold); color: #22160a; }
+  .btn-ghost { border: 1px solid rgba(242,246,250,.4); color: var(--hero-ink); }
+
+  footer { color: var(--muted); font-size: .88rem; padding: 34px 0 44px; text-align: center; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brand"><span class="dot"></span> The build · findhotstuff.com</div>
+    <h1 class="serif">A store that <em>restocks and posts itself.</em></h1>
+    <p class="lede">I'm Matthew Ferreira, in Memramcook, New Brunswick. I'm not a developer. I built an
+      automation engine that runs an online store and a social-media service — and it has not
+      missed a day since it switched on.</p>
+    <div class="counter" id="counter" hidden>
+      <b id="counter-n">—</b>
+      <span id="counter-t">consecutive days published, hands-free</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <p>This page is the honest version of what that means: what the system actually does,
+     what it runs on, what it cost, and what I did versus what the machine did. Every
+     number here is checkable on the live sites — that's the point of publishing it.</p>
+
+  <ul class="facts">
+    <li><b id="fact-days">—</b><span>days in a row published</span></li>
+    <li><b>120</b><span>products kept live &amp; rotating</span></li>
+    <li><b>13</b><span>scheduled jobs running unattended</span></li>
+    <li><b>$0</b><span>per month to operate</span></li>
+  </ul>
+
+  <h2>The problem I was actually solving</h2>
+  <p>Local businesses around here go quiet online. Not because owners don't care — because
+     posting every day is a job nobody hired for. I noticed it first in my own store: I'd
+     build something, promote it for a week, then work would swallow the time and the page
+     would go still.</p>
+  <p>So instead of trying harder, I removed myself from the loop. If the posting can't
+     depend on me remembering, it has to run without me.</p>
+
+  <h2>What it does, unattended</h2>
+  <ul class="stack">
+    <li><b>Restocks the storefront every three days</b>
+      <span>Pulls the current trending catalog from the supplier's API, holds recently-shown
+      items back so the shelf can't cycle between the same few products, prices every item
+      above a floor that accounts for wholesale cost, worst-case shipping and payment fees,
+      and republishes the site.</span></li>
+    <li><b>Publishes a branded post every single day</b>
+      <span>Generates the artwork and caption, archives it to a public feed, and bumps a
+      counter that can't be fudged — it only increments on a genuinely new calendar day.</span></li>
+    <li><b>Builds and delivers social packs</b>
+      <span>Renders slide sets and pushes them into TikTok as drafts through the Content
+      Posting API, with the captions sent to my phone to paste. Pinterest and X packs
+      generate alongside.</span></li>
+    <li><b>Takes payments and captures leads</b>
+      <span>A Cloudflare Worker handles Stripe checkout, a lead form, per-IP abuse limits,
+      and alerts to my phone — routed through a relay because the direct path gets
+      rate-limited from shared cloud IPs.</span></li>
+    <li><b>Watches itself</b>
+      <span>Fourteen health checks run daily against the live sites; traffic reports land
+      every three hours; a watchdog shouts if the proof feed or the catalog goes stale.
+      Silence means healthy.</span></li>
+  </ul>
+
+  <h2>What it runs on</h2>
+  <p>GitHub Actions for scheduling, GitHub Pages for hosting, a Cloudflare Worker with
+     KV storage for payments and leads, Python for the engines, Stripe for money,
+     GoatCounter for privacy-friendly analytics. Roughly 6,500 lines of Python across
+     28 modules and 13 scheduled workflows.</p>
+  <p><b>Operating cost: $0/month.</b> Every piece sits inside a free tier on purpose —
+     a pre-revenue business shouldn't have a burn rate.</p>
+
+  <div class="callout">
+    <h3>The part I'm actually proud of: it can't lie</h3>
+    <p>Supplier product titles are keyword soup, so early on the system "prettified" names
+       from a hand-written table — and it sold a roll of <em>wallpaper</em> under the name
+       "Cozy 2-in-1 Pet Bed." A customer would have paid for a bed and received wallpaper.</p>
+    <p>The fix wasn't a better table. It was a rule enforced in code: a display name may
+       only reorder, trim or re-case words that appear in the real supplier title. Anything
+       else is rejected automatically. The same discipline applies to marketing claims —
+       when the store's X posting was paused, every "posts 3× a day" line came down the same
+       day, including the ones on slides nobody was checking.</p>
+    <p class="muted">Marketing copy that a validator can reject is an unusual thing to build.
+       I'd rather have it than the extra sale.</p>
+  </div>
+
+  <h2>What I did, and what the machine did</h2>
+  <p>Worth being precise, because it's the interesting part. I did not hand-write those
+     6,500 lines. I designed the system, made every product and business decision, tested
+     it, broke it, found the failures — the wallpaper, a stale claim on a slide, a
+     scheduler that silently skipped three jobs in one morning — and decided how each one
+     should be fixed. The code was written in partnership with an AI assistant, working
+     from those decisions.</p>
+  <p>That's the skill I'd claim: not typing Python, but specifying a system precisely
+     enough that it does the right thing unattended, then noticing when it doesn't. The
+     failures above were all caught by looking, not by alerts.</p>
+
+  <h2>What it's for</h2>
+  <p>The store is one half. The other is <a href="/automation/?ref=build">East Coast
+     Social</a> — the same engine, pointed at local businesses so their pages post daily
+     without them lifting a finger. The store is the proof it works: I ran it on myself
+     first, in public, with a counter anyone can check.</p>
+
+  <div class="cta">
+    <h2 class="serif">Want the engine pointed at your business?</h2>
+    <p>Free sample week first — you see your page running before paying anything.
+       Then $79/month CAD, no contracts.</p>
+    <a class="btn btn-gold" href="/automation/?ref=build">See East Coast Social</a>
+    <a class="btn btn-ghost" href="https://calendly.com/matthew-ferreira818/30min" target="_blank" rel="noopener">Book a call</a>
+  </div>
+
+  <div class="cta" style="background:var(--card); color:var(--ink); border:1px solid var(--line);">
+    <h2 class="serif" style="color:var(--ink)">Hiring, or building something similar?</h2>
+    <p class="muted">Happy to talk about how any of this was put together — the automation,
+      the honesty constraints, or running it solo around a full-time job.</p>
+    <a class="btn btn-gold" href="mailto:hello@eastcoastsocial.ca?subject=About%20the%20build">Email me</a>
+  </div>
+
+</main>
+
+<footer class="wrap">
+  Matthew Ferreira · Memramcook, New Brunswick · <a href="/">findhotstuff.com</a> ·
+  <a href="/automation/?ref=build">East Coast Social</a><br>
+  Every figure on this page is live on the sites it describes.
+</footer>
+
+<script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+/* The counter is the whole credibility of this page, so it is read live from
+ * the same stats file the automation page uses — never hard-coded here. It
+ * only renders a streak when the post count and the calendar span agree; a
+ * gap means the claim is silently dropped rather than quietly overstated. */
+(function () {
+  fetch("/automation/feed/stats.json?nc=" + Date.now())
+    .then(function (r) { return r.json(); })
+    .then(function (s) {
+      var total = +s.total;
+      if (!total || !s.since || !s.last) return;
+      var day = 864e5;
+      var span = Math.round((new Date(s.last + "T12:00:00") - new Date(s.since + "T12:00:00")) / day) + 1;
+      document.getElementById("fact-days").textContent = total;
+      var box = document.getElementById("counter");
+      document.getElementById("counter-n").textContent = total;
+      document.getElementById("counter-t").textContent =
+        (total === span ? "consecutive days published, hands-free" : "posts published, hands-free")
+        + " — since " + new Date(s.since + "T12:00:00").toLocaleDateString("en-CA", { month: "long", day: "numeric" });
+      box.hidden = false;
+    })
+    .catch(function () { /* no stats, no claim */ });
+})();
+</script>
+</body>
+</html>

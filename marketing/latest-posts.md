@@ -1,6 +1,6 @@
 # HotsTuff — This Cycle's Posts (auto-generated)
 
-_Generated 2026-08-25 from the current lineup (120 products). Replace `[LINK]` with the tagged link for wherever you post, so GoatCounter can attribute the traffic:_ **https://findhotstuff.com/?ref=x** _(X)_, **https://findhotstuff.com/?ref=fb** _(Facebook)_, **https://findhotstuff.com/?ref=tt** _(TikTok)_
+_Generated 2026-08-28 from the current lineup (120 products). Replace `[LINK]` with the tagged link for wherever you post, so GoatCounter can attribute the traffic:_ **https://findhotstuff.com/?ref=x** _(X)_, **https://findhotstuff.com/?ref=fb** _(Facebook)_, **https://findhotstuff.com/?ref=tt** _(TikTok)_
 
 > Tone: upbeat + clean on Twitter/Facebook, fun + casual on TikTok. Post these over the next ~3 days (until the catalog rotates and this file updates). Stagger times, reply to comments. Shipping is ~1–3 weeks — never promise faster.
 
@@ -13,11 +13,11 @@ _Generated 2026-08-25 from the current lineup (120 products). Replace `[LINK]` w
 LED sensor light bar — just $24.99 at HotsTuff 🔥
 [LINK] #cozyhome #homefinds
 
-> Your new go-to 👗
+> A gift that actually lands 💍
 Heart Shaped Cross Pendant — just $31.99 at HotsTuff 🔥
-[LINK] #fashion #ootd
+[LINK] #jewelry #giftideas
 
-> This week's must-have 🚗
+> This week's must-have 🛍️
 Waxing Polishing Sewage Hard — just $15.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
@@ -25,7 +25,7 @@ Waxing Polishing Sewage Hard — just $15.99 at HotsTuff 🔥
 Baby shoes toddler — just $13.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> The gift that always lands 🧸
+> This week's must-have 🛍️
 Belt Feeding Care Accessory — just $35.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
@@ -33,11 +33,11 @@ Belt Feeding Care Accessory — just $35.99 at HotsTuff 🔥
 Anti-drop phone case — just $11.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> This week's must-have 🛍️
+> Effortless and on-trend 👗
 Women's Lapel Cashmere coat — just $24.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #fashion #ootd
 
-> This week's must-have 🚗
+> The gift that always lands 🧸
 Rail Toy Track Kids — just $35.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
@@ -69,9 +69,9 @@ Children's Home Comfort — just $21.99 at HotsTuff 🔥
 Pockets Warm Men's Clothing — just $21.99 at HotsTuff 🔥
 [LINK] #fashion #ootd
 
-> This week's must-have 🛍️
+> Your space is about to feel so much better 🏠
 Door Floor Foot Mat — just $11.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #cozyhome #homefinds
 
 > The piece people notice 👗
 Coat For Women's Clothing — just $24.99 at HotsTuff 🔥
@@ -89,19 +89,19 @@ Couple Cross-design Bracelet — just $11.99 at HotsTuff 🔥
 Lightning Offers Kitchen Spin — just $31.99 at HotsTuff 🔥
 [LINK] #kitchengadgets #tiktokmademebuyit
 
-> Everyone's grabbing this 🛍️
+> The easy glow-up 💄
 Brightening Blush Cream — just $31.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #beauty #selfcare
 
-> Progress from your living room 🏋️
+> Simple, sweet, and it stands out 💍
 bracelet seven chakra Yoga — just $15.99 at HotsTuff 🔥
-[LINK] #fitness #homegym
+[LINK] #jewelry #giftideas
 
 > Your pet's about to be spoiled 🐾
 Jacket Thick Warm Coat — just $27.99 at HotsTuff 🔥
 [LINK] #petsofx #dogsofx
 
-> This week's must-have 🛍️
+> This week's must-have 🧘
 Prenatal Special Breathable Waist — just $15.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
@@ -109,25 +109,25 @@ Prenatal Special Breathable Waist — just $15.99 at HotsTuff 🔥
 Canvas travel bag — just $21.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> Everyone's grabbing this 🛍️
+> A gift that actually lands 💍
 Winding, Crystal Pendant Transparent — just $21.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #jewelry #giftideas
 
 > The piece people ask about 💍
 Soul Choker Necklace — just $31.99 at HotsTuff 🔥
 [LINK] #jewelry #giftideas
 
-> Effortless and on-trend 👗
+> Simple, sweet, and it stands out 💍
 Obsidian Alloy Separator Elastic — just $18.99 at HotsTuff 🔥
-[LINK] #fashion #ootd
+[LINK] #jewelry #giftideas
 
-> Level up your setup 🏋️
+> Trending right now 🧘
 Compression Muscle Gym Shorts — just $35.99 at HotsTuff 🔥
-[LINK] #fitness #homegym
+[LINK] #trending #tiktokmademebuyit
 
-> Effortless and on-trend 👗
+> Simple, sweet, and it stands out 💍
 Men's Trend Cool Jewelry — just $31.99 at HotsTuff 🔥
-[LINK] #fashion #ootd
+[LINK] #jewelry #giftideas
 
 > Everyone's grabbing this 👟
 Toddler Shoes Soft Bottom — just $11.99 at HotsTuff 🔥
@@ -137,63 +137,63 @@ Toddler Shoes Soft Bottom — just $11.99 at HotsTuff 🔥
 Necklace Clavicle Chain Short — just $15.99 at HotsTuff 🔥
 [LINK] #jewelry #giftideas
 
-> The piece people notice 👗
+> Trending right now 👟
 Slides Slippers Beach Shoes — just $21.99 at HotsTuff 🔥
-[LINK] #fashion #ootd
+[LINK] #trending #tiktokmademebuyit
 
-> Your new go-to 👗
+> A gift that actually lands 💍
 Neck For Jewelry Making — just $18.99 at HotsTuff 🔥
+[LINK] #jewelry #giftideas
+
+> Tiny gadget, huge difference 🔌
+Wifi wireless network camera — just $13.99 at HotsTuff 🔥
+[LINK] #gadgets #techtok
+
+> Effortless and on-trend 👗
+Avatar The Last Airbender — just $24.99 at HotsTuff 🔥
 [LINK] #fashion #ootd
 
-> This week's must-have 🛍️
-Wifi wireless network camera — just $13.99 at HotsTuff 🔥
+> Trending right now 🛍️
+support neck traction device — just $15.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> This week's must-have 🛍️
-Avatar The Last Airbender — just $24.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+> The piece people ask about 💍
+Natural Crystal Moon Pendant — just $15.99 at HotsTuff 🔥
+[LINK] #jewelry #giftideas
+
+> Effortless and on-trend 👗
+Pad Nipple Cover Stickers — just $31.99 at HotsTuff 🔥
+[LINK] #fashion #ootd
 
 > Instant cozy upgrade 🏠
-support neck traction device — just $15.99 at HotsTuff 🔥
-[LINK] #cozyhome #homefinds
-
-> Trending right now 🛍️
-Natural Crystal Moon Pendant — just $15.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
-
-> This week's must-have 🛍️
-Pad Nipple Cover Stickers — just $31.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
-
-> Trending right now 🛍️
 Integrated Chair Cushion Seat — just $18.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #cozyhome #homefinds
 
 > The piece people notice 👗
 Men's Long Clothing — just $31.99 at HotsTuff 🔥
 [LINK] #fashion #ootd
 
-> Everyone's grabbing this 🛍️
+> Small upgrade, big difference 🍳
 Meat Cleaver Chef's Knife — just $9.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #kitchengadgets #tiktokmademebuyit
 
-> This week's must-have 🛍️
+> Effortless and on-trend 👗
 Girl denim coat — just $21.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #fashion #ootd
 
 > Everyone's grabbing this 🛍️
 Disposable Hand Soap Paper — just $31.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> Everyone's grabbing this 🛍️
+> Your new go-to 👗
 Decorated Pu Leather Coat — just $35.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #fashion #ootd
 
 > Simple, sweet, and it stands out 💍
 Distance Faceted Necklace Jewelry — just $35.99 at HotsTuff 🔥
 [LINK] #jewelry #giftideas
 
-> This week's must-have 👜
+> This week's must-have 🛍️
 Hanger Hanging Basket Sling — just $31.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
@@ -201,9 +201,9 @@ Hanger Hanging Basket Sling — just $31.99 at HotsTuff 🔥
 Water Cup Hydrogen Bottle — just $24.99 at HotsTuff 🔥
 [LINK] #kitchengadgets #tiktokmademebuyit
 
-> This week's must-have 🛍️
+> Your space is about to feel so much better 🏠
 plush beautiful hip cushion — just $13.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #cozyhome #homefinds
 
 > Trending right now 🛍️
 Gold Rose Flower Set — just $31.99 at HotsTuff 🔥
@@ -217,9 +217,9 @@ Professional Japanese Chef Knives — just $15.99 at HotsTuff 🔥
 leather non-slip soft bottom — just $13.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> It solves such an annoying problem 🔌
+> Everyone's grabbing this 👜
 Bottle Heater Cover Food — just $27.99 at HotsTuff 🔥
-[LINK] #gadgets #techtok
+[LINK] #trending #tiktokmademebuyit
 
 > The piece people notice 👗
 Collar Short Tops Clothing — just $24.99 at HotsTuff 🔥
@@ -245,37 +245,37 @@ Lovers Purple Ring — just $31.99 at HotsTuff 🔥
 Tummy Control Thong — just $35.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> Your dog or cat will thank you 🐾
+> A little self-care upgrade 💄
 Shower Mesh Nail Trimming — just $11.99 at HotsTuff 🔥
-[LINK] #petsofx #dogsofx
+[LINK] #beauty #selfcare
 
 > Pet-parent essential 🐾
 Dog Pet Bone Necklace — just $24.99 at HotsTuff 🔥
 [LINK] #petsofx #dogsofx
 
-> Trending right now 🛍️
+> Your kitchen just got an upgrade 🍳
 Pottery Cold Kettle Set — just $21.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #kitchengadgets #tiktokmademebuyit
 
 > Trending right now 📱
 Living Room Seat — just $13.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> Trending right now 🛍️
+> The piece people ask about 💍
 Earrings Zerosmoke Auricular Therapy — just $31.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #jewelry #giftideas
 
 > Pet-parent essential 🐾
 Anti-grind Dog Leash Collar — just $24.99 at HotsTuff 🔥
 [LINK] #petsofx #dogsofx
 
-> Trending right now 🛠️
+> Instant cozy upgrade 🏠
 Craft Tools Bakeware Chocolate — just $18.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #cozyhome #homefinds
 
-> Trending right now 🛍️
+> The gadget you didn't know you needed 🔌
 Mini GPS Locator — just $27.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #gadgets #techtok
 
 > Your pet's about to be spoiled 🐾
 Plush Doll Soft Rag — just $27.99 at HotsTuff 🔥
@@ -313,7 +313,7 @@ Powerful Usb Led Flashlight — just $15.99 at HotsTuff 🔥
 Light USB Charge Rabbit — just $18.99 at HotsTuff 🔥
 [LINK] #cozyhome #homefinds
 
-> Trending right now 🚗
+> Trending right now 🛍️
 Recorder G-Night Vision Sensor — just $31.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
@@ -345,9 +345,9 @@ Corner Shelf Household Tripod — just $15.99 at HotsTuff 🔥
 Backpack For Moms Waterproof — just $35.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> This week's must-have 🛍️
+> Your space is about to feel so much better 🏠
 Thickened Soft And Comfortable — just $15.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #cozyhome #homefinds
 
 > The kitchen gadget everyone's grabbing 🍳
 Maker Selector Kitchen Gadget — just $27.99 at HotsTuff 🔥
@@ -357,33 +357,33 @@ Maker Selector Kitchen Gadget — just $27.99 at HotsTuff 🔥
 Women's Heat Trapping T-Shirt — just $13.99 at HotsTuff 🔥
 [LINK] #fashion #ootd
 
-> Pet-parent essential 🐾
+> The coziest thing you'll buy this week 🏠
 Lamp Lazy Sweeper Cleaner — just $15.99 at HotsTuff 🔥
-[LINK] #petsofx #dogsofx
+[LINK] #cozyhome #homefinds
 
 > This week's must-have 👜
 food storage refrigerator fruit — just $11.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> A gift that actually lands 💍
+> Everyone's grabbing this 🛍️
 Gifts Stainless Steel Chain — just $11.99 at HotsTuff 🔥
-[LINK] #jewelry #giftideas
+[LINK] #trending #tiktokmademebuyit
 
 > It solves such an annoying problem 🔌
 USB lighter charging cigarette — just $35.99 at HotsTuff 🔥
 [LINK] #gadgets #techtok
 
-> Trending right now 🛍️
+> Your kitchen just got an upgrade 🍳
 Dielectric Insulated Lunch Box — just $21.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #kitchengadgets #tiktokmademebuyit
 
-> Level up your setup 🏋️
+> Trending right now 👜
 Sports training gym bag — just $24.99 at HotsTuff 🔥
-[LINK] #fitness #homegym
-
-> Everyone's grabbing this 🛍️
-Hand forged boning knife — just $15.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
+
+> Small upgrade, big difference 🍳
+Hand forged boning knife — just $15.99 at HotsTuff 🔥
+[LINK] #kitchengadgets #tiktokmademebuyit
 
 > The piece people ask about 💍
 Soul Alignment Necklace — just $15.99 at HotsTuff 🔥
@@ -413,19 +413,19 @@ Steel Hip Hop Simplicity — just $21.99 at HotsTuff 🔥
 Feet Flat-soled Men's Shoes — just $24.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> Trending right now 🛍️
+> The piece people ask about 💍
 Bohemian Vintage Earrings — just $35.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #jewelry #giftideas
 
 > Effortless and on-trend 👗
 Plus Size M- 5XL — just $18.99 at HotsTuff 🔥
 [LINK] #fashion #ootd
 
-> A little self-care upgrade 💄
-Handbags Women's Make Up — just $27.99 at HotsTuff 🔥
-[LINK] #beauty #selfcare
-
 > This week's must-have 🛍️
+Handbags Women's Make Up — just $27.99 at HotsTuff 🔥
+[LINK] #trending #tiktokmademebuyit
+
+> This week's must-have 🧘
 Fat Burning Health Care — just $13.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
@@ -437,7 +437,7 @@ Natural Stone Bullet Crystal — just $27.99 at HotsTuff 🔥
 Acrylic Cosmetic Storage Box — just $18.99 at HotsTuff 🔥
 [LINK] #beauty #selfcare
 
-> Trending right now 🛍️
+> Trending right now 🧘
 Foot Sleeve Ankle Socks — just $11.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
@@ -469,9 +469,9 @@ Protection Glasses For Pets — just $27.99 at HotsTuff 🔥
 Christmas Printed Parent-child Wear — just $13.99 at HotsTuff 🔥
 [LINK] #trending #tiktokmademebuyit
 
-> Trending right now 🛍️
+> The piece people ask about 💍
 Multi-layer Moon Disc Pendant — just $27.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
+[LINK] #jewelry #giftideas
 
 > A gift that actually lands 💍
 Bracelets Bangles For Women's — just $27.99 at HotsTuff 🔥
@@ -514,9 +514,9 @@ Grab one before it rotates out 👇
 **Heart Shaped Cross Pendant — $31.99**
 
 ```
-👗 Heart Shaped Cross Pendant — $31.99
+💍 Heart Shaped Cross Pendant — $31.99
 
-Simple, versatile, and the kind of thing that gets noticed.
+Simple and sweet — the kind of piece people actually ask about.
 
 Grab one before it rotates out 👇
 [LINK]
@@ -525,7 +525,7 @@ Grab one before it rotates out 👇
 **Waxing Polishing Sewage Hard — $15.99**
 
 ```
-🚗 Waxing Polishing Sewage Hard — $15.99
+🛍️ Waxing Polishing Sewage Hard — $15.99
 
 Fresh in this week and moving fast.
 
@@ -547,7 +547,7 @@ Grab one before it rotates out 👇
 **Belt Feeding Care Accessory — $35.99**
 
 ```
-🧸 Belt Feeding Care Accessory — $35.99
+🛍️ Belt Feeding Care Accessory — $35.99
 
 Fresh in this week and moving fast.
 
@@ -567,8 +567,8 @@ Grab one before it rotates out 👇
 
 **Heart Shaped Cross Pendant — $31.99**
 
-🎬 Concept: Quick try-on / styling clip with a trending sound.
-📝 Caption: the fit is fitting 🔥 $31.99 #tiktokmademebuyit #fashiontok
+🎬 Concept: Daylight → close-up reveal of the sparkle/glow. The reveal IS the video.
+📝 Caption: wait it GLOWS?? 🌙✨ $31.99 #tiktokmademebuyit #jewelrytok
 
 **Waxing Polishing Sewage Hard — $15.99**
 

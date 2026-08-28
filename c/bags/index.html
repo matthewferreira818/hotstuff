@@ -39,6 +39,11 @@
                background:linear-gradient(135deg,#2a1620,#1d1116); }
   .cat-name { display:block; padding:10px 12px 2px; font-weight:600; font-size:.95rem; }
   .cat-price { display:block; padding:0 12px; color:var(--amber); font-weight:700; }
+  nav.subnav { margin:0 0 30px; color:var(--muted); font-size:.92rem; }
+  nav.subnav a { text-decoration:none; }
+  nav.subnav span { opacity:.6; }
+  section h2 { font-size:1.1rem; margin:34px 0 12px; scroll-margin-top:14px; }
+  section h2 .n { color:var(--muted); font-weight:400; font-size:.85rem; }
   nav.sib { border-top:1px solid var(--line); padding:22px 0; color:var(--muted); font-size:.94rem; }
   footer { color:var(--muted); font-size:.86rem; padding:10px 0 40px; }
 </style>
@@ -48,8 +53,11 @@
 <main class="wrap">
   <h1>Trending bags, backpacks and purses</h1>
   <p class="blurb">Bags rotate with the rest of the catalogue. Every listing shows the supplier&#x27;s full product title alongside the cleaned-up display name, so you can always see exactly what an item is described as at source.</p>
-  <p class="count"><strong>5</strong> in this category right now. The selection changes every three days.</p>
-  <ul class="grid">
+  <p class="count"><strong>6</strong> in this category right now. The selection changes every three days.</p>
+  <nav class="subnav">In this category: <a href="#travel">Travel</a> <span>1</span> · <a href="#backpacks">Backpacks</a> <span>1</span> · <a href="#everything-else">Everything else</a> <span>4</span></nav>
+  <section>
+    <h2 id="travel">Travel <span class="n">1</span></h2>
+    <ul class="grid">
       <li class="cat-card">
         <a href="https://findhotstuff.com/?p=CJBHNSNS07513" class="cat-link">
           <img src="https://cf.cjdropshipping.com/15665760/2867807097659.jpg" alt="Canvas travel bag" loading="lazy" width="240" height="240">
@@ -57,18 +65,28 @@
           <span class="cat-price">$21.99 USD</span>
         </a>
       </li>
-      <li class="cat-card">
-        <a href="https://findhotstuff.com/?p=CJJJJRZS00351" class="cat-link">
-          <img src="https://oss-cf.cjdropshipping.com/product/2023/12/19/01/2cd43386-3d56-43fe-a728-cb1661aa1a00.jpg?cid=2503280906041607039" alt="Cotton Rope Indoor Plant Hanger Hanging Basket Sling" loading="lazy" width="240" height="240">
-          <span class="cat-name">Cotton Rope Indoor Plant Hanger Hanging Basket Sling</span>
-          <span class="cat-price">$31.99 USD</span>
-        </a>
-      </li>
+    </ul>
+  </section>
+  <section>
+    <h2 id="backpacks">Backpacks <span class="n">1</span></h2>
+    <ul class="grid">
       <li class="cat-card">
         <a href="https://findhotstuff.com/?p=CJNS1383486" class="cat-link">
           <img src="https://cf.cjdropshipping.com/c217bd86-3ea7-4089-bc73-0fa2d2ebd042.jpg" alt="Diaper Bag Backpack For Moms Waterproof" loading="lazy" width="240" height="240">
           <span class="cat-name">Diaper Bag Backpack For Moms Waterproof</span>
           <span class="cat-price">$35.99 USD</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+  <section>
+    <h2 id="everything-else">Everything else <span class="n">4</span></h2>
+    <ul class="grid">
+      <li class="cat-card">
+        <a href="https://findhotstuff.com/?p=CJJJCFHS00637" class="cat-link">
+          <img src="https://cf.cjdropshipping.com/e518cc85-6c20-45fc-9129-a65b70df884b.jpg" alt="Bag Portable Baby Nursing Bottle Heater Cover Food" loading="lazy" width="240" height="240">
+          <span class="cat-name">Bag Portable Baby Nursing Bottle Heater Cover Food</span>
+          <span class="cat-price">$27.99 USD</span>
         </a>
       </li>
       <li class="cat-card">
@@ -79,15 +97,23 @@
         </a>
       </li>
       <li class="cat-card">
+        <a href="https://findhotstuff.com/?p=CJBHNSNS17587" class="cat-link">
+          <img src="https://cf.cjdropshipping.com/20200708/3122715363127.jpg" alt="Sports training gym bag" loading="lazy" width="240" height="240">
+          <span class="cat-name">Sports training gym bag</span>
+          <span class="cat-price">$24.99 USD</span>
+        </a>
+      </li>
+      <li class="cat-card">
         <a href="https://findhotstuff.com/?p=CJJZGJGJ00119" class="cat-link">
           <img src="https://cf.cjdropshipping.com/15517152/1382123871084.jpg" alt="Wool Tool Combination Bag Metal Aluminum Yarn Needle" loading="lazy" width="240" height="240">
           <span class="cat-name">Wool Tool Combination Bag Metal Aluminum Yarn Needle</span>
           <span class="cat-price">$31.99 USD</span>
         </a>
       </li>
-  </ul>
+    </ul>
+  </section>
 </main>
-<nav class="sib"><div class="wrap">More categories: <a href="https://findhotstuff.com/c/jewelry/">Jewelry</a> · <a href="https://findhotstuff.com/c/fashion/">Fashion</a> · <a href="https://findhotstuff.com/c/pet/">Pet</a> · <a href="https://findhotstuff.com/c/kitchen/">Kitchen</a> · <a href="https://findhotstuff.com/c/home/">Home</a> · <a href="https://findhotstuff.com/c/fitness/">Fitness</a> · <a href="https://findhotstuff.com/c/footwear/">Footwear</a></div></nav>
+<nav class="sib"><div class="wrap">More categories: <a href="https://findhotstuff.com/c/jewelry/">Jewelry</a> · <a href="https://findhotstuff.com/c/fashion/">Fashion</a> · <a href="https://findhotstuff.com/c/pet/">Pet</a> · <a href="https://findhotstuff.com/c/kitchen/">Kitchen</a> · <a href="https://findhotstuff.com/c/home/">Home</a> · <a href="https://findhotstuff.com/c/fitness/">Fitness</a> · <a href="https://findhotstuff.com/c/footwear/">Footwear</a> · <a href="https://findhotstuff.com/c/beauty/">Beauty</a> · <a href="https://findhotstuff.com/c/wellness/">Wellness</a> · <a href="https://findhotstuff.com/c/electronics/">Electronics</a> · <a href="https://findhotstuff.com/c/toys/">Toys</a> · <a href="https://findhotstuff.com/c/auto/">Auto</a></div></nav>
 <footer class="wrap">
   Prices in USD · free shipping · 30-day guarantee ·
   <a href="https://findhotstuff.com/">see the full shop</a><br>

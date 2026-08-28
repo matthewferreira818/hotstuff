@@ -72,6 +72,31 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://findhotstuff.com/c/beauty/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://findhotstuff.com/c/wellness/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://findhotstuff.com/c/electronics/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://findhotstuff.com/c/toys/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://findhotstuff.com/c/auto/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://findhotstuff.com/notes/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

@@ -262,6 +262,39 @@ section {
   color: #ffffff;
 }
 
+/* Second-level filter row. Deliberately quieter than the category chips:
+   it is a refinement of a choice already made, not a competing one. */
+.subgroup-bar {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: -14px 0 24px;
+}
+
+.subgroup-chip {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+
+.subgroup-chip:hover {
+  border-color: var(--accent-a);
+  color: var(--accent-a);
+}
+
+.subgroup-chip.active {
+  background: var(--bg-elevated);
+  border-color: var(--accent-a);
+  color: var(--accent-a);
+}
+
 /* Merch jump-link chip: gradient outline so the new drop stands out */
 .category-chip-merch {
   display: inline-flex;
@@ -288,6 +321,17 @@ section {
     margin-right: -24px;
   }
   .category-chip {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .subgroup-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    margin-right: -24px;
+  }
+  .subgroup-chip {
     white-space: nowrap;
     flex-shrink: 0;
   }

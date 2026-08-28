@@ -2,6 +2,8 @@ const CHECKOUT_API = "https://wavelist-checkout.wavelist-mf818.workers.dev";
 
 let allProducts = [];
 let activeCategory = "All";
+let activeSubgroup = "All";
+const OTHER_SUBGROUP = "Everything else";
 let searchQuery = "";
 let sortMode = "trending";
 const T = (k, fb) => (window.HT_T && window.HT_T[k]) || fb;
@@ -31,6 +33,7 @@ async function loadProducts() {
   countEl.textContent = allProducts.length;
   if (countSuffix) countSuffix.hidden = false;
   buildCategoryBar();
+  buildSubgroupBar();
   renderGrid();
   focusLinkedProduct();
 }
@@ -58,6 +61,7 @@ function focusLinkedProduct() {
 
   // the linked card must be visible whatever the default filters are
   activeCategory = "All";
+  activeSubgroup = "All";
   searchQuery = "";
   const search = document.getElementById("product-search");
   if (search) search.value = "";
@@ -110,7 +114,9 @@ function buildCategoryBar() {
     chip.textContent = cat === "All" ? `${T("all", "All")} (${allProducts.length})` : `${cat} (${counts.get(cat)})`;
     chip.addEventListener("click", () => {
       activeCategory = cat;
+      activeSubgroup = "All";
       buildCategoryBar();
+      buildSubgroupBar();
       renderGrid();
     });
     bar.appendChild(chip);
@@ -125,6 +131,53 @@ function buildCategoryBar() {
   bar.insertBefore(merchChip, bar.children[1] || null);
 }
 
+// Second-level filter. Only appears when the active category actually has
+// more than one subgroup in the current rotation -- a bar with one chip in it
+// is noise, and the catalogue is rebuilt every three days, so which categories
+// deserve one changes on its own.
+function buildSubgroupBar() {
+  const bar = document.getElementById("subgroup-bar");
+  if (!bar) return;
+  bar.innerHTML = "";
+
+  const counts = new Map();
+  let unlabelled = 0;
+  if (activeCategory !== "All") {
+    for (const p of allProducts) {
+      if ((p.category || "Other") !== activeCategory) continue;
+      const g = p.subgroup || "";
+      if (!g) unlabelled += 1;
+      else counts.set(g, (counts.get(g) || 0) + 1);
+    }
+  }
+
+  if (counts.size < 2) {
+    bar.hidden = true;
+    return;
+  }
+  bar.hidden = false;
+
+  const total = [...counts.values()].reduce((a, b) => a + b, 0) + unlabelled;
+  const groups = ["All", ...[...counts.keys()].sort((a, b) => counts.get(b) - counts.get(a))];
+  if (unlabelled) groups.push(OTHER_SUBGROUP);
+
+  for (const g of groups) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "subgroup-chip" + (g === activeSubgroup ? " active" : "");
+    chip.setAttribute("role", "tab");
+    chip.setAttribute("aria-selected", g === activeSubgroup ? "true" : "false");
+    const n = g === "All" ? total : (g === OTHER_SUBGROUP ? unlabelled : counts.get(g));
+    chip.textContent = `${g === "All" ? T("all", "All") : g} (${n})`;
+    chip.addEventListener("click", () => {
+      activeSubgroup = g;
+      buildSubgroupBar();
+      renderGrid();
+    });
+    bar.appendChild(chip);
+  }
+}
+
 function renderGrid() {
   const grid = document.getElementById("product-grid");
   grid.innerHTML = "";
@@ -132,7 +185,9 @@ function renderGrid() {
   const q = searchQuery.trim().toLowerCase();
   const visible = allProducts
     .filter((p) => activeCategory === "All" || (p.category || "Other") === activeCategory)
-    .filter((p) => !q || `${p.name || ""} ${p.fullName || ""} ${p.description || ""} ${p.category || ""}`.toLowerCase().includes(q))
+    .filter((p) => activeSubgroup === "All"
+      || (activeSubgroup === OTHER_SUBGROUP ? !p.subgroup : p.subgroup === activeSubgroup))
+    .filter((p) => !q || `${p.name || ""} ${p.fullName || ""} ${p.description || ""} ${p.category || ""} ${p.subgroup || ""}`.toLowerCase().includes(q))
     .sort((a, b) => {
       if (sortMode === "price-asc") return (Number(a.price) || 0) - (Number(b.price) || 0);
       if (sortMode === "price-desc") return (Number(b.price) || 0) - (Number(a.price) || 0);
@@ -248,7 +303,9 @@ function buildCard(p) {
 
   const category = document.createElement("div");
   category.className = "card-category";
-  category.textContent = p.category || "";
+  // "JEWELRY · NECKLACES" -- the subgroup is the useful half once a shopper
+  // is scanning a filtered grid, so show it where the category already is.
+  category.textContent = [p.category, p.subgroup].filter(Boolean).join(" · ");
 
   const name = document.createElement("h3");
   name.className = "card-name";
@@ -359,7 +416,7 @@ function openProductSheet(p) {
 
   const category = document.createElement("div");
   category.className = "sheet-category";
-  category.textContent = p.category || "";
+  category.textContent = [p.category, p.subgroup].filter(Boolean).join(" · ");
 
   const name = document.createElement("h3");
   name.className = "sheet-name";

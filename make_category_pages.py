@@ -23,6 +23,7 @@ isn't a category page.
 
 import html
 import json
+import re
 from datetime import date
 from pathlib import Path
 
@@ -74,6 +75,31 @@ CATEGORIES = [
      "Footwear is one of the trickier categories to buy online, so the full "
      "supplier title is kept visible on every listing and the 30-day guarantee "
      "applies here the same as everywhere else in the shop."),
+    ("beauty", "Beauty", "Trending beauty — hair, makeup, skincare, nails",
+     "Beauty items are described using the supplier's own words and nothing "
+     "more. There are no before-and-after photos here and no results claimed, "
+     "because this shop has no way to verify either — what you get is the "
+     "product, the real title it ships under, and a 30-day guarantee."),
+    ("wellness", "Wellness", "Trending wellness — massage, posture, recovery",
+     "Braces, massagers, compression wear and posture supports, rotated with "
+     "the rest of the catalogue. Nothing on this page is a medical device or a "
+     "treatment, and none of it is described as one — if a supplier title makes "
+     "a health claim, the claim stays in the supplier's words, not in ours."),
+    ("electronics", "Electronics", "Trending electronics and small gadgets",
+     "Chargers, audio, cameras and desk gear. Electronics are the category "
+     "where a cheap dropshipped item most often disappoints, so the honest "
+     "framing is this: these are inexpensive trending gadgets, priced like it, "
+     "with the same 30-day guarantee as everything else."),
+    ("toys", "Toys", "Trending toys and games",
+     "Toys and games from the same three-day rotation as the rest of the shop. "
+     "No age ratings or safety certifications are claimed here, because this "
+     "shop can't verify them — the supplier's full product title is shown on "
+     "every listing so you can see exactly what is being described."),
+    ("auto", "Auto", "Trending car accessories and interior gear",
+     "Mounts, interior gear, cleaning tools and lighting for a car. Fit is the "
+     "usual problem with car accessories bought online, so the supplier's full "
+     "title — which is where any vehicle compatibility is stated — stays "
+     "visible on every listing."),
 ]
 
 # sitemap.xml is rebuilt from this list plus the category pages, so adding a
@@ -122,9 +148,15 @@ CARD = """      <li class="cat-card">
       </li>"""
 
 
-def render(slug, label, title, blurb, products, siblings):
-    items = [p for p in products if p.get("category") == label]
-    cards = "\n".join(
+OTHER = "Everything else"
+
+
+def anchor(name):
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
+
+def grid_of(items):
+    return "\n".join(
         CARD.format(
             site=SITE, pid=html.escape(str(p.get("id", ""))),
             name=html.escape(p.get("name", "")),
@@ -134,14 +166,43 @@ def render(slug, label, title, blurb, products, siblings):
                 '<span class="cat-noimg" aria-hidden="true">🛍️</span>',
         ) for p in items)
 
+
+def sectioned(items):
+    """Split a category into subgroup sections, or return a single unlabelled
+    grid when the rotation didn't leave enough to divide. Two subgroups is the
+    threshold: one heading over the whole page is just a louder title."""
+    groups = {}
+    for p in items:
+        groups.setdefault(p.get("subgroup") or OTHER, []).append(p)
+    named = [g for g in groups if g != OTHER]
+    if len(named) < 2:
+        return "", f'  <ul class="grid">\n{grid_of(items)}\n  </ul>'
+
+    order = sorted(named, key=lambda g: -len(groups[g]))
+    if OTHER in groups:
+        order.append(OTHER)
+    nav = ('  <nav class="subnav">In this category: '
+           + " · ".join(f'<a href="#{anchor(g)}">{html.escape(g)}</a> '
+                        f'<span>{len(groups[g])}</span>' for g in order)
+           + "</nav>")
+    body = "\n".join(
+        f'  <section>\n    <h2 id="{anchor(g)}">{html.escape(g)} '
+        f'<span class="n">{len(groups[g])}</span></h2>\n'
+        f'    <ul class="grid">\n{grid_of(groups[g])}\n    </ul>\n  </section>'
+        for g in order)
+    return nav, body
+
+
+def render(slug, label, title, blurb, products, siblings):
+    items = [p for p in products if p.get("category") == label]
+    subnav, cards = sectioned(items)
+
     if items:
         count_line = (f"<strong>{len(items)}</strong> in this category right now. "
                       "The selection changes every three days.")
-        empty = ""
     else:
         count_line = ("Nothing in this category in the current rotation — the "
                       "catalogue refreshes every three days, so check back.")
-        empty = ' class="is-empty"'
 
     sib = " · ".join(
         f'<a href="{SITE}/c/{s}/">{l}</a>' for s, l in siblings if s != slug)
@@ -187,6 +248,11 @@ def render(slug, label, title, blurb, products, siblings):
                background:linear-gradient(135deg,#2a1620,#1d1116); }}
   .cat-name {{ display:block; padding:10px 12px 2px; font-weight:600; font-size:.95rem; }}
   .cat-price {{ display:block; padding:0 12px; color:var(--amber); font-weight:700; }}
+  nav.subnav {{ margin:0 0 30px; color:var(--muted); font-size:.92rem; }}
+  nav.subnav a {{ text-decoration:none; }}
+  nav.subnav span {{ opacity:.6; }}
+  section h2 {{ font-size:1.1rem; margin:34px 0 12px; scroll-margin-top:14px; }}
+  section h2 .n {{ color:var(--muted); font-weight:400; font-size:.85rem; }}
   nav.sib {{ border-top:1px solid var(--line); padding:22px 0; color:var(--muted); font-size:.94rem; }}
   footer {{ color:var(--muted); font-size:.86rem; padding:10px 0 40px; }}
 </style>
@@ -197,9 +263,8 @@ def render(slug, label, title, blurb, products, siblings):
   <h1>{html.escape(title)}</h1>
   <p class="blurb">{html.escape(blurb)}</p>
   <p class="count">{count_line}</p>
-  <ul class="grid"{empty}>
+{subnav}
 {cards}
-  </ul>
 </main>
 <nav class="sib"><div class="wrap">More categories: {sib}</div></nav>
 <footer class="wrap">

@@ -26,8 +26,11 @@ HISTORY_FILE = HERE / "rotation-history.json"
 AUTH_URL = "https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken"
 PRODUCT_LIST_URL = "https://developers.cjdropshipping.com/api2.0/v1/product/listV2"
 
-DISPLAY_COUNT = 120  # products shown on the site each cycle
-POOL_SIZE = 800      # trending pool to rotate from, fetched in pages. CJ
+DISPLAY_COUNT = 200  # products shown on the site each cycle. Raised from
+                     # 120 on 2026-08-28: subgroup navigation only earns
+                     # its keep with enough depth for a subgroup to hold
+                     # more than one or two items.
+POOL_SIZE = 1000     # trending pool to rotate from, fetched in pages. CJ
                      # serves ~1080 trending products (run measure_pool.py to
                      # re-check). Selection always takes the hottest eligible
                      # items first, so extra depth costs nothing in product
@@ -38,9 +41,11 @@ PAGE_SIZE = 100      # CJ list-endpoint page max
 ROTATION_MEMORY = 4  # cycles an item must sit out before it may return, so
                      # the catalog can't alternate between the same sets
                      # (~12 days at the 3-day cadence). Kept below
-                     # POOL_SIZE // DISPLAY_COUNT so the pool can always fill
-                     # a catalog with this much held back; select_rotating
-                     # forgives the oldest cycles if it ever can't.
+                     # POOL_SIZE // DISPLAY_COUNT (currently 5) so the pool
+                     # can always fill a catalog with this much held back;
+                     # select_rotating forgives the oldest cycles if it can't.
+                     # Raising DISPLAY_COUNT without raising POOL_SIZE would
+                     # quietly break that invariant -- check the ratio first.
 MAX_REPEATS = 4      # at most 4 carry-overs a cycle, and only items a customer
                      # actually clicked Buy on (GoatCounter `buy-<id>` events
                      # from script.js). No clicks means no carry-over and a
@@ -102,24 +107,162 @@ GRADIENTS = [
 # CJ's list endpoint doesn't reliably return category names, so category + emoji
 # are both derived from keywords in the product title.
 NAME_KEYWORD_CATEGORIES = [
-    # Pet stays ahead of Auto so "dog car seat belt"-style items keep the Pet label.
+    # ORDER IS THE ALGORITHM: first match wins, so the list runs from the
+    # categories whose keywords are unambiguous down to the ones whose words
+    # get sprinkled into every supplier title. Two rules earned their place
+    # the hard way:
+    #   - Pet before everything, so "dog car seat belt" stays Pet.
+    #   - Jewelry, Footwear and Bags before Fashion, because suppliers stuff
+    #     the word "fashion" into necklace and sneaker titles constantly.
+    # Anything that matches nothing lands in Trending Finds, which is a real
+    # bucket, not a failure -- but a big one means this table has a gap.
     (("pet", "dog", "cat", "puppy", "kitten"), "Pet", "🐾"),
     (("car", "vehicle", "dashboard", "windshield", "suction"), "Auto", "🚗"),
-    (("blender", "juicer", "kitchen", "cup", "mug", "cookware"), "Kitchen", "🍳"),
-    (("humidifier", "night light", "lamp", "led", "home", "decor"), "Home", "🏠"),
-    (("makeup", "beauty", "skincare", "hair", "cosmetic"), "Beauty", "💄"),
-    (("fitness", "gym", "yoga", "muscle", "workout"), "Fitness", "🏋️"),
-    (("usb", "charger", "bluetooth", "electronic", "speaker", "earbud"), "Electronics", "🔌"),
-    (("toy", "kids", "children", "game"), "Toys", "🧸"),
-    (("dress", "shirt", "fashion", "clothing", "jacket"), "Fashion", "👗"),
-    (("jewelry", "necklace", "ring", "bracelet"), "Jewelry", "💍"),
-    (("outdoor", "camping", "hiking", "tent"), "Outdoor", "🏕️"),
-    (("bag", "backpack", "purse"), "Bags", "👜"),
-    (("shoe", "sneaker", "sandal", "slipper"), "Footwear", "👟"),
+    (("jewelry", "necklace", "ring", "bracelet", "pendant", "earring",
+      "anklet", "bangle", "brooch", "choker", "charm"), "Jewelry", "💍"),
+    (("shoe", "sneaker", "sandal", "slipper", "boot", "insole",
+      "sole"), "Footwear", "👟"),
+    (("bag", "backpack", "purse", "wallet", "tote", "luggage",
+      "suitcase"), "Bags", "👜"),
+    (("makeup", "beauty", "skincare", "hair", "cosmetic", "nail", "lipstick",
+      "lash", "brow", "serum", "perfume", "blush"), "Beauty", "💄"),
+    (("massage", "slimming", "posture", "compression", "therapy", "prenatal",
+      "brace", "orthopedic"), "Wellness", "🧘"),
+    (("fitness", "gym", "yoga", "muscle", "workout", "dumbbell",
+      "resistance"), "Fitness", "🏋️"),
+    (("blender", "juicer", "kitchen", "cup", "mug", "cookware", "knife",
+      "kettle", "spatula", "plate", "cutlery", "tumbler",
+      "lunch box"), "Kitchen", "🍳"),
+    (("humidifier", "night light", "lamp", "led", "home", "decor", "cushion",
+      "curtain", "pillow", "blanket", "vase", "candle", "clock",
+      "organizer"), "Home", "🏠"),
+    (("usb", "charger", "bluetooth", "electronic", "speaker", "earbud",
+      "camera", "wifi", "gps", "wireless", "projector"), "Electronics", "🔌"),
     (("phone", "iphone", "case"), "Phone Accessories", "📱"),
+    (("toy", "kids", "children", "game", "plush", "doll"), "Toys", "🧸"),
+    (("dress", "shirt", "fashion", "clothing", "jacket", "coat", "hoodie",
+      "sweater", "sweatshirt", "cardigan", "skirt", "legging", "pants",
+      "blouse", "pajama", "scarf", "bra"), "Fashion", "👗"),
+    (("outdoor", "camping", "hiking", "tent"), "Outdoor", "🏕️"),
     (("tool", "wrench", "repair"), "Tools", "🛠️"),
     (("glove", "sport", "riding", "motorcycle"), "Sports", "🧤"),
 ]
+
+# A second, finer pass INSIDE a category. Scoped per category on purpose:
+# "mat" means a yoga mat under Fitness and a pet bed under Pet, and keeping
+# the tables separate is what lets both be right. First match wins, so order
+# within a list is deliberate. An item that matches nothing keeps "" and is
+# shown under a "More <category>" heading rather than being hidden.
+SUBGROUP_KEYWORDS = {
+    "Jewelry": [
+        # "chain" is the ambiguous word here -- it appears in bracelet titles
+        # as often as necklace ones -- so the unambiguous nouns get first pick
+        # and Necklaces sweeps up what is left.
+        (("bracelet", "bangle", "anklet"), "Bracelets"),
+        (("earring", "stud", "hoop"), "Earrings"),
+        (("ring",), "Rings"),
+        (("necklace", "pendant", "chain", "choker"), "Necklaces"),
+    ],
+    "Fashion": [
+        (("jacket", "coat", "hoodie", "sweater", "cardigan", "vest"), "Outerwear"),
+        (("dress", "skirt", "gown"), "Dresses & Skirts"),
+        (("shirt", "top", "blouse", "tee", "tank"), "Tops"),
+        (("pants", "trousers", "jeans", "shorts", "legging"), "Bottoms"),
+        (("sock", "underwear", "bra", "lingerie", "pajama"), "Underlayers"),
+        (("hat", "cap", "scarf", "belt", "glove"), "Accessories"),
+    ],
+    "Pet": [
+        (("bed", "mat", "cushion", "kennel", "nest", "blanket"), "Beds & Mats"),
+        (("brush", "comb", "groom", "nail", "clipper", "shampoo"), "Grooming"),
+        (("leash", "collar", "harness"), "Leashes & Collars"),
+        (("bowl", "feeder", "fountain", "dispenser"), "Bowls & Feeders"),
+        (("toy", "ball", "chew", "rope"), "Toys"),
+        (("carrier", "crate", "stroller", "car seat"), "Carriers"),
+    ],
+    "Kitchen": [
+        (("cup", "mug", "bottle", "tumbler", "straw"), "Drinkware"),
+        (("pan", "pot", "cookware", "bakeware", "tray", "mold"), "Cookware & Bakeware"),
+        (("knife", "cutter", "peeler", "grater", "slicer", "opener", "board"), "Cutting & Prep"),
+        (("blender", "juicer", "mixer", "grinder", "maker"), "Small Appliances"),
+        (("container", "organizer", "jar", "rack", "storage"), "Storage"),
+    ],
+    "Home": [
+        (("lamp", "light", "led", "bulb", "projector", "neon"), "Lighting"),
+        (("humidifier", "diffuser", "purifier", "fan", "heater"), "Air & Comfort"),
+        (("organizer", "rack", "shelf", "holder", "hook", "storage"), "Storage & Organizing"),
+        (("mop", "duster", "wipe", "cleaner", "sponge"), "Cleaning"),
+        (("decor", "wall", "poster", "vase", "ornament", "curtain", "clock"), "Decor"),
+    ],
+    "Fitness": [
+        (("yoga", "pilates", "stretch", "mat"), "Yoga & Stretch"),
+        (("dumbbell", "weight", "resistance", "band", "grip", "muscle"), "Strength"),
+        (("rope", "bike", "cardio", "treadmill", "running"), "Cardio"),
+        (("brace", "support", "sleeve", "strap", "belt", "massage"), "Support & Recovery"),
+    ],
+    "Bags": [
+        (("backpack", "rucksack", "schoolbag"), "Backpacks"),
+        (("purse", "handbag", "shoulder", "tote", "clutch", "crossbody"), "Handbags"),
+        (("wallet", "card holder", "coin"), "Wallets"),
+        (("travel", "luggage", "suitcase", "duffel", "organizer"), "Travel"),
+    ],
+    "Footwear": [
+        (("sneaker", "trainer", "running"), "Sneakers"),
+        (("sandal", "flip", "slide"), "Sandals"),
+        (("slipper",), "Slippers"),
+        (("boot",), "Boots"),
+        (("insole", "lace", "shoe rack"), "Shoe Care"),
+    ],
+    "Beauty": [
+        (("hair", "curl", "straighten", "wig", "comb"), "Hair"),
+        (("makeup", "lipstick", "eyeliner", "cosmetic", "lash", "brow"), "Makeup"),
+        (("skin", "face", "serum", "cream", "mask", "cleanser"), "Skincare"),
+        (("nail", "manicure", "polish"), "Nails"),
+    ],
+    "Electronics": [
+        (("charger", "cable", "usb", "adapter", "power bank"), "Charging"),
+        (("earbud", "headphone", "speaker", "audio", "microphone"), "Audio"),
+        (("mouse", "keyboard", "stand", "hub", "monitor"), "Desk"),
+        (("camera", "projector", "light"), "Camera & Light"),
+    ],
+    "Toys": [
+        (("puzzle", "block", "build", "lego"), "Building & Puzzles"),
+        (("plush", "doll", "figure", "stuffed"), "Plush & Figures"),
+        (("car", "drone", "remote", "rc"), "Remote Control"),
+        (("board game", "card", "game"), "Games"),
+    ],
+    "Auto": [
+        (("mount", "holder", "suction", "bracket"), "Mounts & Holders"),
+        (("clean", "wash", "brush", "wipe", "vacuum"), "Cleaning"),
+        (("light", "led", "lamp"), "Lighting"),
+        (("seat", "cover", "cushion", "mat", "organizer"), "Interior"),
+    ],
+    "Phone Accessories": [
+        (("case", "cover", "protector", "film"), "Cases & Protection"),
+        (("holder", "stand", "mount", "grip", "ring"), "Stands & Grips"),
+        (("charger", "cable", "power bank", "wireless"), "Charging"),
+    ],
+    "Wellness": [
+        (("massage", "roller", "gun"), "Massage"),
+        (("posture", "brace", "support", "belt", "corrector"), "Posture & Support"),
+        (("compression", "sleeve", "sock", "wrap"), "Compression"),
+        (("sleep", "eye", "relax", "aroma"), "Sleep & Relax"),
+    ],
+}
+
+
+def classify_subgroup(category: str, name: str) -> str:
+    """Finer bucket within a category, or "" when nothing matches. Uses the
+    same whole-word matcher as classify_name so a concatenated supplier word
+    can't produce a false subgroup."""
+    table = SUBGROUP_KEYWORDS.get(category)
+    if not table:
+        return ""
+    name_lower, words = tokenize(name)
+    for keywords, subgroup in table:
+        if any(keyword_hit(name_lower, words, k) for k in keywords):
+            return subgroup
+    return ""
+
 
 
 def tokenize(name: str) -> tuple[str, set[str]]:
@@ -762,6 +905,10 @@ CATEGORY_DESCRIPTIONS = {
             "Because the good pets deserve nice things.",
             "An easy win for pets and their people.",
             "Simple pet gear that gets used daily."],
+    "Wellness": ["A trending pick from the comfort-and-recovery shelf.",
+                 "Simple everyday support that's having a moment.",
+                 "One of this week's most-picked comfort items.",
+                 "An easy, low-fuss addition to the daily routine."],
     "Fitness": ["A trending fitness pick that actually gets used.",
                 "Level up the routine — a workout favorite.",
                 "Simple gear that makes workouts a little easier.",
@@ -821,12 +968,48 @@ DEFAULT_DESCRIPTIONS = [
 ]
 
 
+# Which categories each KEYWORD_DESCRIPTIONS group is allowed to speak for,
+# keyed by the group's first keyword. Without this, a keyword can describe a
+# product it only shares a word with -- "Phoera Light And Brightening Blush
+# Cream" matched the lighting group and was sold as "an easy plug-in upgrade
+# for any room's vibe", which is a product attribute nobody verified and that
+# isn't true. A group with no entry here may speak for anything; a group that
+# is scoped out falls through to the category's own line, which is always safe
+# because that line only describes the category.
+KEYWORD_SCOPE = {
+    "fetal": ("Jewelry", "Toys", "Electronics", "Trending Finds"),
+    "necklace": ("Jewelry",),
+    "leggings": ("Fitness", "Wellness", "Fashion", "Sports"),
+    "dog": ("Pet",),
+    "phone": ("Phone Accessories", "Electronics"),
+    "humidifier": ("Home", "Wellness"),
+    "led": ("Home", "Electronics", "Auto", "Toys"),
+    "blender": ("Kitchen",),
+    "vacuum": ("Home", "Auto", "Kitchen", "Tools", "Beauty"),
+    "baby": ("Toys", "Fashion", "Wellness"),
+    "glove": ("Fashion", "Sports", "Outdoor"),
+    "toy": ("Toys", "Pet"),
+    "hose": ("Outdoor", "Tools", "Home", "Auto"),
+    "car": ("Auto", "Electronics"),
+    "shower": ("Electronics", "Tools", "Home"),
+    "crystal": ("Jewelry", "Home"),
+    "shoe": ("Footwear",),
+    "bag": ("Bags",),
+    "wrench": ("Tools", "Auto"),
+    "shaper": ("Fashion",),
+    "knee pad": ("Wellness", "Fitness", "Sports"),
+}
+
+
 def describe(name: str, category: str, sku: str) -> str:
     """A warm, benefit-led one-liner keyed to the product. Deterministic per
     SKU so copy stays stable across refreshes — no more identical templates."""
     name_lower, words = tokenize(name)
     variants = None
     for keywords, options in KEYWORD_DESCRIPTIONS:
+        allowed = KEYWORD_SCOPE.get(keywords[0])
+        if allowed and category not in allowed:
+            continue
         if any(keyword_hit(name_lower, words, k) for k in keywords):
             variants = options
             break
@@ -854,6 +1037,7 @@ def to_site_products(cj_products: list[dict]) -> list[dict]:
             "name": full_name,  # honest display name — the cleaned real title
             "fullName": full_name,
             "category": category,
+            "subgroup": classify_subgroup(category, p.get("nameEn", "")),
             "price": assign_price(sku, cost_price),
             "trendScore": normalize_trend_score(int(p.get("listedNum", 0)), listed_nums),
             "badge": "🔥 Trending",

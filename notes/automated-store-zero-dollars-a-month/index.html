@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What it costs to run an automated store at $0 a month · HotsTuff</title>
+<meta name="description" content="The full stack behind an automated dropshipping storefront, line by line, with the one bill that isn&#x27;t free and the two things I switched off because they wer">
+<link rel="canonical" href="https://findhotstuff.com/notes/automated-store-zero-dollars-a-month/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="What it costs to run an automated store at $0 a month · HotsTuff">
+<meta property="og:description" content="The full stack behind an automated dropshipping storefront, line by line, with the one bill that isn&#x27;t free and the two things I switched off because they wer">
+<meta property="og:url" content="https://findhotstuff.com/notes/automated-store-zero-dollars-a-month/">
+<meta property="og:image" content="https://findhotstuff.com/assets/og-card.png">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "Article", "headline": "What it costs to run an automated store at $0 a month", "description": "The full stack behind an automated dropshipping storefront, line by line, with the one bill that isn't free and the two things I switched off because they weren't.", "datePublished": "2026-08-28", "url": "https://findhotstuff.com/notes/automated-store-zero-dollars-a-month/", "author": {"@type": "Person", "name": "Matthew Ferreira"}, "publisher": {"@type": "Organization", "name": "HotsTuff", "url": "https://findhotstuff.com"}}
+</script>
+<style>
+  :root { --bg:#12090d; --card:#1d1116; --ink:#f6eef1; --muted:#b9a4ac;
+          --line:rgba(246,238,241,.14); --amber:#ffa62b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); line-height:1.7;
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  a { color:var(--amber); }
+  .wrap { max-width:720px; margin:0 auto; padding:0 20px; }
+  header.bar { border-bottom:1px solid var(--line); padding:14px 0; }
+  header.bar a { color:var(--ink); text-decoration:none; font-weight:700; }
+  h1 { font-size:clamp(1.7rem,5vw,2.4rem); line-height:1.25; margin:30px 0 10px; }
+  h2 { font-size:1.25rem; margin:36px 0 10px; }
+  h3 { font-size:1.05rem; margin:28px 0 8px; color:var(--amber); }
+  .meta { color:var(--muted); font-size:.9rem; margin:0 0 28px; }
+  .lede { color:var(--muted); }
+  article p, article li { color:#e7dade; }
+  blockquote { margin:22px 0; padding:2px 0 2px 16px; border-left:3px solid var(--amber);
+               color:var(--muted); }
+  code { background:var(--card); border:1px solid var(--line); border-radius:5px;
+         padding:1px 5px; font-size:.9em; }
+  pre { background:var(--card); border:1px solid var(--line); border-radius:12px;
+        padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; border:0; padding:0; }
+  table { border-collapse:collapse; width:100%; margin:22px 0; font-size:.94rem; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { color:var(--amber); }
+  hr { border:0; border-top:1px solid var(--line); margin:34px 0; }
+  ul.notes { list-style:none; padding:0; }
+  ul.notes li { border-bottom:1px solid var(--line); padding:18px 0; }
+  ul.notes a { font-weight:700; font-size:1.06rem; text-decoration:none; }
+  ul.notes p { margin:6px 0 0; color:var(--muted); font-size:.95rem; }
+  ul.notes .when { display:block; color:var(--muted); font-size:.82rem; margin-bottom:4px; }
+  footer { color:var(--muted); font-size:.86rem; border-top:1px solid var(--line);
+           margin-top:44px; padding:20px 0 46px; }
+</style>
+</head>
+<body>
+<header class="bar"><div class="wrap"><a href="https://findhotstuff.com/">← HotsTuff</a></div></header>
+<main class="wrap">
+<article>
+  <h1>What it costs to run an automated store at $0 a month</h1>
+  <p class="meta">2026-08-28 · Matthew Ferreira</p>
+<p>Every &quot;start a store for free&quot; post I read left something out. Usually the hosting was free but the automation wasn&#x27;t, or the automation was free but it needed a $29/month app to actually run. So here is the whole thing, line by line, with nothing left out — including the parts I turned off because they cost money I don&#x27;t have yet.</p>
+<h2>The bill</h2>
+<table><thead><tr><th>Piece</th><th>What it does</th><th>What it costs</th></tr></thead><tbody><tr><td>GitHub Pages</td><td>Serves the storefront</td><td>$0 — free for public repositories</td></tr><tr><td>GitHub Actions</td><td>Runs every scheduled job below</td><td>$0 — free for public repositories</td></tr><tr><td>Cloudflare Workers</td><td>Stripe checkout, lead capture, order alerts</td><td>$0 — free tier is 100,000 requests a day</td></tr><tr><td>Stripe</td><td>Takes the payment</td><td>$0/month, then 2.9% + $0.30 per transaction</td></tr><tr><td>CJ Dropshipping</td><td>Supplier and fulfilment</td><td>$0/month, then wholesale + shipping per order</td></tr><tr><td>GoatCounter</td><td>Traffic analytics</td><td>$0</td></tr><tr><td>ntfy</td><td>Pushes order and lead alerts to my phone</td><td>$0</td></tr><tr><td>A domain name</td><td>findhotstuff.com</td><td><strong>The only recurring bill. Billed once a year.</strong></td></tr></tbody></table>
+<p>So the honest version of &quot;$0 a month&quot; is: everything that runs costs nothing, and the domain is a yearly bill in the ballpark of a large coffee per month. I&#x27;m not going to pretend that&#x27;s zero, because it isn&#x27;t.</p>
+<h2>What &quot;automated&quot; actually means here</h2>
+<p>There are thirteen scheduled jobs. They are ordinary GitHub Actions workflows — YAML files in the repository, not a SaaS product:</p>
+<ul><li>Rebuild the product catalogue from live trending data every three days</li><li>Generate the social posts for the new catalogue in the same run</li><li>Build the daily TikTok photo packs and push them as drafts</li><li>Publish the daily post to the East Coast Social feed</li><li>Pull a traffic report</li><li>Relay phone alerts (more on that below)</li><li>Smoke-test the site after every deploy</li></ul>
+<p>The whole store is static files. There is no server to keep alive, no database to back up, and nothing to patch. That is the actual reason it costs nothing — not a clever free tier, just an architecture with very few moving parts that can bill you.</p>
+<h2>The two things I switched off because they cost money</h2>
+<p>I&#x27;d rather show you the switched-off list than pretend the stack is complete.</p>
+<p><strong>Automatic posting to X.</strong> The poster is written and works. X&#x27;s API charges per post, and at my current traffic that&#x27;s money spent to reach almost nobody. The workflow sits idle until there&#x27;s a reason to turn it on.</p>
+<p><strong>AI-polished product names.</strong> Supplier titles are keyword soup. A model can tidy them into readable names in seconds, and the code to do it is in the repo behind an optional API key. Without the key the code skips silently and the store falls back to mechanical name cleanup. It costs a few dollars a month, which is a few dollars a month I don&#x27;t have committed yet, so: mechanical names.</p>
+<p>Both of those are one secret away from running. Neither is pretended to be running in the meantime.</p>
+<h2>The one place free tiers actually bit</h2>
+<p>Cloudflare Workers can&#x27;t reliably send push notifications to my phone.</p>
+<p>The Worker handles checkout, and when an order lands I want to know immediately. The obvious move is to have the Worker call the push service directly. That fails intermittently, and the reason is that Cloudflare Workers share outbound IP addresses across an enormous number of customers — so from the push service&#x27;s side, the request looks like it&#x27;s coming from an address that&#x27;s already sent a flood of traffic, and it gets rate-limited.</p>
+<p>The fix was a hop: the Worker fires a <code>repository_dispatch</code> event at GitHub, and a tiny workflow does the actual push from a GitHub runner. It adds a few seconds of latency to a notification I read minutes later anyway, and it costs nothing.</p>
+<h2>What it actually cost</h2>
+<p>Evenings. I have a full-time job that runs from about 6:45 in the morning to 4:30 in the afternoon, so all of this was built after that. The money column is genuinely near zero. The time column is not, and anyone telling you otherwise is selling something.</p>
+<h2>Would I recommend this stack?</h2>
+<p>For a store you&#x27;re testing rather than betting on, yes, with one honest caveat: it is a <em>developer&#x27;s</em> free stack. Every piece is free because you&#x27;re doing the work a paid product would do for you. If you don&#x27;t want to touch YAML or Python, Shopify&#x27;s monthly fee is buying you something real.</p>
+<p>What you get in exchange for the work is that nothing can raise its price on you, nothing can change its terms, and nothing can turn your store off.</p>
+</article>
+<h2>More notes</h2><ul><li><a href="https://findhotstuff.com/notes/product-name-validator/">I sold a roll of wallpaper as a pet bed, so I built a validator that can veto my own product names</a></li><li><a href="https://findhotstuff.com/notes/dropshipping-price-floor/">Pricing dropshipped products so no sale can lose money — the three costs people forget</a></li></ul>
+</main>
+<footer class="wrap">
+  Written from the actual build. If something here stops being true, the page
+  changes — <a href="https://findhotstuff.com/build/">how the whole thing works</a> ·
+  <a href="https://findhotstuff.com/notes/">all notes</a> · <a href="https://findhotstuff.com/">the shop</a>
+</footer>
+<script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

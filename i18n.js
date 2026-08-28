@@ -68,7 +68,7 @@
     "sort-trending": "🔥 Tendances d'abord",
     "sort-price-asc": "Prix : du moins cher au plus cher",
     "sort-price-desc": "Prix : du plus cher au moins cher",
-    "footer-note": "Soutien : <a href=\"mailto:ceohotstuff@yahoo.com\">ceohotstuff@yahoo.com</a>\n        · <a href=\"tel:+15068899737\">(506) 889-9737</a>\n        · <a href=\"c/\">Magasiner par catégorie</a>\n        · <a href=\"automation/fr/\">Automatisation sociale pour votre entreprise</a>\n        · <a href=\"privacy/\">Confidentialité</a>\n        · <a href=\"terms/\">Conditions</a>",
+    "footer-note": "Soutien : <a href=\"mailto:ceohotstuff@yahoo.com\">ceohotstuff@yahoo.com</a>\n        · <a href=\"tel:+15068899737\">(506) 889-9737</a>\n        · <a href=\"c/\">Magasiner par catégorie</a>\n        · <a href=\"notes/\">Notes</a>\n        · <a href=\"automation/fr/\">Automatisation sociale pour votre entreprise</a>\n        · <a href=\"privacy/\">Confidentialité</a>\n        · <a href=\"terms/\">Conditions</a>",
   };
 
   // Runtime strings used by script.js

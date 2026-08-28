@@ -91,6 +91,15 @@ STATIC_URLS = [
 def write_sitemap(out_path):
     urls = list(STATIC_URLS) + [
         (f"/c/{slug}/", "weekly", "0.6") for slug, _, _, _ in CATEGORIES]
+    # /notes/ pages are discovered from disk rather than listed here, so the
+    # two generators can't disagree about what is published. make_notes.py
+    # only writes a note's directory once it is out of draft.
+    notes_root = out_path.parent / "notes"
+    if (notes_root / "index.html").exists():
+        urls.append(("/notes/", "weekly", "0.7"))
+        urls += [(f"/notes/{d.name}/", "monthly", "0.6")
+                 for d in sorted(notes_root.iterdir())
+                 if d.is_dir() and (d / "index.html").exists()]
     body = "\n".join(
         f"  <url>\n    <loc>{SITE}{path}</loc>\n"
         f"    <changefreq>{freq}</changefreq>\n"

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pricing dropshipped products so no sale can lose money — the three costs people forget · HotsTuff</title>
+<meta name="description" content="A 2x markup on wholesale cost loses money on most small dropshipped orders. Here is the arithmetic, the formula I price from, and three worked examples.">
+<link rel="canonical" href="https://findhotstuff.com/notes/dropshipping-price-floor/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pricing dropshipped products so no sale can lose money — the three costs people forget · HotsTuff">
+<meta property="og:description" content="A 2x markup on wholesale cost loses money on most small dropshipped orders. Here is the arithmetic, the formula I price from, and three worked examples.">
+<meta property="og:url" content="https://findhotstuff.com/notes/dropshipping-price-floor/">
+<meta property="og:image" content="https://findhotstuff.com/assets/og-card.png">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "Article", "headline": "Pricing dropshipped products so no sale can lose money \u2014 the three costs people forget", "description": "A 2x markup on wholesale cost loses money on most small dropshipped orders. Here is the arithmetic, the formula I price from, and three worked examples.", "datePublished": "2026-08-26", "url": "https://findhotstuff.com/notes/dropshipping-price-floor/", "author": {"@type": "Person", "name": "Matthew Ferreira"}, "publisher": {"@type": "Organization", "name": "HotsTuff", "url": "https://findhotstuff.com"}}
+</script>
+<style>
+  :root { --bg:#12090d; --card:#1d1116; --ink:#f6eef1; --muted:#b9a4ac;
+          --line:rgba(246,238,241,.14); --amber:#ffa62b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); line-height:1.7;
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  a { color:var(--amber); }
+  .wrap { max-width:720px; margin:0 auto; padding:0 20px; }
+  header.bar { border-bottom:1px solid var(--line); padding:14px 0; }
+  header.bar a { color:var(--ink); text-decoration:none; font-weight:700; }
+  h1 { font-size:clamp(1.7rem,5vw,2.4rem); line-height:1.25; margin:30px 0 10px; }
+  h2 { font-size:1.25rem; margin:36px 0 10px; }
+  h3 { font-size:1.05rem; margin:28px 0 8px; color:var(--amber); }
+  .meta { color:var(--muted); font-size:.9rem; margin:0 0 28px; }
+  .lede { color:var(--muted); }
+  article p, article li { color:#e7dade; }
+  blockquote { margin:22px 0; padding:2px 0 2px 16px; border-left:3px solid var(--amber);
+               color:var(--muted); }
+  code { background:var(--card); border:1px solid var(--line); border-radius:5px;
+         padding:1px 5px; font-size:.9em; }
+  pre { background:var(--card); border:1px solid var(--line); border-radius:12px;
+        padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; border:0; padding:0; }
+  table { border-collapse:collapse; width:100%; margin:22px 0; font-size:.94rem; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { color:var(--amber); }
+  hr { border:0; border-top:1px solid var(--line); margin:34px 0; }
+  ul.notes { list-style:none; padding:0; }
+  ul.notes li { border-bottom:1px solid var(--line); padding:18px 0; }
+  ul.notes a { font-weight:700; font-size:1.06rem; text-decoration:none; }
+  ul.notes p { margin:6px 0 0; color:var(--muted); font-size:.95rem; }
+  ul.notes .when { display:block; color:var(--muted); font-size:.82rem; margin-bottom:4px; }
+  footer { color:var(--muted); font-size:.86rem; border-top:1px solid var(--line);
+           margin-top:44px; padding:20px 0 46px; }
+</style>
+</head>
+<body>
+<header class="bar"><div class="wrap"><a href="https://findhotstuff.com/">← HotsTuff</a></div></header>
+<main class="wrap">
+<article>
+  <h1>Pricing dropshipped products so no sale can lose money — the three costs people forget</h1>
+  <p class="meta">2026-08-26 · Matthew Ferreira</p>
+<p>The advice everyone gets is &quot;mark it up 2x, or 3x if you can.&quot; I built my store&#x27;s pricing on that and it is, for small dropshipped goods, quietly wrong. Not &quot;leaves money on the table&quot; wrong — actually-loses-money wrong.</p>
+<p>Here&#x27;s the arithmetic.</p>
+<h2>A sale has three costs, and the markup rule only covers one</h2>
+<p><strong>1. Wholesale cost.</strong> The obvious one. You know it before you list the item.</p>
+<p><strong>2. Shipping.</strong> Not the customer&#x27;s shipping — my store shows free shipping, so this comes out of my side. The supplier charges it to my account when the order is placed, and I don&#x27;t know the exact amount until then. For small parcels to Canada and the US it typically runs $2–6, occasionally $6–8 for bulkier items, remote provinces, or peak-season surcharges.</p>
+<p><strong>3. The payment fee.</strong> Stripe takes 2.9% of the charge plus a flat $0.30. The flat 30 cents is the part that hurts: on a $10 order it&#x27;s 3% on its own, so the effective take is closer to 6%.</p>
+<p>Two of those three are invisible when you&#x27;re setting a price. That&#x27;s why the markup rule fails — it prices against the only cost you can see.</p>
+<h2>What that does to a $6 item</h2>
+<p>Wholesale $6. Naive 2x markup, so it lists at $12.</p>
+<pre><code>  $12.00   charged to the customer
+-  $0.35   Stripe (2.9% of $12.00, plus $0.30)
+-  $6.00   wholesale
+-  $8.00   shipping, worst case
+= -$2.65   per sale</code></pre>
+<p>Every one of those sells at a loss, and the store looks like it&#x27;s working while it does it. If shipping happens to come in cheap that day you might scrape to break-even; you have priced yourself a coin flip.</p>
+<h2>The fix: solve for the price instead of guessing it</h2>
+<p>Rather than marking up a cost, state the condition you actually want and solve for price:</p>
+<pre><code>price - (price × 0.029 + 0.30) - cost - shipping ≥ minimum profit</code></pre>
+<p>Rearranged, that&#x27;s the lowest price that cannot lose:</p>
+<pre><code>def min_profitable_price(cost):
+    needed = cost + SHIPPING_WORST_CASE + STRIPE_FIXED_FEE + MIN_NET_MARGIN
+    return needed / (1 - STRIPE_PCT_FEE)</code></pre>
+<p>Two choices in there are mine, not arithmetic:</p>
+<p><strong>Shipping is priced at the worst case, $8.00</strong> — the top of the range I&#x27;ve actually seen, not the average. Averages are the wrong tool here. If I price at the average, then by definition roughly half of my orders lose money, and they&#x27;ll be the heavy, far-away ones. Pricing at the ceiling means the real charge can only ever come in <em>under</em> what I already priced for.</p>
+<p><strong>Minimum profit is $1.00, not $0.01.</strong> A guarantee that lands on a penny isn&#x27;t a guarantee — exchange-rate slop, a rounding difference, or one miscellaneous fee wipes it out. A dollar is small, but it&#x27;s a cushion that survives contact with reality.</p>
+<h2>Three worked examples</h2>
+<table><thead><tr><th>Wholesale</th><th>Floor</th><th>Listed at</th><th>Profit after everything</th></tr></thead><tbody><tr><td>$4.00</td><td>$13.70</td><td>$13.99</td><td>$1.28</td></tr><tr><td>$6.00</td><td>$15.76</td><td>$15.99</td><td>$1.23</td></tr><tr><td>$12.00</td><td>$21.94</td><td>$21.99</td><td>$1.05</td></tr></tbody></table>
+<p>Note what that does to the low end: a $4 item cannot be sold for under about $13.70. Not because I&#x27;m greedy — because $8 of shipping and $0.42 of card fees exist whether or not the price acknowledges them.</p>
+<p>That was the uncomfortable finding. My original price ladder started at $3.99, and everything on the cheap end of it was structurally incapable of making money. The ladder now starts at $9.99, and prices below the floor aren&#x27;t discounted — they&#x27;re impossible.</p>
+<h2>How it runs</h2>
+<p>Each product gets a price picked deterministically from a fixed ladder (hashed off its SKU, so an item keeps the same price every time it comes back around), and then raised to the floor if the floor is higher. If even the top of the ladder can&#x27;t clear the floor — an unusually expensive item — the code breaks the ladder and rounds up rather than list at a loss.</p>
+<p>It&#x27;s about fifteen lines. It runs on every catalogue rebuild, on 120 products, with nobody watching. That&#x27;s the actual point: the guarantee isn&#x27;t that I&#x27;m careful, it&#x27;s that a losing price can&#x27;t be written to the file.</p>
+<h2>If you take one thing</h2>
+<p>Write down the condition you want to be true — &quot;no sale loses money&quot; — and make it something the code enforces, not something you check. A markup multiplier is a habit. A floor is a promise you can&#x27;t accidentally break.</p>
+</article>
+<h2>More notes</h2><ul><li><a href="https://findhotstuff.com/notes/automated-store-zero-dollars-a-month/">What it costs to run an automated store at $0 a month</a></li><li><a href="https://findhotstuff.com/notes/product-name-validator/">I sold a roll of wallpaper as a pet bed, so I built a validator that can veto my own product names</a></li></ul>
+</main>
+<footer class="wrap">
+  Written from the actual build. If something here stops being true, the page
+  changes — <a href="https://findhotstuff.com/build/">how the whole thing works</a> ·
+  <a href="https://findhotstuff.com/notes/">all notes</a> · <a href="https://findhotstuff.com/">the shop</a>
+</footer>
+<script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>I sold a roll of wallpaper as a pet bed, so I built a validator that can veto my own product names · HotsTuff</title>
+<meta name="description" content="Supplier product titles are keyword soup. Cleaning them up with AI is easy and dangerous. Here is the rule I wrote so a display name can never say something t">
+<link rel="canonical" href="https://findhotstuff.com/notes/product-name-validator/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="I sold a roll of wallpaper as a pet bed, so I built a validator that can veto my own product names · HotsTuff">
+<meta property="og:description" content="Supplier product titles are keyword soup. Cleaning them up with AI is easy and dangerous. Here is the rule I wrote so a display name can never say something t">
+<meta property="og:url" content="https://findhotstuff.com/notes/product-name-validator/">
+<meta property="og:image" content="https://findhotstuff.com/assets/og-card.png">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "Article", "headline": "I sold a roll of wallpaper as a pet bed, so I built a validator that can veto my own product names", "description": "Supplier product titles are keyword soup. Cleaning them up with AI is easy and dangerous. Here is the rule I wrote so a display name can never say something the supplier's title didn't.", "datePublished": "2026-08-27", "url": "https://findhotstuff.com/notes/product-name-validator/", "author": {"@type": "Person", "name": "Matthew Ferreira"}, "publisher": {"@type": "Organization", "name": "HotsTuff", "url": "https://findhotstuff.com"}}
+</script>
+<style>
+  :root { --bg:#12090d; --card:#1d1116; --ink:#f6eef1; --muted:#b9a4ac;
+          --line:rgba(246,238,241,.14); --amber:#ffa62b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); line-height:1.7;
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  a { color:var(--amber); }
+  .wrap { max-width:720px; margin:0 auto; padding:0 20px; }
+  header.bar { border-bottom:1px solid var(--line); padding:14px 0; }
+  header.bar a { color:var(--ink); text-decoration:none; font-weight:700; }
+  h1 { font-size:clamp(1.7rem,5vw,2.4rem); line-height:1.25; margin:30px 0 10px; }
+  h2 { font-size:1.25rem; margin:36px 0 10px; }
+  h3 { font-size:1.05rem; margin:28px 0 8px; color:var(--amber); }
+  .meta { color:var(--muted); font-size:.9rem; margin:0 0 28px; }
+  .lede { color:var(--muted); }
+  article p, article li { color:#e7dade; }
+  blockquote { margin:22px 0; padding:2px 0 2px 16px; border-left:3px solid var(--amber);
+               color:var(--muted); }
+  code { background:var(--card); border:1px solid var(--line); border-radius:5px;
+         padding:1px 5px; font-size:.9em; }
+  pre { background:var(--card); border:1px solid var(--line); border-radius:12px;
+        padding:14px 16px; overflow-x:auto; }
+  pre code { background:none; border:0; padding:0; }
+  table { border-collapse:collapse; width:100%; margin:22px 0; font-size:.94rem; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { color:var(--amber); }
+  hr { border:0; border-top:1px solid var(--line); margin:34px 0; }
+  ul.notes { list-style:none; padding:0; }
+  ul.notes li { border-bottom:1px solid var(--line); padding:18px 0; }
+  ul.notes a { font-weight:700; font-size:1.06rem; text-decoration:none; }
+  ul.notes p { margin:6px 0 0; color:var(--muted); font-size:.95rem; }
+  ul.notes .when { display:block; color:var(--muted); font-size:.82rem; margin-bottom:4px; }
+  footer { color:var(--muted); font-size:.86rem; border-top:1px solid var(--line);
+           margin-top:44px; padding:20px 0 46px; }
+</style>
+</head>
+<body>
+<header class="bar"><div class="wrap"><a href="https://findhotstuff.com/">← HotsTuff</a></div></header>
+<main class="wrap">
+<article>
+  <h1>I sold a roll of wallpaper as a pet bed, so I built a validator that can veto my own product names</h1>
+  <p class="meta">2026-08-27 · Matthew Ferreira</p>
+<p>A dropshipping supplier&#x27;s product title looks like this:</p>
+<pre><code>Pet Dog Cat Bed Warm Soft Plush Comfortable Sleeping Mat Puppy
+Kennel Washable Nest Cushion Pad Four Seasons Universal 2024 New</code></pre>
+<p>That is not a name. It&#x27;s every search term the seller could think of, stapled together and run through a translator. You cannot put it on a storefront.</p>
+<p>The obvious fix is to have a model rewrite it into something readable. I did that. And a while later my store was selling a roll of wallpaper, listed as a pet bed.</p>
+<h2>How that happens</h2>
+<p>Nobody hallucinated a lie on purpose. The supplier title mentioned a mat, a pattern and a room; the rewrite reached for the most product-shaped noun in the pile and picked wrong. Once it&#x27;s written down as a clean, confident, four-word product name, nothing about it looks generated. It looks like a decision someone made.</p>
+<p>That&#x27;s the real hazard. A messy title is obviously messy. A tidy name is trusted, and if it&#x27;s wrong, the trust is what does the damage — the customer doesn&#x27;t find out until a roll of wallpaper arrives.</p>
+<h2>The rule</h2>
+<p>So the display name is not allowed to be <em>creative</em>. It&#x27;s allowed to be an <strong>edit</strong>.</p>
+<blockquote>Every word in the display name must already appear in the supplier&#x27;s real title. Reorder, trim, re-case. Never add.</blockquote>
+<p>That&#x27;s it. It rules out the entire class of error above, because a word that isn&#x27;t in the source can&#x27;t appear in the output, so there&#x27;s nothing for a wrong guess to be made <em>of</em>.</p>
+<h2>Making it a gate, not a guideline</h2>
+<p>A rule that lives in a prompt is a suggestion. This one runs as code, after generation, and any name that fails is thrown away and replaced by the mechanical cleanup:</p>
+<pre><code>def honest_name(candidate: str, source: str) -&gt; bool:
+    &quot;&quot;&quot;True iff every word of candidate already appears in source.&quot;&quot;&quot;
+    vocab = _honest_vocab(source)
+    for chunk in (candidate or &quot;&quot;).split():
+        for w in chunk.split(&quot;-&quot;):
+            key = _honest_key(w)
+            if key and key not in vocab and key not in GLUE_WORDS:
+                return False
+    return True</code></pre>
+<p>Two details did most of the work in practice:</p>
+<p><strong>Normalisation.</strong> Comparing raw words rejects far too much. <code>Women&#x27;s</code> should satisfy <code>female</code>; <code>Stones</code> should satisfy <code>stone</code>. So each word is folded first — lowercased, stripped of punctuation and possessives, simple plurals removed, and a tiny equivalence table maps <code>female</code>/<code>woman</code> to <code>women</code> and <code>male</code>/<code>man</code> to <code>men</code>. Without that fold the validator rejects good names and you learn to ignore it, which is worse than not having it.</p>
+<p><strong>Glue words.</strong> <code>and</code>, <code>with</code>, <code>for</code>, <code>the</code>, <code>of</code> are exempt. They carry no product claim, and forbidding them produces names that read like a telegram.</p>
+<h2>What it changed</h2>
+<p>I ran all 120 display names in the catalogue through it. The validator is the reason I can state plainly, on a storefront that rebuilds itself every three days with no human in the loop, that no product name says anything the supplier didn&#x27;t. Not because I check them — because a name that says something new cannot survive the build.</p>
+<p>There are eight exceptions in the current catalogue, and I&#x27;d rather write them down than let you discover them: eight items got one noun added that I confirmed from the supplier&#x27;s own product photo. Each one was a judgment call I made by looking at the picture, and they&#x27;re the only names in the shop that a machine didn&#x27;t have to approve.</p>
+<h2>The part I&#x27;d tell anyone building the same thing</h2>
+<p>The temptation with AI in a pipeline is to make the prompt better. Better instructions, more examples, sterner warnings. It genuinely helps, and it is not a guarantee, because the failure you care about is the confident one — and a confident wrong answer is exactly what a well-written prompt produces more of.</p>
+<p>The thing that actually holds is a check that runs afterwards and doesn&#x27;t care how good the output sounded. Give it a rule narrow enough to be mechanical — &quot;no new words&quot; is mechanical; &quot;be accurate&quot; is not — and let it throw work away. Mine throws away perfectly nice product names on a regular basis. That&#x27;s the feature.</p>
+</article>
+<h2>More notes</h2><ul><li><a href="https://findhotstuff.com/notes/automated-store-zero-dollars-a-month/">What it costs to run an automated store at $0 a month</a></li><li><a href="https://findhotstuff.com/notes/dropshipping-price-floor/">Pricing dropshipped products so no sale can lose money — the three costs people forget</a></li></ul>
+</main>
+<footer class="wrap">
+  Written from the actual build. If something here stops being true, the page
+  changes — <a href="https://findhotstuff.com/build/">how the whole thing works</a> ·
+  <a href="https://findhotstuff.com/notes/">all notes</a> · <a href="https://findhotstuff.com/">the shop</a>
+</footer>
+<script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

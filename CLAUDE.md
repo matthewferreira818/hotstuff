@@ -75,6 +75,10 @@ filmed 08-26 but NOT yet submitted through Google's flow.
 - `marketing/east-coast-social/weekly-rhythm.md` — the daily/weekly ritual.
 - `marketing/east-coast-social/leblanc-yes-runbook.md` — live-deal playbook.
 - `marketing/daily-post-session-prompt.md` — C.C's daily posting session.
+- `marketing/passive/month-1-plan.md` — the passive-income track and
+  its status. Content pieces live in `content/notes/*.md` (rendered by
+  `make_notes.py`); category pages + sitemap come from
+  `make_category_pages.py`, which the 3-day refresh workflow runs.
 - Morning brief fires as a scheduled trigger; it verifies TikTok drafts
   (both packs SEND_TO_USER_INBOX), reads GoatCounter public counters, and
   lists callbacks due.

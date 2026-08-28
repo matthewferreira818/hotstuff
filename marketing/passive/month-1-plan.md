@@ -59,6 +59,30 @@ earns links and trust.
 
 ---
 
+# Status (updated 2026-08-28)
+
+Week 1's engineering shipped early, on 08-28:
+
+- **Track D is done.** 13 evergreen category pages live at
+  `findhotstuff.com/c/<slug>/`, rebuilt on every 3-day rotation and never
+  deleted when a rotation leaves one thin. sitemap.xml is generated from the
+  same script, so a new category can't be left out of it.
+- **Track A has a home and three pieces.** `/notes/` is live with the stack
+  cost piece, the product-name validator piece, and the price-floor piece.
+  Source is `content/notes/*.md`; `draft: true` holds a piece back entirely.
+  Seven of the ten seed pieces remain.
+- **Catalogue is 200 items with subgroup navigation** — a second filter row
+  on the store, subgroup sections on the category pages. Not in the original
+  plan; it came from Matthew and it makes the category pages worth landing on.
+- Found and fixed while doing it: 20 live product descriptions were
+  keyword-matched into the wrong category and claimed attributes that weren't
+  true. Corrected the same day, per rule 1.
+
+Still open in week 1: affiliate disclosure block, keyword target list,
+pieces 4-10, and Google Search Console (Matthew's clicks).
+
+---
+
 # The four tracks
 
 ## Track A — Content that compounds *(the main event)*

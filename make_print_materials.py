@@ -15,6 +15,7 @@ Usage:
 import io
 from pathlib import Path
 
+from ecs_site import brand_url
 from make_daily_packs import _font, _serif
 from tweet_media import draw_flame  # noqa: F401 - kept for future co-branding
 
@@ -31,7 +32,7 @@ FOG = "#5b7089"
 LIGHT = "#f2f6fa"
 PANEL = "#eef4fa"
 
-AUTOMATION_URL = "https://eastcoastsocial.ca/"   # redirects to the automation page
+AUTOMATION_URL = brand_url("card")  # trackable: the .ca forward eats ?ref
 PHONE = "(506) 889-9737"
 EMAIL = "hello@eastcoastsocial.ca"
 SITE_LINE = "eastcoastsocial.ca"

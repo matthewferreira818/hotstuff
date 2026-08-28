@@ -20,7 +20,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # repo root
 
-SITE = "https://findhotstuff.com/automation/?ref=ecs"
+from ecs_site import ecs_url  # noqa: E402
+
+SITE = ecs_url("ecs")
 CREDS = ["ECS_X_API_KEY", "ECS_X_API_SECRET",
          "ECS_X_ACCESS_TOKEN", "ECS_X_ACCESS_TOKEN_SECRET"]
 

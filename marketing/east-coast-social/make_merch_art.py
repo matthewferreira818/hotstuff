@@ -19,6 +19,7 @@ HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE.parents[1]))          # repo root for make_daily_packs
 
 from make_daily_packs import _font, _serif  # noqa: E402
+from ecs_site import ecs_url  # noqa: E402
 
 OUT = HERE / "merch"
 GOLD = "#f0b429"
@@ -28,7 +29,7 @@ NAVY = "#0d1f33"
 W, H = 4500, 5100                      # Printify DTG max print area @300dpi
 # direct domain, not eastcoastsocial.ca: the forward strips query strings,
 # which would silently untag every sweater scan
-QR_URL = "https://findhotstuff.com/automation/?ref=merch"
+QR_URL = ecs_url("merch")
 
 
 def logo_disc(size):

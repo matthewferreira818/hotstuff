@@ -10,11 +10,14 @@ import datetime as dt
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # repo root
+
+from ecs_site import ecs_url  # noqa: E402
 from post_card import render_card
 
 # ?ref=ecs: the caption lands on X, Facebook, and manual posts alike, so the
 # tag names the funnel (ECS daily caption), not a single platform
-SITE = "findhotstuff.com/automation/?ref=ecs"
+SITE = ecs_url("ecs", bare=True)
 FEED_KEEP = 8   # how many past posts the website feed shows
 
 # (card message, caption) pairs. Card text stays short; captions carry the CTA.

@@ -16,7 +16,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE.parents[1]))          # repo root for ecs_site
 sys.path.insert(0, str(HERE / "engine"))
+from ecs_site import ecs_url  # noqa: E402
 from post_card import _font, _wrap  # noqa: E402
 
 W, H = 1000, 1500
@@ -26,7 +28,7 @@ INK = "#f2f6fa"
 MUTED = "#a8bccf"
 CARD = (20, 42, 68)
 RED = (58, 34, 34)
-SITE = "findhotstuff.com/automation"
+SITE = ecs_url(bare=True).rstrip("/")
 LINK = "https://findhotstuff.com/automation/?ref=pin-ecs"
 OUT = HERE.parent / "pinterest" / "ecs"
 

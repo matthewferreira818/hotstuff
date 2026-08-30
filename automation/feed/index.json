@@ -1,5 +1,11 @@
 [
  {
+  "date": "2026-08-30",
+  "image": "2026-08-30.png",
+  "message": "One 20-minute chat. Then your page runs itself.",
+  "caption": "That's the whole setup: we talk about your business, you approve sample posts, the engine takes it from there. ➜ findhotstuff.com/automation/?ref=ecs"
+ },
+ {
   "date": "2026-08-29",
   "image": "2026-08-29.png",
   "message": "Your competition posted today. Did you?",
@@ -40,11 +46,5 @@
   "image": "2026-08-23.png",
   "message": "Most local pages die because nobody has time. Yours doesn't have to.",
   "caption": "You run the business. The engine runs the feed. You approve the style once and never touch it again. ➜ findhotstuff.com/automation/?ref=ecs"
- },
- {
-  "date": "2026-08-22",
-  "image": "2026-08-22.png",
-  "message": "Your day off shouldn't mean your page's day off.",
-  "caption": "The engine keeps posting when you're closed, on vacation, or slammed — daily branded posts, approved by you once. ➜ findhotstuff.com/automation/?ref=ecs"
  }
 ]

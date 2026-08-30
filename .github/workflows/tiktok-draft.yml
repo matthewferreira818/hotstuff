@@ -6,14 +6,25 @@ name: TikTok draft push
 # Runs after the daily pack generates (~10:52 UTC). Skips silently until
 # the TIKTOK_* secrets are configured.
 #
-# Deliberately a single cron: a duplicate fire would push duplicate drafts
-# (TikTok caps pending drafts at 5, and doesn't dedupe content), so a
-# missed morning is recovered with workflow_dispatch, not a backup cron —
-# the morning slide-drop routine checks whether drafts went out.
+# This used to run on a single cron. The reasoning was that a duplicate fire
+# would push duplicate drafts (TikTok caps pending drafts at 5 and doesn't
+# dedupe content), so a missed morning would be recovered by hand.
+#
+# That assumed GitHub's scheduler is reliable. It isn't: 11:30 was skipped or
+# hours late on 08-27, 08-29 and 08-30, and each miss needed a manual dispatch.
+# So: backup crons, plus a guard that asks the Actions API whether a run of
+# this workflow already succeeded today and no-ops if one did. That gets the
+# recovery without the duplicate-draft risk the single cron was protecting.
+#
+# A run that fails the freshness gate is NOT a success, so a later backup will
+# retry it — by then daily-tiktok's own backup crons have usually rebuilt the
+# packs, which is exactly the recovery we want.
 
 on:
   schedule:
     - cron: "30 11 * * *"   # 11:30 UTC = 8:30 AM Atlantic
+    - cron: "0 13 * * *"    # backup, after daily-tiktok's own late crons
+    - cron: "30 15 * * *"   # last chance before the day is lost
   workflow_dispatch:
     inputs:
       pack:
@@ -21,6 +32,10 @@ on:
         type: choice
         options: [both, product, agent]
         default: both
+
+permissions:
+  contents: read
+  actions: read      # the duplicate guard reads this workflow's own run history
 
 concurrency:
   group: tiktok-draft
@@ -35,7 +50,28 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Skip if today's drafts already went out (backup-cron guard)
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Only scheduled fires are guarded — a manual dispatch is always a
+          # deliberate "push it now" and must never be silently swallowed.
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          DONE=$(gh run list --workflow tiktok-draft.yml --status success \
+                   --created "$(date -u +%F)" --json databaseId --jq 'length' || echo 0)
+          if [ "${DONE:-0}" -gt 0 ]; then
+            echo "Drafts already pushed today ($DONE successful run(s)) — no-op."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Refuse to push stale packs (freshness gate)
+        if: steps.gate.outputs.run == 'true'
         run: |
           # The packs are regenerated each morning; if generation was skipped,
           # this file still describes YESTERDAY. Pushing it would put stale —
@@ -50,6 +86,7 @@ jobs:
           fi
 
       - name: Push today's packs as TikTok drafts
+        if: steps.gate.outputs.run == 'true'
         env:
           TIKTOK_PACK: ${{ github.event.inputs.pack || 'both' }}
           TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}

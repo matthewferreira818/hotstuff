@@ -1,18 +1,18 @@
 # HotsTuff — TikTok Photo Pack (auto-generated)
 
-_Generated 2026-08-28 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
+_Generated 2026-08-31 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
 
 
 ## 🖼️ Slides
 
-1. `slide-01.png` — Women's Shoulder Messenger Bag — $13.99 (Bags)
-2. `slide-02.png` — Chakras Colored Stones Bracelet — $11.99 (Jewelry)
-3. `slide-03.png` — Anti-spray Mask Glass Sunglasses — $13.99 (Trending Finds)
-4. `slide-04.png` — Lipstick Eyeshadow Stick Makeup — $35.99 (Beauty)
-5. `slide-05.png` — Lazy Stick Portable Invisible — $15.99 (Phone Accessories)
-6. `slide-06.png` — Bedside Wall Sticker Wallpaper — $35.99 (Trending Finds)
-7. `slide-07.png` — fluorescent agent detection flashlight — $31.99 (Trending Finds)
-8. `slide-08.png` — Gold Plated PiXiu Bracelet — $24.99 (Jewelry)
+1. `slide-01.png` — Waterproof Sports With Fleece — $18.99 (Fashion)
+2. `slide-02.png` — Digital LCD Precision Tool — $35.99 (Electronics)
+3. `slide-03.png` — Scrunch Leggings Without Pocket — $35.99 (Fashion)
+4. `slide-04.png` — Pour Shampoo Grooming Supplies — $27.99 (Pet)
+5. `slide-05.png` — Drawstring Shorts Pajama Set — $27.99 (Fashion)
+6. `slide-06.png` — Dashboard Suction Cup Type — $13.99 (Auto)
+7. `slide-07.png` — Exercises Force Strengthener Fitness — $31.99 (Fitness)
+8. `slide-08.png` — Dog Fur Dust Removal — $27.99 (Pet)
 
 
 ## 📝 Captions — pick one, paste as-is
@@ -20,19 +20,19 @@ _Generated 2026-08-28 · 8 slides · post all slides as one TikTok photo (swipe)
 **Variant 1 — curiosity hook**
 
 ```
-ok this week's finds are actually unreal 👀 everything under $36 #tiktokmademebuyit #trending #bagtok #jewelrytok #trendingfinds
+ok this week's finds are actually unreal 👀 everything under $36 #tiktokmademebuyit #trending #fashiontok #techtok #petsoftiktok
 ```
 
 **Variant 2 — POV hook**
 
 ```
-POV: your fyp finally delivered 🔥 slide 1 is the women's shoulder messenger bag btw #tiktokmademebuyit #trending #bagtok #jewelrytok #trendingfinds
+POV: your fyp finally delivered 🔥 slide 1 is the waterproof sports with fleece btw #tiktokmademebuyit #trending #fashiontok #techtok #petsoftiktok
 ```
 
 **Variant 3 — ranked-list hook**
 
 ```
-ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #bagtok #jewelrytok #trendingfinds
+ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #fashiontok #techtok #petsoftiktok
 ```
 
 > 🎵 Add a trending sound in-app before posting — photo posts ride the sound's reach.

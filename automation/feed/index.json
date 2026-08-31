@@ -1,5 +1,11 @@
 [
  {
+  "date": "2026-08-31",
+  "image": "2026-08-31.png",
+  "message": "Built on our own store first. Proven every single day.",
+  "caption": "We don't sell anything we don't run ourselves — our own store's feed, catalog and daily cards run on this exact engine. ➜ findhotstuff.com/automation/?ref=ecs"
+ },
+ {
   "date": "2026-08-30",
   "image": "2026-08-30.png",
   "message": "One 20-minute chat. Then your page runs itself.",
@@ -40,11 +46,5 @@
   "image": "2026-08-24.png",
   "message": "One less job every single morning.",
   "caption": "Posting daily is a part-time job nobody hired for. The engine does it — you approve the style once, then it's handled. ➜ findhotstuff.com/automation/?ref=ecs"
- },
- {
-  "date": "2026-08-23",
-  "image": "2026-08-23.png",
-  "message": "Most local pages die because nobody has time. Yours doesn't have to.",
-  "caption": "You run the business. The engine runs the feed. You approve the style once and never touch it again. ➜ findhotstuff.com/automation/?ref=ecs"
  }
 ]

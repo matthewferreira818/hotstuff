@@ -12,6 +12,13 @@ name: TikTok draft push
 #
 # That assumed GitHub's scheduler is reliable. It isn't: 11:30 was skipped or
 # hours late on 08-27, 08-29 and 08-30, and each miss needed a manual dispatch.
+#
+# 08-31 follow-up: the run history says these were never actually skipped --
+# they fired 3-4 hours behind schedule, after the morning brief had already
+# dispatched by hand. The guard below is what stopped those late fires from
+# double-posting: on 08-30 it no-opped runs 28 and 29 in ~10 seconds each.
+# Times are now set ~4 hours early so a lagging fire still lands in the
+# morning.
 # So: backup crons, plus a guard that asks the Actions API whether a run of
 # this workflow already succeeded today and no-ops if one did. That gets the
 # recovery without the duplicate-draft risk the single cron was protecting.
@@ -22,9 +29,9 @@ name: TikTok draft push
 
 on:
   schedule:
-    - cron: "30 11 * * *"   # 11:30 UTC = 8:30 AM Atlantic
-    - cron: "0 13 * * *"    # backup, after daily-tiktok's own late crons
-    - cron: "30 15 * * *"   # last chance before the day is lost
+    - cron: "37 7 * * *"    # after daily-tiktok's first pack build
+    - cron: "13 9 * * *"    # backup, after daily-tiktok's own late crons
+    - cron: "41 10 * * *"   # last chance before the morning brief reads this
   workflow_dispatch:
     inputs:
       pack:

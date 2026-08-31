@@ -2,7 +2,13 @@ name: Daily TikTok packs (product + agent)
 
 on:
   schedule:
-    - cron: "20 10 * * *"  # ~7:20am Atlantic — packs ready every morning
+    # NOTE (2026-08-31): GitHub's scheduler has been running this repo's
+    # crons ~3-4 hours late, every day since 08-27 -- not skipping them, as
+    # first assumed. Evidence: on 08-30 the 10:20/10:50/11:10 fires actually
+    # landed at 14:52/15:03/15:19 UTC. The whole chain is therefore shifted
+    # ~4 hours earlier so a late fire still lands in Matthew's morning, and
+    # off round minutes, which is when the scheduler is most contended.
+    - cron: "23 6 * * *"   # 06:23 UTC — packs ready before the morning brief
     # Backup fires. GitHub's scheduler skips or delays runs often enough that
     # the primary alone is not reliable — on 2026-08-27 this workflow, the ECS
     # daily card AND the TikTok draft push all silently failed to fire, so the
@@ -10,8 +16,8 @@ on:
     # Both backups land before the 11:30 draft push. Re-running is harmless:
     # make_daily_packs.py is deterministic per date, so a second run produces
     # identical files and the commit step's diff check makes it a no-op.
-    - cron: "50 10 * * *"
-    - cron: "10 11 * * *"
+    - cron: "47 7 * * *"
+    - cron: "11 9 * * *"
   workflow_dispatch: {}
 
 permissions:

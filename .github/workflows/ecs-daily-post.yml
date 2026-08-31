@@ -2,13 +2,19 @@ name: ECS daily post
 
 on:
   schedule:
-    - cron: "0 12 * * *"   # 12:00 UTC = 9:00 AM Atlantic — morning-coffee slot
+    # NOTE (2026-08-31): GitHub's scheduler has been running this repo's
+    # crons ~3-4 hours late, every day since 08-27 -- not skipping them, as
+    # first assumed. Evidence: on 08-30 the 10:20/10:50/11:10 fires actually
+    # landed at 14:52/15:03/15:19 UTC. The whole chain is therefore shifted
+    # ~4 hours earlier so a late fire still lands in Matthew's morning, and
+    # off round minutes, which is when the scheduler is most contended.
+    - cron: "9 8 * * *"    # 08:09 UTC; lands near the 9AM Atlantic slot when late
     # backup crons: GitHub's scheduler skips or delays fires often enough that
     # refresh-products needed three. A silently-missed day punches a hole in
     # the /automation proof feed — the one asset every channel points at.
     # The gate step below makes whichever fires first win; the rest no-op.
-    - cron: "30 13 * * *"
-    - cron: "0 16 * * *"
+    - cron: "39 9 * * *"
+    - cron: "21 11 * * *"
   workflow_dispatch:
     inputs:
       only_x:

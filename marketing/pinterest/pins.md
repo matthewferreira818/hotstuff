@@ -3,49 +3,49 @@
 _Upload each pin with its title, description, and link below. Board suggestion: "Trending Finds"._
 
 ## pin-1.png
-- **Title:** Waterproof Sports With Fleece — Trending Now
-- **Description:** A trending wardrobe win that's flying off the shelves. Only $18.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJNSFJST00440&ref=pin
+- **Title:** Collar Coats Army Tactical — Trending Now
+- **Description:** Cozy, practical, and right on time for the season. Only $21.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJZP1334369&ref=pin
 
 ## pin-2.png
-- **Title:** Digital LCD Precision Tool — Trending Now
-- **Description:** Useful gadgetry people keep coming back for. Only $35.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #electronics #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJXFLPJY00674&ref=pin
+- **Title:** Necklaces Silver Plated Chain — Trending Now
+- **Description:** Wear-anywhere shine — and it gives beautifully, too. Only $13.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #jewelry #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJZBLXDZ00003&ref=pin
 
 ## pin-3.png
-- **Title:** Scrunch Leggings Without Pocket — Trending Now
-- **Description:** An easy way to make workouts feel more solid. Only $35.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fashion #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJNSXZDD00084&ref=pin
+- **Title:** Foundation Eyebrow Eyeliner Cosmetic — Trending Now
+- **Description:** A small beauty win that becomes a daily go-to. Only $15.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #beauty #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJBJHZHZ00001&ref=pin
 
 ## pin-4.png
-- **Title:** Pour Shampoo Grooming Supplies — Trending Now
-- **Description:** Because the good pets deserve nice things. Only $27.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #pet #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJGY1281703&ref=pin
+- **Title:** Squeak Puppy Pets Supplies — Trending Now
+- **Description:** Pet-approved, parent-approved. Only $18.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #pet #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJWJWJMR00974&ref=pin
 
 ## pin-5.png
-- **Title:** Dashboard Suction Cup Type — Trending Now
-- **Description:** A smart little upgrade for your daily drive. Only $13.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #auto #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJQCQCQC00072&ref=pin
+- **Title:** Shoulder For Women's Shoolbags — Trending Now
+- **Description:** An easy grab-and-go for daily errands. Only $27.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #bags #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJNS1024208&ref=pin
 
 ## pin-6.png
-- **Title:** Exercises Force Strengthener Fitness — Trending Now
-- **Description:** Built for the gym, comfy enough for the couch after. Only $31.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fitness #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJYDQTJM00163&ref=pin
+- **Title:** Men's And Women's — Trending Now
+- **Description:** A trending pick from the comfort-and-recovery shelf. Only $11.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #wellness #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJNSSYCS00008&ref=pin
 
 ## pin-7.png
-- **Title:** Dog Fur Dust Removal — Trending Now
-- **Description:** Made for happy pets and easier pet-parenting. Only $27.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #pet #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJGY1035039&ref=pin
+- **Title:** Portable Wall Mobile Fast — Trending Now
+- **Description:** A handy phone upgrade that smooths out your day. Only $11.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #electronics #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJSJSJSJ01014&ref=pin
 
 ## pin-8.png
-- **Title:** Fitness Charging Shaker Cup — Trending Now
-- **Description:** Move better, feel better — a trending fitness pick. Only $27.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #fitness #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJJT1241360&ref=pin
+- **Title:** Lawn Garden Car Washing — Trending Now
+- **Description:** Built for the yard, handy for the driveway too. Only $18.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #auto #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJJZGJYL00024&ref=pin
 
 ## pin-9.png
-- **Title:** Anti Lost Object Finder — Trending Now
-- **Description:** Smart, useful tech that solves a real everyday annoyance. Only $21.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #electronics #trendingproducts #onlinefinds
-- **Link:** https://findhotstuff.com/?p=CJJSAQJK00001&ref=pin
+- **Title:** Washing Beauty Acne Cleaning — Trending Now
+- **Description:** Simple gear that makes commuting a little smoother. Only $13.99 at HotsTuff — a fresh drop of trending finds every 3 days, free shipping. #auto #trendingproducts #onlinefinds
+- **Link:** https://findhotstuff.com/?p=CJBJMRDD00019&ref=pin
 
 ## pin-10.png
 - **Title:** HotsTuff Flame Tee — Official HotsTuff Merch

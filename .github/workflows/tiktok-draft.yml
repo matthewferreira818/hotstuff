@@ -8,24 +8,24 @@ name: TikTok draft push
 #
 # This used to run on a single cron. The reasoning was that a duplicate fire
 # would push duplicate drafts (TikTok caps pending drafts at 5 and doesn't
-# dedupe content), so a missed morning would be recovered by hand.
+# dedupe content), so a missed morning would be recovered by hand. That
+# assumed GitHub's scheduler is reliable, and it is not.
 #
-# That assumed GitHub's scheduler is reliable. It isn't: 11:30 was skipped or
-# hours late on 08-27, 08-29 and 08-30, and each miss needed a manual dispatch.
+# What actually happens (checked against the run history on 08-31): the fires
+# are not skipped, they arrive 3-4 hours late -- after the morning brief has
+# already looked and dispatched by hand. So the workflow needs two things a
+# single cron can't give it:
 #
-# 08-31 follow-up: the run history says these were never actually skipped --
-# they fired 3-4 hours behind schedule, after the morning brief had already
-# dispatched by hand. The guard below is what stopped those late fires from
-# double-posting: on 08-30 it no-opped runs 28 and 29 in ~10 seconds each.
-# Times are now set ~4 hours early so a lagging fire still lands in the
-# morning.
-# So: backup crons, plus a guard that asks the Actions API whether a run of
-# this workflow already succeeded today and no-ops if one did. That gets the
-# recovery without the duplicate-draft risk the single cron was protecting.
+#   1. A guard, so a late fire arriving after a manual push no-ops instead of
+#      dropping duplicate drafts in the inbox. On 08-30 it caught exactly that
+#      twice, in about ten seconds each.
+#   2. A trigger that doesn't depend on guessing when the packs will be ready.
+#      Both workflows carry the same variable lag, so no fixed cron offset is
+#      safe -- see the workflow_run note below.
 #
-# A run that fails the freshness gate is NOT a success, so a later backup will
-# retry it — by then daily-tiktok's own backup crons have usually rebuilt the
-# packs, which is exactly the recovery we want.
+# A run that fails the freshness gate is NOT a success, so a later fire will
+# retry it, by which time the packs have usually been rebuilt. That is exactly
+# the recovery we want.
 
 on:
   # The real trigger: fire as soon as the pack build actually finishes.

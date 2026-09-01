@@ -6,7 +6,7 @@ _Generated 2026-09-01 · post PRODUCT in the daytime, AGENT in the evening._
 ## 🔥 Product post (product/) — caption
 
 ```
-today's heat check 🔥 trending finds and more — all under one link #tiktokmademebuyit #trending #dailyfinds
+today's heat check 🔥 trending finds + fashion and more — all under one link #tiktokmademebuyit #trending #dailyfinds
 ```
 
 

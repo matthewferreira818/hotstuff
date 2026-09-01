@@ -114,6 +114,7 @@ STATIC_URLS = [
     ("/", "daily", "1.0"),
     ("/c/", "weekly", "0.7"),
     ("/automation/", "weekly", "0.8"),
+    ("/setup/", "monthly", "0.7"),
     ("/automation/fr/", "weekly", "0.8"),
     ("/build/", "monthly", "0.5"),
     ("/links/", "monthly", "0.3"),

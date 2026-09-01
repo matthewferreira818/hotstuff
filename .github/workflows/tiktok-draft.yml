@@ -28,6 +28,17 @@ name: TikTok draft push
 # packs, which is exactly the recovery we want.
 
 on:
+  # The real trigger: fire as soon as the pack build actually finishes.
+  # Cron ordering can't work here -- both workflows are subject to the same
+  # (variable) scheduler lag, so a draft push scheduled an hour after the pack
+  # build can still start before it. On 09-01 the packs didn't land until
+  # 11:44 UTC, by which time all three of this workflow's crons had already
+  # come and gone. Chaining off completion removes the guesswork; the crons
+  # below stay as a safety net for the day the chain itself misfires.
+  workflow_run:
+    workflows: ["Daily TikTok packs (product + agent)"]
+    types: [completed]
+    branches: [master]
   schedule:
     - cron: "37 7 * * *"    # after daily-tiktok's first pack build
     - cron: "13 9 * * *"    # backup, after daily-tiktok's own late crons
@@ -63,9 +74,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Only scheduled fires are guarded — a manual dispatch is always a
-          # deliberate "push it now" and must never be silently swallowed.
-          if [ "${{ github.event_name }}" != "schedule" ]; then
+          # Only a manual dispatch skips the guard — it is always a deliberate
+          # "push it now". Scheduled and pack-build-chained fires are both
+          # guarded, so whichever gets there first wins and the rest no-op.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"; exit 0
           fi
           DONE=$(gh run list --workflow tiktok-draft.yml --status success \

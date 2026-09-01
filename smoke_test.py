@@ -147,6 +147,7 @@ CHECKS = [
     lambda: page_has("/i18n.js", "sheetClose", label="i18n.js"),
     lambda: page_has("/automation/", "lead-form", "week-col", "ecs-feed", label="automation page EN"),
     lambda: page_has("/automation/fr/", "lead-form", "week-col", "ecs-feed", label="automation page FR"),
+    lambda: page_has("/setup/", "noindex", "tel:+15068899737", "$250", label="setup page"),
     check_feed,
     lambda: page_has("/success.html", "", label="success page"),
     lambda: page_has("/privacy/", "Privacy", label="privacy page"),

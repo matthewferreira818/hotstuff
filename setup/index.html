@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>One-time setup — Google listing + Facebook page · East Coast Social</title>
 <meta name="description" content="Your Google Maps listing and Facebook page, built and handed over. One time, $250, and you pay when it's done.">
+<!-- Deliberately noindex. This is a closing tool texted mid-call, not a shop
+     window: nobody searches "Google Business Profile setup Memramcook", and
+     indexing it puts a priced "setup" beside /automation's "free setup" in
+     the same search results. The URL stays live and shareable. -->
+<meta name="robots" content="noindex,follow">
 <link rel="canonical" href="https://findhotstuff.com/setup/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="One-time setup — Google listing + Facebook page">
@@ -98,6 +103,7 @@
     <div class="actions">
       <a class="btn btn-gold" href="tel:+15068899737" data-tap="call">📞 (506) 889-9737</a>
       <a class="btn btn-ghost" href="sms:+15068899737?body=Hi%20Matthew%20-%20I%27d%20like%20my%20Google%20listing%20and%20Facebook%20page%20set%20up." data-tap="text">💬 Text me</a>
+      <a class="btn btn-ghost" href="mailto:hello@eastcoastsocial.ca?subject=Google%20listing%20%2B%20Facebook%20page" data-tap="email">✉️ Email me</a>
     </div>
     <p class="hero-note">No deposit. You pay when it's done and you've seen it.</p>
   </div>
@@ -112,9 +118,7 @@
        page with the wrong hours on it.</p>
     <p>None of that is hard to fix. It's just fiddly, and it takes an evening
        you don't have.</p>
-    <p>So I do it. Once, properly, and then I'm out of your way — no
-       subscription, no login you have to remember, nothing running in the
-       background. <strong>The accounts are in your name and you keep them</strong>
+    <p>So I do it. Once, properly, and then I'm out of your way — no subscription and nothing you have to remember. <strong>The accounts are in your name and you keep them</strong>
        whether you ever speak to me again or not.</p>
   </section>
 
@@ -123,20 +127,20 @@
     <div class="card">
       <h3>Your Google listing</h3>
       <ul>
-        <li>Built or claimed, in your name, with you as the owner</li>
+        <li>Built in your name from your own account — you're the owner, I'm added as a manager and I remove myself at handover. <strong>I never ask for or hold your password.</strong></li>
         <li>Hours, phone, address, service area, categories, description</li>
         <li>Photos added — yours if you have them, taken by me if you don't</li>
         <li>Walked through Google's verification with you, start to finish</li>
       </ul>
       <h3>Your Facebook page</h3>
       <ul>
-        <li>Built or cleaned up, with you as the admin</li>
+        <li>Created from your account with you as admin — you invite me with page access, and you can revoke it any time</li>
         <li>Cover photo, profile photo, About, hours, contact, address</li>
         <li>First few posts written and published so it doesn't look abandoned</li>
       </ul>
       <h3>And</h3>
       <ul>
-        <li>A one-page sheet with every login, in your hands</li>
+        <li>A one-page sheet of what's where and how to change it</li>
         <li>Twenty minutes showing you how to update it, phone or in person</li>
         <li>Two weeks later I check it's all still live and fix anything that isn't</li>
       </ul>
@@ -146,7 +150,7 @@
   <section>
     <div class="card price-card">
       <p class="muted" style="margin:0">One time. Nothing monthly.</p>
-      <p class="price">$250</p>
+      <p class="price">$250 <span style="font-size:1.1rem;color:var(--muted);font-weight:400">CAD</span></p>
       <p class="price-sub"><strong>You pay when it's done and you've seen it</strong>
          — no deposit, no card up front.</p>
     </div>
@@ -165,6 +169,7 @@
          on the phone with you until it goes through. <strong>If Google ends up
          refusing your listing, the Facebook side still stands and I'll take
          $100 off, no argument.</strong></p>
+      <p><strong>A Google Business Profile is free from Google — you never pay Google anything.</strong> What you're paying me for is the work: filing it correctly, building the page, and standing behind it until it's live.</p>
       <p class="muted" style="margin:0">I'd rather tell you that up front than
          have you find out after you've paid.</p>
     </div>
@@ -191,7 +196,7 @@
       <li><strong>You call or text.</strong> Five minutes — what you've got now,
           what's missing.</li>
       <li><strong>I look you up</strong> and tell you honestly whether this is
-          worth $250 for you. Sometimes it isn't and I'll say so.</li>
+          worth $250 CAD for you. Sometimes it isn't and I'll say so.</li>
       <li><strong>I build it.</strong> Usually two or three evenings. I'll need
           about twenty minutes of your time for the Google verification video.</li>
       <li><strong>You look at it.</strong> If it's right, you pay. If it isn't,
@@ -235,7 +240,7 @@
   function tag(kind) {
     if (window.goatcounter && typeof window.goatcounter.count === "function") {
       try {
-        window.goatcounter.count({ path: "cta-" + kind, title: "Contact tap: " + kind, event: true });
+        window.goatcounter.count({ path: "cta-" + kind + "-setup", title: "Setup-page tap: " + kind, event: true });
       } catch (e) { /* never block the tap */ }
     }
   }

@@ -81,6 +81,7 @@ REF_CHANNELS = [
     ("sample", "Sample-pack QR (generic)"),
     ("merch", "Merch QR (the sweater)"),
     ("buyer", "Post-purchase page"),
+    ("setup", "Setup page -> automation"),
 ]
 
 # Own-visit exclusion took effect Aug 12 (laptop toggled out of GoatCounter);
@@ -148,6 +149,9 @@ CTA_EVENTS = [
     ("cta-email", "Email taps"),
     ("cta-form", "Lead form submits"),
     ("cta-book", "Call bookings"),
+    ("cta-call-setup", "Call taps (setup page)"),
+    ("cta-text-setup", "Text taps (setup page)"),
+    ("cta-email-setup", "Email taps (setup page)"),
 ]
 
 

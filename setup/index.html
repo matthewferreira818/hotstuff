@@ -62,7 +62,40 @@
   .card { background:var(--card); border:1px solid var(--line); border-radius:16px;
           padding:24px 22px; box-shadow:var(--shadow); margin:0 0 20px; }
 
+  /* Two-stage price block. The shape IS the promise: each half is billed
+     only when that half exists, which is why no refund clause is needed. */
   .price-card { text-align:center; }
+  .stages { display:flex; align-items:stretch; justify-content:center;
+            gap:10px; margin:0 0 16px; flex-wrap:wrap; }
+  .stage { flex:1 1 190px; background:#f8fafc; border:1px solid var(--line);
+           border-radius:13px; padding:16px 14px; }
+  .stage-when { margin:0 0 6px; font-size:.83rem; color:var(--muted);
+                line-height:1.35; }
+  .stage-amt { margin:0; font-size:2.25rem; font-weight:700; color:var(--navy);
+               line-height:1; }
+  .stage-plus { align-self:center; color:var(--muted); font-size:1.3rem;
+                font-weight:700; padding:0 2px; }
+  /* On a phone the two stages stack, so the "+" has to sit between them
+     rather than being flung to the right of the first card by flex-wrap. */
+  @media (max-width:520px) {
+    .stages { flex-direction:column; gap:6px; }
+    /* flex-basis is the HEIGHT axis once this is a column, so the 190px
+       basis above would stretch each card into a tall empty box. */
+    .stage { flex:0 0 auto; }
+    .stage-plus { padding:2px 0; }
+  }
+
+  /* --- Maritime signature -------------------------------------------------
+     This is a Memramcook business selling to Memramcook, and the page should
+     look like it came from the coast rather than from a template. Two devices,
+     both inline SVG so there is nothing to host and nothing to load:
+     the hero ends on a tide line instead of a ruled edge, and sections are
+     separated by a small swell. */
+  .tide { display:block; width:100%; height:52px; margin:0; }
+  .tide-top { margin-top:-1px; }
+  .swell { display:block; width:132px; height:16px; margin:34px auto 4px;
+           opacity:.55; }
+  .hero { position:relative; padding-bottom:14px; }
   .price { font-size:3.3rem; font-weight:700; line-height:1; margin:4px 0 6px;
            color:var(--navy); }
   .price-sub { color:var(--muted); margin:0; }
@@ -105,9 +138,16 @@
       <a class="btn btn-ghost" href="sms:+15068899737?body=Hi%20Matthew%20-%20I%27d%20like%20my%20Google%20listing%20and%20Facebook%20page%20set%20up." data-tap="text">💬 Text me</a>
       <a class="btn btn-ghost" href="mailto:hello@eastcoastsocial.ca?subject=Google%20listing%20%2B%20Facebook%20page" data-tap="email">✉️ Email me</a>
     </div>
-    <p class="hero-note">No deposit. You pay when it's done and you've seen it.</p>
+    <p class="hero-note">$150 when your Facebook page is live · $100 when Google verifies. No deposit.</p>
   </div>
 </header>
+  <svg class="tide tide-top" viewBox="0 0 1200 52" preserveAspectRatio="none"
+       aria-hidden="true" focusable="false">
+    <path d="M0,30 C150,4 260,46 400,30 C540,14 640,44 780,32 C900,22 1030,42 1200,22 L1200,52 L0,52 Z"
+          fill="#f5f8fb"></path>
+    <path d="M0,30 C150,4 260,46 400,30 C540,14 640,44 780,32 C900,22 1030,42 1200,22"
+          fill="none" stroke="#f0b429" stroke-width="2" opacity=".5"></path>
+  </svg>
 
 <main class="wrap">
 
@@ -147,12 +187,29 @@
     </div>
   </section>
 
+  <svg class="swell" viewBox="0 0 132 16" aria-hidden="true" focusable="false">
+    <path d="M2,9 C16,2 26,15 40,9 C54,3 64,14 78,9 C92,4 102,14 116,9 C122,6.5 126,7.5 130,9"
+          fill="none" stroke="#0d1f33" stroke-width="1.6" stroke-linecap="round" opacity=".38"></path>
+  </svg>
+
   <section>
     <div class="card price-card">
-      <p class="muted" style="margin:0">One time. Nothing monthly.</p>
-      <p class="price">$250 <span style="font-size:1.1rem;color:var(--muted);font-weight:400">CAD</span></p>
-      <p class="price-sub"><strong>You pay when it's done and you've seen it</strong>
-         — no deposit, no card up front.</p>
+      <p class="muted" style="margin:0 0 14px">One time. Nothing monthly.</p>
+      <div class="stages">
+        <div class="stage">
+          <p class="stage-when">When your Facebook page is live</p>
+          <p class="stage-amt">$150</p>
+        </div>
+        <div class="stage-plus" aria-hidden="true">+</div>
+        <div class="stage">
+          <p class="stage-when">When Google verifies your listing</p>
+          <p class="stage-amt">$100</p>
+        </div>
+      </div>
+      <p class="price-sub"><strong>$250 CAD in total, and you pay each half only
+         once that half is actually done.</strong> No deposit, no card up front.</p>
+      <p class="muted" style="margin:10px 0 0;font-size:.94rem">If Google never
+         verifies, you never owe the second half. Nothing to claim back.</p>
     </div>
   </section>
 
@@ -166,14 +223,22 @@
          takes weeks, and occasionally they ask you to do it twice.</p>
       <p>What I promise is the part I control: everything filed correctly the
          first time, the video shot the way Google actually asks for it, and me
-         on the phone with you until it goes through. <strong>If Google ends up
-         refusing your listing, the Facebook side still stands and I'll take
-         $100 off, no argument.</strong></p>
+         on the phone with you until it goes through. <strong>That's exactly why
+         the Google half is billed separately — if it never verifies, that $100
+         is never charged.</strong> You're not chasing a refund and I'm not
+         judging when Google has "refused" you, because Google rarely says so
+         outright. If it isn't live 30 days after we submit, that half is
+         closed and you owe nothing for it.</p>
       <p><strong>A Google Business Profile is free from Google — you never pay Google anything.</strong> What you're paying me for is the work: filing it correctly, building the page, and standing behind it until it's live.</p>
       <p class="muted" style="margin:0">I'd rather tell you that up front than
          have you find out after you've paid.</p>
     </div>
   </section>
+
+  <svg class="swell" viewBox="0 0 132 16" aria-hidden="true" focusable="false">
+    <path d="M2,9 C16,2 26,15 40,9 C54,3 64,14 78,9 C92,4 102,14 116,9 C122,6.5 126,7.5 130,9"
+          fill="none" stroke="#0d1f33" stroke-width="1.6" stroke-linecap="round" opacity=".38"></path>
+  </svg>
 
   <section>
     <h2 class="serif">Who's doing it</h2>
@@ -199,8 +264,9 @@
           worth $250 CAD for you. Sometimes it isn't and I'll say so.</li>
       <li><strong>I build it.</strong> Usually two or three evenings. I'll need
           about twenty minutes of your time for the Google verification video.</li>
-      <li><strong>You look at it.</strong> If it's right, you pay. If it isn't,
-          I fix it first.</li>
+      <li><strong>You look at it.</strong> Facebook page live and right —
+          that's $150. Google verified — that's the other $100, whenever it
+          lands. If either isn't right, I fix it before you pay for it.</li>
     </ol>
     <div class="actions" style="margin-top:26px">
       <a class="btn btn-gold" href="tel:+15068899737" data-tap="call"

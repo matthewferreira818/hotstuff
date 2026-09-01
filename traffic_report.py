@@ -71,6 +71,7 @@ REF_CHANNELS = [
     ("pin", "Pinterest product pins"),
     ("pin-ecs", "Pinterest ECS pins"),
     ("ecs", "ECS daily caption"),
+    ("ecs-domain", "eastcoastsocial.ca forward"),
     ("fb", "Facebook posts/groups"),
     ("fb-ad", "Moncton group ad slot"),
     ("gbp", "Google Business Profile"),

@@ -32,11 +32,26 @@ delivery time. Small enough that the owner answers the phone._
 
 | Business | Town | Phone | Address / web | Verified | Why them |
 |---|---|---|---|---|---|
-| **Peach Marketing** | Dieppe | (506) 382-8063 | 50 rue du Marché, Suite 210 · peachmarketing.ca | ⚠️ search | Real local agency, branding + strategy. Note: **same building as Boulangerie Tony** from the call sheet. |
 | **Spark Creative** | Moncton | (506) 378-4713 | 679 Main St, Suite 306 | ⚠️ search | Small creative shop, downtown Moncton. |
 | **WEVRR Incorporated** | Shediac | (506) 712-0811 | Shediac E4P 0Y8 | ⚠️ search | Shediac-based — same tourist-season market as the Léger/Hôtel Shediac prospects. |
 | **BOSS Marketing** | Moncton | (506) 975-1196 | 140 First Ave · bossmarketing.ca | ✅ read | Sells web + SEO + social to NB/NS/PEI/NL. Contact name shown on site: Dan Lirette. Offers a money-back guarantee — cares about delivery cost. |
 | **Pinnacle Marketing** | Moncton | — | 795 Main St · facebook.com/PinnacleMarketingNB | ⚠️ search | Explicitly positions as the small-business marketing source. Get the number off their Facebook page. |
+
+## Peach Marketing — reclassified, different pitch
+
+**Moved out of Tier A on 2026-09-01 after reading their actual site.** Their
+clients are Université de Moncton, New Brunswick Tourism, Titleist, ANBL,
+Destination Moncton-Dieppe and Pays de la Sagouine. They are not a
+white-label buyer — they have no barbershop to put the engine on.
+
+The real pitch to Peach is a **referral partnership**: be where they send the
+small businesses they have to turn down. Full script and follow-up email:
+`peach-marketing-script.md`.
+
+Contact: (506) 382-8063 *(directory-sourced — their own site lists no phone
+or email, only a contact form)* · 50 rue du Marché, Suite 210, Dieppe.
+
+---
 
 ## Tier B — web shops that build sites and then lose the client
 

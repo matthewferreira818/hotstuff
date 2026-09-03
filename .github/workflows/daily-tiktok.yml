@@ -36,7 +36,9 @@ jobs:
       - name: Generate today's packs
         run: |
           pip install --quiet requests pillow segno
+          # ffmpeg is preinstalled on ubuntu-latest runners
           python make_daily_packs.py
+          python make_tiktok_video.py
 
       - name: Commit and push if anything changed
         run: |

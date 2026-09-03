@@ -37,6 +37,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 TOKEN_URL = "https://open.tiktokapis.com/v2/oauth/token/"
 CONTENT_INIT_URL = "https://open.tiktokapis.com/v2/post/publish/content/init/"
+VIDEO_INIT_URL = "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/"
 STATUS_URL = "https://open.tiktokapis.com/v2/post/publish/status/fetch/"
 REDIRECT_URI = "https://findhotstuff.com/tiktok-callback/"
 SITE = "https://findhotstuff.com"
@@ -196,6 +197,30 @@ def watch_status(access, publish_id, label):
     return None
 
 
+def push_video_draft(access, video_url, caption, label, topic):
+    """Push the rendered pack.mp4 as a draft. TikTok barely distributes photo
+    posts, so the same slides carry further as video — see make_tiktok_video.py.
+
+    The video inbox endpoint is a different one from the photo/content endpoint
+    and takes only source_info: a draft has no caption until Matthew types one,
+    so the caption still rides to his phone over ntfy exactly as before."""
+    payload = {"source_info": {"source": "PULL_FROM_URL", "video_url": video_url}}
+    data, status = http_json(VIDEO_INIT_URL, data=payload,
+                             headers={"Authorization": f"Bearer {access}"})
+    err = (data.get("error") or {})
+    code = err.get("code", "")
+    if status == 200 and code in ("ok", ""):
+        publish_id = (data.get("data") or {}).get("publish_id", "?")
+        print(f"{label}: video draft accepted (publish_id {publish_id})")
+        delivered = watch_status(access, publish_id, label) is not False
+        if delivered:
+            ntfy(topic, f"Caption for the {label} - long-press to copy",
+                 caption, "low", "clipboard")
+        return delivered
+    print(f"{label}: video push failed (HTTP {status}): {json.dumps(err) or data}")
+    return False
+
+
 def push_draft(access, image_urls, caption, label, topic):
     """Push one pack as a draft; True once TikTok confirms inbox delivery."""
     payload = build_payload(image_urls, caption, label)
@@ -244,21 +269,34 @@ def post():
     product_caption, agent_caption = todays_captions()
     stamp = date.today().isoformat()
 
-    which = env("TIKTOK_PACK") or "both"   # both | product | agent
+    which = env("TIKTOK_PACK") or "both"    # both | product | agent
+    # photo is still the default: the carousel path has pushed successfully
+    # every morning and is not worth breaking to test a hunch. Flip this to
+    # "video" on a dispatch first, and only make it the default once a video
+    # draft has actually landed in the inbox.
+    media = (env("TIKTOK_MEDIA") or "photo").lower()
 
     ok = True
     if which in ("both", "product"):
-        product_urls = ([f"{SITE}/{SLIDES}/product/product-{n}.jpg" for n in (1, 2, 3)]
-                        + [f"{SITE}/{SLIDES}/product/product-4-qr.jpg"])
-        ok = push_draft(access, product_urls, product_caption, "product pack", topic)
+        if media == "video":
+            ok = push_video_draft(access, f"{SITE}/{SLIDES}/product/pack.mp4",
+                                  product_caption, "product pack", topic)
+        else:
+            product_urls = ([f"{SITE}/{SLIDES}/product/product-{n}.jpg" for n in (1, 2, 3)]
+                            + [f"{SITE}/{SLIDES}/product/product-4-qr.jpg"])
+            ok = push_draft(access, product_urls, product_caption, "product pack", topic)
 
     ok2 = True
     if agent_caption and which in ("both", "agent"):
         if which == "both":
             import time
             time.sleep(12)   # posting endpoints allow 6 requests/minute
-        agent_urls = [f"{SITE}/{SLIDES}/agent/agent-{n}.jpg" for n in (1, 2, 3)]
-        ok2 = push_draft(access, agent_urls, agent_caption, "agent pack", topic)
+        if media == "video":
+            ok2 = push_video_draft(access, f"{SITE}/{SLIDES}/agent/pack.mp4",
+                                   agent_caption, "agent pack", topic)
+        else:
+            agent_urls = [f"{SITE}/{SLIDES}/agent/agent-{n}.jpg" for n in (1, 2, 3)]
+            ok2 = push_draft(access, agent_urls, agent_caption, "agent pack", topic)
 
     if ok and ok2:
         ntfy(topic, "TikTok drafts ready",

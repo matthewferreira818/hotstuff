@@ -50,6 +50,11 @@ on:
         type: choice
         options: [both, product, agent]
         default: both
+      media:
+        description: "Slides carousel, or the rendered video"
+        type: choice
+        options: [photo, video]
+        default: photo
 
 permissions:
   contents: read
@@ -108,6 +113,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         env:
           TIKTOK_PACK: ${{ github.event.inputs.pack || 'both' }}
+          TIKTOK_MEDIA: ${{ github.event.inputs.media || 'photo' }}
           TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
           TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
           TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}

@@ -6,14 +6,17 @@ video platform and barely distributes photo posts — ref-tiktok has recorded
 zero click-throughs in the life of this business. The frames were never the
 problem; the missing thing was motion.
 
-So this adds motion rather than generating anything: a slow Ken Burns push
-across each slide, crossfaded together, at TikTok's native size. No model,
-no API, no subscription — ffmpeg is already on the GitHub runner that builds
-the packs, so this costs nothing and adds a few seconds to the morning job.
+So this adds motion rather than generating anything: each slide is held
+still and the pack glides from one to the next, at TikTok's native size. No
+model, no API, no subscription — ffmpeg is already on the GitHub runner that
+builds the packs, so this costs nothing and adds a few seconds to the job.
 
-Zoom direction alternates slide to slide so a four-slide pack doesn't feel
-like one continuous push, and each still is upscaled before the zoom because
-zoompan on a native-resolution image visibly judders.
+There is deliberately NO zoom. An earlier version pushed slowly into each
+slide (Ken Burns); on slides that are mostly large text it read as drift
+rather than motion, and it fought the swipe. Holding each slide still makes
+the swipe the only movement, which is what a carousel is supposed to feel
+like. Removing it also dropped the render from a supersampled zoompan to a
+plain scale, so the job is faster and the file smaller.
 
     python make_tiktok_video.py            # both packs
     python make_tiktok_video.py product    # one pack
@@ -28,15 +31,13 @@ HERE = Path(__file__).parent
 DAILY = HERE / "marketing" / "tiktok" / "daily"
 
 SECONDS_PER_SLIDE = 2.8
-CROSSFADE = 0.45
+SWIPE = 0.70             # the whole animation now. Long enough to read as a
+                         # glide rather than a cut; 0.45 felt like a snap once
+                         # the zoom was gone and it was the only motion left.
 FPS = 24                 # 24 is plenty for a slow pan and is 20% fewer
                          # frames than 30 — this file is committed daily,
                          # so its size compounds in the repo forever.
 W, H = 1080, 1920
-ZOOM_MAX = 1.12          # gentle. more than this reads as a zoom effect
-SUPERSAMPLE = 1.5        # render the pan above target, downscale — kills the
-                         # judder. 2x was four times the pixels and pushed a
-                         # 10-second render past two minutes on a small box.
 
 
 def ffmpeg_bin() -> str:
@@ -60,40 +61,28 @@ def slides_for(pack: str) -> list[Path]:
 
 
 def build_filter(count: int) -> str:
-    frames = int(round(SECONDS_PER_SLIDE * FPS))
-    big_w, big_h = int(W * SUPERSAMPLE) // 2 * 2, int(H * SUPERSAMPLE) // 2 * 2
-    step = (ZOOM_MAX - 1.0) / frames
-
-    parts = []
-    for i in range(count):
-        if i % 2 == 0:                       # push in
-            z = f"min(zoom+{step:.6f},{ZOOM_MAX})"
-        else:                                # pull out
-            z = f"if(eq(on,1),{ZOOM_MAX},max(zoom-{step:.6f},1.0))"
-        parts.append(
-            f"[{i}:v]scale={big_w}:{big_h},setsar=1,"
-            f"zoompan=z='{z}':d={frames}"
-            f":x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
-            f":s={W}x{H}:fps={FPS},format=yuv420p[v{i}]"
-        )
+    """Each slide is a still; the only motion is the swipe between them."""
+    parts = [
+        f"[{i}:v]scale={W}:{H},setsar=1,format=yuv420p[v{i}]"
+        for i in range(count)
+    ]
 
     if count == 1:
         parts.append("[v0]copy[out]")
         return ";".join(parts)
 
-    # chain the crossfades: each transition starts CROSSFADE early, so every
-    # join shortens the timeline and later offsets have to account for all
-    # the overlaps before them
+    # Chain the swipes. Each transition starts SWIPE early, so every join
+    # shortens the timeline and later offsets must account for all the
+    # overlaps before them — not just their own.
     prev, offset = "[v0]", 0.0
     for i in range(1, count):
-        offset += SECONDS_PER_SLIDE - CROSSFADE
+        offset += SECONDS_PER_SLIDE - SWIPE
         label = "[out]" if i == count - 1 else f"[x{i}]"
         parts.append(
-            # slideleft, not fade. These slides are mostly large text, and a
-            # dissolve ghosts two product names and two prices over each other
-            # for half a second. A swipe never overlaps text with text, and it
-            # reads like the carousel swipe this pack used to be.
-            f"{prev}[v{i}]xfade=transition=slideleft:duration={CROSSFADE}"
+            # slideleft carries both frames together, like a thumb swipe.
+            # A dissolve would ghost two product names and two prices over
+            # each other, which is why this is not a fade.
+            f"{prev}[v{i}]xfade=transition=slideleft:duration={SWIPE}"
             f":offset={offset:.2f}{label}"
         )
         prev = label
@@ -107,7 +96,7 @@ def render(pack: str) -> Path | None:
         return None
 
     out = DAILY / pack / "pack.mp4"
-    length = len(slides) * SECONDS_PER_SLIDE - (len(slides) - 1) * CROSSFADE
+    length = len(slides) * SECONDS_PER_SLIDE - (len(slides) - 1) * SWIPE
 
     cmd = [ffmpeg_bin(), "-y", "-loglevel", "error"]
     for s in slides:

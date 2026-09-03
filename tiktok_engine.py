@@ -270,11 +270,12 @@ def post():
     stamp = date.today().isoformat()
 
     which = env("TIKTOK_PACK") or "both"    # both | product | agent
-    # photo is still the default: the carousel path has pushed successfully
-    # every morning and is not worth breaking to test a hunch. Flip this to
-    # "video" on a dispatch first, and only make it the default once a video
-    # draft has actually landed in the inbox.
-    media = (env("TIKTOK_MEDIA") or "photo").lower()
+    # Video is the default as of 2026-09-03, after a dispatched video draft
+    # landed in the inbox as SEND_TO_USER_INBOX. TikTok barely distributes
+    # photo posts, which is the likeliest reason ref-tiktok has never recorded
+    # a click. The carousel is still one dispatch away (TIKTOK_MEDIA=photo) if
+    # the video path ever starts failing.
+    media = (env("TIKTOK_MEDIA") or "video").lower()
 
     ok = True
     if which in ("both", "product"):

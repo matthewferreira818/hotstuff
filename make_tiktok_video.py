@@ -31,10 +31,16 @@ HERE = Path(__file__).parent
 DAILY = HERE / "marketing" / "tiktok" / "daily"
 
 SECONDS_PER_SLIDE = 2.8
-SWIPE = 0.70             # the whole animation now. Long enough to read as a
-                         # glide rather than a cut; 0.45 felt like a snap once
-                         # the zoom was gone and it was the only motion left.
-FPS = 24                 # 24 is plenty for a slow pan and is 20% fewer
+SWIPE = 0.90             # the whole animation now, so it carries all of the
+                         # smoothness on its own.
+FPS = 60                 # NOT a nicety — it is the whole fix for the judder.
+                         # A slide moves the full 1080px frame width, so the
+                         # per-frame jump is 1080/(SWIPE*FPS):
+                         #   24fps / 0.70s = 64px a frame  <- visibly steps
+                         #   60fps / 0.90s = 20px a frame  <- reads as motion
+                         # The static holds cost almost nothing at any frame
+                         # rate, so the extra frames are spent where they are
+                         # actually seen.                 # 24 is plenty for a slow pan and is 20% fewer
                          # frames than 30 — this file is committed daily,
                          # so its size compounds in the repo forever.
 W, H = 1080, 1920
@@ -100,7 +106,15 @@ def render(pack: str) -> Path | None:
 
     cmd = [ffmpeg_bin(), "-y", "-loglevel", "error"]
     for s in slides:
-        cmd += ["-loop", "1", "-t", str(SECONDS_PER_SLIDE), "-i", str(s)]
+        # -framerate is REQUIRED here and is easy to miss. Without it ffmpeg
+        # reads a looped still at its default 25fps, so xfade only ever has 25
+        # real frames a second to slide with and the 60fps output is padded
+        # with duplicates. Measured per-frame shift was [0, 47, 0, 0, 47, ...]
+        # — the frame sitting still and then jumping half an inch, which is
+        # exactly what "jittery" looks like. With it, every output frame is a
+        # genuine new position.
+        cmd += ["-loop", "1", "-framerate", str(FPS),
+                "-t", str(SECONDS_PER_SLIDE), "-i", str(s)]
     # A silent track: some players and uploaders treat a video with no audio
     # stream as malformed. Its length is computed to match the video exactly.
     # Do NOT hand this a short fixed -t and rely on -shortest: that made the
@@ -109,7 +123,10 @@ def render(pack: str) -> Path | None:
     cmd += [
         "-filter_complex", build_filter(len(slides)),
         "-map", "[out]", "-map", f"{len(slides)}:a",
-        "-c:v", "libx264", "-preset", "slow", "-crf", "26",   # slow preset buys real size back
+        "-c:v", "libx264", # CRF 26 was fine for still slides but blocks up on a fast
+        # horizontal pan, and blocking on a moving frame reads as more
+        # judder. 21 spends the bits where the motion is.
+        "-preset", "slow", "-crf", "21",
         "-pix_fmt", "yuv420p", "-r", str(FPS),
         "-c:a", "aac", "-b:a", "64k", "-shortest",
         "-movflags", "+faststart",

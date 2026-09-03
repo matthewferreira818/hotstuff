@@ -30,7 +30,15 @@ from pathlib import Path
 HERE = Path(__file__).parent
 DAILY = HERE / "marketing" / "tiktok" / "daily"
 
-SECONDS_PER_SLIDE = 2.8
+HOLD = 1.5               # how long a slide sits PERFECTLY STILL. This is the
+                         # knob worth having, because the obvious one lies: an
+                         # interior slide loses a swipe at each end, so at the
+                         # old flat 2.8s segment the first and last slides held
+                         # 1.9s and everything in between held 1.0s. Setting
+                         # the hold directly and deriving the segment makes
+                         # every middle slide identical, and leaves the first
+                         # and last a swipe longer - which is what you want at
+                         # the open and on the QR card anyway.
 SWIPE = 0.90             # the whole animation now, so it carries all of the
                          # smoothness on its own.
 FPS = 60                 # NOT a nicety — it is the whole fix for the judder.
@@ -40,9 +48,12 @@ FPS = 60                 # NOT a nicety — it is the whole fix for the judder.
                          #   60fps / 0.90s = 20px a frame  <- reads as motion
                          # The static holds cost almost nothing at any frame
                          # rate, so the extra frames are spent where they are
-                         # actually seen.                 # 24 is plenty for a slow pan and is 20% fewer
-                         # frames than 30 — this file is committed daily,
-                         # so its size compounds in the repo forever.
+                         # actually seen.
+
+# An interior slide is overlapped by a swipe on both sides, so the segment
+# has to carry the hold plus both of them for the still time to come out
+# at HOLD.
+SECONDS_PER_SLIDE = HOLD + 2 * SWIPE
 W, H = 1080, 1920
 
 

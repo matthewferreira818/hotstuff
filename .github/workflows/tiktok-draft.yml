@@ -96,6 +96,8 @@ jobs:
 
       - name: Refuse to push stale packs (freshness gate)
         if: steps.gate.outputs.run == 'true'
+        env:
+          TIKTOK_MEDIA: ${{ github.event.inputs.media || 'video' }}
         run: |
           # The packs are regenerated each morning; if generation was skipped,
           # this file still describes YESTERDAY. Pushing it would put stale —
@@ -107,6 +109,24 @@ jobs:
           if [ "$STAMP" != "$TODAY" ]; then
             echo "::error::Packs are stale (${STAMP:-missing}); refusing to push yesterday's slides. Run daily-tiktok.yml, then re-run this."
             exit 1
+          fi
+          # captions.md going stale is not the only way to ship yesterday. The
+          # video render is allowed to fail independently of the slides, so a
+          # fresh captions.md can sit beside yesterday's pack.mp4. Check the
+          # file we are actually about to hand TikTok.
+          if [ "${TIKTOK_MEDIA:-video}" = "video" ]; then
+            for f in marketing/tiktok/daily/product/pack.mp4 marketing/tiktok/daily/agent/pack.mp4; do
+              if [ ! -f "$f" ]; then
+                echo "::error::$f is missing - the video render failed. Re-run daily-tiktok.yml."
+                exit 1
+              fi
+              VID=$(git log -1 --format=%cs -- "$f")
+              echo "$f last changed: $VID"
+              if [ "$VID" != "$TODAY" ]; then
+                echo "::error::$f is from $VID, not today. Refusing to push yesterday's video."
+                exit 1
+              fi
+            done
           fi
 
       - name: Push today's packs as TikTok drafts

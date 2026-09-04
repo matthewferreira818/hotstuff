@@ -35,10 +35,18 @@ jobs:
 
       - name: Generate today's packs
         run: |
-          pip install --quiet requests pillow segno
-          # ffmpeg is preinstalled on ubuntu-latest runners
+          # imageio-ffmpeg carries its own ffmpeg binary. The runner does NOT
+          # have one - assuming it did failed the whole job on 09-04 and, worse,
+          # took the slide commit down with it.
+          pip install --quiet requests pillow segno imageio-ffmpeg
           python make_daily_packs.py
-          python make_tiktok_video.py
+
+      # Deliberately its own step, and deliberately allowed to fail. The slides
+      # are the product; the video is an enhancement on top of them. A broken
+      # renderer must never again stop the packs being committed.
+      - name: Render the video packs (optional - slides ship regardless)
+        continue-on-error: true
+        run: python make_tiktok_video.py
 
       - name: Commit and push if anything changed
         run: |

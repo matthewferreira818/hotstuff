@@ -168,3 +168,35 @@ starts Aug 12._
   opens, and the pitch stops being hypothetical ("here's a client's feed").
 
 One yes. That's the whole game.
+
+## Field signal — public sentiment on AI (logged 2026-09-04)
+
+**Matthew's own observation, from his day job:** co-workers talking about
+being worried about where AI is going. His read: leading with "AI" may be
+costing us more than it earns with a local NB buyer, and we might be better
+positioned as *an engine I built* than as *AI-powered*.
+
+Worth recording because it is the first market signal about our POSITIONING
+that came from outside this repo, and it corroborates a call the council had
+already made on internal evidence alone (2026-08-13: the "written by a
+machine" proof card was killed unanimously for "scaring the exact audience").
+Two independent routes to the same conclusion is a stronger basis than either
+alone.
+
+Caveats kept with the signal, so it is not over-fitted later:
+- The people overheard are co-workers, NOT prospects. Adjacent demographic,
+  same region, but not the buying population.
+- It is chatter, not a logged objection. Zero prospects have ever raised AI
+  as a concern on a call — though with seven calls ever, that proves nothing
+  in either direction.
+- The counter-risk is real: under-stating automation to a buyer who later
+  discovers it is far worse in a village than never mentioning it at all.
+
+Matthew's second framing — "or me offering to advertise?" — was flagged by
+the Right Hand at the time and is NOT adopted: anything implying he
+hand-writes each post is false while the engine generates them, and would
+breach non-negotiable #1. The change under consideration is emphasis only.
+
+Standing answer if a prospect asks outright whether it is AI: **yes, plainly**
+— "I built the engine, I set the style with you, and I'm the one who answers
+the phone." Never deny the automation.

@@ -1,12 +1,15 @@
 name: One-off merch showcase tweet
 
-# Fires once: on the push that adds this file. Later pushes don't touch this
-# path, so it won't repost. workflow_dispatch kept for a deliberate manual
-# re-run (e.g. after a credit top-up).
+# Manual only. This USED to fire on any push touching its own path, on the
+# reasoning that nobody would ever edit the file again. That assumption broke
+# on 2026-09-05: wiring the PAUSE gate into every publishing workflow touched
+# this one, and it posted a duplicate merch tweet to @FindHotsTuff at 05:32
+# UTC before anyone could stop it (the first went out 2026-08-13).
+#
+# A self-triggering workflow that publishes in public is a trap: the very act
+# of maintaining it makes it post. Dispatch it by hand when you actually want
+# a merch tweet.
 on:
-  push:
-    paths:
-      - ".github/workflows/merch-tweet.yml"
   workflow_dispatch:
 
 permissions:

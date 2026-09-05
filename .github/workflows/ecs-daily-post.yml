@@ -30,7 +30,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  pause:
+    uses: ./.github/workflows/pause-gate.yml
+    with:
+      remind: true          # this is the once-a-morning job, so it owns the ping
+    secrets:
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+
   post:
+    needs: pause
+    # PAUSE alone does NOT stop this job: the card still renders and still
+    # lands in automation/feed, so the odometer keeps counting. Only
+    # PAUSE-ALL stops the feed — and that ends the streak for good.
+    if: needs.pause.outputs.paused_all != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -67,13 +79,14 @@ jobs:
             git push origin HEAD:master
           fi
       - name: Publish to Facebook Page
-        if: ${{ steps.gate.outputs.run == 'true' && github.event.inputs.only_x != 'true' }}
+        if: ${{ steps.gate.outputs.run == 'true' && github.event.inputs.only_x != 'true'
+              && needs.pause.outputs.paused != 'true' }}
         env:
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
           FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
         run: python marketing/east-coast-social/engine/post_to_facebook.py
       - name: Publish to X (East Coast Social account)
-        if: steps.gate.outputs.run == 'true'
+        if: ${{ steps.gate.outputs.run == 'true' && needs.pause.outputs.paused != 'true' }}
         env:
           ECS_X_API_KEY: ${{ secrets.ECS_X_API_KEY }}
           ECS_X_API_SECRET: ${{ secrets.ECS_X_API_SECRET }}

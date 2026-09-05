@@ -65,7 +65,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  pause:
+    uses: ./.github/workflows/pause-gate.yml
+
   push-drafts:
+    needs: pause
+    if: needs.pause.outputs.paused != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -85,8 +90,17 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          DONE=$(gh run list --workflow tiktok-draft.yml --status success \
-                   --created "$(date -u +%F)" --json databaseId --jq 'length' || echo 0)
+          # Count only runs that actually PUSHED. A run halted by the PAUSE
+          # switch also concludes "success" (its publishing job is skipped),
+          # and counting that would mean deleting PAUSE still costs the whole
+          # day's drafts. Check the job, not the run.
+          DONE=0
+          for id in $(gh run list --workflow tiktok-draft.yml --status success \
+                        --created "$(date -u +%F)" --json databaseId --jq '.[].databaseId'); do
+            C=$(gh run view "$id" --json jobs \
+                  --jq '.jobs[] | select(.name=="push-drafts") | .conclusion' || echo "")
+            [ "$C" = "success" ] && DONE=$((DONE+1))
+          done
           if [ "${DONE:-0}" -gt 0 ]; then
             echo "Drafts already pushed today ($DONE successful run(s)) — no-op."
             echo "run=false" >> "$GITHUB_OUTPUT"

@@ -30,6 +30,29 @@ Captions for all seven:
 Swap any price/item/hour the owner corrects at the counter — the pack sheet
 says mockup prices get replaced with real ones at setup.
 
+## If they need it to STOP (know this before you offer the week)
+
+Nobody plans for the week they'll need this, so know the answer cold before
+you're standing at a counter being asked.
+
+**Their page, today:** you post it by hand every morning. Pausing is you not
+posting. Instant, nothing to switch off. Text them: *"Saw the news. I've
+stopped your posts — nothing goes up until you tell me. Take your time."*
+
+**Our own channels** (if the reason is the whole town, not one shop): open
+`github.com/matthewferreira818/hotstuff/new/master` on your phone, filename
+`PAUSE`, body just `<date> MF` — the repo is public, so no names and no
+reasons in it — commit to master. That silences the ECS Facebook page, X,
+the product spotlights and TikTok by the next morning cron. The site feed
+keeps running, which is what keeps the odometer honest. Delete the file to
+resume. Your phone nags you daily until you do.
+
+Already posted and it shouldn't have been? Pause first (60 seconds — the
+next cron is what can still make it worse), then delete the post yourself.
+
+Full version, including the billing rule and the wording to use with a
+client: `marketing/east-coast-social/pause-procedure.md`.
+
 ## Step 5 — The close (day 8)
 Walk back in: "That's what daily looks like. $79 a month and it keeps going —
 you never touch it. No contract; cancel any month." Ask for the review while

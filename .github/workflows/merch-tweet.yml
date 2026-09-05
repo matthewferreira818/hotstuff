@@ -13,7 +13,12 @@ permissions:
   contents: write
 
 jobs:
+  pause:
+    uses: ./.github/workflows/pause-gate.yml
+
   tweet:
+    needs: pause
+    if: needs.pause.outputs.paused != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

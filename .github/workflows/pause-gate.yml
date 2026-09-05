@@ -1,0 +1,98 @@
+name: Pause gate
+
+# The kill switch. Every workflow that puts something in front of the public
+# calls this first. Two levels, because they are not the same emergency:
+#
+#   PAUSE      Social silence. Nothing goes out on the ECS Facebook page,
+#              X, Instagram or TikTok. The daily card is still generated and
+#              still published to automation/feed, so the odometer keeps
+#              counting. That is not a dodge — CLAUDE.md rule #1 defines the
+#              odometer as the SITE FEED, not any social page, and
+#              automation/index.html says so on the page itself.
+#
+#   PAUSE-ALL  Everything stops, the site feed included.
+#              *** THIS ENDS THE STREAK PERMANENTLY. *** automation/feed/
+#              stats.json currently reads total 32 / since 2026-08-04, and
+#              the page only renders "N days straight" while total equals
+#              the day span (automation/index.html:617). One missing day and
+#              that line disappears and cannot honestly come back without
+#              resetting the count to 1. Use PAUSE unless the site feed
+#              itself is the problem.
+#
+# Why a committed file rather than "disable the workflow in the Actions UI":
+# Matthew is at a day job 6:45-4:30 with a phone in one hand. Creating PAUSE
+# on github.com takes about a minute, stops every channel at once, and
+# leaves a timestamped commit — which is the record you want when a client
+# asks "did you stop when I texted you at 9:14pm?". The GitHub mobile app
+# has no disable-workflow control at all, so the alternative is desktop-site
+# mobile web, five workflows at a time, with no record and nothing to
+# half-finish safely.
+#
+# The procedure that goes with this switch:
+#   marketing/east-coast-social/pause-procedure.md
+
+on:
+  workflow_call:
+    inputs:
+      remind:
+        description: "Send the daily still-paused reminder (one caller only)"
+        type: boolean
+        default: false
+    secrets:
+      NTFY_TOPIC:
+        required: false
+    outputs:
+      paused:
+        description: "true when PAUSE or PAUSE-ALL exists at the repo root"
+        value: ${{ jobs.check.outputs.paused }}
+      paused_all:
+        description: "true when PAUSE-ALL exists at the repo root"
+        value: ${{ jobs.check.outputs.paused_all }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      paused: ${{ steps.look.outputs.paused }}
+      paused_all: ${{ steps.look.outputs.paused_all }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - id: look
+        run: |
+          PAUSED=false; ALL=false
+          if [ -f PAUSE-ALL ]; then
+            echo "::warning::PAUSE-ALL is present. EVERYTHING is halted, site feed included."
+            echo "--- PAUSE-ALL ---"; cat PAUSE-ALL; echo "-----------------"
+            PAUSED=true; ALL=true
+          elif [ -f PAUSE ]; then
+            echo "::warning::PAUSE is present. Social posting is halted; the site feed keeps running."
+            echo "--- PAUSE ---"; cat PAUSE; echo "-------------"
+            PAUSED=true
+          else
+            echo "No PAUSE file. Publishing normally."
+          fi
+          echo "paused=$PAUSED" >> "$GITHUB_OUTPUT"
+          echo "paused_all=$ALL" >> "$GITHUB_OUTPUT"
+
+      # A pause you forget about is just a business that quietly stopped. One
+      # caller (the ECS daily post, once a morning) pings the phone until the
+      # file is deleted. ntfy straight from Actions is fine — the rate-limit
+      # problem is Cloudflare shared egress, not GitHub runners.
+      - name: Remind the phone that we are still paused
+        if: ${{ inputs.remind && steps.look.outputs.paused == 'true' }}
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC not set; no reminder sent"; exit 0; fi
+          FILE=PAUSE; [ -f PAUSE-ALL ] && FILE=PAUSE-ALL
+          SINCE=$(git log -1 --format=%cs -- "$FILE" 2>/dev/null || echo "?")
+          curl -sS -o /dev/null -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
+            -H "Title: Posting is still paused" \
+            -H "Tags: pause_button" \
+            -d "$FILE has been in the repo since $SINCE. Nothing is going out. Delete the file to resume." || true

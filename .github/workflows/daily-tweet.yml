@@ -26,7 +26,12 @@ permissions:
   actions: read   # the gate lists today's runs to dedupe backup-cron fires
 
 jobs:
+  pause:
+    uses: ./.github/workflows/pause-gate.yml
+
   spotlight:
+    needs: pause
+    if: needs.pause.outputs.paused != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,8 +58,17 @@ jobs:
           # backup-cron dedupe: if a scheduled run already succeeded inside
           # this slot's window today, this fire is a duplicate — skip it
           if [ "$POST" = true ] && [ "${{ github.event_name }}" = "schedule" ]; then
-            for ts in $(gh run list --workflow daily-tweet.yml --event schedule --status success \
-                          --created "$(date -u +%Y-%m-%d)" --json startedAt --jq '.[].startedAt'); do
+            # id:startedAt pairs, so we can check whether the run actually
+            # posted. A run halted by the PAUSE switch concludes "success"
+            # with its spotlight job skipped; counting it would mean deleting
+            # PAUSE still costs the rest of the day's slots.
+            for pair in $(gh run list --workflow daily-tweet.yml --event schedule --status success \
+                          --created "$(date -u +%Y-%m-%d)" --json databaseId,startedAt \
+                          --jq '.[] | "\(.databaseId):\(.startedAt)"'); do
+              id=${pair%%:*}; ts=${pair#*:}
+              C=$(gh run view "$id" --json jobs \
+                    --jq '.jobs[] | select(.name=="spotlight") | .conclusion' || echo "")
+              [ "$C" = "success" ] || continue
               H=$((10#$(date -u -d "$ts" +%H)))
               if [ "$H" -ge "$LO" ] && [ "$H" -le "$HI" ]; then
                 echo "Slot already covered by the successful run started at $ts — skipping duplicate fire."

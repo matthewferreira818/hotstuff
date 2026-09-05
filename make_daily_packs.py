@@ -130,9 +130,9 @@ AGENT_STORIES = [
         "hint": "receipts →",
         "receipts": "what's on autopilot",
         "cta": ("your business page", "could run like this"),
-        "caption": ("day in the life of a store with zero employees \U0001F916 everything you "
+        "caption": ("day in the life of a store with zero employees \u2699\ufe0f everything you "
                     "just saw happened automatically. building this for local businesses now "
-                    "#automation #smallbusiness #sidehustle #ai"),
+                    "#smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick"),
     },
     {
         "hook": ("I haven't touched", "this store in days."),
@@ -140,9 +140,9 @@ AGENT_STORIES = [
         "hint": "here's what it did →",
         "receipts": "while I was at work",
         "cta": ("imagine your page", "doing this daily"),
-        "caption": ("I haven't opened this store in days and it still posted every day \U0001F916 "
+        "caption": ("I haven't opened this store in days and it still posted every day \u2699\ufe0f "
                     "the whole thing runs on an engine I built — now setting it up for local "
-                    "businesses #automation #smallbusiness #ai #sidehustle"),
+                    "businesses #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
     },
     {
         "hook": ("Zero employees.", "A post every single day."),
@@ -150,9 +150,9 @@ AGENT_STORIES = [
         "hint": "the math →",
         "receipts": "the numbers",
         "cta": ("your shop could", "post this often"),
-        "caption": ("zero employees and this store still posts every single day \U0001F916 "
-                    "the engine writes, designs and publishes on its own — building this for "
-                    "local businesses now #smallbusiness #automation #ai #marketing"),
+        "caption": ("zero employees and this store still posts every single day \u2699\ufe0f "
+                    "the engine picks, designs and publishes on its own — building this for "
+                    "local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick"),
     },
     {
         "hook": ("What if your shop", "posted before you woke?"),
@@ -162,7 +162,7 @@ AGENT_STORIES = [
         "cta": ("this is the service", "not just my store"),
         "caption": ("what if your business page posted before you even woke up? \U0001F634 mine "
                     "did this morning — automatically. now building the same thing for local "
-                    "shops #smallbusiness #automation #ai #localbusiness"),
+                    "shops #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
     },
     {
         "hook": ("Most local pages", "went quiet in spring."),
@@ -172,7 +172,7 @@ AGENT_STORIES = [
         "cta": ("keep your page alive", "without touching it"),
         "caption": ("most local business pages went quiet months ago \U0001F4A4 this one hasn't "
                     "missed a single day — because nobody has to remember. building it for "
-                    "local businesses now #smallbusiness #socialmedia #automation #ai"),
+                    "local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick"),
     },
     {
         "hook": ("Nobody made", "this post."),
@@ -180,9 +180,9 @@ AGENT_STORIES = [
         "hint": "seriously →",
         "receipts": "made without me",
         "cta": ("your page, same deal", "you approve it once"),
-        "caption": ("nobody made this post \U0001F916 the engine picked it, designed it and "
+        "caption": ("nobody made this post \u2699\ufe0f the engine picked it, designed it and "
                     "published it — same as every other day this month. setting it up for "
-                    "local businesses #automation #ai #smallbusiness #contentcreation"),
+                    "local businesses #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
     },
 ]
 

@@ -15,9 +15,9 @@ hours, never more than a day:
 
 If they just ask price in the DM, give it straight (hiding it kills trust):
 
-> Starter is $299 setup + $49/mo (one platform, a post every day). Plus is
-> $499 + $99/mo (two platforms, up to 3 posts a day, image cards + QR codes).
-> No contract, cancel any month. The 20-min chat is free either way.
+> $79 a month, and setup is free. A post a day on your page, no contract,
+> cancel any month. Free sample week first so you can see it before you pay
+> anything. The 20-min chat is free either way.
 
 ## Step 2 — before the chat, generate their samples
 
@@ -38,9 +38,10 @@ This is the closer — they're no longer imagining it, they're looking at it.
 3. **How it works (5 min):** one 20-min setup chat (this one), samples within
    48h, you approve or we adjust, then it runs. Monthly summary email. Cancel
    any month, keep everything posted.
-4. **Close (5 min):** "Want me to set your engine up this week?" Then take
-   the $299/$499 setup (e-transfer) and collect: logo file, brand colors,
-   3-5 photos, hours, one paragraph on how they talk to customers.
+4. **Close (5 min):** "Want me to set your engine up this week?" Setup is
+   free — nothing changes hands today. Collect: logo file, brand colors,
+   3-5 photos, hours, one paragraph on how they talk to customers. The $79
+   starts after the free sample week, only if they say yes to it.
 
 ## Objections
 
@@ -49,8 +50,9 @@ This is the closer — they're no longer imagining it, they're looking at it.
   closes: it happens whether you're busy or not."
 - **"AI will make it sound fake."** — "You approve the style before anything
   goes live, and adjust any time. If a post ever feels off-brand, it's gone
-  and the engine learns. Look at my store's feed — does it read fake?"
-- **"Too expensive."** — "$49 a month is less than one quiet Tuesday. One
+  and I change the style so it doesn't come back. Look at my store's feed —
+  does it read fake?"
+- **"Too expensive."** — "$79 a month is less than one quiet Tuesday. One
   customer a month who saw a post pays for it."
 - **"Let me think about it."** — "Of course. I'll leave the samples with you
   — check how your page looks next Tuesday and see if it changed your mind."

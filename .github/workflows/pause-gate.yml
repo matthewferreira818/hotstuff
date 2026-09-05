@@ -91,7 +91,11 @@ jobs:
         run: |
           if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC not set; no reminder sent"; exit 0; fi
           FILE=PAUSE; [ -f PAUSE-ALL ] && FILE=PAUSE-ALL
-          SINCE=$(git log -1 --format=%cs -- "$FILE" 2>/dev/null || echo "?")
+          # fetch-depth is 1, so `git log -- <file>` has no history to read.
+          # The first line of the file is the documented convention
+          # ("<date> MF") and it is what a human actually typed.
+          SINCE=$(head -1 "$FILE" | tr -d '\r' | cut -c1-40)
+          [ -n "$SINCE" ] || SINCE="an unknown date"
           curl -sS -o /dev/null -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
             -H "Title: Posting is still paused" \
             -H "Tags: pause_button" \

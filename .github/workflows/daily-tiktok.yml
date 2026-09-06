@@ -33,12 +33,47 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 20   # the date checks below need file history
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
+      # Backup crons exist because the scheduler is unreliable, but this
+      # workflow had no "already done" guard, so on a normal day all three
+      # fires did the full build. The slides are deterministic per date and
+      # diff away to nothing -- but ffmpeg output is NOT byte-reproducible,
+      # so each backup re-rendered both videos and committed ~1.2 MB of
+      # churn producing identical-looking files. On 2026-09-06 that was
+      # three commits and ~2.4 MB of pure waste, and it happens every day.
+      #
+      # The condition is exactly what tiktok-draft.yml's freshness gate
+      # needs: today's captions AND both videos dated today. If the video
+      # step failed earlier (it is allowed to), this still runs and retries.
+      - name: Skip if today's packs are already complete (backup-cron guard)
+        id: gate
+        run: |
+          RUN=true
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            TODAY=$(date -u +%F)
+            STAMP=$(grep -o '_Generated [0-9-]*' marketing/tiktok/daily/captions.md | awk '{print $2}')
+            if [ "$STAMP" = "$TODAY" ]; then
+              RUN=false
+              for f in marketing/tiktok/daily/product/pack.mp4 marketing/tiktok/daily/agent/pack.mp4; do
+                VID=$(git log -1 --format=%cs -- "$f")
+                if [ ! -f "$f" ] || [ "$VID" != "$TODAY" ]; then
+                  echo "$f is ${VID:-missing}, not today -- rebuilding to retry the render."
+                  RUN=true
+                fi
+              done
+            fi
+          fi
+          [ "$RUN" = false ] && echo "Today's packs are already complete -- duplicate scheduled fire, skipping."
+          echo "run=$RUN" >> "$GITHUB_OUTPUT"
+
       - name: Generate today's packs
+        if: steps.gate.outputs.run == 'true'
         run: |
           # imageio-ffmpeg carries its own ffmpeg binary. The runner does NOT
           # have one - assuming it did failed the whole job on 09-04 and, worse,
@@ -50,10 +85,12 @@ jobs:
       # are the product; the video is an enhancement on top of them. A broken
       # renderer must never again stop the packs being committed.
       - name: Render the video packs (optional - slides ship regardless)
+        if: steps.gate.outputs.run == 'true'
         continue-on-error: true
         run: python make_tiktok_video.py
 
       - name: Commit and push if anything changed
+        if: steps.gate.outputs.run == 'true'
         run: |
           git add marketing/tiktok/daily
           if ! git diff --cached --quiet; then

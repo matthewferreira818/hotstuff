@@ -137,12 +137,86 @@ Aug 14. Walk in 2–4. Don't re-pitch — he's already seen it.
 > bug you. Just wondered if you had any thoughts on it, and whether you
 > want me to run your free week for real. Costs you nothing either way."**
 
-**CAVOK Brewing.** The owner asked you to **text**, and asking twice is
-worse than asking once. Send this, don't call:
-> Hi — Matthew from East Coast Social. You'd asked me to text you about the
-> free week of sample posts. Totally fine if the timing's off, just didn't
-> want to leave you hanging. My own store's feed has posted every single day
-> since August 4th if you want a look: findhotstuff.com/automation
+**CAVOK Brewing, 250 Dieppe Blvd — Serge.** ⛔ **Do not text him again.**
+He has had four touches: the samples offer 08-04, a bump on 08-06 that was
+**read at 8:57am with no reply**, and a call-ahead on 08-07. A fifth message
+makes you the guy who won't take a hint. Full walk-in script below.
+
+---
+
+## CAVOK Brewing — the one that needs a door, not a phone
+
+**What's true right now.** Serge has been contacted four times and has
+replied zero. He is not cold and he is not a no — he read the bump and did
+nothing, which usually means busy, not uninterested. **His pack is already
+built and sitting in the repo**: seven cards, sky-teal on black, aviation
+voice, using their real lineup. `engine/samples/cavok-brewing-co/`. It cost
+nothing to make and it costs nothing to keep.
+
+**The only thing blocking this is knowing a day he's in.** Solve that first
+and the visit is easy.
+
+### Step 1 — find out when he's in, without it being a fifth touch
+
+Go in as a customer. Buy a pint. Sometime near the end, to whoever's
+pouring:
+
+> **"Hey — is Serge usually around on a certain day? I met him back in the
+> summer and I keep missing him."**
+
+That's true, it's not a pitch, and it doesn't burn a touch. Write down what
+they say and leave. **Do not pitch the bartender.** They cannot say yes and
+they can absolutely say "some guy keeps coming in about Facebook."
+
+### Step 2 — print the pack, then go on that day
+
+Print all seven cards. Paper on the bar beats a link on a phone every time
+— it's what worked at LeBlanc's, and it's the one thing he hasn't seen yet.
+
+### Step 3 — the doorway version (he's working, keep it short)
+
+> **"Serge — Matthew, we talked on the phone back in August about the daily
+> posts. I know I've been a pest, so I'll be quick and then I'm out of your
+> hair."**
+
+> **"I didn't want to keep texting you, so I just built the thing instead.
+> Seven days of posts for CAVOK — Runway 11, the golf sim, the growler fills
+> on Sunday. It's yours whether you use me or not, no strings."**
+
+Hand him the pack. **Let him look.** Don't fill the silence.
+
+> **"If you like them, I'll run them on your page for a week, free, so you
+> can see what a daily feed does for a taproom. After that it's seventy-nine
+> a month, no contract, and you can text me STOP any day and it stops."**
+
+> **"Either way — nice to finally catch you."**
+
+### If he says he's too busy to think about it
+
+That is almost certainly the real answer, so agree with it:
+
+> **"That's the whole reason it exists. You wouldn't be doing any of it —
+> that's the point. Keep the cards, look at them on a slow Tuesday."**
+
+### Why CAVOK is worth the trip
+
+A brewery is the best-fit client on the whole sheet. Rotating taps, a golf
+simulator, a seasonal on the way, twenty-plus lines and a beach patio —
+that's a business where something is genuinely different every single week
+and nobody has the time to say so. Their own tap board changes faster than
+they can post about it. That's the entire product in one sentence, and you
+can say it to his face.
+
+### What NOT to say
+
+- Don't apologise more than once. One "I know I've been a pest" is charming;
+  three is a man who needs reassurance from a stranger.
+- Don't mention the four unanswered messages. He knows.
+- Don't quote the tap list as fact — the pack's lineup is illustrative and
+  the board moves. Say **"I built these off your lineup; we'd swap in
+  whatever's actually pouring."**
+- Don't leave without writing the outcome in the ledger, even if it's
+  "not in again."
 
 ---
 

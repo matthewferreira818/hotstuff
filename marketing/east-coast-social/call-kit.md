@@ -4,6 +4,9 @@ _The phone channel: for businesses with no social page to DM, and DM ghosts
 after the follow-up window. You call, personally — that's the brand.
 Log every outcome in prospects.md after the call._
 
+**Reading the words off a screen while it rings:**
+`cold-call-script.md` — the full script, the branches, and the STOP line.
+
 ## When to call
 - **Shops & services:** 10:00–11:30 AM (open, not yet slammed)
 - **Restaurants & cafés:** 2:00–4:00 PM ONLY (never during a meal rush)

@@ -8,6 +8,23 @@ on:
     # landed at 14:52/15:03/15:19 UTC. The whole chain is therefore shifted
     # ~4 hours earlier so a late fire still lands in Matthew's morning, and
     # off round minutes, which is when the scheduler is most contended.
+    #
+    # UPDATE (2026-09-14): the lag has grown to ~5 hours and it is drifting.
+    # First scheduled fire by day: 09-12 at 12:07, 09-13 at 13:16 -- that
+    # last one is 5h07m behind the 08:09 cron.
+    #
+    # This is NOT a streak risk and must not be treated as one. The card
+    # only has to land before 00:00 UTC to keep automation/feed unbroken,
+    # and a 5-hour lag lands it around 13:15. The morning brief checks at
+    # 13:05 and has twice concluded the card was "missing" when the real
+    # fire was minutes away -- on 09-13 a hand dispatch at 13:05 beat the
+    # scheduled fire at 13:16 by eleven minutes, and the scheduled run then
+    # correctly no-opped on the gate below.
+    #
+    # So: do not hand-dispatch at 13:05. Wait. If nothing has landed by
+    # ~16:00 UTC, that is a real miss and worth a dispatch; there are still
+    # eight hours of margin at that point. Chasing the drift with more cron
+    # shifts is a treadmill -- the backup crons plus that margin are enough.
     - cron: "9 8 * * *"    # 08:09 UTC; lands near the 9AM Atlantic slot when late
     # backup crons: GitHub's scheduler skips or delays fires often enough that
     # refresh-products needed three. A silently-missed day punches a hole in

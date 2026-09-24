@@ -13,6 +13,73 @@ The live intel:
 
 _The application draft below is preserved for the successor program — most answers will transfer._
 
+---
+
+# Late-September follow-up to Cathy — DRAFTED 2026-09-24, Matthew sends
+
+**Status check before writing this, because it changes the email:** the
+reminder said to "lead with customer traction." There isn't any. Zero
+clients, zero revenue, ledger untouched since Aug 18. So this email cannot
+lead with traction, and inventing some would breach rule #1 and blow up the
+moment anyone asked a follow-up question.
+
+What IS true and is worth leading with: the engine has published a new post
+every single day for **52 days** without missing one, it's verifiable on a
+public page, the site is live in both languages, and it costs $0/month to
+run. That's a real operating record, just not a revenue one.
+
+The email's job is therefore **intelligence, not persuasion**: find out when
+the parameters land and what "revenue positive with customers" actually
+means as a number. That answer tells Matthew exactly what October has to
+produce.
+
+> Subject: Following up on the ACOA successor program — Matthew Ferreira, Memramcook
+>
+> Hi Cathy,
+>
+> Following up on our exchange back on August 6th. You mentioned TechImpact
+> had applied for successor funding through ACOA and expected six to eight
+> weeks before the parameters firmed up — that lands about now, so I wanted
+> to check in.
+>
+> A quick update since August. The social posting service I sent you links
+> for is live in English and French, and the engine behind it has now
+> published a new post every single day for 52 days straight without missing
+> one. The running count and the full feed are public at
+> findhotstuff.com/automation if you want to see it. It costs me nothing per
+> month to operate.
+>
+> Where I honestly am: the service is built and running, and I'm working the
+> local market in Memramcook and greater Moncton toward the first paying
+> clients now. Which is why my second question below matters to me.
+>
+> Two things I'd value your read on:
+>
+> 1. Is there a date yet for when the successor program's parameters will be
+>    announced?
+> 2. On "revenue positive with customers" — do you know yet what that's
+>    likely to mean in practice? A number of clients, a revenue threshold, a
+>    minimum period of operating? Knowing the bar would tell me exactly what
+>    I need in place and by when.
+>
+> Anything you'd suggest I prepare in the meantime, I'm all ears.
+>
+> Thanks Cathy,
+>
+> Matthew Ferreira
+> East Coast Social · Memramcook, NB
+> (506) 889-9737 · findhotstuff.com/automation
+
+Send from ceohotstuff@yahoo.com, same address as the August thread, so it
+lands in the existing chain.
+
+**The thing the email cannot fix:** if the bar really is customers, no
+wording gets him eligible. A client does. Six to eight weeks from Aug 6 runs
+out around Oct 1, so the parameters may land inside the week — and if they
+require customers, the gap between "engine running 52 days" and "eligible"
+is one signed free week that converts.
+
+
 # Digital Boost 3.0 — application draft (apply as a Business)
 
 _Program: TechImpact / CollabHub Atlantic · applications OPEN ·

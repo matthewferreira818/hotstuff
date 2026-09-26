@@ -143,11 +143,10 @@ After sending, log it in `prospects.md` (date + "email sent" / "DM sent").
 
 ## Not on this sheet, and why
 
-- **LeBlanc Restaurant (Ben's), the hottest lead.** The only contact is
-  (506) 758-2554, a restaurant line, so a text likely won't arrive. It
-  needs a call or a walk-in with the pack they already have. Or ask C.C to
-  look for an email on their Google or website listing. If one exists,
-  this becomes message #7.
+- **LeBlanc Restaurant (Ben's).** Had the printed pack since 08-14 and
+  never replied (Matthew, 09-26). Treat as cooled, not hot. At most one
+  easy touch later (a walk-in when passing), then let it rest. Phone
+  only, so nothing to send here.
 - **CAVOK Brewing.** The ledger says no more texts or calls: four touches
   with no reply. One walk-in on a day Serge is in, whenever that is.
 - **Norm's Pizza, Carlos Barber Shop.** Phone only; no email or page found.

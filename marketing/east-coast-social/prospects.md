@@ -40,6 +40,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 ## Memramcook / Dorchester
 | Business | Type | Feed check |
 |---|---|---|
+| LeBlanc Restaurant (Ben's, 583 rue Centrale) | restaurant, no FB page | ⏸️ Printed sample pack handed over in person 08-14 (walk-in). **Never replied** (confirmed by Matthew 09-26). Phone (506) 758-2554 only, no email found. Status: cooled. At most ONE low-pressure touch (walk-in or call) when convenient, then rest. Not the same business as LeBlancs Meat Market below. |
 | LeBlancs Meat Market (32 La Mountain Rd) | butcher/market | 🎯 page messaging DISABLED (07-28) — reach via email leblancmeat.32@gmail.com (French draft ready) or walk-in with ECS flyer; page "Viandes LeBlanc Meats" |
 | _More: memramcook.com → business directory (markets, catering, pub)_ | | |
 

@@ -4,239 +4,454 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1e2a33">
 <title>Practice Desk</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
 <style>
 :root {
   color-scheme: light;
-  --ground: #eef2f0;
-  --surface: #ffffff;
-  --ink: #16211d;
-  --muted: #5f6f69;
-  --line: #d5dedA;
-  --accent: #0f6e63;
-  --gain: #1c7f46;
-  --loss: #b8402b;
-  --track: #e2e9e6;
-  --warn-bg: #fff4d6;
-  --warn-ink: #6b4d00;
+  --wall-a: #bfd0cc; --wall-b: #8ea5bd; --wall-c: #d8d2c4;
+  --window: #f5f5f7;
+  --sidebar: rgba(232, 233, 237, .78);
+  --content: #ffffff;
+  --panel: #f5f5f7;
+  --ink: #1d1d1f;
+  --ink-2: #6e6e73;
+  --ink-3: #8e8e93;
+  --sep: rgba(0, 0, 0, .1);
+  --accent: #007aff;
+  --accent-soft: rgba(0, 122, 255, .12);
+  --gain: #1f9d48;
+  --loss: #e0352b;
+  --warn: #c77700;
+  --warn-soft: rgba(255, 149, 0, .14);
+  --track: rgba(0, 0, 0, .07);
+  --shadow: 0 30px 70px rgba(10, 20, 30, .35), 0 0 0 .5px rgba(0, 0, 0, .25);
+  --sel-ink: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --ground: #0d1412; --surface: #151f1c; --ink: #e3ebe7; --muted: #8fa19a;
-    --line: #26332f; --accent: #4fc1b0; --gain: #4cc27e; --loss: #f07a62;
-    --track: #1f2b27; --warn-bg: #3a2f10; --warn-ink: #f3d68a;
+    --wall-a: #1b2a33; --wall-b: #0e1419; --wall-c: #2b2433;
+    --window: #1e1e20; --sidebar: rgba(38, 38, 42, .78); --content: #1c1c1e;
+    --panel: #2a2a2d; --ink: #f5f5f7; --ink-2: #a1a1a6; --ink-3: #7c7c80;
+    --sep: rgba(255, 255, 255, .1); --accent: #0a84ff;
+    --accent-soft: rgba(10, 132, 255, .2); --gain: #30d158; --loss: #ff453a;
+    --warn: #ffb340; --warn-soft: rgba(255, 159, 10, .16);
+    --track: rgba(255, 255, 255, .09);
+    --shadow: 0 30px 70px rgba(0, 0, 0, .6), 0 0 0 .5px rgba(255, 255, 255, .12);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --ground: #0d1412; --surface: #151f1c; --ink: #e3ebe7; --muted: #8fa19a;
-  --line: #26332f; --accent: #4fc1b0; --gain: #4cc27e; --loss: #f07a62;
-  --track: #1f2b27; --warn-bg: #3a2f10; --warn-ink: #f3d68a;
+  --wall-a: #1b2a33; --wall-b: #0e1419; --wall-c: #2b2433;
+  --window: #1e1e20; --sidebar: rgba(38, 38, 42, .78); --content: #1c1c1e;
+  --panel: #2a2a2d; --ink: #f5f5f7; --ink-2: #a1a1a6; --ink-3: #7c7c80;
+  --sep: rgba(255, 255, 255, .1); --accent: #0a84ff;
+  --accent-soft: rgba(10, 132, 255, .2); --gain: #30d158; --loss: #ff453a;
+  --warn: #ffb340; --warn-soft: rgba(255, 159, 10, .16);
+  --track: rgba(255, 255, 255, .09);
+  --shadow: 0 30px 70px rgba(0, 0, 0, .6), 0 0 0 .5px rgba(255, 255, 255, .12);
 }
 * { box-sizing: border-box; }
-body {
-  margin: 0; background: var(--ground); color: var(--ink);
-  font: 15px/1.5 "IBM Plex Sans", system-ui, sans-serif;
-  padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+html {
+  min-height: 100%;
+  background: var(--wall-b);
+  background-image:
+    radial-gradient(1200px 700px at 15% 10%, var(--wall-a), transparent 60%),
+    radial-gradient(900px 600px at 90% 90%, var(--wall-c), transparent 60%),
+    linear-gradient(160deg, var(--wall-a), var(--wall-b));
+  background-attachment: fixed;
 }
-main { max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
-.num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
-h1, h2 { font-family: "Barlow Semi Condensed", "Arial Narrow", sans-serif; margin: 0; text-wrap: balance; }
-h1 { font-size: 28px; font-weight: 700; letter-spacing: .01em; }
-h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
-.pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px;
-  border: 1px solid var(--line); background: var(--surface); font-size: 13px; color: var(--muted); }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-.pill.open .dot { background: var(--gain); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gain) 25%, transparent); }
-.warn { background: var(--warn-bg); color: var(--warn-ink); padding: 10px 14px; border-radius: 8px; font-size: 14px; }
+body {
+  margin: 0; color: var(--ink); min-height: 100%;
+  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: transparent;
+  padding: max(28px, env(safe-area-inset-top)) 16px max(28px, env(safe-area-inset-bottom));
+}
+.num { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.window {
+  max-width: 1080px; margin: 0 auto; min-height: min(760px, calc(100vh - 56px));
+  background: var(--window); border-radius: 12px; overflow: hidden;
+  box-shadow: var(--shadow); display: grid; grid-template-columns: 220px 1fr;
+}
 
-.score { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-.score > div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 2px; }
-.score .label { font-size: 13px; color: var(--muted); }
-.score .big { font-size: 28px; font-weight: 500; }
-.score .sub { font-size: 13px; color: var(--muted); }
+/* Sidebar */
+.sidebar {
+  background: var(--sidebar); -webkit-backdrop-filter: blur(30px) saturate(1.6); backdrop-filter: blur(30px) saturate(1.6);
+  border-right: 1px solid var(--sep); padding: 14px 10px; display: flex; flex-direction: column; gap: 14px;
+}
+.lights { display: flex; gap: 8px; padding: 2px 6px 6px; }
+.lights span { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.2); }
+.lights span:nth-child(1) { background: #ff5f57; }
+.lights span:nth-child(2) { background: #febc2e; }
+.lights span:nth-child(3) { background: #28c840; }
+.side-group { display: grid; gap: 2px; }
+.side-label { font-size: 11px; font-weight: 600; color: var(--ink-3); padding: 0 10px 4px; }
+.nav a {
+  display: flex; align-items: center; gap: 9px; padding: 6px 10px; border-radius: 6px;
+  color: var(--ink); text-decoration: none; font-size: 13px;
+}
+.nav a svg { width: 16px; height: 16px; flex: none; color: var(--accent); }
+.nav a .count { margin-left: auto; font-size: 11px; color: var(--ink-3); }
+.nav a:hover { background: var(--track); }
+.nav a[aria-current="page"] { background: var(--accent); color: var(--sel-ink); }
+.nav a[aria-current="page"] svg, .nav a[aria-current="page"] .count { color: var(--sel-ink); }
+.nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.side-foot { margin-top: auto; font-size: 11px; color: var(--ink-3); padding: 0 10px; }
+
+/* Main */
+.main { background: var(--content); display: flex; flex-direction: column; min-width: 0; }
+.toolbar {
+  display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--sep);
+  position: sticky; top: 0; background: var(--content); z-index: 2;
+}
+.toolbar h1 { font-size: 15px; font-weight: 600; margin: 0; }
+.toolbar .sub { color: var(--ink-2); font-size: 12px; }
+.status { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-2);
+  background: var(--panel); border: 1px solid var(--sep); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+.status.open i { background: var(--gain); animation: pulse 2s infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--gain) 25%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .status.open i { animation: none; } }
+.page { padding: 20px; display: grid; gap: 18px; align-content: start; }
+.page[hidden] { display: none; }
+h2 { font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
+h3 { font-size: 13px; font-weight: 600; margin: 0; color: var(--ink-2); }
+.lede { color: var(--ink-2); margin: -10px 0 0; max-width: 62ch; }
+.banner { background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 9px 12px; font-weight: 500; }
+
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: grid; gap: 2px; }
+.tile .k { font-size: 12px; color: var(--ink-2); }
+.tile .v { font-size: 24px; font-weight: 600; }
+.tile .s { font-size: 12px; color: var(--ink-2); }
 .up { color: var(--gain); } .down { color: var(--loss); }
 
-.stocks { display: grid; gap: 12px; }
-.stock { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; }
-.stock-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
-.sym { font-family: "Barlow Semi Condensed", sans-serif; font-size: 24px; font-weight: 700; letter-spacing: .02em; }
-.price { font-size: 20px; }
-.state { font-size: 14px; }
-.chip { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 4px; margin-right: 6px;
-  background: var(--track); color: var(--ink); text-transform: uppercase; letter-spacing: .06em; }
-.chip.held { background: var(--accent); color: var(--surface); }
-.meter { position: relative; height: 10px; border-radius: 5px; background: var(--track); }
-.meter .fill { position: absolute; top: 0; bottom: 0; border-radius: 5px; background: var(--accent); opacity: .85; }
-.meter .mark { position: absolute; top: -4px; width: 2px; height: 18px; background: var(--ink); }
-.scale { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
-.rules { font-size: 13px; color: var(--muted); }
+.now { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: 10px; background: var(--accent-soft); }
+.now svg { width: 18px; height: 18px; color: var(--accent); flex: none; }
 
-.trades { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-th, td { padding: 8px 14px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
-th { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+/* Grouped list, like System Settings */
+.list { background: var(--panel); border-radius: 10px; overflow: hidden; }
+.row { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: center; padding: 11px 14px; }
+.row + .row { border-top: 1px solid var(--sep); }
+.sym { font-weight: 700; font-size: 15px; min-width: 52px; }
+.row .mid { display: grid; gap: 5px; min-width: 0; }
+.row .mid .t { color: var(--ink-2); font-size: 12px; }
+.row .right { text-align: right; display: grid; gap: 2px; }
+.row .right .p { font-size: 15px; font-weight: 600; }
+.badge { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 4px; padding: 1px 6px; background: var(--track); color: var(--ink-2); }
+.badge.held { background: var(--accent); color: #fff; }
+.bar { position: relative; height: 6px; border-radius: 3px; background: var(--track); }
+.bar b { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--accent); transition: width .5s, left .5s; }
+.bar u { position: absolute; top: -3px; width: 2px; height: 12px; background: var(--ink-2); }
+.ticks { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); }
+
+.feed .row { grid-template-columns: 22px 1fr auto; }
+.dot { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; background: var(--track); color: var(--ink-2); }
+.dot svg { width: 13px; height: 13px; }
+.dot.buy { background: var(--accent); color: #fff; }
+.dot.sell { background: var(--gain); color: #fff; }
+.dot.error { background: var(--loss); color: #fff; }
+.dot.start, .dot.stop { background: var(--ink-3); color: #fff; }
+.when { color: var(--ink-3); font-size: 12px; white-space: nowrap; }
+.empty { padding: 16px 14px; color: var(--ink-2); }
+
+.table-wrap { background: var(--panel); border-radius: 10px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--sep); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; }
 tr:last-child td { border-bottom: 0; }
-td.r, th.r { text-align: right; }
-.empty { padding: 14px; color: var(--muted); font-size: 14px; }
-footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 65ch; }
-@media (prefers-reduced-motion: no-preference) { .meter .fill { transition: width .6s ease, left .6s ease; } }
+.r { text-align: right; }
+
+.seats { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.seat { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: grid; gap: 8px; align-content: start; }
+.seat .who { display: flex; align-items: baseline; gap: 6px; }
+.seat .who b { font-size: 14px; }
+.seat .who span { color: var(--ink-3); font-size: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 2px 8px; background: var(--accent-soft); color: var(--accent); }
+.chip.veto { background: color-mix(in srgb, var(--loss) 14%, transparent); color: var(--loss); }
+.seat p { margin: 0; color: var(--ink-2); font-size: 12px; }
+.pick-list .row { grid-template-columns: auto 1fr; }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.fact { background: var(--panel); border-radius: 10px; padding: 12px 14px; display: grid; gap: 3px; }
+.fact .v { font-size: 20px; font-weight: 600; }
+.fact .s { color: var(--ink-2); font-size: 12px; }
+.note { color: var(--ink-2); font-size: 12px; max-width: 70ch; }
+
+/* Phone: sidebar becomes a tab strip */
+@media (max-width: 760px) {
+  body { padding: max(12px, env(safe-area-inset-top)) 10px max(16px, env(safe-area-inset-bottom)); }
+  .window { grid-template-columns: 1fr; min-height: 0; }
+  .sidebar { border-right: 0; border-bottom: 1px solid var(--sep); padding: 10px; gap: 8px; }
+  .side-group { display: flex; overflow-x: auto; gap: 4px; }
+  .side-label, .side-foot { display: none; }
+  .nav a { white-space: nowrap; }
+  .nav a .count { display: none; }
+  .toolbar { position: static; flex-wrap: wrap; padding: 10px 14px; }
+  .status { margin-left: 0; }
+  .page { padding: 14px; }
+  .tiles { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1>Practice Desk</h1>
-    <span class="pill" id="status"><span class="dot"></span><span id="status-text">Loading…</span></span>
-  </header>
-  <div class="warn" id="warn" hidden></div>
+<div class="window">
+  <aside class="sidebar">
+    <div class="lights" aria-hidden="true"><span></span><span></span><span></span></div>
+    <nav class="nav side-group" aria-label="Sections">
+      <div class="side-label">Practice Desk</div>
+      <a href="#overview" data-page="overview"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>Overview</a>
+      <a href="#watching" data-page="watching"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 8s2.5-4.5 6.5-4.5S14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>Watching<span class="count" id="c-watch"></span></a>
+      <a href="#activity" data-page="activity"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 8.5h3l2-5 3 9 2-4h3"/></svg>Activity<span class="count" id="c-act"></span></a>
+      <a href="#trades" data-page="trades"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 5h10l-2.5-2.5M13 11H3l2.5 2.5"/></svg>Trades<span class="count" id="c-trades"></span></a>
+      <div class="side-label" style="margin-top:10px">Behind the picks</div>
+      <a href="#council" data-page="council"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="5.5" r="2"/><circle cx="11" cy="5.5" r="2"/><path d="M1.5 13c.5-2.5 2-3.5 3.5-3.5S8 10.5 8.5 13M7.5 13c.5-2.5 2-3.5 3.5-3.5s3 1 3.5 3.5"/></svg>Council</a>
+      <a href="#research" data-page="research"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14V2M2 14h12"/><path d="M5 11V8M8 11V5M11 11V7"/></svg>Research</a>
+    </nav>
+    <div class="side-foot">Fake money, real prices. Started with $1,000.</div>
+  </aside>
 
-  <section class="score" aria-label="Account">
-    <div>
-      <span class="label">Practice account</span>
-      <span class="big num" id="value">—</span>
-      <span class="sub num" id="value-sub"></span>
+  <section class="main">
+    <header class="toolbar">
+      <div><h1 id="tb-title">Overview</h1><div class="sub" id="tb-sub">Practice Desk</div></div>
+      <span class="status" id="status"><i></i><span id="status-text">Loading…</span></span>
+    </header>
+
+    <!-- Overview -->
+    <div class="page" id="p-overview">
+      <div class="banner" id="stale" hidden></div>
+      <div class="now"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5V8l2.5 1.5"/></svg><span id="now-text">Loading…</span></div>
+      <div class="tiles">
+        <div class="tile"><span class="k">Practice account</span><span class="v num" id="t-value">—</span><span class="s num" id="t-value-s"></span></div>
+        <div class="tile"><span class="k">Same money in SPY</span><span class="v num" id="t-spy">—</span><span class="s" id="t-spy-s"></span></div>
+        <div class="tile"><span class="k">Cash</span><span class="v num" id="t-cash">—</span><span class="s num" id="t-cash-s"></span></div>
+      </div>
+      <h3>Watching</h3>
+      <div class="list" id="o-watch"></div>
+      <h3>Latest activity</h3>
+      <div class="list feed" id="o-feed"></div>
     </div>
-    <div>
-      <span class="label">Same money in SPY</span>
-      <span class="big num" id="spy">—</span>
-      <span class="sub" id="spy-sub"></span>
+
+    <!-- Watching -->
+    <div class="page" id="p-watching" hidden>
+      <h2>Watching</h2>
+      <p class="lede">Each bar shows how close a stock is to its next move: a buy after a dip, or a sale at the take-profit or stop-loss.</p>
+      <div class="list" id="w-list"></div>
+      <p class="note" id="w-note"></p>
     </div>
-    <div>
-      <span class="label">Cash · in stocks</span>
-      <span class="big num" id="cash">—</span>
-      <span class="sub num" id="cash-sub"></span>
+
+    <!-- Activity -->
+    <div class="page" id="p-activity" hidden>
+      <h2>Activity</h2>
+      <p class="lede">What the bot has been doing today, newest first. It checks every stock every 10 seconds; quiet checks roll into one line.</p>
+      <div class="list feed" id="a-feed"></div>
+    </div>
+
+    <!-- Trades -->
+    <div class="page" id="p-trades" hidden>
+      <h2>Trades</h2>
+      <p class="lede">Every practice trade, with the $1 fee and slippage already counted.</p>
+      <div class="table-wrap" id="tr-table"></div>
+    </div>
+
+    <!-- Council -->
+    <div class="page" id="p-council" hidden>
+      <h2>Stock council</h2>
+      <p class="lede" id="c-lede">Five seats pick on their own without seeing each other. A fixed vote rule decides: a stock needs two seats behind it, and one maximum-strength veto blocks it.</p>
+      <h3>The list</h3>
+      <div class="list pick-list" id="c-list"></div>
+      <h3>The seats</h3>
+      <div class="seats" id="c-seats"></div>
+    </div>
+
+    <!-- Research -->
+    <div class="page" id="p-research" hidden>
+      <h2>Research</h2>
+      <p class="lede">The honest scoreboard for the rules themselves, with the practice account's costs. This is what decides whether real money is ever on the table.</p>
+      <h3 id="r-why-h">Past year: rules vs just holding</h3>
+      <div class="facts" id="r-why"></div>
+      <p class="note" id="r-why-note"></p>
+      <h3>Walk-forward: tuned on 6 months, tested on the next 3 it never saw</h3>
+      <div class="facts" id="r-wf"></div>
+      <div class="table-wrap" id="r-wf-table"></div>
+      <p class="note">The stock list was hand-picked from names that still exist today, which flatters every stock column. SPY doesn't have that problem.</p>
     </div>
   </section>
-
-  <section class="stocks" aria-labelledby="h-stocks">
-    <h2 id="h-stocks">Watching</h2>
-    <div class="stocks" id="stocks"></div>
-  </section>
-
-  <section aria-labelledby="h-trades" style="display:grid;gap:12px">
-    <h2 id="h-trades">Trades</h2>
-    <div class="trades" id="trades"></div>
-  </section>
-
-  <footer>
-    <span>Fake money, real prices. Every trade pays a $1 fee and a fill 0.1% worse than the quote, like a small real account would.</span>
-    <span id="picked"></span>
-    <span>Prices update every 2 minutes while the market is open (9:30am–4pm New York, 10:30am–5pm Atlantic). This page checks for new numbers every 30 seconds.</span>
-  </footer>
-</main>
+</div>
 
 <script>
-const DATA = "https://raw.githubusercontent.com/matthewferreira818/hotstuff/stock-live/live.json";
+const LIVE = "https://raw.githubusercontent.com/matthewferreira818/hotstuff/stock-live/live.json";
 const $ = id => document.getElementById(id);
-const money = n => (n < 0 ? "−$" : "$") + Math.abs(n).toLocaleString("en-CA", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const money = (n, d = 2) => (n < 0 ? "−$" : "$") + Math.abs(n).toLocaleString("en-CA", {minimumFractionDigits: d, maximumFractionDigits: d});
+const signed = (n, d = 0) => (n > 0 ? "+" : n < 0 ? "−" : "") + "$" + Math.abs(n).toLocaleString("en-CA", {minimumFractionDigits: d, maximumFractionDigits: d});
 const pct = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toFixed(1) + "%";
 const cls = n => n > 0.005 ? "up" : n < -0.005 ? "down" : "";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 let snap = null;
 
 function ago(iso) {
   const s = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
-  if (s < 90) return "just now";
+  if (s < 60) return "just now";
   if (s < 3600) return Math.round(s / 60) + " min ago";
   if (s < 86400) return Math.round(s / 3600) + " h ago";
-  return Math.round(s / 86400) + " days ago";
+  return Math.round(s / 86400) + " d ago";
 }
+const clock = iso => new Date(iso).toLocaleTimeString("en-CA", {hour: "numeric", minute: "2-digit"});
 
-function stockCard(s) {
-  const r = s.rules, el = document.createElement("article");
-  el.className = "stock";
-  let chip, state, meter = "", scale = "";
+/* ---------- navigation ---------- */
+const TITLES = {overview: "Overview", watching: "Watching", activity: "Activity", trades: "Trades", council: "Council", research: "Research"};
+function go() {
+  const page = TITLES[location.hash.slice(1)] ? location.hash.slice(1) : "overview";
+  for (const k in TITLES) $("p-" + k).hidden = k !== page;
+  document.querySelectorAll(".nav a").forEach(a => { if (a.dataset.page !== page) a.removeAttribute("aria-current"); else a.setAttribute("aria-current", "page"); });
+  $("tb-title").textContent = TITLES[page];
+  try { localStorage.setItem("desk-page", page); } catch (e) {}
+}
+addEventListener("hashchange", go);
+if (!location.hash) { try { const p = localStorage.getItem("desk-page"); if (p && TITLES[p]) location.hash = p; } catch (e) {} }
+go();
+
+/* ---------- live desk ---------- */
+const ICON = {
+  buy: '<path d="M8 13V3M4 7l4-4 4 4"/>', sell: '<path d="M3 8.5l3 3 7-7"/>', error: '<path d="M8 4v5M8 11.5v.5"/>',
+  start: '<path d="M5 3.5l7 4.5-7 4.5z"/>', stop: '<rect x="4" y="4" width="8" height="8" rx="1"/>',
+  quiet: '<circle cx="8" cy="8" r="5"/>', idea: '<path d="M8 2.5a4 4 0 0 0-2 7.5v2h4v-2a4 4 0 0 0-2-7.5zM6.5 14h3"/>', info: '<circle cx="8" cy="8" r="5"/>'
+};
+function feedRow(e) {
+  return `<div class="row"><span class="dot ${e.kind}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[e.kind] || ICON.info}</svg></span><span>${esc(e.text)}</span><span class="when">${clock(e.time)}</span></div>`;
+}
+function stockRow(s, compact) {
+  const r = s.rules;
+  let badge, text, bar = "", ticks = "";
   if (s.held) {
-    // Stop ... entry ... target, with the current change marked.
     const lo = -r.stop_loss, hi = r.take_profit, span = hi - lo;
-    const pos = Math.min(100, Math.max(0, (s.change_pct - lo) / span * 100));
-    const zero = (0 - lo) / span * 100;
-    const left = Math.min(zero, pos), width = Math.abs(pos - zero);
-    chip = '<span class="chip held">Holding</span>';
-    state = `<span class="${cls(s.change_pct)} num">${pct(s.change_pct)}</span> since buying at <span class="num">${money(s.entry)}</span> · worth <span class="num">${money(s.value)}</span>`;
-    meter = `<div class="meter" role="img" aria-label="${pct(s.change_pct)} between a ${r.stop_loss}% stop and a ${r.take_profit}% target"><div class="fill" style="left:${left}%;width:${width}%;background:var(${s.change_pct >= 0 ? "--gain" : "--loss"})"></div><div class="mark" style="left:calc(${zero}% - 1px)"></div></div>`;
-    scale = `<div class="scale num"><span>Stop −${r.stop_loss}%</span><span>Bought</span><span>Sell +${r.take_profit}%</span></div>`;
+    const pos = Math.min(100, Math.max(0, (s.change_pct - lo) / span * 100)), zero = -lo / span * 100;
+    badge = '<span class="badge held">Holding</span>';
+    text = `<span class="${cls(s.change_pct)} num">${pct(s.change_pct)}</span> since buying at ${money(s.entry)}`;
+    bar = `<div class="bar" role="img" aria-label="${pct(s.change_pct)} between stop and target"><b style="left:${Math.min(zero, pos)}%;width:${Math.abs(pos - zero)}%;background:var(${s.change_pct >= 0 ? "--gain" : "--loss"})"></b><u style="left:calc(${zero}% - 1px)"></u></div>`;
+    ticks = `<div class="ticks num"><span>stop −${r.stop_loss}%</span><span>sell +${r.take_profit}%</span></div>`;
   } else if (s.off_high_pct != null && r.dip) {
-    // 0% (at the 20-day high) ... dip% (buy line).
-    const off = -s.off_high_pct, need = r.dip - off;
-    const pos = Math.min(100, Math.max(0, off / r.dip * 100));
-    chip = s.traded_today ? '<span class="chip">Done for today</span>' : '<span class="chip">Waiting</span>';
-    state = need > 0
-      ? `<span class="num">${off.toFixed(1)}%</span> under its 20-day high · buys after <span class="num">${need.toFixed(1)}%</span> more drop`
-      : `<span class="num">${off.toFixed(1)}%</span> under its 20-day high · at the buy line`;
-    meter = `<div class="meter" role="img" aria-label="${off.toFixed(1)}% of the way to a ${r.dip}% dip"><div class="fill" style="left:0;width:${pos}%"></div></div>`;
-    scale = `<div class="scale num"><span>20-day high ${money(s.high20)}</span><span>Buy at −${r.dip}%</span></div>`;
-  } else {
-    chip = '<span class="chip">Waiting</span>';
-    state = "No price history yet.";
-  }
-  el.innerHTML = `
-    <div class="stock-top"><span class="sym">${s.symbol}</span><span class="price num">${s.price ? money(s.price) : "—"}</span></div>
-    <div class="state">${chip}${state}</div>
-    ${meter}${scale}
-    <div class="rules num">Rules: buy $${r.dollars} after a ${r.dip}% dip · sell at +${r.take_profit}% · stop at −${r.stop_loss}%</div>`;
-  return el;
+    const off = -s.off_high_pct, need = r.dip - off, pos = Math.min(100, Math.max(0, off / r.dip * 100));
+    badge = s.traded_today ? '<span class="badge">Done today</span>' : '<span class="badge">Waiting</span>';
+    text = need > 0 ? `${off.toFixed(1)}% under its high · buys after ${need.toFixed(1)}% more drop` : `${off.toFixed(1)}% under its high · at the buy line`;
+    bar = `<div class="bar" role="img" aria-label="${off.toFixed(1)}% of a ${r.dip}% dip"><b style="left:0;width:${pos}%"></b></div>`;
+    ticks = `<div class="ticks num"><span>20-day high ${money(s.high20)}</span><span>buy at −${r.dip}%</span></div>`;
+  } else { badge = '<span class="badge">Waiting</span>'; text = "No price history yet."; }
+  const rules = compact ? "" : `<span class="t num">Rules: $${r.dollars} after a ${r.dip}% dip · sell at +${r.take_profit}% · stop at −${r.stop_loss}%</span>`;
+  return `<div class="row"><span class="sym">${esc(s.symbol)}</span><div class="mid"><span>${badge} ${text}</span>${bar}${compact ? "" : ticks}${rules}</div><div class="right"><span class="p num">${s.price ? money(s.price) : "—"}</span>${s.held ? `<span class="num ${cls(s.change_pct)}">${money(s.value)}</span>` : ""}</div></div>`;
 }
 
 function render() {
   if (!snap) return;
-  const a = snap.account, fresh = (Date.now() - Date.parse(snap.updated)) / 60000;
+  const a = snap.account, bot = snap.bot || {}, events = (bot.events || []).slice().reverse();
+  const mins = (Date.now() - Date.parse(snap.updated)) / 60000;
   $("status").classList.toggle("open", snap.market_open);
-  $("status-text").textContent = (snap.market_open ? "Market open" : "Market closed") + " · updated " + ago(snap.updated);
-  const warn = $("warn");
-  warn.hidden = !(snap.market_open && fresh > 10);
-  if (!warn.hidden) warn.textContent = `No update for ${Math.round(fresh)} minutes during market hours. The bot may be down; check the Stock bot run in GitHub Actions.`;
+  $("status-text").textContent = (snap.market_open ? "Market open" : "Market closed") + " · " + ago(snap.updated);
+  $("stale").hidden = !(snap.market_open && mins > 10);
+  $("stale").textContent = `No update for ${Math.round(mins)} minutes during market hours. The bot may be down: check the Stock bot run in GitHub Actions.`;
+
+  $("now-text").textContent = snap.market_open
+    ? `Watching ${snap.stocks.length} stocks every ${bot.every || snap.settings?.every || 10} seconds · ${(bot.checks || 0).toLocaleString()} checks since ${bot.started ? clock(bot.started) : "the open"}.`
+    : `Market's closed. The bot wakes at the 9:30am New York open (10:30am Atlantic) on the next trading day and starts checking every ${snap.settings?.every || 10} seconds.`;
 
   const pnl = a.value - a.start_cash;
-  $("value").textContent = money(a.value);
-  $("value").className = "big num " + cls(pnl);
-  $("value-sub").textContent = `${pnl >= 0 ? "+" : "−"}${money(Math.abs(pnl))} (${pct(pnl / a.start_cash * 100)}) on ${money(a.start_cash)}`;
+  $("t-value").textContent = money(a.value); $("t-value").className = "v num " + cls(pnl);
+  $("t-value-s").textContent = `${signed(pnl, 2)} (${pct(pnl / a.start_cash * 100)}) since ${new Date(a.started).toLocaleDateString("en-CA", {month: "short", day: "numeric"})}`;
   if (a.spy_value != null) {
     const d = a.value - a.spy_value;
-    $("spy").textContent = money(a.spy_value);
-    $("spy-sub").innerHTML = Math.abs(d) < 0.005 ? "Even with SPY so far"
-      : `The bot is <span class="${cls(d)} num">${d > 0 ? "ahead by " : "behind by "}${money(Math.abs(d))}</span>`;
+    $("t-spy").textContent = money(a.spy_value);
+    $("t-spy-s").innerHTML = Math.abs(d) < 0.005 ? "Even with SPY so far" : `Bot is <span class="${cls(d)}">${d > 0 ? "ahead" : "behind"} by ${money(Math.abs(d))}</span>`;
   }
-  $("cash").textContent = money(a.cash);
-  $("cash-sub").textContent = `${money(a.held)} in stocks · ${a.trades} trade${a.trades === 1 ? "" : "s"} · ${money(a.fees)} fees`;
+  $("t-cash").textContent = money(a.cash);
+  $("t-cash-s").textContent = `${money(a.held)} in stocks · ${money(a.fees)} fees paid`;
 
-  const box = $("stocks");
-  box.replaceChildren(...snap.stocks.map(stockCard));
+  $("o-watch").innerHTML = snap.stocks.map(s => stockRow(s, true)).join("");
+  $("w-list").innerHTML = snap.stocks.map(s => stockRow(s, false)).join("");
+  $("w-note").textContent = snap.settings ? `Limits: ${money(snap.settings.max_total_invested, 0)} invested at most, ${snap.settings.max_orders_per_day} orders a day, one buy and one sell per stock per day.` : "";
+  $("c-watch").textContent = snap.stocks.length;
 
-  const t = $("trades");
-  if (!snap.orders.length) {
-    t.innerHTML = '<div class="empty">No trades yet. The bot only acts when a rule is hit, so quiet days are normal.</div>';
-  } else {
-    t.innerHTML = `<table><thead><tr><th>When</th><th>Stock</th><th>Side</th><th class="r">Price</th><th class="r">Amount</th></tr></thead><tbody>${
-      snap.orders.map(o => `<tr><td>${new Date(o.time).toLocaleString("en-CA", {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"})}</td><td>${o.symbol}</td><td class="${o.side === "buy" ? "" : "up"}">${o.side === "buy" ? "Bought" : "Sold"}</td><td class="r num">${money(o.price)}</td><td class="r num">${money(o.dollars)}</td></tr>`).join("")
-    }</tbody></table>`;
-  }
-  const when = (snap.picked_by || "").match(/\d{4}-\d{2}-\d{2}/);
-  $("picked").textContent = when ? `Stocks and rules picked by the stock council on ${when[0]}.` : "";
+  const emptyFeed = `<div class="empty">${snap.market_open ? "Starting up…" : "Nothing yet today. The log fills in once the market opens."}</div>`;
+  $("o-feed").innerHTML = events.length ? events.slice(0, 4).map(feedRow).join("") : emptyFeed;
+  $("a-feed").innerHTML = events.length ? events.map(feedRow).join("") : emptyFeed;
+  $("c-act").textContent = events.length || "";
+
+  $("c-trades").textContent = snap.orders.length || "";
+  $("tr-table").innerHTML = snap.orders.length
+    ? `<table><thead><tr><th>When</th><th>Stock</th><th>Side</th><th class="r">Shares</th><th class="r">Price</th><th class="r">Amount</th></tr></thead><tbody>${snap.orders.map(o =>
+        `<tr><td>${new Date(o.time).toLocaleString("en-CA", {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"})}</td><td><b>${esc(o.symbol)}</b></td><td class="${o.side === "sell" ? "up" : ""}">${o.side === "buy" ? "Bought" : "Sold"}</td><td class="r num">${(+o.qty).toFixed(4)}</td><td class="r num">${money(o.price)}</td><td class="r num">${money(o.dollars)}</td></tr>`).join("")}</tbody></table>`
+    : '<div class="empty">No trades yet. The bot only acts when a rule is hit, so quiet days are normal.</div>';
 }
 
-async function load() {
+async function loadLive() {
   try {
-    const res = await fetch(DATA + "?nc=" + Date.now(), {cache: "no-store"});
-    if (!res.ok) throw new Error(res.status);
-    snap = await res.json();
-    render();
+    const r = await fetch(LIVE + "?nc=" + Date.now(), {cache: "no-store"});
+    if (!r.ok) throw 0;
+    snap = await r.json(); render();
   } catch (e) {
-    if (!snap) {
-      $("status-text").textContent = "Can't reach the data";
-      const w = $("warn"); w.hidden = false;
-      w.textContent = "Couldn't load the latest numbers. Check your connection and refresh.";
-    }
+    if (!snap) { $("status-text").textContent = "Can't reach the data"; $("now-text").textContent = "Couldn't load the latest numbers. Check your connection; this page retries every 30 seconds."; }
   }
 }
-load();
-setInterval(load, 30000);
-setInterval(render, 15000);
+
+/* ---------- council + research (published with the site) ---------- */
+const SEATS = {
+  "Tally": ["Quant", "Numbers only. Picks steady swingers where the rules already worked."],
+  "Scoop": ["Scout", "News hound. Picks stocks with a dated event coming up."],
+  "Rebound": ["Contrarian", "Likes beaten-down stocks that have stopped falling."],
+  "Goalie": ["Risk keeper", "Sets stops that fit each stock and caps the damage."],
+  "The Bear": ["Doubter", "Assumes every pick loses. Names the least-bad one."]
+};
+async function getJSON(u) { const r = await fetch(u, {cache: "no-cache"}); if (!r.ok) throw 0; return r.json(); }
+async function loadCouncil() {
+  try {
+    const txt = await (await fetch("../council/picks.jsonl", {cache: "no-cache"})).text();
+    const picks = txt.trim().split("\n").filter(Boolean).map(l => JSON.parse(l));
+    const date = picks.length ? picks[picks.length - 1].date : null;
+    if (!date) throw 0;
+    const chosen = picks.filter(p => p.date === date);
+    $("c-lede").textContent += ` Latest session: ${new Date(date + "T12:00").toLocaleDateString("en-CA", {month: "long", day: "numeric", year: "numeric"})}.`;
+    $("c-list").innerHTML = chosen.map(p => `<div class="row"><span class="sym">${esc(p.symbol)}</span><div class="mid"><span>Picked at ${money(p.price)} by ${p.backers.map(esc).join(" and ")} · score ${p.score > 0 ? "+" : ""}${p.score}</span><span class="t num">Buy $${p.rules.dollars} after a ${p.rules.dip}% dip · sell at +${p.rules.take_profit}% · stop at −${p.rules.stop_loss}%</span></div></div>`).join("");
+    const votes = await getJSON(`../council/votes/${date}.json`);
+    $("c-seats").innerHTML = Object.entries(votes.seats).map(([name, v]) => {
+      const [role, how] = SEATS[name] || ["", ""];
+      const pk = (v.picks || []).map(p => `<span class="chip" title="${esc(p.reason || "")}">${esc(p.symbol)} ${p.conviction}</span>`).join("") || '<span class="chip">none</span>';
+      const vt = (v.vetoes || []).map(x => `<span class="chip veto" title="${esc(x.reason || "")}">✕ ${esc(x.symbol)} ${x.strength}</span>`).join("");
+      return `<div class="seat"><div class="who"><b>${esc(name)}</b><span>${role}</span></div><p>${how}</p><div class="chips">${pk}${vt}</div><p><b>Worry:</b> ${esc(v.worry || "—")}</p><p>Odds the picks make money this month: ${v.odds ?? "—"}/5</p></div>`;
+    }).join("");
+  } catch (e) { $("c-list").innerHTML = '<div class="empty">No council session logged yet.</div>'; }
+}
+async function loadResearch() {
+  try {
+    const w = await getJSON("../research/why-summary.json");
+    const br = w.by_reason || {};
+    $("r-why").innerHTML = `
+      <div class="fact"><span class="s">The rules made</span><span class="v num ${cls(w.rules_total)}">${signed(w.rules_total)}</span><span class="s">${w.stocks} stocks, $100 each, costs in</span></div>
+      <div class="fact"><span class="s">Just holding made</span><span class="v num ${cls(w.hold_total)}">${signed(w.hold_total)}</span><span class="s">same stocks, same money</span></div>
+      <div class="fact"><span class="s">Stop-loss vs take-profit sales</span><span class="v num">${br.stop_loss?.n ?? 0} vs ${br.take_profit?.n ?? 0}</span><span class="s">${signed(br.stop_loss?.pnl ?? 0)} vs ${signed(br.take_profit?.pnl ?? 0)}</span></div>
+      <div class="fact"><span class="s">Fees and slippage</span><span class="v num down">${money(w.costs, 0)}</span><span class="s">$1 per trade adds up on $100 bets</span></div>`;
+    $("r-why-note").textContent = `After a take-profit sale the typical stock kept rising another ${w.tp_left_on_table_median}% within 20 days. ${Math.round(w.sl_recovered_share * 100)}% of stopped-out stocks were higher 20 days later. Measured ${w.generated}.`;
+  } catch (e) { $("r-why").innerHTML = '<div class="empty">Research not published yet.</div>'; }
+  try {
+    const wf = await getJSON("../research/walk-forward.json"), W = wf.windows;
+    const sum = k => W.reduce((t, x) => t + (x[k] || 0), 0);
+    const beat = W.filter(x => x.test_tuned > x.test_hold).length;
+    $("r-wf").innerHTML = `
+      <div class="fact"><span class="s">Tuned rules, unseen months</span><span class="v num ${cls(sum("test_tuned"))}">${signed(sum("test_tuned"))}</span><span class="s">beat holding in ${beat} of ${W.length} windows</span></div>
+      <div class="fact"><span class="s">Just holding the stocks</span><span class="v num ${cls(sum("test_hold"))}">${signed(sum("test_hold"))}</span><span class="s">same months</span></div>
+      <div class="fact"><span class="s">Holding SPY</span><span class="v num ${cls(sum("test_spy"))}">${signed(sum("test_spy"))}</span><span class="s">same money, one index fund</span></div>
+      <div class="fact"><span class="s">Default rules (8/20/10)</span><span class="v num ${cls(sum("test_default"))}">${signed(sum("test_default"))}</span><span class="s">what the bot started with</span></div>`;
+    $("r-wf-table").innerHTML = `<table><thead><tr><th>Tested on (unseen)</th><th>Best rules on training</th><th class="r">Tuned</th><th class="r">Hold stocks</th><th class="r">Hold SPY</th></tr></thead><tbody>${W.map(x => {
+      const b = x.best_on_train, sl = b.stop_loss >= 100 ? "no stop" : b.stop_loss + "% stop";
+      return `<tr><td>${esc(x.test)}</td><td>${b.dip}% dip · +${b.take_profit}% · ${sl}</td><td class="r num ${cls(x.test_tuned)}">${signed(x.test_tuned)}</td><td class="r num ${cls(x.test_hold)}">${signed(x.test_hold)}</td><td class="r num ${cls(x.test_spy)}">${signed(x.test_spy)}</td></tr>`;
+    }).join("")}</tbody></table>`;
+  } catch (e) { $("r-wf").innerHTML = '<div class="empty">Walk-forward test not published yet.</div>'; }
+}
+
+loadLive(); loadCouncil(); loadResearch();
+setInterval(loadLive, 30000);
+setInterval(render, 20000);
 </script>
 </body>
 </html>

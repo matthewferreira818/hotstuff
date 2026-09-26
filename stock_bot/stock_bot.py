@@ -65,6 +65,15 @@ MAX_ERRORS_IN_A_ROW = 10
 
 LOCAL = "--local" in sys.argv
 
+# What the bot has been doing, newest last — shown on the Practice Desk.
+EVENTS = []
+
+
+def event(text, kind="info"):
+    EVENTS.append({"time": dt.datetime.now(dt.timezone.utc).isoformat(
+        timespec="seconds"), "kind": kind, "text": text})
+    del EVENTS[:-40]
+
 
 def say(public, private=None):
     """Print a public-safe line; add private detail only with --local."""
@@ -278,6 +287,8 @@ def check(broker, cfg, closes, label, once, already):
     live = label == "LIVE"
     if "--dry-run" in sys.argv or (live and not cfg.get("live_auto_trade")):
         already.update({(a[0], a[1]): float("inf") for a in actions})
+        for line in lines:
+            event("Idea sent to your phone: " + line, "idea")
         say(f"{len(actions)} trade idea(s) sent to phone, none placed.",
             "; ".join(lines))
         notify(f"Stock bot ({label}): {len(actions)} idea(s) — you decide",
@@ -291,8 +302,11 @@ def check(broker, cfg, closes, label, once, already):
         try:
             broker.sell_all(sym) if side == "SELL" else broker.buy(sym, amt)
             done.append(line)
+            event(("Bought " if side == "BUY" else "Sold ")
+                  + line.split(" ", 1)[1], side.lower())
         except RuntimeError as e:
             failed.append(f"{line} — FAILED: {e}")
+            event(f"{line} didn't go through: {e}", "error")
     say(f"Placed {len(done)} order(s), {len(failed)} failed.",
         "; ".join(done + failed))
     notify(f"Stock bot ({label}): {len(done)} order(s) placed",
@@ -340,13 +354,16 @@ def run():
         notify(f"Stock bot ({label}): order sent", done, "high")
         return 0
 
+    stats = {"checks": 0, "every": None, "started": None}
+
     def snapshot(closes, market_open):
         if label != "practice":
             return  # never publish a real account's numbers
         try:
             import live_snapshot
+            bot = dict(stats, events=list(EVENTS))
             live_snapshot.publish(live_snapshot.build(
-                broker, cfg, closes, market_open))
+                broker, cfg, closes, market_open, bot))
         except Exception as e:  # the page must never stop the trading
             print(f"Live page update skipped ({type(e).__name__}).")
 
@@ -382,10 +399,16 @@ def run():
     closes, closes_for = {}, None
     already, placed, checks, errors = {}, 0, 0, 0
     print(f"Watching every {every:g}s until the close.")
+    stats.update(every=every, started=dt.datetime.now(
+        dt.timezone.utc).isoformat(timespec="seconds"))
+    event(f"Market's open. Watching {len(cfg['stocks'])} stocks every "
+          f"{every:g} seconds.", "start")
     while True:
         now = time.monotonic()
         if dt.datetime.now(dt.timezone.utc) >= closes_at:
             print("Market closed.")
+            event(f"Market closed. {checks:,} checks today, {placed} "
+                  f"trade{'s' if placed != 1 else ''}.", "stop")
             break
         if now - started >= MAX_LOOP_SECONDS:
             print("Hit the job time limit — the next scheduled run takes over.")
@@ -395,6 +418,7 @@ def run():
             last_reload = now
             if paused:
                 print("Paused from the watchlist — stopping.")
+                event("Paused from the watchlist. Stopped watching.", "stop")
                 notify(f"Stock bot ({label}): paused", "Stopped watching.")
                 break
             if (cfg.get("mode") == "live") != live or (
@@ -410,14 +434,22 @@ def run():
             done = check(broker, cfg, closes, label, False, already)
             placed += done
             checks += 1
+            stats["checks"] = checks
             errors = 0
             if done or now - last_snap >= SNAPSHOT_SECONDS:
+                if not done:
+                    if EVENTS and EVENTS[-1]["kind"] == "quiet":
+                        EVENTS.pop()  # keep one rolling "all quiet" line
+                    event(f"Checked {len(symbols)} stocks. No rule hit, "
+                          "nothing to do.", "quiet")
                 snapshot(closes, True)
                 last_snap = now
         except (RuntimeError, urllib.error.URLError, OSError,
                 ValueError, KeyError) as e:
             errors += 1
             print(f"Check failed ({type(e).__name__}), {errors} in a row.")
+            event(f"Couldn't get prices ({errors} in a row). Retrying in "
+                  "30 seconds.", "error")
             if errors >= MAX_ERRORS_IN_A_ROW:
                 notify(f"Stock bot ({label}): stopped",
                        f"{errors} failed checks in a row, last: {e}", "high")

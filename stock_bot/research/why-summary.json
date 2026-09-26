@@ -1,0 +1,32 @@
+{
+ "label": "Default rules",
+ "rules": {
+  "buy_dip_pct": 8.0,
+  "take_profit_pct": 20.0,
+  "stop_loss_pct": 10.0
+ },
+ "stocks": 58,
+ "rules_total": -1481.03,
+ "hold_total": 596.14,
+ "by_reason": {
+  "take_profit": {
+   "n": 211,
+   "pnl": 5075.31
+  },
+  "stop_loss": {
+   "n": 476,
+   "pnl": -6656.53
+  },
+  "still_open": {
+   "n": 43,
+   "pnl": 100.19
+  }
+ },
+ "costs": 1557.64,
+ "avg_exposure": 0.805,
+ "never_bought": [],
+ "tp_left_on_table_median": 9.1,
+ "sl_after_median": 1.9,
+ "sl_recovered_share": 0.52,
+ "generated": "2026-09-26"
+}

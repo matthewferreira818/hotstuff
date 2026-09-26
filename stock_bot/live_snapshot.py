@@ -21,7 +21,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BRANCH = "stock-live"
 
 
-def build(broker, cfg, closes, market_open):
+def build(broker, cfg, closes, market_open, bot=None):
     symbols = [s["symbol"].upper() for s in cfg.get("stocks", [])]
     prices = broker.latest_prices(symbols + ["SPY"])
     acct = broker.acct
@@ -75,6 +75,11 @@ def build(broker, cfg, closes, market_open):
         "stocks": stocks,
         "orders": list(reversed(acct["orders"]))[:20],
         "picked_by": cfg.get("_stocks_from", ""),
+        "bot": bot or {},
+        "settings": {"every": cfg.get("check_every_seconds"),
+                     "max_total_invested": cfg.get("max_total_invested"),
+                     "max_orders_per_day": cfg.get("max_orders_per_day"),
+                     "paused": bool(cfg.get("paused"))},
     }
 
 

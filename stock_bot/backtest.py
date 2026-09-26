@@ -339,6 +339,11 @@ def main():
         res = why(data, default, "Default rules")
         with open(os.path.join(OUT, "why-trades.json"), "w") as f:
             json.dump(res, f, indent=1)
+        # Small version for the Practice Desk app.
+        with open(os.path.join(OUT, "why-summary.json"), "w") as f:
+            json.dump(dict({k: v for k, v in res.items()
+                            if k not in ("trades", "per_stock")},
+                           generated=today), f, indent=1)
         text = (f"# Why the rules trail holding — {today}\n\n"
                 "Past year, daily closes, $100 per buy, $1 fee per trade "
                 "and 0.1% slippage (the practice account's costs).\n\n"

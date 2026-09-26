@@ -280,6 +280,9 @@ tr:last-child td { border-bottom: 0; }
       <h3 id="r-exp-h">Experiment EXP-0001: dip-buying vs trend-following</h3>
       <p class="note" id="r-exp-note">Four strategies, settings fixed before the run, tested on the same unseen months. Research only: the bot still trades the original dip rules.</p>
       <div class="table-wrap" id="r-exp"></div>
+      <h3>Experiment EXP-0002: momentum with idle cash in SPY</h3>
+      <p class="note" id="r-exp2-note">Pass conditions were set before the run.</p>
+      <div class="table-wrap" id="r-exp2"></div>
       <p class="note">The stock list was hand-picked from names that still exist today, which flatters every stock column. SPY doesn't have that problem.</p>
     </div>
   </section>
@@ -464,7 +467,19 @@ async function loadExperiment() {
   } catch (e) { $("r-exp").innerHTML = '<div class="empty">Experiment not published yet.</div>'; }
 }
 
-loadLive(); loadCouncil(); loadResearch(); loadExperiment();
+async function loadExperiment2() {
+  try {
+    const x = await getJSON("../research/experiments/EXP-0002.json"), R = x.results;
+    $("r-exp2-note").innerHTML = `<b>${x.passed ? "Passed" : "Did not pass"}</b> (conditions set before the run): ` +
+      x.checks.map(c => `${c.met ? "✓" : "✗"} ${esc(c.name)} (${esc(c.numbers)})`).join(" · ");
+    $("r-exp2").innerHTML = `<table><thead><tr><th>Strategy</th><th class="r">P/L</th><th class="r">Worst drop</th><th class="r">Risk-adjusted (Sharpe)</th><th class="r">Fees</th></tr></thead><tbody>${x.order.map(k => {
+      const r = R[k];
+      return `<tr><td>${esc(x.names[k])}</td><td class="r num ${cls(r.pnl)}">${signed(r.pnl)}</td><td class="r num down">${r.max_drawdown_pct}%</td><td class="r num">${r.sharpe}</td><td class="r num">${money(r.fees, 0)}</td></tr>`;
+    }).join("")}</tbody></table>`;
+  } catch (e) { $("r-exp2").innerHTML = '<div class="empty">Experiment not published yet.</div>'; }
+}
+
+loadLive(); loadCouncil(); loadResearch(); loadExperiment(); loadExperiment2();
 setInterval(loadLive, 30000);
 setInterval(render, 20000);
 </script>

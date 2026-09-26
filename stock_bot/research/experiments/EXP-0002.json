@@ -1,0 +1,289 @@
+{
+ "id": "EXP-0002",
+ "run": "2026-09-26",
+ "hypothesis": "Momentum with idle cash in SPY beats holding SPY on unseen windows.",
+ "passed": true,
+ "checks": [
+  {
+   "name": "More profit than holding SPY",
+   "met": true,
+   "numbers": "$+3,480 vs $+2,127"
+  },
+  {
+   "name": "Better risk-adjusted return (Sharpe)",
+   "met": true,
+   "numbers": "1.11 vs 1.08"
+  },
+  {
+   "name": "Beats SPY in 5+ of 9 windows",
+   "met": true,
+   "numbers": "5 of 9"
+  },
+  {
+   "name": "Most nearby settings beat SPY",
+   "met": true,
+   "numbers": "12 of 18"
+  }
+ ],
+ "names": {
+  "SPY": "Just hold SPY",
+  "D-cash": "Momentum, idle cash sits",
+  "D-SPY": "Momentum, idle cash in SPY",
+  "STOCKS": "Just hold all the stocks"
+ },
+ "order": [
+  "SPY",
+  "D-SPY",
+  "D-cash",
+  "STOCKS"
+ ],
+ "settings": {
+  "momentum": 10,
+  "volume_x": 1.5,
+  "atr_x": 3
+ },
+ "costs": {
+  "fee": 1.0,
+  "stock_slippage": 0.001,
+  "spy_slippage": 0.0002
+ },
+ "results": {
+  "SPY": {
+   "pnl": 2127.14,
+   "return_pct": 37.3,
+   "max_drawdown_pct": -16.9,
+   "return_per_drawdown": 2.2,
+   "sharpe": 1.08,
+   "volatility_pct": 14.1,
+   "trades": 0,
+   "win_rate": null,
+   "profit_factor": null,
+   "avg_trade": 0,
+   "exposure_pct": 100,
+   "fees": 9,
+   "spy_pnl": 2147.34,
+   "windows_beat_spy": 0,
+   "windows": 9,
+   "per_window": [
+    393.04,
+    348.98,
+    199.33,
+    -516.9,
+    844.42,
+    461.88,
+    68.39,
+    144.37,
+    183.64
+   ],
+   "orders": 9
+  },
+  "_windows": [
+   "2024-04-25 \u2192 2024-07-25",
+   "2024-07-26 \u2192 2024-10-23",
+   "2024-10-24 \u2192 2025-01-27",
+   "2025-01-28 \u2192 2025-04-28",
+   "2025-04-29 \u2192 2025-07-29",
+   "2025-07-30 \u2192 2025-10-27",
+   "2025-10-28 \u2192 2026-01-28",
+   "2026-01-29 \u2192 2026-04-29",
+   "2026-04-30 \u2192 2026-07-30"
+  ],
+  "D-SPY": {
+   "pnl": 3479.64,
+   "return_pct": 61.0,
+   "max_drawdown_pct": -27.8,
+   "return_per_drawdown": 2.2,
+   "sharpe": 1.11,
+   "volatility_pct": 21.7,
+   "trades": 247,
+   "win_rate": 32,
+   "profit_factor": 1.14,
+   "avg_trade": 7.55,
+   "exposure_pct": 28,
+   "fees": 1838,
+   "spy_pnl": 2147.34,
+   "windows_beat_spy": 5,
+   "windows": 9,
+   "per_window": [
+    622.03,
+    745.9,
+    1767.82,
+    -894.98,
+    1134.81,
+    695.71,
+    -335.87,
+    -18.38,
+    -237.4
+   ],
+   "orders": 1838
+  },
+  "D-cash": {
+   "pnl": 3101.3,
+   "return_pct": 54.4,
+   "max_drawdown_pct": -19.6,
+   "return_per_drawdown": 2.77,
+   "sharpe": 1.15,
+   "volatility_pct": 18.4,
+   "trades": 247,
+   "win_rate": 32,
+   "profit_factor": 1.14,
+   "avg_trade": 7.53,
+   "exposure_pct": 28,
+   "fees": 659,
+   "spy_pnl": 2147.34,
+   "windows_beat_spy": 5,
+   "windows": 9,
+   "per_window": [
+    395.72,
+    573.05,
+    1799.71,
+    -365.63,
+    724.18,
+    571.69,
+    -285.07,
+    -67.37,
+    -244.98
+   ],
+   "orders": 659
+  },
+  "STOCKS": {
+   "pnl": 6732.31,
+   "return_pct": 118.1,
+   "max_drawdown_pct": -26.3,
+   "return_per_drawdown": 4.49,
+   "sharpe": 1.37,
+   "volatility_pct": 28.9,
+   "trades": 0,
+   "win_rate": null,
+   "profit_factor": null,
+   "avg_trade": 12.95,
+   "exposure_pct": 98,
+   "fees": 520,
+   "spy_pnl": 2147.34,
+   "windows_beat_spy": 5,
+   "windows": 9,
+   "per_window": [
+    1201.64,
+    609.76,
+    2896.83,
+    -720.97,
+    2612.12,
+    1168.4,
+    -730.32,
+    -432.61,
+    127.46
+   ],
+   "orders": 520
+  }
+ },
+ "robustness": [
+  {
+   "momentum": 0,
+   "volume_x": 1.0,
+   "atr_x": 2,
+   "pnl": 936.83
+  },
+  {
+   "momentum": 0,
+   "volume_x": 1.0,
+   "atr_x": 3,
+   "pnl": 3174.36
+  },
+  {
+   "momentum": 0,
+   "volume_x": 1.0,
+   "atr_x": 4,
+   "pnl": 4044.06
+  },
+  {
+   "momentum": 0,
+   "volume_x": 1.5,
+   "atr_x": 2,
+   "pnl": 1283.33
+  },
+  {
+   "momentum": 0,
+   "volume_x": 1.5,
+   "atr_x": 3,
+   "pnl": 3542.37
+  },
+  {
+   "momentum": 0,
+   "volume_x": 1.5,
+   "atr_x": 4,
+   "pnl": 4047.93
+  },
+  {
+   "momentum": 10,
+   "volume_x": 1.0,
+   "atr_x": 2,
+   "pnl": 1093.6
+  },
+  {
+   "momentum": 10,
+   "volume_x": 1.0,
+   "atr_x": 3,
+   "pnl": 3311.98
+  },
+  {
+   "momentum": 10,
+   "volume_x": 1.0,
+   "atr_x": 4,
+   "pnl": 3787.37
+  },
+  {
+   "momentum": 10,
+   "volume_x": 1.5,
+   "atr_x": 2,
+   "pnl": 1454.39
+  },
+  {
+   "momentum": 10,
+   "volume_x": 1.5,
+   "atr_x": 3,
+   "pnl": 3479.64
+  },
+  {
+   "momentum": 10,
+   "volume_x": 1.5,
+   "atr_x": 4,
+   "pnl": 3871.78
+  },
+  {
+   "momentum": 20,
+   "volume_x": 1.0,
+   "atr_x": 2,
+   "pnl": 1744.89
+  },
+  {
+   "momentum": 20,
+   "volume_x": 1.0,
+   "atr_x": 3,
+   "pnl": 3526.1
+  },
+  {
+   "momentum": 20,
+   "volume_x": 1.0,
+   "atr_x": 4,
+   "pnl": 3662.22
+  },
+  {
+   "momentum": 20,
+   "volume_x": 1.5,
+   "atr_x": 2,
+   "pnl": 1775.24
+  },
+  {
+   "momentum": 20,
+   "volume_x": 1.5,
+   "atr_x": 3,
+   "pnl": 3570.61
+  },
+  {
+   "momentum": 20,
+   "volume_x": 1.5,
+   "atr_x": 4,
+   "pnl": 3659.92
+  }
+ ]
+}

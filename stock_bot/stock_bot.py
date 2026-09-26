@@ -35,7 +35,9 @@ Usage:
 import datetime as dt
 import json
 import os
+import subprocess
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -47,6 +49,16 @@ PAUSE_FILE = os.path.join(HERE, "PAUSE")
 PAPER_API = "https://paper-api.alpaca.markets"
 LIVE_API = "https://api.alpaca.markets"
 DATA_API = "https://data.alpaca.markets"
+
+OPEN_STATUSES = {"new", "accepted", "pending_new", "partially_filled",
+                 "accepted_for_bidding", "pending_replace", "held"}
+
+# GitHub-hosted jobs die at 6h; stop cleanly before that. The hourly
+# schedule queues the next run, which carries on until the close.
+MAX_LOOP_SECONDS = 5 * 3600 + 45 * 60
+RELOAD_SECONDS = 60      # re-read the watchlist from GitHub this often
+HEARTBEAT_SECONDS = 1800
+MAX_ERRORS_IN_A_ROW = 10
 
 LOCAL = "--local" in sys.argv
 
@@ -140,14 +152,18 @@ def decide(cfg, prices, closes, positions, orders_today):
     """
     actions = []
     invested = sum(float(p.get("market_value", 0)) for p in positions.values())
-    bought_today = {o["symbol"] for o in orders_today if o.get("side") == "buy"}
+    # Any order today (buy or sell) blocks another buy of that stock, so a
+    # stop-loss sell can't be followed by a dip re-buy seconds later.
+    traded_today = {o["symbol"] for o in orders_today}
+    pending = {o["symbol"] for o in orders_today
+               if o.get("status") in OPEN_STATUSES}
     orders_left = int(cfg.get("max_orders_per_day", 4)) - len(orders_today)
 
     for s in cfg.get("stocks", []):
         sym = s["symbol"].upper()
         price = prices.get(sym)
         pos = positions.get(sym)
-        if price is None or not pos:
+        if price is None or not pos or sym in pending:
             continue
         entry = float(pos["avg_entry_price"])
         change = (price - entry) / entry * 100
@@ -167,7 +183,7 @@ def decide(cfg, prices, closes, positions, orders_today):
     for s in cfg.get("stocks", []):
         sym = s["symbol"].upper()
         price = prices.get(sym)
-        if price is None or sym in sold or sym in bought_today:
+        if price is None or sym in sold or sym in traded_today:
             continue
         reason = None
         if s.get("buy_below") and price <= s["buy_below"]:
@@ -214,6 +230,27 @@ def load_cfg():
         return json.load(f)
 
 
+def fresh_cfg(cfg):
+    """Latest watchlist from GitHub, so edits (and pausing) reach a run
+    that is already looping. Returns (cfg, paused). Keeps the old list if
+    the fetch fails; a PAUSE file or "paused" either way means stop."""
+    branch = os.environ.get("GITHUB_REF_NAME", "master")
+    git = ["git", "-C", HERE]
+    try:
+        subprocess.run(git + ["fetch", "-q", "origin", branch], check=True,
+                       timeout=30, capture_output=True)
+        raw = subprocess.run(
+            git + ["show", f"FETCH_HEAD:stock_bot/watchlist.json"],
+            check=True, timeout=10, capture_output=True).stdout
+        cfg = json.loads(raw)
+        paused_file = subprocess.run(
+            git + ["cat-file", "-e", "FETCH_HEAD:stock_bot/PAUSE"],
+            timeout=10, capture_output=True).returncode == 0
+    except (subprocess.SubprocessError, OSError, ValueError):
+        paused_file = os.path.exists(PAUSE_FILE)
+    return cfg, bool(cfg.get("paused") or paused_file)
+
+
 def manual_order(broker, text):
     """'BUY AAPL 100' (dollars) or 'SELL AAPL' (whole position)."""
     parts = text.upper().split()
@@ -229,7 +266,65 @@ def manual_order(broker, text):
     raise SystemExit('Order must look like "BUY AAPL 100" or "SELL AAPL".')
 
 
+def check(broker, cfg, closes, label, once, already):
+    """One look at the prices; places (or proposes) what the rules say.
+    `already` maps (side, symbol) to when it may be tried again, so an idea
+    is sent once per run and a failed order is retried every 5 minutes, not
+    every 10 seconds. Returns the number of orders placed."""
+    symbols = sorted({s["symbol"].upper() for s in cfg.get("stocks", [])})
+    prices = broker.latest_prices(symbols)
+    now = time.monotonic()
+    actions = [a for a in decide(cfg, prices, closes, broker.positions(),
+                                 broker.orders_today())
+               if already.get((a[0], a[1]), 0) <= now]
+    if not actions:
+        if once:
+            print(f"Checked {len(symbols)} stocks — no trades this run.")
+        return 0
+
+    lines = [f"{side} {sym} ${amt:,.2f} — {why}"
+             for side, sym, amt, why in actions]
+    live = label == "LIVE"
+    if "--dry-run" in sys.argv or (live and not cfg.get("live_auto_trade")):
+        already.update({(a[0], a[1]): float("inf") for a in actions})
+        say(f"{len(actions)} trade idea(s) sent to phone, none placed.",
+            "; ".join(lines))
+        notify(f"Stock bot ({label}): {len(actions)} idea(s) — you decide",
+               "\n".join(lines) + "\n\nTo place one: Actions → Stock bot → "
+               "Run workflow → order, e.g. BUY AAPL 100", "high")
+        return 0
+
+    done, failed = [], []
+    for (side, sym, amt, why), line in zip(actions, lines):
+        already[(side, sym)] = now + 300
+        try:
+            broker.sell_all(sym) if side == "SELL" else broker.buy(sym, amt)
+            done.append(line)
+        except RuntimeError as e:
+            failed.append(f"{line} — FAILED: {e}")
+    say(f"Placed {len(done)} order(s), {len(failed)} failed.",
+        "; ".join(done + failed))
+    notify(f"Stock bot ({label}): {len(done)} order(s) placed",
+           "\n".join(done + failed), "high" if failed else "default")
+    return len(done)
+
+
+def wait_for_open(broker, clock):
+    """If the open is under an hour away, sleep until it (the first
+    scheduled run lands before 9:30). Returns True once the market is open."""
+    if clock.get("is_open"):
+        return True
+    opens = dt.datetime.fromisoformat(clock["next_open"])
+    wait = (opens - dt.datetime.now(dt.timezone.utc)).total_seconds()
+    if not 0 < wait <= 3600 or "--once" in sys.argv:
+        return False
+    print(f"Market opens in {wait / 60:.0f} min — waiting.")
+    time.sleep(wait + 5)
+    return bool(broker.clock().get("is_open"))
+
+
 def run():
+    started = time.monotonic()  # the job clock includes any wait for the open
     cfg = load_cfg()
     live = cfg.get("mode") == "live"
     label = "LIVE" if live else "paper"
@@ -247,47 +342,69 @@ def run():
     if cfg.get("paused") or os.path.exists(PAUSE_FILE):
         print("Paused — no trades.")
         return 0
-    if not broker.clock().get("is_open"):
+    if not cfg.get("stocks"):
+        print("Watchlist is empty.")
+        return 0
+    if not wait_for_open(broker, broker.clock()):
         print("Market closed — no trades.")
         return 0
 
-    symbols = sorted({s["symbol"].upper() for s in cfg.get("stocks", [])})
-    if not symbols:
-        print("Watchlist is empty.")
-        return 0
-    prices = broker.latest_prices(symbols)
-    closes = broker.daily_closes(symbols)
-    positions = broker.positions()
-    orders = broker.orders_today()
-    actions = decide(cfg, prices, closes, positions, orders)
-    if not actions:
-        print(f"Checked {len(symbols)} stocks — no trades this run.")
+    every = float(cfg.get("check_every_seconds", 0))
+    once = "--once" in sys.argv or "--dry-run" in sys.argv or every <= 0
+    if once:
+        symbols = sorted({s["symbol"].upper() for s in cfg["stocks"]})
+        check(broker, cfg, broker.daily_closes(symbols), label, True, {})
         return 0
 
-    lines = [f"{side} {sym} ${amt:,.2f} — {why}"
-             for side, sym, amt, why in actions]
-    propose_only = "--dry-run" in sys.argv or (
-        live and not cfg.get("live_auto_trade"))
-    if propose_only:
-        say(f"{len(actions)} trade idea(s) sent to phone, none placed.",
-            "; ".join(lines))
-        notify(f"Stock bot ({label}): {len(actions)} idea(s) — you decide",
-               "\n".join(lines) + "\n\nTo place one: Actions → Stock bot → "
-               "Run workflow → order, e.g. BUY AAPL 100", "high")
-        return 0
-
-    done, failed = [], []
-    for (side, sym, amt, why), line in zip(actions, lines):
+    # Loop mode: keep watching until the close (or the 5h45m job budget).
+    every = max(every, 5)  # Alpaca's free plan allows 200 calls/min
+    closes_at = dt.datetime.fromisoformat(broker.clock()["next_close"])
+    last_reload = last_beat = time.monotonic()
+    closes, closes_for = {}, None
+    already, placed, checks, errors = {}, 0, 0, 0
+    print(f"Watching every {every:g}s until the close.")
+    while True:
+        now = time.monotonic()
+        if dt.datetime.now(dt.timezone.utc) >= closes_at:
+            print("Market closed.")
+            break
+        if now - started >= MAX_LOOP_SECONDS:
+            print("Hit the job time limit — the next scheduled run takes over.")
+            break
+        if now - last_reload >= RELOAD_SECONDS:
+            cfg, paused = fresh_cfg(cfg)
+            last_reload = now
+            if paused:
+                print("Paused from the watchlist — stopping.")
+                notify(f"Stock bot ({label}): paused", "Stopped watching.")
+                break
+            if (cfg.get("mode") == "live") != live:
+                print("Mode changed — stopping; the next run uses the new mode.")
+                break
         try:
-            broker.sell_all(sym) if side == "SELL" else broker.buy(sym, amt)
-            done.append(line)
-        except RuntimeError as e:
-            failed.append(f"{line} — FAILED: {e}")
-    say(f"Placed {len(done)} order(s), {len(failed)} failed.",
-        "; ".join(done + failed))
-    notify(f"Stock bot ({label}): {len(done)} order(s) placed",
-           "\n".join(done + failed), "high" if failed else "default")
-    return 1 if failed else 0
+            symbols = tuple(sorted({s["symbol"].upper()
+                                    for s in cfg.get("stocks", [])}))
+            if symbols != closes_for:  # daily bars: once, or on list change
+                closes, closes_for = broker.daily_closes(list(symbols)), symbols
+            placed += check(broker, cfg, closes, label, False, already)
+            checks += 1
+            errors = 0
+        except (RuntimeError, urllib.error.URLError, OSError,
+                ValueError, KeyError) as e:
+            errors += 1
+            print(f"Check failed ({type(e).__name__}), {errors} in a row.")
+            if errors >= MAX_ERRORS_IN_A_ROW:
+                notify(f"Stock bot ({label}): stopped",
+                       f"{errors} failed checks in a row, last: {e}", "high")
+                return 1
+            time.sleep(30)
+            continue
+        if now - last_beat >= HEARTBEAT_SECONDS:
+            print(f"Still watching: {checks} checks so far.")
+            last_beat = now
+        time.sleep(every)
+    print(f"Done: {checks} checks, {placed} order(s) placed.")
+    return 0
 
 
 def selftest():
@@ -314,6 +431,11 @@ def selftest():
     acts = decide(cfg, {"AAA": 94, "BBB": 40, "CCC": 8}, closes, pos,
                   [{"symbol": "AAA", "side": "buy"}, {"symbol": "X"}])
     assert [(a[0], a[1]) for a in acts] == [("SELL", "CCC")], acts
+    # Sold CCC earlier today -> no dip/below re-buy; open sell -> no 2nd sell.
+    acts = decide(cfg, {"AAA": 100, "BBB": 60, "CCC": 5}, closes,
+                  {"CCC": {"avg_entry_price": "10", "market_value": "40"}},
+                  [{"symbol": "CCC", "side": "sell", "status": "new"}])
+    assert acts == [], acts
     # Take-profit.
     acts = decide(cfg, {"AAA": 120}, closes,
                   {"AAA": {"avg_entry_price": "100", "market_value": "120"}},

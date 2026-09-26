@@ -4,6 +4,7 @@
   "mode": "paper",
   "live_auto_trade": false,
   "paused": false,
+  "check_every_seconds": 10,
 
   "max_total_invested": 1000,
   "max_orders_per_day": 4,

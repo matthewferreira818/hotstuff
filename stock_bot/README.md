@@ -1,6 +1,6 @@
 # Stock bot
 
-You give it the stocks. It watches their prices every 30 minutes while the
+You give it the stocks. It watches their prices every 10 seconds while the
 US market is open and buys or sells by the rules you set. Anything it does
 gets pushed to your phone (the same ntfy alerts the store uses).
 
@@ -38,11 +38,15 @@ promise a profit. It can lose money, so start on paper.
 
 Across the whole list:
 
+- `check_every_seconds` sets how often it looks (default `10`, lowest `5`).
+  Set it to `0` to check once an hour instead.
 - `max_total_invested` caps the total amount it holds across all stocks.
 - `max_orders_per_day` caps how many orders it places per day.
-- It buys each stock at most once a day.
-- `"paused": true` stops all trading. So does adding a file named
-  `stock_bot/PAUSE`.
+- It trades each stock at most once a day each way, so it won't sell on a
+  stop-loss and then buy the same stock back seconds later.
+- `"paused": true` stops all trading within about a minute, even
+  mid-day. So does adding a file named `stock_bot/PAUSE`. For an
+  instant stop, go to Actions → the running **Stock bot** run → Cancel.
 
 ## Manual orders
 
@@ -64,6 +68,25 @@ In live mode the bot starts in **you-decide mode**
 places nothing. You place a trade with the Run workflow button. Set
 `live_auto_trade` to `true` only if you want it to trade real money on
 its own.
+
+## How the 10-second checks work
+
+One GitHub Actions run starts near the 9:30 open and keeps looking every
+10 seconds until the 4pm close. A run can only last 6 hours, so a second
+run queued behind it finishes the day. In the Actions tab you'll see one
+long run per day plus some "cancelled" queued runs. That's normal.
+Changes to watchlist.json take effect within about a minute.
+
+Honest limits:
+- 10 seconds is fast for a person but slow for Wall Street. Pro firms
+  trade in millionths of a second. This bot is for sticking to your
+  rules, not for out-racing anyone.
+- The free price feed comes from one exchange (IEX). It's real-time, but
+  for thinly traded stocks it can lag the full market a little.
+- GitHub's terms say Actions are for building and publishing software. A
+  bot that runs all day stretches that, and GitHub could throttle or
+  flag it. If that happens, we move it to a free Cloudflare Worker that
+  checks once a minute.
 
 ## Privacy
 

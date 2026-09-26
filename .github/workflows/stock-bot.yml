@@ -1,8 +1,16 @@
 name: Stock bot
 
-# Checks Matthew's watchlist (stock_bot/watchlist.json) every 30 minutes
-# while the US market is open and trades by his rules. Paper money by
-# default. The bot exits quietly when no Alpaca keys are set.
+# Watches Matthew's watchlist (stock_bot/watchlist.json) while the US
+# market is open and trades by his rules. Paper money by default. The bot
+# exits quietly when no Alpaca keys are set.
+#
+# One scheduled run loops every check_every_seconds (10s) until the close,
+# re-reading the watchlist from GitHub every minute (so "paused" works
+# mid-day). A job can live 6h and the session is 6.5h, so the hourly
+# schedule keeps one run queued behind the loop to finish the day (and to
+# restart it if a run dies). Queued runs that get superseded show as
+# "cancelled" — that's expected. Manual runs are single checks in their
+# own group, so they never wait behind the loop.
 #
 # PRIVACY: public repo = public logs. The script never prints balances or
 # trades on CI; details go to his phone via ntfy. Do not add steps that
@@ -10,9 +18,9 @@ name: Stock bot
 
 on:
   schedule:
-    # 13:35–20:05 UTC on weekdays covers 9:30am–4pm New York (EDT and EST);
-    # the script checks Alpaca's market clock before doing anything.
-    - cron: "5,35 13-20 * * 1-5"
+    # Hourly 13:05–20:05 UTC on weekdays covers 9:30am–4pm New York in both
+    # EDT and EST; the script waits for the open if it's under an hour off.
+    - cron: "5 13-20 * * 1-5"
   workflow_dispatch:
     inputs:
       order:
@@ -25,13 +33,13 @@ on:
         default: false
 
 concurrency:
-  group: stock-bot
+  group: stock-bot-${{ github.event_name }}
   cancel-in-progress: false
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 358
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -52,5 +60,5 @@ jobs:
           if [ -n "$ORDER" ]; then
             python stock_bot/stock_bot.py --order "$ORDER"
           else
-            python stock_bot/stock_bot.py $DRY
+            python stock_bot/stock_bot.py --once $DRY
           fi

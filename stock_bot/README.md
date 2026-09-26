@@ -9,25 +9,33 @@ example, "buy $100 of Apple when it's 8% under its recent high, sell when
 I'm up 20% or down 10%"). It doesn't predict the market, and no tool can
 promise a profit. It can lose money, so start on paper.
 
-## Setup (about 10 minutes, $0)
+## Setup: nothing to do
 
-1. Sign up at **alpaca.markets**. A paper (fake-money) account comes with
-   every signup.
-2. In the Alpaca dashboard (Paper side), click **API Keys → Generate**.
-3. Open GitHub → this repo → Settings → Secrets and variables → Actions,
-   then paste in two secrets yourself:
-   - `ALPACA_KEY_ID`
-   - `ALPACA_SECRET_KEY`
+The bot trades a **practice account we built ourselves**
+(`stock_bot/paper_broker.py`), because Alpaca won't open accounts for
+Canadian tax residents, not even practice ones.
 
-   (Never paste them in chat. `NTFY_TOPIC` is already there.)
-4. Done. The bot starts on the next market-hours run. To test it right
-   away, go to Actions → **Stock bot** → Run workflow and tick "dry run".
+- **Real live prices** from Yahoo's free feed, about 1 minute fresh.
+- **Fake money**: it starts with $1,000.
+- **Real-world costs on every trade** (`paper_costs` in watchlist.json):
+  a $1 fee plus fills 0.1% worse than the quote. That's roughly a small
+  account at Interactive Brokers Canada. Check their current prices
+  before relying on it.
+- **A public record**: the account lives in `stock_bot/paper/account.json`
+  and is saved to GitHub after every trade, so nobody can quietly fix
+  the numbers later.
+
+How it's doing, compared with putting the same $1,000 in SPY:
+`python stock_bot/paper_broker.py --status` (or just ask Claude).
+
+Manual orders (below) only apply to a real broker. The practice account
+trades by the rules alone.
 
 ## Your list: `stock_bot/watchlist.json`
 
 | Setting | Meaning |
 |---|---|
-| `symbol` | Ticker, e.g. `AAPL`. US-listed stocks and ETFs only (Alpaca doesn't trade the TSX). |
+| `symbol` | Ticker, e.g. `AAPL`. US-listed stocks and ETFs only. |
 | `buy_below` | Buy when the price is at or under this. `0` = off. |
 | `buy_dip_pct` | Buy when it's this % under its 20-day high. `0` = off. |
 | `dollars_per_buy` | How much each buy spends (fractional shares are fine). |
@@ -56,13 +64,17 @@ position.
 
 ## Going live with real money
 
-Don't rush this. Run it on paper for a few weeks first.
+Don't rush this. The council's standing rule is 20 graded picks that beat
+just holding SPY first.
 
-1. Open and fund a live Alpaca account. Check at signup that they accept
-   Canadian residents; availability changes.
-2. Add `ALPACA_LIVE_KEY_ID` and `ALPACA_LIVE_SECRET_KEY` as secrets.
-3. In watchlist.json, set `"mode": "live"`.
+Alpaca's real-money accounts aren't open to Canadians. The realistic
+route is **Interactive Brokers Canada**: it allows automated trading and
+TFSAs. Its connection needs an IBKR program logged in during market
+hours, which means a computer left on or a small rented server. When
+the time comes, Claude builds that connection.
 
+The Alpaca code stays in place for anyone who can use it
+(`"broker": "alpaca"`, keys as GitHub secrets, `"mode": "live"`).
 In live mode the bot starts in **you-decide mode**
 (`"live_auto_trade": false`). It sends each trade idea to your phone and
 places nothing. You place a trade with the Run workflow button. Set

@@ -28,5 +28,5 @@ Seats' odds the picks make money on paper this month: Tally 3/5 · Scoop 2/5 · 
 
 Worries: Tally: picked from last year's backtest winners on a survivor list; median default-rules result across 58 was only +$4.71 | Scoop: the two best catalysts land Oct 20-22, one gap each with no telling which way; the rules get little time to work | Rebound: a floor holds until it doesn't; SpaceX share-supply fears drag space names and HIMS can gap on lawsuit news; the bot lost -$48 on HIMS last year | Goalie: three herds but all US growth; a market-wide down day could hit all three stops at once (worst case ~$26, ~$40 with gaps) | The Bear: the screen's own scoreboard: the rules made less than doing nothing (+$227/+$20 vs holding +$596, SPY ~+$812); live, friction is ~12-14% per $100 bet before tax
 
-Matthew's decision: pending
+Matthew's decision: yes, practice money only (2026-09-26). Loaded into watchlist.json on our own practice account after Alpaca refused Canadian residents.
 

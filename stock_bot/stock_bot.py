@@ -326,9 +326,19 @@ def wait_for_open(broker, clock):
 def run():
     started = time.monotonic()  # the job clock includes any wait for the open
     cfg = load_cfg()
-    live = cfg.get("mode") == "live"
-    label = "LIVE" if live else "paper"
-    broker = Alpaca(live)
+    if cfg.get("broker", "practice") == "practice":
+        # Our own practice account (paper_broker.py): real prices, fake
+        # money, real-world fees. Alpaca won't take Canadian residents.
+        from paper_broker import PaperBroker
+        broker, live, label = PaperBroker(cfg.get("paper_costs")), False, \
+            "practice"
+        if "--order" in sys.argv:
+            print("The practice account only trades by the rules.")
+            return 0
+    else:
+        live = cfg.get("mode") == "live"
+        label = "LIVE" if live else "paper"
+        broker = Alpaca(live)
     if not broker.ready():
         print(f"No Alpaca {label} keys set — nothing to do. See README.")
         return 0
@@ -378,7 +388,9 @@ def run():
                 print("Paused from the watchlist — stopping.")
                 notify(f"Stock bot ({label}): paused", "Stopped watching.")
                 break
-            if (cfg.get("mode") == "live") != live:
+            if (cfg.get("mode") == "live") != live or (
+                    cfg.get("broker", "practice") == "practice") != (
+                    label == "practice"):
                 print("Mode changed — stopping; the next run uses the new mode.")
                 break
         try:

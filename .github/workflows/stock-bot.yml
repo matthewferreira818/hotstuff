@@ -1,8 +1,9 @@
 name: Stock bot
 
 # Watches Matthew's watchlist (stock_bot/watchlist.json) while the US
-# market is open and trades by his rules. Paper money by default. The bot
-# exits quietly when no Alpaca keys are set.
+# market is open and trades by his rules. Default broker is our own
+# practice account (stock_bot/paper_broker.py): real prices, fake money,
+# committed back to the repo after each trade — hence contents: write.
 #
 # One scheduled run loops every check_every_seconds (10s) until the close,
 # re-reading the watchlist from GitHub every minute (so "paused" works
@@ -36,6 +37,9 @@ concurrency:
   group: stock-bot-${{ github.event_name }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -46,7 +50,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Self-test
-        run: python stock_bot/stock_bot.py --selftest
+        run: |
+          python stock_bot/stock_bot.py --selftest
+          python stock_bot/paper_broker.py --selftest
       - name: Run
         env:
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}

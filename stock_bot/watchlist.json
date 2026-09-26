@@ -1,6 +1,9 @@
 {
   "_read_me": "Matthew's stock list. Add/remove stocks here; the bot reads this every run. See stock_bot/README.md for what each setting means.",
 
+  "broker": "practice",
+  "paper_costs": {"fee_per_trade": 1.0, "slippage_pct": 0.1},
+
   "mode": "paper",
   "live_auto_trade": false,
   "paused": false,
@@ -9,23 +12,34 @@
   "max_total_invested": 1000,
   "max_orders_per_day": 4,
 
+  "_stocks_from": "Stock council 2026-09-26 (stock_bot/council/SESSIONS.md). Matthew said yes, practice money only.",
   "stocks": [
     {
-      "symbol": "AAPL",
+      "symbol": "ASTS",
       "buy_below": 0,
-      "buy_dip_pct": 8,
+      "buy_dip_pct": 9.5,
       "dollars_per_buy": 100,
-      "max_position_dollars": 300,
-      "take_profit_pct": 20,
+      "max_position_dollars": 200,
+      "take_profit_pct": 17,
       "stop_loss_pct": 10,
       "sell_above": 0
     },
     {
-      "symbol": "MSFT",
+      "symbol": "CRWD",
+      "buy_below": 0,
+      "buy_dip_pct": 10,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 100,
+      "take_profit_pct": 15,
+      "stop_loss_pct": 11,
+      "sell_above": 0
+    },
+    {
+      "symbol": "HOOD",
       "buy_below": 0,
       "buy_dip_pct": 8,
       "dollars_per_buy": 100,
-      "max_position_dollars": 300,
+      "max_position_dollars": 200,
       "take_profit_pct": 20,
       "stop_loss_pct": 10,
       "sell_above": 0

@@ -1,0 +1,33 @@
+{
+  "_read_me": "Matthew's stock list. Add/remove stocks here; the bot reads this every run. See stock_bot/README.md for what each setting means.",
+
+  "mode": "paper",
+  "live_auto_trade": false,
+  "paused": false,
+
+  "max_total_invested": 1000,
+  "max_orders_per_day": 4,
+
+  "stocks": [
+    {
+      "symbol": "AAPL",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 10,
+      "sell_above": 0
+    },
+    {
+      "symbol": "MSFT",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 10,
+      "sell_above": 0
+    }
+  ]
+}

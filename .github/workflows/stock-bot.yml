@@ -1,0 +1,56 @@
+name: Stock bot
+
+# Checks Matthew's watchlist (stock_bot/watchlist.json) every 30 minutes
+# while the US market is open and trades by his rules. Paper money by
+# default. The bot exits quietly when no Alpaca keys are set.
+#
+# PRIVACY: public repo = public logs. The script never prints balances or
+# trades on CI; details go to his phone via ntfy. Do not add steps that
+# print account data.
+
+on:
+  schedule:
+    # 13:35–20:05 UTC on weekdays covers 9:30am–4pm New York (EDT and EST);
+    # the script checks Alpaca's market clock before doing anything.
+    - cron: "5,35 13-20 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      order:
+        description: 'One manual order, e.g. "BUY AAPL 100" (dollars) or "SELL AAPL". Leave blank for a normal check.'
+        type: string
+        default: ""
+      dry_run:
+        description: "Decide only — send ideas to the phone, place nothing"
+        type: boolean
+        default: false
+
+concurrency:
+  group: stock-bot
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Self-test
+        run: python stock_bot/stock_bot.py --selftest
+      - name: Run
+        env:
+          ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          ALPACA_LIVE_KEY_ID: ${{ secrets.ALPACA_LIVE_KEY_ID }}
+          ALPACA_LIVE_SECRET_KEY: ${{ secrets.ALPACA_LIVE_SECRET_KEY }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          ORDER: ${{ inputs.order }}
+          DRY: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: |
+          if [ -n "$ORDER" ]; then
+            python stock_bot/stock_bot.py --order "$ORDER"
+          else
+            python stock_bot/stock_bot.py $DRY
+          fi

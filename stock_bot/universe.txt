@@ -1,0 +1,84 @@
+# Stocks the screener looks at. One ticker per line; # starts a comment.
+# US-listed only (that's what Alpaca trades). Add or remove freely.
+# This list was hand-picked from names known to move a lot, so it has
+# survivorship bias: stocks that crashed out of existence aren't here.
+
+# Big tech that still swings
+NVDA
+AMD
+TSLA
+META
+AMZN
+NFLX
+AVGO
+MU
+ARM
+SMCI
+INTC
+APP
+
+# Software / internet
+PLTR
+SHOP
+NET
+SNOW
+CRWD
+DDOG
+ROKU
+RBLX
+U
+UBER
+ABNB
+PINS
+SNAP
+AI
+
+# Crypto-linked
+COIN
+MSTR
+MARA
+RIOT
+HOOD
+
+# Fintech
+SOFI
+UPST
+AFRM
+PYPL
+XYZ
+
+# EV / energy / nuclear
+RIVN
+LCID
+NIO
+PLUG
+ENPH
+FSLR
+OKLO
+SMR
+
+# Quantum / speculative tech
+IONQ
+RGTI
+QBTS
+SOUN
+BBAI
+
+# Space / air taxis
+RKLB
+ASTS
+ACHR
+JOBY
+
+# Consumer / meme / health
+GME
+AMC
+CVNA
+DKNG
+CHWY
+PTON
+HIMS
+CELH
+ELF
+MRNA
+TEM

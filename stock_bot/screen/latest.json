@@ -1,0 +1,2296 @@
+{
+ "generated": "2026-09-26",
+ "benchmark": {
+  "symbol": "SPY",
+  "price": 771.35,
+  "as_of": "2026-09-25",
+  "sigma20": 0.66,
+  "sigma60": 0.7,
+  "steady_sigma": 0.66,
+  "biggest_day_60d": 1.8,
+  "atr_pct": 0.9,
+  "dollar_volume_m": 33463.6,
+  "return_60d": 3.4,
+  "return_1y": 16.5,
+  "max_drawdown_1y": -9.1,
+  "buy_hold_pnl": 13.89,
+  "bt_default": {
+   "trades": 0,
+   "wins": 0,
+   "pnl": 0.0,
+   "open": false,
+   "days_in_market": 0
+  },
+  "scaled_rules": {
+   "dip": 1.7,
+   "take_profit": 2.0,
+   "stop_loss": 2.0
+  },
+  "bt_scaled": {
+   "trades": 13,
+   "wins": 9,
+   "pnl": 13.54,
+   "open": true,
+   "days_in_market": 123
+  },
+  "passes_filters": true
+ },
+ "rules": {
+  "default": {
+   "dip": 8.0,
+   "take_profit": 20.0,
+   "stop_loss": 10.0
+  },
+  "scaled_x_sigma60": {
+   "dip": 2.5,
+   "take_profit": 3.0,
+   "stop_loss": 3.0
+  },
+  "bet": 100.0
+ },
+ "stocks": [
+  {
+   "symbol": "SMR",
+   "price": 8.42,
+   "as_of": "2026-09-25",
+   "sigma20": 6.18,
+   "sigma60": 5.69,
+   "steady_sigma": 5.69,
+   "biggest_day_60d": -15.7,
+   "atr_pct": 8.05,
+   "dollar_volume_m": 337.3,
+   "return_60d": -17.0,
+   "return_1y": -77.8,
+   "max_drawdown_1y": -85.8,
+   "buy_hold_pnl": -77.68,
+   "bt_default": {
+    "trades": 26,
+    "wins": 7,
+    "pnl": -69.86,
+    "open": true,
+    "days_in_market": 193
+   },
+   "scaled_rules": {
+    "dip": 14.2,
+    "take_profit": 17.1,
+    "stop_loss": 17.1
+   },
+   "bt_scaled": {
+    "trades": 14,
+    "wins": 6,
+    "pnl": -37.95,
+    "open": true,
+    "days_in_market": 180
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "MARA",
+   "price": 12.55,
+   "as_of": "2026-09-25",
+   "sigma20": 5.42,
+   "sigma60": 6.04,
+   "steady_sigma": 5.42,
+   "biggest_day_60d": 17.6,
+   "atr_pct": 7.09,
+   "dollar_volume_m": 550.2,
+   "return_60d": -6.1,
+   "return_1y": -22.2,
+   "max_drawdown_1y": -70.5,
+   "buy_hold_pnl": -35.77,
+   "bt_default": {
+    "trades": 19,
+    "wins": 8,
+    "pnl": 41.86,
+    "open": false,
+    "days_in_market": 176
+   },
+   "scaled_rules": {
+    "dip": 13.5,
+    "take_profit": 16.3,
+    "stop_loss": 16.3
+   },
+   "bt_scaled": {
+    "trades": 11,
+    "wins": 5,
+    "pnl": -30.59,
+    "open": false,
+    "days_in_market": 142
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "RIOT",
+   "price": 23.0,
+   "as_of": "2026-09-25",
+   "sigma20": 5.42,
+   "sigma60": 5.99,
+   "steady_sigma": 5.42,
+   "biggest_day_60d": 21.3,
+   "atr_pct": 6.18,
+   "dollar_volume_m": 356.9,
+   "return_60d": -4.0,
+   "return_1y": 30.0,
+   "max_drawdown_1y": -48.6,
+   "buy_hold_pnl": 7.38,
+   "bt_default": {
+    "trades": 13,
+    "wins": 5,
+    "pnl": 31.13,
+    "open": false,
+    "days_in_market": 181
+   },
+   "scaled_rules": {
+    "dip": 13.6,
+    "take_profit": 16.3,
+    "stop_loss": 16.3
+   },
+   "bt_scaled": {
+    "trades": 15,
+    "wins": 8,
+    "pnl": 15.25,
+    "open": false,
+    "days_in_market": 142
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "ARM",
+   "price": 310.32,
+   "as_of": "2026-09-25",
+   "sigma20": 5.71,
+   "sigma60": 5.41,
+   "steady_sigma": 5.41,
+   "biggest_day_60d": 17.4,
+   "atr_pct": 6.92,
+   "dollar_volume_m": 1488.5,
+   "return_60d": -8.0,
+   "return_1y": 122.3,
+   "max_drawdown_1y": -48.8,
+   "buy_hold_pnl": 81.81,
+   "bt_default": {
+    "trades": 15,
+    "wins": 7,
+    "pnl": 97.79,
+    "open": true,
+    "days_in_market": 177
+   },
+   "scaled_rules": {
+    "dip": 13.5,
+    "take_profit": 16.2,
+    "stop_loss": 16.2
+   },
+   "bt_scaled": {
+    "trades": 8,
+    "wins": 5,
+    "pnl": 56.94,
+    "open": false,
+    "days_in_market": 163
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "MSTR",
+   "price": 158.61,
+   "as_of": "2026-09-25",
+   "sigma20": 6.7,
+   "sigma60": 5.35,
+   "steady_sigma": 5.35,
+   "biggest_day_60d": 17.6,
+   "atr_pct": 6.26,
+   "dollar_volume_m": 3554.4,
+   "return_60d": 69.8,
+   "return_1y": -48.7,
+   "max_drawdown_1y": -77.1,
+   "buy_hold_pnl": -45.13,
+   "bt_default": {
+    "trades": 16,
+    "wins": 4,
+    "pnl": -52.48,
+    "open": false,
+    "days_in_market": 194
+   },
+   "scaled_rules": {
+    "dip": 13.4,
+    "take_profit": 16.1,
+    "stop_loss": 16.1
+   },
+   "bt_scaled": {
+    "trades": 9,
+    "wins": 2,
+    "pnl": -82.26,
+    "open": false,
+    "days_in_market": 177
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "TEM",
+   "price": 85.01,
+   "as_of": "2026-09-25",
+   "sigma20": 5.35,
+   "sigma60": 5.88,
+   "steady_sigma": 5.35,
+   "biggest_day_60d": 24.1,
+   "atr_pct": 6.51,
+   "dollar_volume_m": 502.4,
+   "return_60d": 38.0,
+   "return_1y": 8.3,
+   "max_drawdown_1y": -59.8,
+   "buy_hold_pnl": -4.73,
+   "bt_default": {
+    "trades": 14,
+    "wins": 5,
+    "pnl": 16.05,
+    "open": false,
+    "days_in_market": 188
+   },
+   "scaled_rules": {
+    "dip": 13.4,
+    "take_profit": 16.1,
+    "stop_loss": 16.1
+   },
+   "bt_scaled": {
+    "trades": 9,
+    "wins": 4,
+    "pnl": -4.28,
+    "open": false,
+    "days_in_market": 170
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "COIN",
+   "price": 195.11,
+   "as_of": "2026-09-25",
+   "sigma20": 5.65,
+   "sigma60": 4.82,
+   "steady_sigma": 4.82,
+   "biggest_day_60d": 11.7,
+   "atr_pct": 6.28,
+   "dollar_volume_m": 1861.9,
+   "return_60d": 22.5,
+   "return_1y": -37.6,
+   "max_drawdown_1y": -63.6,
+   "buy_hold_pnl": -44.96,
+   "bt_default": {
+    "trades": 14,
+    "wins": 3,
+    "pnl": -55.54,
+    "open": true,
+    "days_in_market": 188
+   },
+   "scaled_rules": {
+    "dip": 12.0,
+    "take_profit": 14.4,
+    "stop_loss": 14.4
+   },
+   "bt_scaled": {
+    "trades": 10,
+    "wins": 5,
+    "pnl": 8.87,
+    "open": false,
+    "days_in_market": 173
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "ASTS",
+   "price": 61.81,
+   "as_of": "2026-09-25",
+   "sigma20": 4.76,
+   "sigma60": 5.36,
+   "steady_sigma": 4.76,
+   "biggest_day_60d": -17.0,
+   "atr_pct": 6.37,
+   "dollar_volume_m": 599.4,
+   "return_60d": -28.2,
+   "return_1y": 25.9,
+   "max_drawdown_1y": -60.2,
+   "buy_hold_pnl": -16.13,
+   "bt_default": {
+    "trades": 24,
+    "wins": 10,
+    "pnl": 88.76,
+    "open": true,
+    "days_in_market": 187
+   },
+   "scaled_rules": {
+    "dip": 11.9,
+    "take_profit": 14.3,
+    "stop_loss": 14.3
+   },
+   "bt_scaled": {
+    "trades": 19,
+    "wins": 10,
+    "pnl": 16.76,
+    "open": true,
+    "days_in_market": 161
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "MRNA",
+   "price": 198.88,
+   "as_of": "2026-09-25",
+   "sigma20": 4.68,
+   "sigma60": 23.39,
+   "steady_sigma": 4.68,
+   "biggest_day_60d": 177.0,
+   "atr_pct": 7.25,
+   "dollar_volume_m": 2511.3,
+   "return_60d": 174.3,
+   "return_1y": 712.1,
+   "max_drawdown_1y": -34.2,
+   "buy_hold_pnl": 643.75,
+   "bt_default": {
+    "trades": 11,
+    "wins": 6,
+    "pnl": 275.77,
+    "open": false,
+    "days_in_market": 173
+   },
+   "scaled_rules": {
+    "dip": 11.7,
+    "take_profit": 14.0,
+    "stop_loss": 14.0
+   },
+   "bt_scaled": {
+    "trades": 8,
+    "wins": 7,
+    "pnl": 299.73,
+    "open": false,
+    "days_in_market": 157
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "CRWD",
+   "price": 252.13,
+   "as_of": "2026-09-25",
+   "sigma20": 4.65,
+   "sigma60": 4.65,
+   "steady_sigma": 4.65,
+   "biggest_day_60d": 20.5,
+   "atr_pct": 5.13,
+   "dollar_volume_m": 2840.7,
+   "return_60d": 30.5,
+   "return_1y": 109.5,
+   "max_drawdown_1y": -37.2,
+   "buy_hold_pnl": 91.25,
+   "bt_default": {
+    "trades": 9,
+    "wins": 5,
+    "pnl": 60.21,
+    "open": false,
+    "days_in_market": 146
+   },
+   "scaled_rules": {
+    "dip": 11.6,
+    "take_profit": 13.9,
+    "stop_loss": 13.9
+   },
+   "bt_scaled": {
+    "trades": 8,
+    "wins": 6,
+    "pnl": 69.0,
+    "open": false,
+    "days_in_market": 121
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "OKLO",
+   "price": 38.04,
+   "as_of": "2026-09-25",
+   "sigma20": 4.61,
+   "sigma60": 5.29,
+   "steady_sigma": 4.61,
+   "biggest_day_60d": 14.8,
+   "atr_pct": 6.38,
+   "dollar_volume_m": 393.8,
+   "return_60d": -27.5,
+   "return_1y": -65.6,
+   "max_drawdown_1y": -79.5,
+   "buy_hold_pnl": -72.04,
+   "bt_default": {
+    "trades": 23,
+    "wins": 6,
+    "pnl": -72.14,
+    "open": true,
+    "days_in_market": 199
+   },
+   "scaled_rules": {
+    "dip": 11.5,
+    "take_profit": 13.8,
+    "stop_loss": 13.8
+   },
+   "bt_scaled": {
+    "trades": 19,
+    "wins": 6,
+    "pnl": -92.01,
+    "open": true,
+    "days_in_market": 185
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "HOOD",
+   "price": 119.4,
+   "as_of": "2026-09-25",
+   "sigma20": 5.0,
+   "sigma60": 4.53,
+   "steady_sigma": 4.53,
+   "biggest_day_60d": 16.6,
+   "atr_pct": 5.39,
+   "dollar_volume_m": 2662.9,
+   "return_60d": 9.9,
+   "return_1y": -2.0,
+   "max_drawdown_1y": -57.3,
+   "buy_hold_pnl": -14.59,
+   "bt_default": {
+    "trades": 15,
+    "wins": 6,
+    "pnl": 35.73,
+    "open": true,
+    "days_in_market": 189
+   },
+   "scaled_rules": {
+    "dip": 11.3,
+    "take_profit": 13.6,
+    "stop_loss": 13.6
+   },
+   "bt_scaled": {
+    "trades": 12,
+    "wins": 6,
+    "pnl": 27.57,
+    "open": true,
+    "days_in_market": 174
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "INTC",
+   "price": 123.0,
+   "as_of": "2026-09-25",
+   "sigma20": 4.43,
+   "sigma60": 4.65,
+   "steady_sigma": 4.43,
+   "biggest_day_60d": 12.1,
+   "atr_pct": 6.32,
+   "dollar_volume_m": 11273.2,
+   "return_60d": -3.2,
+   "return_1y": 246.5,
+   "max_drawdown_1y": -41.9,
+   "buy_hold_pnl": 221.32,
+   "bt_default": {
+    "trades": 8,
+    "wins": 4,
+    "pnl": 54.64,
+    "open": false,
+    "days_in_market": 175
+   },
+   "scaled_rules": {
+    "dip": 11.1,
+    "take_profit": 13.3,
+    "stop_loss": 13.3
+   },
+   "bt_scaled": {
+    "trades": 10,
+    "wins": 7,
+    "pnl": 74.81,
+    "open": false,
+    "days_in_market": 137
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "SMCI",
+   "price": 43.26,
+   "as_of": "2026-09-25",
+   "sigma20": 4.21,
+   "sigma60": 5.53,
+   "steady_sigma": 4.21,
+   "biggest_day_60d": 19.8,
+   "atr_pct": 5.89,
+   "dollar_volume_m": 1492.9,
+   "return_60d": 56.5,
+   "return_1y": -5.6,
+   "max_drawdown_1y": -65.0,
+   "buy_hold_pnl": -10.42,
+   "bt_default": {
+    "trades": 15,
+    "wins": 6,
+    "pnl": 29.03,
+    "open": true,
+    "days_in_market": 196
+   },
+   "scaled_rules": {
+    "dip": 10.5,
+    "take_profit": 12.6,
+    "stop_loss": 12.6
+   },
+   "bt_scaled": {
+    "trades": 16,
+    "wins": 8,
+    "pnl": 8.45,
+    "open": false,
+    "days_in_market": 174
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "RBLX",
+   "price": 46.44,
+   "as_of": "2026-09-25",
+   "sigma20": 4.19,
+   "sigma60": 4.85,
+   "steady_sigma": 4.19,
+   "biggest_day_60d": -26.9,
+   "atr_pct": 5.25,
+   "dollar_volume_m": 508.6,
+   "return_60d": -19.9,
+   "return_1y": -65.6,
+   "max_drawdown_1y": -74.9,
+   "buy_hold_pnl": -63.64,
+   "bt_default": {
+    "trades": 15,
+    "wins": 3,
+    "pnl": -88.56,
+    "open": true,
+    "days_in_market": 193
+   },
+   "scaled_rules": {
+    "dip": 10.5,
+    "take_profit": 12.6,
+    "stop_loss": 12.6
+   },
+   "bt_scaled": {
+    "trades": 13,
+    "wins": 5,
+    "pnl": -60.82,
+    "open": false,
+    "days_in_market": 162
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "IONQ",
+   "price": 45.48,
+   "as_of": "2026-09-25",
+   "sigma20": 3.92,
+   "sigma60": 4.91,
+   "steady_sigma": 3.92,
+   "biggest_day_60d": 11.9,
+   "atr_pct": 7.02,
+   "dollar_volume_m": 968.5,
+   "return_60d": -11.5,
+   "return_1y": -32.4,
+   "max_drawdown_1y": -67.6,
+   "buy_hold_pnl": -24.58,
+   "bt_default": {
+    "trades": 20,
+    "wins": 6,
+    "pnl": -20.89,
+    "open": true,
+    "days_in_market": 197
+   },
+   "scaled_rules": {
+    "dip": 9.8,
+    "take_profit": 11.8,
+    "stop_loss": 11.8
+   },
+   "bt_scaled": {
+    "trades": 19,
+    "wins": 8,
+    "pnl": -9.39,
+    "open": true,
+    "days_in_market": 178
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "SHOP",
+   "price": 142.25,
+   "as_of": "2026-09-25",
+   "sigma20": 3.81,
+   "sigma60": 4.01,
+   "steady_sigma": 3.81,
+   "biggest_day_60d": 17.0,
+   "atr_pct": 5.53,
+   "dollar_volume_m": 1434.4,
+   "return_60d": 17.0,
+   "return_1y": 1.4,
+   "max_drawdown_1y": -46.7,
+   "buy_hold_pnl": -17.75,
+   "bt_default": {
+    "trades": 7,
+    "wins": 3,
+    "pnl": 22.52,
+    "open": true,
+    "days_in_market": 181
+   },
+   "scaled_rules": {
+    "dip": 9.5,
+    "take_profit": 11.4,
+    "stop_loss": 11.4
+   },
+   "bt_scaled": {
+    "trades": 12,
+    "wins": 8,
+    "pnl": 61.41,
+    "open": true,
+    "days_in_market": 161
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "NET",
+   "price": 349.02,
+   "as_of": "2026-09-25",
+   "sigma20": 4.29,
+   "sigma60": 3.76,
+   "steady_sigma": 3.76,
+   "biggest_day_60d": 10.5,
+   "atr_pct": 5.85,
+   "dollar_volume_m": 1024.2,
+   "return_60d": 41.7,
+   "return_1y": 61.3,
+   "max_drawdown_1y": -36.8,
+   "buy_hold_pnl": 60.21,
+   "bt_default": {
+    "trades": 8,
+    "wins": 4,
+    "pnl": 47.45,
+    "open": true,
+    "days_in_market": 169
+   },
+   "scaled_rules": {
+    "dip": 9.4,
+    "take_profit": 11.3,
+    "stop_loss": 11.3
+   },
+   "bt_scaled": {
+    "trades": 11,
+    "wins": 7,
+    "pnl": 47.28,
+    "open": false,
+    "days_in_market": 138
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "QBTS",
+   "price": 17.41,
+   "as_of": "2026-09-25",
+   "sigma20": 3.53,
+   "sigma60": 5.61,
+   "steady_sigma": 3.53,
+   "biggest_day_60d": 20.4,
+   "atr_pct": 6.29,
+   "dollar_volume_m": 275.1,
+   "return_60d": -25.9,
+   "return_1y": -34.9,
+   "max_drawdown_1y": -71.0,
+   "buy_hold_pnl": -46.68,
+   "bt_default": {
+    "trades": 23,
+    "wins": 6,
+    "pnl": -34.52,
+    "open": true,
+    "days_in_market": 188
+   },
+   "scaled_rules": {
+    "dip": 8.8,
+    "take_profit": 10.6,
+    "stop_loss": 10.6
+   },
+   "bt_scaled": {
+    "trades": 26,
+    "wins": 11,
+    "pnl": -6.41,
+    "open": true,
+    "days_in_market": 174
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "HIMS",
+   "price": 29.42,
+   "as_of": "2026-09-25",
+   "sigma20": 3.47,
+   "sigma60": 5.27,
+   "steady_sigma": 3.47,
+   "biggest_day_60d": -14.7,
+   "atr_pct": 5.27,
+   "dollar_volume_m": 280.8,
+   "return_60d": -21.7,
+   "return_1y": -49.6,
+   "max_drawdown_1y": -76.9,
+   "buy_hold_pnl": -39.69,
+   "bt_default": {
+    "trades": 16,
+    "wins": 4,
+    "pnl": -41.02,
+    "open": true,
+    "days_in_market": 181
+   },
+   "scaled_rules": {
+    "dip": 8.7,
+    "take_profit": 10.4,
+    "stop_loss": 10.4
+   },
+   "bt_scaled": {
+    "trades": 21,
+    "wins": 8,
+    "pnl": -47.63,
+    "open": true,
+    "days_in_market": 165
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "AMD",
+   "price": 630.63,
+   "as_of": "2026-09-25",
+   "sigma20": 3.44,
+   "sigma60": 4.27,
+   "steady_sigma": 3.44,
+   "biggest_day_60d": 13.0,
+   "atr_pct": 4.76,
+   "dollar_volume_m": 11677.7,
+   "return_60d": 16.6,
+   "return_1y": 295.5,
+   "max_drawdown_1y": -27.8,
+   "buy_hold_pnl": 149.34,
+   "bt_default": {
+    "trades": 9,
+    "wins": 6,
+    "pnl": 98.07,
+    "open": false,
+    "days_in_market": 170
+   },
+   "scaled_rules": {
+    "dip": 8.6,
+    "take_profit": 10.3,
+    "stop_loss": 10.3
+   },
+   "bt_scaled": {
+    "trades": 11,
+    "wins": 7,
+    "pnl": 44.95,
+    "open": false,
+    "days_in_market": 149
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "DDOG",
+   "price": 268.13,
+   "as_of": "2026-09-25",
+   "sigma20": 3.43,
+   "sigma60": 4.21,
+   "steady_sigma": 3.43,
+   "biggest_day_60d": -19.0,
+   "atr_pct": 4.92,
+   "dollar_volume_m": 850.6,
+   "return_60d": 1.4,
+   "return_1y": 92.8,
+   "max_drawdown_1y": -48.6,
+   "buy_hold_pnl": 71.36,
+   "bt_default": {
+    "trades": 9,
+    "wins": 3,
+    "pnl": 1.67,
+    "open": false,
+    "days_in_market": 177
+   },
+   "scaled_rules": {
+    "dip": 8.6,
+    "take_profit": 10.3,
+    "stop_loss": 10.3
+   },
+   "bt_scaled": {
+    "trades": 16,
+    "wins": 9,
+    "pnl": 19.71,
+    "open": false,
+    "days_in_market": 131
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "RKLB",
+   "price": 73.95,
+   "as_of": "2026-09-25",
+   "sigma20": 3.36,
+   "sigma60": 4.48,
+   "steady_sigma": 3.36,
+   "biggest_day_60d": -11.6,
+   "atr_pct": 5.75,
+   "dollar_volume_m": 1331.7,
+   "return_60d": -26.1,
+   "return_1y": 59.9,
+   "max_drawdown_1y": -61.0,
+   "buy_hold_pnl": 14.54,
+   "bt_default": {
+    "trades": 20,
+    "wins": 7,
+    "pnl": 16.7,
+    "open": true,
+    "days_in_market": 162
+   },
+   "scaled_rules": {
+    "dip": 8.4,
+    "take_profit": 10.1,
+    "stop_loss": 10.1
+   },
+   "bt_scaled": {
+    "trades": 23,
+    "wins": 11,
+    "pnl": -8.07,
+    "open": false,
+    "days_in_market": 160
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "PYPL",
+   "price": 55.04,
+   "as_of": "2026-09-25",
+   "sigma20": 3.56,
+   "sigma60": 3.27,
+   "steady_sigma": 3.27,
+   "biggest_day_60d": 17.2,
+   "atr_pct": 2.76,
+   "dollar_volume_m": 774.9,
+   "return_60d": 24.9,
+   "return_1y": -18.2,
+   "max_drawdown_1y": -48.7,
+   "buy_hold_pnl": -21.11,
+   "bt_default": {
+    "trades": 6,
+    "wins": 2,
+    "pnl": 3.08,
+    "open": true,
+    "days_in_market": 180
+   },
+   "scaled_rules": {
+    "dip": 8.2,
+    "take_profit": 9.8,
+    "stop_loss": 9.8
+   },
+   "bt_scaled": {
+    "trades": 6,
+    "wins": 2,
+    "pnl": -26.53,
+    "open": true,
+    "days_in_market": 179
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "FSLR",
+   "price": 177.71,
+   "as_of": "2026-09-25",
+   "sigma20": 3.65,
+   "sigma60": 3.25,
+   "steady_sigma": 3.25,
+   "biggest_day_60d": -10.3,
+   "atr_pct": 5.66,
+   "dollar_volume_m": 476.5,
+   "return_60d": -23.4,
+   "return_1y": -19.2,
+   "max_drawdown_1y": -45.9,
+   "buy_hold_pnl": -26.39,
+   "bt_default": {
+    "trades": 9,
+    "wins": 2,
+    "pnl": -39.83,
+    "open": true,
+    "days_in_market": 194
+   },
+   "scaled_rules": {
+    "dip": 8.1,
+    "take_profit": 9.7,
+    "stop_loss": 9.7
+   },
+   "bt_scaled": {
+    "trades": 11,
+    "wins": 3,
+    "pnl": -53.7,
+    "open": true,
+    "days_in_market": 172
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "RGTI",
+   "price": 16.66,
+   "as_of": "2026-09-25",
+   "sigma20": 3.14,
+   "sigma60": 4.99,
+   "steady_sigma": 3.14,
+   "biggest_day_60d": 12.4,
+   "atr_pct": 6.33,
+   "dollar_volume_m": 263.9,
+   "return_60d": -10.8,
+   "return_1y": -46.6,
+   "max_drawdown_1y": -77.1,
+   "buy_hold_pnl": -57.11,
+   "bt_default": {
+    "trades": 18,
+    "wins": 4,
+    "pnl": -69.95,
+    "open": true,
+    "days_in_market": 188
+   },
+   "scaled_rules": {
+    "dip": 7.9,
+    "take_profit": 9.4,
+    "stop_loss": 9.4
+   },
+   "bt_scaled": {
+    "trades": 34,
+    "wins": 14,
+    "pnl": -29.31,
+    "open": false,
+    "days_in_market": 166
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "MU",
+   "price": 1082.28,
+   "as_of": "2026-09-25",
+   "sigma20": 3.09,
+   "sigma60": 4.86,
+   "steady_sigma": 3.09,
+   "biggest_day_60d": 18.4,
+   "atr_pct": 4.42,
+   "dollar_volume_m": 24901.2,
+   "return_60d": 4.8,
+   "return_1y": 588.2,
+   "max_drawdown_1y": -39.1,
+   "buy_hold_pnl": 394.15,
+   "bt_default": {
+    "trades": 12,
+    "wins": 7,
+    "pnl": 109.09,
+    "open": false,
+    "days_in_market": 138
+   },
+   "scaled_rules": {
+    "dip": 7.7,
+    "take_profit": 9.3,
+    "stop_loss": 9.3
+   },
+   "bt_scaled": {
+    "trades": 22,
+    "wins": 16,
+    "pnl": 135.03,
+    "open": false,
+    "days_in_market": 92
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "AFRM",
+   "price": 71.52,
+   "as_of": "2026-09-25",
+   "sigma20": 3.32,
+   "sigma60": 3.06,
+   "steady_sigma": 3.06,
+   "biggest_day_60d": 6.7,
+   "atr_pct": 4.56,
+   "dollar_volume_m": 448.4,
+   "return_60d": -14.7,
+   "return_1y": -5.9,
+   "max_drawdown_1y": -48.8,
+   "buy_hold_pnl": -5.13,
+   "bt_default": {
+    "trades": 8,
+    "wins": 3,
+    "pnl": 11.43,
+    "open": true,
+    "days_in_market": 170
+   },
+   "scaled_rules": {
+    "dip": 7.6,
+    "take_profit": 9.2,
+    "stop_loss": 9.2
+   },
+   "bt_scaled": {
+    "trades": 11,
+    "wins": 5,
+    "pnl": -13.44,
+    "open": true,
+    "days_in_market": 140
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "META",
+   "price": 751.66,
+   "as_of": "2026-09-25",
+   "sigma20": 3.17,
+   "sigma60": 3.05,
+   "steady_sigma": 3.05,
+   "biggest_day_60d": 11.3,
+   "atr_pct": 4.22,
+   "dollar_volume_m": 15533.1,
+   "return_60d": 22.6,
+   "return_1y": 1.1,
+   "max_drawdown_1y": -30.1,
+   "buy_hold_pnl": 1.8,
+   "bt_default": {
+    "trades": 9,
+    "wins": 4,
+    "pnl": 33.7,
+    "open": false,
+    "days_in_market": 188
+   },
+   "scaled_rules": {
+    "dip": 7.6,
+    "take_profit": 9.1,
+    "stop_loss": 9.1
+   },
+   "bt_scaled": {
+    "trades": 10,
+    "wins": 5,
+    "pnl": -0.59,
+    "open": false,
+    "days_in_market": 142
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "SNOW",
+   "price": 335.94,
+   "as_of": "2026-09-25",
+   "sigma20": 4.28,
+   "sigma60": 3.05,
+   "steady_sigma": 3.05,
+   "biggest_day_60d": 16.6,
+   "atr_pct": 3.97,
+   "dollar_volume_m": 1849.0,
+   "return_60d": 28.6,
+   "return_1y": 49.5,
+   "max_drawdown_1y": -56.3,
+   "buy_hold_pnl": 30.24,
+   "bt_default": {
+    "trades": 7,
+    "wins": 3,
+    "pnl": 64.79,
+    "open": true,
+    "days_in_market": 181
+   },
+   "scaled_rules": {
+    "dip": 7.6,
+    "take_profit": 9.1,
+    "stop_loss": 9.1
+   },
+   "bt_scaled": {
+    "trades": 14,
+    "wins": 7,
+    "pnl": 7.36,
+    "open": true,
+    "days_in_market": 137
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "PLTR",
+   "price": 189.67,
+   "as_of": "2026-09-25",
+   "sigma20": 2.99,
+   "sigma60": 4.83,
+   "steady_sigma": 2.99,
+   "biggest_day_60d": 29.5,
+   "atr_pct": 3.26,
+   "dollar_volume_m": 4705.4,
+   "return_60d": 50.9,
+   "return_1y": 6.8,
+   "max_drawdown_1y": -48.2,
+   "buy_hold_pnl": 2.73,
+   "bt_default": {
+    "trades": 5,
+    "wins": 1,
+    "pnl": 4.9,
+    "open": true,
+    "days_in_market": 197
+   },
+   "scaled_rules": {
+    "dip": 7.5,
+    "take_profit": 9.0,
+    "stop_loss": 9.0
+   },
+   "bt_scaled": {
+    "trades": 15,
+    "wins": 8,
+    "pnl": 25.01,
+    "open": false,
+    "days_in_market": 151
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "CHWY",
+   "price": 18.27,
+   "as_of": "2026-09-25",
+   "sigma20": 3.16,
+   "sigma60": 2.95,
+   "steady_sigma": 2.95,
+   "biggest_day_60d": -10.8,
+   "atr_pct": 5.32,
+   "dollar_volume_m": 225.1,
+   "return_60d": -11.3,
+   "return_1y": -53.9,
+   "max_drawdown_1y": -56.7,
+   "buy_hold_pnl": -47.96,
+   "bt_default": {
+    "trades": 7,
+    "wins": 1,
+    "pnl": -47.81,
+    "open": true,
+    "days_in_market": 211
+   },
+   "scaled_rules": {
+    "dip": 7.4,
+    "take_profit": 8.9,
+    "stop_loss": 8.9
+   },
+   "bt_scaled": {
+    "trades": 16,
+    "wins": 6,
+    "pnl": -47.43,
+    "open": true,
+    "days_in_market": 177
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "PINS",
+   "price": 18.9,
+   "as_of": "2026-09-25",
+   "sigma20": 3.32,
+   "sigma60": 2.93,
+   "steady_sigma": 2.93,
+   "biggest_day_60d": -9.2,
+   "atr_pct": 4.3,
+   "dollar_volume_m": 302.5,
+   "return_60d": -13.7,
+   "return_1y": -43.7,
+   "max_drawdown_1y": -56.2,
+   "buy_hold_pnl": -44.36,
+   "bt_default": {
+    "trades": 8,
+    "wins": 3,
+    "pnl": 4.52,
+    "open": true,
+    "days_in_market": 189
+   },
+   "scaled_rules": {
+    "dip": 7.3,
+    "take_profit": 8.8,
+    "stop_loss": 8.8
+   },
+   "bt_scaled": {
+    "trades": 11,
+    "wins": 5,
+    "pnl": -24.68,
+    "open": true,
+    "days_in_market": 175
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "CELH",
+   "price": 27.99,
+   "as_of": "2026-09-25",
+   "sigma20": 2.92,
+   "sigma60": 4.44,
+   "steady_sigma": 2.92,
+   "biggest_day_60d": -18.5,
+   "atr_pct": 4.24,
+   "dollar_volume_m": 212.2,
+   "return_60d": -12.2,
+   "return_1y": -48.5,
+   "max_drawdown_1y": -63.4,
+   "buy_hold_pnl": -55.82,
+   "bt_default": {
+    "trades": 11,
+    "wins": 3,
+    "pnl": -37.61,
+    "open": true,
+    "days_in_market": 191
+   },
+   "scaled_rules": {
+    "dip": 7.3,
+    "take_profit": 8.8,
+    "stop_loss": 8.8
+   },
+   "bt_scaled": {
+    "trades": 18,
+    "wins": 9,
+    "pnl": -13.43,
+    "open": true,
+    "days_in_market": 170
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "DKNG",
+   "price": 22.02,
+   "as_of": "2026-09-25",
+   "sigma20": 2.87,
+   "sigma60": 3.03,
+   "steady_sigma": 2.87,
+   "biggest_day_60d": 8.4,
+   "atr_pct": 4.95,
+   "dollar_volume_m": 295.9,
+   "return_60d": -14.6,
+   "return_1y": -48.0,
+   "max_drawdown_1y": -51.0,
+   "buy_hold_pnl": -33.27,
+   "bt_default": {
+    "trades": 7,
+    "wins": 2,
+    "pnl": -33.03,
+    "open": true,
+    "days_in_market": 187
+   },
+   "scaled_rules": {
+    "dip": 7.2,
+    "take_profit": 8.6,
+    "stop_loss": 8.6
+   },
+   "bt_scaled": {
+    "trades": 16,
+    "wins": 8,
+    "pnl": -20.23,
+    "open": true,
+    "days_in_market": 153
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "SNAP",
+   "price": 5.42,
+   "as_of": "2026-09-25",
+   "sigma20": 2.84,
+   "sigma60": 3.7,
+   "steady_sigma": 2.84,
+   "biggest_day_60d": 14.9,
+   "atr_pct": 4.6,
+   "dollar_volume_m": 181.3,
+   "return_60d": 14.1,
+   "return_1y": -34.5,
+   "max_drawdown_1y": -56.8,
+   "buy_hold_pnl": -31.82,
+   "bt_default": {
+    "trades": 8,
+    "wins": 3,
+    "pnl": 14.37,
+    "open": true,
+    "days_in_market": 201
+   },
+   "scaled_rules": {
+    "dip": 7.1,
+    "take_profit": 8.5,
+    "stop_loss": 8.5
+   },
+   "bt_scaled": {
+    "trades": 17,
+    "wins": 8,
+    "pnl": -6.39,
+    "open": true,
+    "days_in_market": 178
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "APP",
+   "price": 310.75,
+   "as_of": "2026-09-25",
+   "sigma20": 2.76,
+   "sigma60": 4.0,
+   "steady_sigma": 2.76,
+   "biggest_day_60d": -19.7,
+   "atr_pct": 4.87,
+   "dollar_volume_m": 1558.7,
+   "return_60d": -45.0,
+   "return_1y": -53.6,
+   "max_drawdown_1y": -59.3,
+   "buy_hold_pnl": -49.88,
+   "bt_default": {
+    "trades": 15,
+    "wins": 5,
+    "pnl": -37.1,
+    "open": true,
+    "days_in_market": 192
+   },
+   "scaled_rules": {
+    "dip": 6.9,
+    "take_profit": 8.3,
+    "stop_loss": 8.3
+   },
+   "bt_scaled": {
+    "trades": 23,
+    "wins": 9,
+    "pnl": -74.49,
+    "open": true,
+    "days_in_market": 170
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "ACHR",
+   "price": 5.61,
+   "as_of": "2026-09-25",
+   "sigma20": 2.75,
+   "sigma60": 5.13,
+   "steady_sigma": 2.75,
+   "biggest_day_60d": 19.6,
+   "atr_pct": 4.89,
+   "dollar_volume_m": 133.6,
+   "return_60d": 14.0,
+   "return_1y": -39.5,
+   "max_drawdown_1y": -67.4,
+   "buy_hold_pnl": -50.31,
+   "bt_default": {
+    "trades": 12,
+    "wins": 2,
+    "pnl": -75.69,
+    "open": true,
+    "days_in_market": 206
+   },
+   "scaled_rules": {
+    "dip": 6.9,
+    "take_profit": 8.2,
+    "stop_loss": 8.2
+   },
+   "bt_scaled": {
+    "trades": 25,
+    "wins": 11,
+    "pnl": -19.19,
+    "open": true,
+    "days_in_market": 156
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "ENPH",
+   "price": 32.4,
+   "as_of": "2026-09-25",
+   "sigma20": 2.72,
+   "sigma60": 3.53,
+   "steady_sigma": 2.72,
+   "biggest_day_60d": -8.0,
+   "atr_pct": 5.39,
+   "dollar_volume_m": 161.8,
+   "return_60d": -30.8,
+   "return_1y": -11.2,
+   "max_drawdown_1y": -55.2,
+   "buy_hold_pnl": -10.57,
+   "bt_default": {
+    "trades": 15,
+    "wins": 4,
+    "pnl": -7.01,
+    "open": true,
+    "days_in_market": 178
+   },
+   "scaled_rules": {
+    "dip": 6.8,
+    "take_profit": 8.2,
+    "stop_loss": 8.2
+   },
+   "bt_scaled": {
+    "trades": 26,
+    "wins": 10,
+    "pnl": -27.19,
+    "open": true,
+    "days_in_market": 147
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "TSLA",
+   "price": 372.11,
+   "as_of": "2026-09-25",
+   "sigma20": 2.7,
+   "sigma60": 3.34,
+   "steady_sigma": 2.7,
+   "biggest_day_60d": -14.5,
+   "atr_pct": 3.05,
+   "dollar_volume_m": 14504.1,
+   "return_60d": -12.5,
+   "return_1y": -15.5,
+   "max_drawdown_1y": -39.1,
+   "buy_hold_pnl": -14.21,
+   "bt_default": {
+    "trades": 4,
+    "wins": 2,
+    "pnl": 8.82,
+    "open": false,
+    "days_in_market": 197
+   },
+   "scaled_rules": {
+    "dip": 6.8,
+    "take_profit": 8.1,
+    "stop_loss": 8.1
+   },
+   "bt_scaled": {
+    "trades": 12,
+    "wins": 6,
+    "pnl": -0.99,
+    "open": false,
+    "days_in_market": 158
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "ELF",
+   "price": 99.51,
+   "as_of": "2026-09-25",
+   "sigma20": 2.69,
+   "sigma60": 3.23,
+   "steady_sigma": 2.69,
+   "biggest_day_60d": 8.6,
+   "atr_pct": 4.39,
+   "dollar_volume_m": 152.8,
+   "return_60d": 26.4,
+   "return_1y": -23.3,
+   "max_drawdown_1y": -65.8,
+   "buy_hold_pnl": -18.97,
+   "bt_default": {
+    "trades": 9,
+    "wins": 4,
+    "pnl": -6.04,
+    "open": true,
+    "days_in_market": 164
+   },
+   "scaled_rules": {
+    "dip": 6.7,
+    "take_profit": 8.1,
+    "stop_loss": 8.1
+   },
+   "bt_scaled": {
+    "trades": 19,
+    "wins": 10,
+    "pnl": -17.87,
+    "open": true,
+    "days_in_market": 150
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "AI",
+   "price": 10.65,
+   "as_of": "2026-09-25",
+   "sigma20": 2.68,
+   "sigma60": 2.87,
+   "steady_sigma": 2.68,
+   "biggest_day_60d": 8.2,
+   "atr_pct": 4.28,
+   "dollar_volume_m": 58.4,
+   "return_60d": 12.9,
+   "return_1y": -37.9,
+   "max_drawdown_1y": -60.5,
+   "buy_hold_pnl": -40.34,
+   "bt_default": {
+    "trades": 10,
+    "wins": 3,
+    "pnl": -13.61,
+    "open": true,
+    "days_in_market": 212
+   },
+   "scaled_rules": {
+    "dip": 6.7,
+    "take_profit": 8.0,
+    "stop_loss": 8.0
+   },
+   "bt_scaled": {
+    "trades": 18,
+    "wins": 7,
+    "pnl": -49.1,
+    "open": false,
+    "days_in_market": 159
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "UPST",
+   "price": 23.81,
+   "as_of": "2026-09-25",
+   "sigma20": 2.67,
+   "sigma60": 3.04,
+   "steady_sigma": 2.67,
+   "biggest_day_60d": 7.3,
+   "atr_pct": 4.26,
+   "dollar_volume_m": 114.8,
+   "return_60d": -33.4,
+   "return_1y": -58.5,
+   "max_drawdown_1y": -58.5,
+   "buy_hold_pnl": -54.81,
+   "bt_default": {
+    "trades": 12,
+    "wins": 3,
+    "pnl": -49.95,
+    "open": false,
+    "days_in_market": 198
+   },
+   "scaled_rules": {
+    "dip": 6.7,
+    "take_profit": 8.0,
+    "stop_loss": 8.0
+   },
+   "bt_scaled": {
+    "trades": 19,
+    "wins": 8,
+    "pnl": -38.36,
+    "open": true,
+    "days_in_market": 175
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "SOFI",
+   "price": 16.58,
+   "as_of": "2026-09-25",
+   "sigma20": 2.63,
+   "sigma60": 3.35,
+   "steady_sigma": 2.63,
+   "biggest_day_60d": 10.5,
+   "atr_pct": 3.56,
+   "dollar_volume_m": 765.7,
+   "return_60d": -10.1,
+   "return_1y": -40.7,
+   "max_drawdown_1y": -53.0,
+   "buy_hold_pnl": -42.85,
+   "bt_default": {
+    "trades": 5,
+    "wins": 0,
+    "pnl": -60.15,
+    "open": true,
+    "days_in_market": 221
+   },
+   "scaled_rules": {
+    "dip": 6.6,
+    "take_profit": 7.9,
+    "stop_loss": 7.9
+   },
+   "bt_scaled": {
+    "trades": 17,
+    "wins": 8,
+    "pnl": -17.64,
+    "open": true,
+    "days_in_market": 166
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "GME",
+   "price": 23.39,
+   "as_of": "2026-09-25",
+   "sigma20": 2.73,
+   "sigma60": 2.56,
+   "steady_sigma": 2.56,
+   "biggest_day_60d": -12.2,
+   "atr_pct": 4.62,
+   "dollar_volume_m": 206.6,
+   "return_60d": 3.3,
+   "return_1y": -11.5,
+   "max_drawdown_1y": -35.5,
+   "buy_hold_pnl": 0.39,
+   "bt_default": {
+    "trades": 5,
+    "wins": 2,
+    "pnl": 15.05,
+    "open": false,
+    "days_in_market": 216
+   },
+   "scaled_rules": {
+    "dip": 6.4,
+    "take_profit": 7.7,
+    "stop_loss": 7.7
+   },
+   "bt_scaled": {
+    "trades": 8,
+    "wins": 5,
+    "pnl": 16.63,
+    "open": true,
+    "days_in_market": 186
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "ABNB",
+   "price": 157.47,
+   "as_of": "2026-09-25",
+   "sigma20": 2.52,
+   "sigma60": 3.12,
+   "steady_sigma": 2.52,
+   "biggest_day_60d": 17.4,
+   "atr_pct": 3.46,
+   "dollar_volume_m": 877.8,
+   "return_60d": 6.9,
+   "return_1y": 27.3,
+   "max_drawdown_1y": -21.5,
+   "buy_hold_pnl": 23.03,
+   "bt_default": {
+    "trades": 3,
+    "wins": 2,
+    "pnl": 45.85,
+    "open": true,
+    "days_in_market": 170
+   },
+   "scaled_rules": {
+    "dip": 6.3,
+    "take_profit": 7.5,
+    "stop_loss": 7.5
+   },
+   "bt_scaled": {
+    "trades": 7,
+    "wins": 5,
+    "pnl": 29.17,
+    "open": true,
+    "days_in_market": 117
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "U",
+   "price": 41.55,
+   "as_of": "2026-09-25",
+   "sigma20": 2.5,
+   "sigma60": 3.29,
+   "steady_sigma": 2.5,
+   "biggest_day_60d": 15.1,
+   "atr_pct": 4.78,
+   "dollar_volume_m": 421.9,
+   "return_60d": 37.6,
+   "return_1y": -2.8,
+   "max_drawdown_1y": -65.4,
+   "buy_hold_pnl": 11.42,
+   "bt_default": {
+    "trades": 9,
+    "wins": 4,
+    "pnl": 9.87,
+    "open": true,
+    "days_in_market": 182
+   },
+   "scaled_rules": {
+    "dip": 6.2,
+    "take_profit": 7.5,
+    "stop_loss": 7.5
+   },
+   "bt_scaled": {
+    "trades": 19,
+    "wins": 9,
+    "pnl": -24.29,
+    "open": true,
+    "days_in_market": 131
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "JOBY",
+   "price": 6.32,
+   "as_of": "2026-09-25",
+   "sigma20": 2.31,
+   "sigma60": 3.76,
+   "steady_sigma": 2.31,
+   "biggest_day_60d": -9.0,
+   "atr_pct": 4.26,
+   "dollar_volume_m": 166.6,
+   "return_60d": -28.5,
+   "return_1y": -60.8,
+   "max_drawdown_1y": -68.9,
+   "buy_hold_pnl": -60.82,
+   "bt_default": {
+    "trades": 15,
+    "wins": 3,
+    "pnl": -77.13,
+    "open": true,
+    "days_in_market": 200
+   },
+   "scaled_rules": {
+    "dip": 5.8,
+    "take_profit": 6.9,
+    "stop_loss": 6.9
+   },
+   "bt_scaled": {
+    "trades": 28,
+    "wins": 9,
+    "pnl": -83.06,
+    "open": true,
+    "days_in_market": 184
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "XYZ",
+   "price": 76.42,
+   "as_of": "2026-09-25",
+   "sigma20": 2.31,
+   "sigma60": 2.28,
+   "steady_sigma": 2.28,
+   "biggest_day_60d": -6.2,
+   "atr_pct": 2.82,
+   "dollar_volume_m": 311.5,
+   "return_60d": -0.9,
+   "return_1y": 3.7,
+   "max_drawdown_1y": -39.5,
+   "buy_hold_pnl": -3.92,
+   "bt_default": {
+    "trades": 8,
+    "wins": 4,
+    "pnl": 40.62,
+    "open": true,
+    "days_in_market": 159
+   },
+   "scaled_rules": {
+    "dip": 5.7,
+    "take_profit": 6.8,
+    "stop_loss": 6.8
+   },
+   "bt_scaled": {
+    "trades": 18,
+    "wins": 11,
+    "pnl": 26.81,
+    "open": true,
+    "days_in_market": 138
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "NFLX",
+   "price": 71.15,
+   "as_of": "2026-09-25",
+   "sigma20": 2.27,
+   "sigma60": 2.27,
+   "steady_sigma": 2.27,
+   "biggest_day_60d": -7.3,
+   "atr_pct": 2.69,
+   "dollar_volume_m": 2463.0,
+   "return_60d": -4.1,
+   "return_1y": -41.2,
+   "max_drawdown_1y": -45.5,
+   "buy_hold_pnl": -35.0,
+   "bt_default": {
+    "trades": 5,
+    "wins": 1,
+    "pnl": -28.26,
+    "open": true,
+    "days_in_market": 220
+   },
+   "scaled_rules": {
+    "dip": 5.7,
+    "take_profit": 6.8,
+    "stop_loss": 6.8
+   },
+   "bt_scaled": {
+    "trades": 13,
+    "wins": 4,
+    "pnl": -45.83,
+    "open": true,
+    "days_in_market": 177
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "SOUN",
+   "price": 6.05,
+   "as_of": "2026-09-25",
+   "sigma20": 2.24,
+   "sigma60": 3.83,
+   "steady_sigma": 2.24,
+   "biggest_day_60d": 13.3,
+   "atr_pct": 3.94,
+   "dollar_volume_m": 135.8,
+   "return_60d": -9.4,
+   "return_1y": -62.0,
+   "max_drawdown_1y": -73.4,
+   "buy_hold_pnl": -66.35,
+   "bt_default": {
+    "trades": 18,
+    "wins": 3,
+    "pnl": -105.49,
+    "open": true,
+    "days_in_market": 187
+   },
+   "scaled_rules": {
+    "dip": 5.6,
+    "take_profit": 6.7,
+    "stop_loss": 6.7
+   },
+   "bt_scaled": {
+    "trades": 33,
+    "wins": 10,
+    "pnl": -83.2,
+    "open": true,
+    "days_in_market": 188
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "CVNA",
+   "price": 65.06,
+   "as_of": "2026-09-25",
+   "sigma20": 2.22,
+   "sigma60": 3.48,
+   "steady_sigma": 2.22,
+   "biggest_day_60d": 8.4,
+   "atr_pct": 4.25,
+   "dollar_volume_m": 455.0,
+   "return_60d": -4.1,
+   "return_1y": -11.9,
+   "max_drawdown_1y": -41.2,
+   "buy_hold_pnl": -7.37,
+   "bt_default": {
+    "trades": 7,
+    "wins": 2,
+    "pnl": -20.87,
+    "open": true,
+    "days_in_market": 196
+   },
+   "scaled_rules": {
+    "dip": 5.6,
+    "take_profit": 6.7,
+    "stop_loss": 6.7
+   },
+   "bt_scaled": {
+    "trades": 24,
+    "wins": 10,
+    "pnl": -39.02,
+    "open": true,
+    "days_in_market": 149
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "NVDA",
+   "price": 225.07,
+   "as_of": "2026-09-25",
+   "sigma20": 1.98,
+   "sigma60": 2.46,
+   "steady_sigma": 1.98,
+   "biggest_day_60d": 8.7,
+   "atr_pct": 2.37,
+   "dollar_volume_m": 25739.0,
+   "return_60d": 13.9,
+   "return_1y": 26.3,
+   "max_drawdown_1y": -20.2,
+   "buy_hold_pnl": 20.84,
+   "bt_default": {
+    "trades": 2,
+    "wins": 1,
+    "pnl": 22.89,
+    "open": true,
+    "days_in_market": 208
+   },
+   "scaled_rules": {
+    "dip": 5.0,
+    "take_profit": 6.0,
+    "stop_loss": 6.0
+   },
+   "bt_scaled": {
+    "trades": 13,
+    "wins": 8,
+    "pnl": 28.84,
+    "open": true,
+    "days_in_market": 137
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "RIVN",
+   "price": 15.47,
+   "as_of": "2026-09-25",
+   "sigma20": 1.88,
+   "sigma60": 4.06,
+   "steady_sigma": 1.88,
+   "biggest_day_60d": -18.1,
+   "atr_pct": 4.28,
+   "dollar_volume_m": 336.4,
+   "return_60d": -10.0,
+   "return_1y": -0.8,
+   "max_drawdown_1y": -42.5,
+   "buy_hold_pnl": 19.18,
+   "bt_default": {
+    "trades": 11,
+    "wins": 5,
+    "pnl": 58.77,
+    "open": true,
+    "days_in_market": 202
+   },
+   "scaled_rules": {
+    "dip": 4.7,
+    "take_profit": 5.7,
+    "stop_loss": 5.7
+   },
+   "bt_scaled": {
+    "trades": 34,
+    "wins": 19,
+    "pnl": 65.93,
+    "open": true,
+    "days_in_market": 166
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "AVGO",
+   "price": 352.81,
+   "as_of": "2026-09-25",
+   "sigma20": 1.86,
+   "sigma60": 2.49,
+   "steady_sigma": 1.86,
+   "biggest_day_60d": 6.6,
+   "atr_pct": 2.86,
+   "dollar_volume_m": 9806.9,
+   "return_60d": -4.5,
+   "return_1y": 5.5,
+   "max_drawdown_1y": -29.5,
+   "buy_hold_pnl": -0.37,
+   "bt_default": {
+    "trades": 4,
+    "wins": 1,
+    "pnl": -7.95,
+    "open": true,
+    "days_in_market": 183
+   },
+   "scaled_rules": {
+    "dip": 4.7,
+    "take_profit": 5.6,
+    "stop_loss": 5.6
+   },
+   "bt_scaled": {
+    "trades": 22,
+    "wins": 12,
+    "pnl": 17.43,
+    "open": true,
+    "days_in_market": 158
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "AMZN",
+   "price": 249.67,
+   "as_of": "2026-09-25",
+   "sigma20": 1.69,
+   "sigma60": 2.62,
+   "steady_sigma": 1.69,
+   "biggest_day_60d": 15.3,
+   "atr_pct": 2.11,
+   "dollar_volume_m": 8997.5,
+   "return_60d": 3.3,
+   "return_1y": 13.6,
+   "max_drawdown_1y": -21.7,
+   "buy_hold_pnl": 11.36,
+   "bt_default": {
+    "trades": 2,
+    "wins": 1,
+    "pnl": 9.81,
+    "open": true,
+    "days_in_market": 178
+   },
+   "scaled_rules": {
+    "dip": 4.2,
+    "take_profit": 5.1,
+    "stop_loss": 5.1
+   },
+   "bt_scaled": {
+    "trades": 14,
+    "wins": 7,
+    "pnl": 7.96,
+    "open": true,
+    "days_in_market": 154
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "UBER",
+   "price": 69.62,
+   "as_of": "2026-09-25",
+   "sigma20": 1.65,
+   "sigma60": 2.25,
+   "steady_sigma": 1.65,
+   "biggest_day_60d": 6.5,
+   "atr_pct": 2.52,
+   "dollar_volume_m": 1339.2,
+   "return_60d": -4.2,
+   "return_1y": -29.3,
+   "max_drawdown_1y": -34.1,
+   "buy_hold_pnl": -25.99,
+   "bt_default": {
+    "trades": 2,
+    "wins": 0,
+    "pnl": -25.15,
+    "open": true,
+    "days_in_market": 213
+   },
+   "scaled_rules": {
+    "dip": 4.1,
+    "take_profit": 5.0,
+    "stop_loss": 5.0
+   },
+   "bt_scaled": {
+    "trades": 21,
+    "wins": 11,
+    "pnl": 0.61,
+    "open": true,
+    "days_in_market": 187
+   },
+   "passes_filters": true
+  },
+  {
+   "symbol": "ROKU",
+   "price": 152.68,
+   "as_of": "2026-09-25",
+   "sigma20": 0.87,
+   "sigma60": 0.91,
+   "steady_sigma": 0.87,
+   "biggest_day_60d": 2.3,
+   "atr_pct": 1.22,
+   "dollar_volume_m": 343.9,
+   "return_60d": 8.7,
+   "return_1y": 53.3,
+   "max_drawdown_1y": -27.7,
+   "buy_hold_pnl": 58.56,
+   "bt_default": {
+    "trades": 3,
+    "wins": 2,
+    "pnl": 29.91,
+    "open": false,
+    "days_in_market": 148
+   },
+   "scaled_rules": {
+    "dip": 2.2,
+    "take_profit": 2.6,
+    "stop_loss": 2.6
+   },
+   "bt_scaled": {
+    "trades": 40,
+    "wins": 23,
+    "pnl": 43.55,
+    "open": true,
+    "days_in_market": 115
+   },
+   "passes_filters": true
+  }
+ ],
+ "filtered_out": [
+  {
+   "symbol": "LCID",
+   "price": 4.07,
+   "as_of": "2026-09-25",
+   "sigma20": 3.33,
+   "sigma60": 7.11,
+   "steady_sigma": 3.33,
+   "biggest_day_60d": 28.8,
+   "atr_pct": 6.05,
+   "dollar_volume_m": 48.8,
+   "return_60d": -38.6,
+   "return_1y": -83.0,
+   "max_drawdown_1y": -83.7,
+   "buy_hold_pnl": -77.98,
+   "bt_default": {
+    "trades": 20,
+    "wins": 4,
+    "pnl": -117.85,
+    "open": true,
+    "days_in_market": 203
+   },
+   "scaled_rules": {
+    "dip": 8.3,
+    "take_profit": 10.0,
+    "stop_loss": 10.0
+   },
+   "bt_scaled": {
+    "trades": 23,
+    "wins": 6,
+    "pnl": -123.05,
+    "open": true,
+    "days_in_market": 190
+   },
+   "passes_filters": false
+  },
+  {
+   "symbol": "NIO",
+   "price": 3.58,
+   "as_of": "2026-09-25",
+   "sigma20": 1.92,
+   "sigma60": 2.15,
+   "steady_sigma": 1.92,
+   "biggest_day_60d": -5.8,
+   "atr_pct": 2.91,
+   "dollar_volume_m": 151.2,
+   "return_60d": -28.0,
+   "return_1y": -49.1,
+   "max_drawdown_1y": -54.6,
+   "buy_hold_pnl": -48.12,
+   "bt_default": {
+    "trades": 10,
+    "wins": 2,
+    "pnl": -57.92,
+    "open": true,
+    "days_in_market": 195
+   },
+   "scaled_rules": {
+    "dip": 4.8,
+    "take_profit": 5.8,
+    "stop_loss": 5.8
+   },
+   "bt_scaled": {
+    "trades": 26,
+    "wins": 10,
+    "pnl": -36.46,
+    "open": true,
+    "days_in_market": 170
+   },
+   "passes_filters": false
+  },
+  {
+   "symbol": "PLUG",
+   "price": 1.98,
+   "as_of": "2026-09-25",
+   "sigma20": 2.52,
+   "sigma60": 3.45,
+   "steady_sigma": 2.52,
+   "biggest_day_60d": 10.0,
+   "atr_pct": 4.85,
+   "dollar_volume_m": 97.6,
+   "return_60d": -25.0,
+   "return_1y": -16.5,
+   "max_drawdown_1y": -56.7,
+   "buy_hold_pnl": -32.88,
+   "bt_default": {
+    "trades": 11,
+    "wins": 4,
+    "pnl": 16.97,
+    "open": true,
+    "days_in_market": 198
+   },
+   "scaled_rules": {
+    "dip": 6.3,
+    "take_profit": 7.6,
+    "stop_loss": 7.6
+   },
+   "bt_scaled": {
+    "trades": 25,
+    "wins": 11,
+    "pnl": -11.39,
+    "open": true,
+    "days_in_market": 169
+   },
+   "passes_filters": false
+  },
+  {
+   "symbol": "BBAI",
+   "price": 2.8,
+   "as_of": "2026-09-25",
+   "sigma20": 2.45,
+   "sigma60": 3.51,
+   "steady_sigma": 2.45,
+   "biggest_day_60d": 10.1,
+   "atr_pct": 4.27,
+   "dollar_volume_m": 43.7,
+   "return_60d": -23.1,
+   "return_1y": -58.4,
+   "max_drawdown_1y": -70.9,
+   "buy_hold_pnl": -60.28,
+   "bt_default": {
+    "trades": 14,
+    "wins": 3,
+    "pnl": -67.23,
+    "open": true,
+    "days_in_market": 191
+   },
+   "scaled_rules": {
+    "dip": 6.1,
+    "take_profit": 7.4,
+    "stop_loss": 7.4
+   },
+   "bt_scaled": {
+    "trades": 34,
+    "wins": 16,
+    "pnl": 14.98,
+    "open": true,
+    "days_in_market": 172
+   },
+   "passes_filters": false
+  },
+  {
+   "symbol": "AMC",
+   "price": 2.94,
+   "as_of": "2026-09-25",
+   "sigma20": 3.32,
+   "sigma60": 5.38,
+   "steady_sigma": 3.32,
+   "biggest_day_60d": 26.8,
+   "atr_pct": 6.0,
+   "dollar_volume_m": 72.6,
+   "return_60d": 52.3,
+   "return_1y": 1.7,
+   "max_drawdown_1y": -69.8,
+   "buy_hold_pnl": 9.29,
+   "bt_default": {
+    "trades": 16,
+    "wins": 5,
+    "pnl": 2.38,
+    "open": true,
+    "days_in_market": 189
+   },
+   "scaled_rules": {
+    "dip": 8.3,
+    "take_profit": 10.0,
+    "stop_loss": 10.0
+   },
+   "bt_scaled": {
+    "trades": 22,
+    "wins": 10,
+    "pnl": 9.74,
+    "open": false,
+    "days_in_market": 178
+   },
+   "passes_filters": false
+  },
+  {
+   "symbol": "PTON",
+   "price": 4.92,
+   "as_of": "2026-09-25",
+   "sigma20": 2.7,
+   "sigma60": 3.31,
+   "steady_sigma": 2.7,
+   "biggest_day_60d": -15.6,
+   "atr_pct": 3.64,
+   "dollar_volume_m": 46.8,
+   "return_60d": -16.6,
+   "return_1y": -42.6,
+   "max_drawdown_1y": -58.8,
+   "buy_hold_pnl": -37.08,
+   "bt_default": {
+    "trades": 9,
+    "wins": 2,
+    "pnl": -49.89,
+    "open": true,
+    "days_in_market": 191
+   },
+   "scaled_rules": {
+    "dip": 6.7,
+    "take_profit": 8.1,
+    "stop_loss": 8.1
+   },
+   "bt_scaled": {
+    "trades": 16,
+    "wins": 8,
+    "pnl": -7.21,
+    "open": true,
+    "days_in_market": 175
+   },
+   "passes_filters": false
+  }
+ ],
+ "missing": []
+}

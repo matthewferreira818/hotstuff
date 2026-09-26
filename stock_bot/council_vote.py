@@ -35,6 +35,7 @@ Usage:
 
 import json
 import os
+import shutil
 import statistics
 import sys
 
@@ -153,6 +154,10 @@ def report(votes, rows, chosen):
 
 def log(votes, chosen, text):
     os.makedirs(os.path.dirname(PICKS), exist_ok=True)
+    # Keep the screen as it stood today: seats are graded against it.
+    shots = os.path.join(os.path.dirname(PICKS), "screens")
+    os.makedirs(shots, exist_ok=True)
+    shutil.copyfile(SCREEN, os.path.join(shots, f"{votes['date']}.json"))
     with open(PICKS, "a") as f:
         for r in chosen:
             f.write(json.dumps({

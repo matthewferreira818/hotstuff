@@ -64,8 +64,18 @@ position.
 
 ## Going live with real money
 
-Don't rush this. The council's standing rule is 20 graded picks that beat
-just holding SPY first.
+Don't rush this. The council's standing rule has six conditions (20+
+graded picks, beating SPY after costs, the typical pick winning, no
+blow-through losses, winning unseen walk-forward windows, the Practice
+Desk ahead of SPY). They're listed in `.claude/skills/stock-council/SKILL.md`.
+
+## Research
+
+`python stock_bot/backtest.py --why` explains, trade by trade, why the
+rules beat or trail just holding. `--walk-forward` tunes the rules on 6
+months and tests them on the next 3 they never saw. Reports go to
+`stock_bot/research/`. The live bot and the backtests share one rulebook
+(`strategy.py`), so what's tested is what trades.
 
 Alpaca's real-money accounts aren't open to Canadians. The realistic
 route is **Interactive Brokers Canada**: it allows automated trading and
@@ -93,8 +103,8 @@ Honest limits:
 - 10 seconds is fast for a person but slow for Wall Street. Pro firms
   trade in millionths of a second. This bot is for sticking to your
   rules, not for out-racing anyone.
-- The free price feed comes from one exchange (IEX). It's real-time, but
-  for thinly traded stocks it can lag the full market a little.
+- The practice account's prices come from Yahoo's free feed, about a
+  minute behind. (With Alpaca it would be the IEX feed.)
 - GitHub's terms say Actions are for building and publishing software. A
   bot that runs all day stretches that, and GitHub could throttle or
   flag it. If that happens, we move it to a free Cloudflare Worker that

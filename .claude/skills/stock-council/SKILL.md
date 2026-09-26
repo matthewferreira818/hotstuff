@@ -34,7 +34,7 @@ calls, `run_in_background: false`): `stock-quant`, `stock-scout`,
 `stock-contrarian`, `stock-goalie`, `stock-bear`.
 
 Every seat gets the **same short brief**: today's date, any focus
-Matthew gave, and the file paths (`stock_bot/screen/latest.md` and
+Matthew gave, the research headline (above), and the file paths (`stock_bot/screen/latest.md` and
 `.json`, `stock_bot/council/scorecard.md`, `stock_bot/watchlist.json`).
 Their personalities and methods are in their own agent files; don't
 restate or blend them. **Independence rules:**
@@ -82,10 +82,26 @@ It prints the tally and appends to `stock_bot/council/SESSIONS.md` and
 
 ## Standing guardrail (Matthew can lift it)
 
-Council picks trade **paper only** until the scorecard shows at least 20
-graded picks **and** the rules beating "holding SPY". Until then, if
-Matthew asks to go live, tell him where the record stands and let him
-decide. It's his money and his call.
+Council picks trade **practice money only** until ALL of these hold:
+1. At least 20 picks graded (`stock_bot/council/scorecard.md`).
+2. Across them, the rules made more than holding SPY with the same money,
+   costs included.
+3. The typical pick beat SPY (median excess return above zero), not just
+   one big winner carrying the rest.
+4. No single pick lost more than twice its stop-loss (a gap that blows
+   through the stop).
+5. The walk-forward test (`python stock_bot/backtest.py --walk-forward`,
+   report in `stock_bot/research/`) shows the rules beating just holding
+   in most unseen test windows.
+6. The practice account (the Practice Desk) is not behind the same money
+   in SPY.
+
+Before every session, read `stock_bot/research/why.md` and
+`walk-forward.md` and give the seats the one-line headline. As of
+2026-09-26 the rules trail just holding (1 of 9 unseen windows won), so
+the honest default is that rules-based dip trading has not earned real
+money yet. If Matthew asks to go live, tell him which of the six hold
+and let him decide. It's his money and his call.
 
 ## Solo consults
 

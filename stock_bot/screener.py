@@ -313,11 +313,78 @@ def grade():
         lines += ["", f"**Record: {vol_hits}/{graded} picks stayed "
                   f"volatile. Rules ${rule_total:+,.0f} · holding the picks "
                   f"${hold_total:+,.0f} · holding SPY ${spy_total:+,.0f}.**"]
+    lines += ["", *seat_grades(bars_for)]
     os.makedirs(os.path.dirname(SCORECARD), exist_ok=True)
     with open(SCORECARD, "w") as f:
         f.write("\n".join(lines) + "\n")
     print(f"Graded {graded} of {len(picks)} picks → "
           "stock_bot/council/scorecard.md")
+
+
+def grade_one(bars, spy, date, predicted_sigma):
+    """One stock from a council date: did it swing as predicted, and did
+    it beat SPY? None until there are 5+ trading days to judge."""
+    after = [b["close"] for b in bars if b["date"] > date]
+    spy_after = [b["close"] for b in spy if b["date"] > date]
+    before = [b["close"] for b in bars if b["date"] <= date]
+    spy_before = [b["close"] for b in spy if b["date"] <= date]
+    if len(after) < 5 or not before or not spy_before or len(spy_after) < 5:
+        return None
+    ret = after[-1] / before[-1] - 1
+    spy_ret = spy_after[-1] / spy_before[-1] - 1
+    realized = sigma([before[-1]] + after)
+    return {"excess": (ret - spy_ret) * 100,
+            "swung": (realized >= 0.8 * predicted_sigma
+                      if predicted_sigma else None)}
+
+
+def seat_grades(bars_for):
+    """Grade every seat on its own picks and vetoes, from the saved vote
+    files and the screen as it stood that day."""
+    vdir = os.path.join(HERE, "council", "votes")
+    sdir = os.path.join(HERE, "council", "screens")
+    if not os.path.isdir(vdir):
+        return []
+    seats = {}
+    for name in sorted(os.listdir(vdir)):
+        with open(os.path.join(vdir, name)) as f:
+            votes = json.load(f)
+        date, screen = votes["date"], {}
+        spath = os.path.join(sdir, f"{date}.json")
+        if os.path.exists(spath):
+            with open(spath) as f:
+                sj = json.load(f)
+            screen = {r["symbol"]: r for r in
+                      sj.get("stocks", []) + sj.get("filtered_out", [])}
+        for seat, v in votes["seats"].items():
+            g = seats.setdefault(seat, {"picks": [], "vetoes": []})
+            for kind in ("picks", "vetoes"):
+                for item in v.get(kind, []):
+                    sym = item["symbol"].upper()
+                    r = grade_one(bars_for(sym), bars_for(BENCHMARK), date,
+                                  screen.get(sym, {}).get("steady_sigma"))
+                    g[kind].append(r)
+    lines = ["## Each seat's record", "",
+             "Picks: did the stock swing as much as expected, and did it beat "
+             "SPY? Vetoes: did the vetoed stock trail SPY (veto was right)?",
+             "", "| Seat | Picks graded | Swung as expected | Picks beat SPY "
+             "| Avg vs SPY | Vetoes graded | Vetoes right |",
+             "|---|---|---|---|---|---|---|"]
+    for seat, g in seats.items():
+        p = [r for r in g["picks"] if r]
+        x = [r for r in g["vetoes"] if r]
+        swung = [r["swung"] for r in p if r["swung"] is not None]
+        pending = len(g["picks"]) + len(g["vetoes"]) - len(p) - len(x)
+        lines.append(
+            f"| {seat} | {len(p)} | "
+            + (f"{sum(swung)}/{len(swung)}" if swung else "—") + " | "
+            + (f"{sum(r['excess'] > 0 for r in p)}/{len(p)}" if p else "—")
+            + " | "
+            + (f"{statistics.mean(r['excess'] for r in p):+.1f}%" if p
+               else "—") + f" | {len(x)} | "
+            + (f"{sum(r['excess'] < 0 for r in x)}/{len(x)}" if x else "—")
+            + " |" + (f" ({pending} still too early)" if pending else ""))
+    return lines
 
 
 # ----------------------------------------------------------------- selftest
@@ -339,6 +406,15 @@ def selftest():
     row = analyze("TEST", bars)
     assert row["sigma60"] == 0 and row["atr_pct"] == 2.0, row
     assert row["passes_filters"]  # $100 price, $100M a day
+    # Seat grading: stock +10% vs SPY +1% over 6 days after the pick.
+    mk = lambda px: [{"date": f"2026-01-{d:02d}", "close": c, "high": c,
+                      "low": c, "volume": 1} for d, c in px]
+    stock = mk([(1, 100), (2, 104), (3, 98), (4, 106), (5, 101), (6, 108),
+                (7, 110)])
+    spy = mk([(d, 100 + (d > 1)) for d in range(1, 8)])
+    g = grade_one(stock, spy, "2026-01-01", 2.0)
+    assert abs(g["excess"] - 9.0) < 1e-9 and g["swung"] is True, g
+    assert grade_one(stock, spy, "2026-01-05", 2.0) is None  # too early
     print("selftest OK")
 
 

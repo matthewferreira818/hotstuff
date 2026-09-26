@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Practice Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --ground: #eef2f0;
+  --surface: #ffffff;
+  --ink: #16211d;
+  --muted: #5f6f69;
+  --line: #d5dedA;
+  --accent: #0f6e63;
+  --gain: #1c7f46;
+  --loss: #b8402b;
+  --track: #e2e9e6;
+  --warn-bg: #fff4d6;
+  --warn-ink: #6b4d00;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0d1412; --surface: #151f1c; --ink: #e3ebe7; --muted: #8fa19a;
+    --line: #26332f; --accent: #4fc1b0; --gain: #4cc27e; --loss: #f07a62;
+    --track: #1f2b27; --warn-bg: #3a2f10; --warn-ink: #f3d68a;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0d1412; --surface: #151f1c; --ink: #e3ebe7; --muted: #8fa19a;
+  --line: #26332f; --accent: #4fc1b0; --gain: #4cc27e; --loss: #f07a62;
+  --track: #1f2b27; --warn-bg: #3a2f10; --warn-ink: #f3d68a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font: 15px/1.5 "IBM Plex Sans", system-ui, sans-serif;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+}
+main { max-width: 760px; margin: 0 auto; display: grid; gap: 20px; }
+.num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+h1, h2 { font-family: "Barlow Semi Condensed", "Arial Narrow", sans-serif; margin: 0; text-wrap: balance; }
+h1 { font-size: 28px; font-weight: 700; letter-spacing: .01em; }
+h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); font-size: 13px; color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.pill.open .dot { background: var(--gain); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gain) 25%, transparent); }
+.warn { background: var(--warn-bg); color: var(--warn-ink); padding: 10px 14px; border-radius: 8px; font-size: 14px; }
+
+.score { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.score > div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 2px; }
+.score .label { font-size: 13px; color: var(--muted); }
+.score .big { font-size: 28px; font-weight: 500; }
+.score .sub { font-size: 13px; color: var(--muted); }
+.up { color: var(--gain); } .down { color: var(--loss); }
+
+.stocks { display: grid; gap: 12px; }
+.stock { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; }
+.stock-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+.sym { font-family: "Barlow Semi Condensed", sans-serif; font-size: 24px; font-weight: 700; letter-spacing: .02em; }
+.price { font-size: 20px; }
+.state { font-size: 14px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 4px; margin-right: 6px;
+  background: var(--track); color: var(--ink); text-transform: uppercase; letter-spacing: .06em; }
+.chip.held { background: var(--accent); color: var(--surface); }
+.meter { position: relative; height: 10px; border-radius: 5px; background: var(--track); }
+.meter .fill { position: absolute; top: 0; bottom: 0; border-radius: 5px; background: var(--accent); opacity: .85; }
+.meter .mark { position: absolute; top: -4px; width: 2px; height: 18px; background: var(--ink); }
+.scale { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
+.rules { font-size: 13px; color: var(--muted); }
+
+.trades { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 8px 14px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; }
+.empty { padding: 14px; color: var(--muted); font-size: 14px; }
+footer { font-size: 13px; color: var(--muted); display: grid; gap: 6px; max-width: 65ch; }
+@media (prefers-reduced-motion: no-preference) { .meter .fill { transition: width .6s ease, left .6s ease; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Practice Desk</h1>
+    <span class="pill" id="status"><span class="dot"></span><span id="status-text">Loading…</span></span>
+  </header>
+  <div class="warn" id="warn" hidden></div>
+
+  <section class="score" aria-label="Account">
+    <div>
+      <span class="label">Practice account</span>
+      <span class="big num" id="value">—</span>
+      <span class="sub num" id="value-sub"></span>
+    </div>
+    <div>
+      <span class="label">Same money in SPY</span>
+      <span class="big num" id="spy">—</span>
+      <span class="sub" id="spy-sub"></span>
+    </div>
+    <div>
+      <span class="label">Cash · in stocks</span>
+      <span class="big num" id="cash">—</span>
+      <span class="sub num" id="cash-sub"></span>
+    </div>
+  </section>
+
+  <section class="stocks" aria-labelledby="h-stocks">
+    <h2 id="h-stocks">Watching</h2>
+    <div class="stocks" id="stocks"></div>
+  </section>
+
+  <section aria-labelledby="h-trades" style="display:grid;gap:12px">
+    <h2 id="h-trades">Trades</h2>
+    <div class="trades" id="trades"></div>
+  </section>
+
+  <footer>
+    <span>Fake money, real prices. Every trade pays a $1 fee and a fill 0.1% worse than the quote, like a small real account would.</span>
+    <span id="picked"></span>
+    <span>Prices update every 2 minutes while the market is open (9:30am–4pm New York, 10:30am–5pm Atlantic). This page checks for new numbers every 30 seconds.</span>
+  </footer>
+</main>
+
+<script>
+const DATA = "https://raw.githubusercontent.com/matthewferreira818/hotstuff/stock-live/live.json";
+const $ = id => document.getElementById(id);
+const money = n => (n < 0 ? "−$" : "$") + Math.abs(n).toLocaleString("en-CA", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const pct = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toFixed(1) + "%";
+const cls = n => n > 0.005 ? "up" : n < -0.005 ? "down" : "";
+let snap = null;
+
+function ago(iso) {
+  const s = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
+  if (s < 90) return "just now";
+  if (s < 3600) return Math.round(s / 60) + " min ago";
+  if (s < 86400) return Math.round(s / 3600) + " h ago";
+  return Math.round(s / 86400) + " days ago";
+}
+
+function stockCard(s) {
+  const r = s.rules, el = document.createElement("article");
+  el.className = "stock";
+  let chip, state, meter = "", scale = "";
+  if (s.held) {
+    // Stop ... entry ... target, with the current change marked.
+    const lo = -r.stop_loss, hi = r.take_profit, span = hi - lo;
+    const pos = Math.min(100, Math.max(0, (s.change_pct - lo) / span * 100));
+    const zero = (0 - lo) / span * 100;
+    const left = Math.min(zero, pos), width = Math.abs(pos - zero);
+    chip = '<span class="chip held">Holding</span>';
+    state = `<span class="${cls(s.change_pct)} num">${pct(s.change_pct)}</span> since buying at <span class="num">${money(s.entry)}</span> · worth <span class="num">${money(s.value)}</span>`;
+    meter = `<div class="meter" role="img" aria-label="${pct(s.change_pct)} between a ${r.stop_loss}% stop and a ${r.take_profit}% target"><div class="fill" style="left:${left}%;width:${width}%;background:var(${s.change_pct >= 0 ? "--gain" : "--loss"})"></div><div class="mark" style="left:calc(${zero}% - 1px)"></div></div>`;
+    scale = `<div class="scale num"><span>Stop −${r.stop_loss}%</span><span>Bought</span><span>Sell +${r.take_profit}%</span></div>`;
+  } else if (s.off_high_pct != null && r.dip) {
+    // 0% (at the 20-day high) ... dip% (buy line).
+    const off = -s.off_high_pct, need = r.dip - off;
+    const pos = Math.min(100, Math.max(0, off / r.dip * 100));
+    chip = s.traded_today ? '<span class="chip">Done for today</span>' : '<span class="chip">Waiting</span>';
+    state = need > 0
+      ? `<span class="num">${off.toFixed(1)}%</span> under its 20-day high · buys after <span class="num">${need.toFixed(1)}%</span> more drop`
+      : `<span class="num">${off.toFixed(1)}%</span> under its 20-day high · at the buy line`;
+    meter = `<div class="meter" role="img" aria-label="${off.toFixed(1)}% of the way to a ${r.dip}% dip"><div class="fill" style="left:0;width:${pos}%"></div></div>`;
+    scale = `<div class="scale num"><span>20-day high ${money(s.high20)}</span><span>Buy at −${r.dip}%</span></div>`;
+  } else {
+    chip = '<span class="chip">Waiting</span>';
+    state = "No price history yet.";
+  }
+  el.innerHTML = `
+    <div class="stock-top"><span class="sym">${s.symbol}</span><span class="price num">${s.price ? money(s.price) : "—"}</span></div>
+    <div class="state">${chip}${state}</div>
+    ${meter}${scale}
+    <div class="rules num">Rules: buy $${r.dollars} after a ${r.dip}% dip · sell at +${r.take_profit}% · stop at −${r.stop_loss}%</div>`;
+  return el;
+}
+
+function render() {
+  if (!snap) return;
+  const a = snap.account, fresh = (Date.now() - Date.parse(snap.updated)) / 60000;
+  $("status").classList.toggle("open", snap.market_open);
+  $("status-text").textContent = (snap.market_open ? "Market open" : "Market closed") + " · updated " + ago(snap.updated);
+  const warn = $("warn");
+  warn.hidden = !(snap.market_open && fresh > 10);
+  if (!warn.hidden) warn.textContent = `No update for ${Math.round(fresh)} minutes during market hours. The bot may be down; check the Stock bot run in GitHub Actions.`;
+
+  const pnl = a.value - a.start_cash;
+  $("value").textContent = money(a.value);
+  $("value").className = "big num " + cls(pnl);
+  $("value-sub").textContent = `${pnl >= 0 ? "+" : "−"}${money(Math.abs(pnl))} (${pct(pnl / a.start_cash * 100)}) on ${money(a.start_cash)}`;
+  if (a.spy_value != null) {
+    const d = a.value - a.spy_value;
+    $("spy").textContent = money(a.spy_value);
+    $("spy-sub").innerHTML = Math.abs(d) < 0.005 ? "Even with SPY so far"
+      : `The bot is <span class="${cls(d)} num">${d > 0 ? "ahead by " : "behind by "}${money(Math.abs(d))}</span>`;
+  }
+  $("cash").textContent = money(a.cash);
+  $("cash-sub").textContent = `${money(a.held)} in stocks · ${a.trades} trade${a.trades === 1 ? "" : "s"} · ${money(a.fees)} fees`;
+
+  const box = $("stocks");
+  box.replaceChildren(...snap.stocks.map(stockCard));
+
+  const t = $("trades");
+  if (!snap.orders.length) {
+    t.innerHTML = '<div class="empty">No trades yet. The bot only acts when a rule is hit, so quiet days are normal.</div>';
+  } else {
+    t.innerHTML = `<table><thead><tr><th>When</th><th>Stock</th><th>Side</th><th class="r">Price</th><th class="r">Amount</th></tr></thead><tbody>${
+      snap.orders.map(o => `<tr><td>${new Date(o.time).toLocaleString("en-CA", {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"})}</td><td>${o.symbol}</td><td class="${o.side === "buy" ? "" : "up"}">${o.side === "buy" ? "Bought" : "Sold"}</td><td class="r num">${money(o.price)}</td><td class="r num">${money(o.dollars)}</td></tr>`).join("")
+    }</tbody></table>`;
+  }
+  const when = (snap.picked_by || "").match(/\d{4}-\d{2}-\d{2}/);
+  $("picked").textContent = when ? `Stocks and rules picked by the stock council on ${when[0]}.` : "";
+}
+
+async function load() {
+  try {
+    const res = await fetch(DATA + "?nc=" + Date.now(), {cache: "no-store"});
+    if (!res.ok) throw new Error(res.status);
+    snap = await res.json();
+    render();
+  } catch (e) {
+    if (!snap) {
+      $("status-text").textContent = "Can't reach the data";
+      const w = $("warn"); w.hidden = false;
+      w.textContent = "Couldn't load the latest numbers. Check your connection and refresh.";
+    }
+  }
+}
+load();
+setInterval(load, 30000);
+setInterval(render, 15000);
+</script>
+</body>
+</html>

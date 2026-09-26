@@ -58,6 +58,7 @@ OPEN_STATUSES = {"new", "accepted", "pending_new", "partially_filled",
 MAX_LOOP_SECONDS = 5 * 3600 + 45 * 60
 RELOAD_SECONDS = 60      # re-read the watchlist from GitHub this often
 HEARTBEAT_SECONDS = 1800
+SNAPSHOT_SECONDS = 120   # live page refresh (practice account only)
 MAX_ERRORS_IN_A_ROW = 10
 
 LOCAL = "--local" in sys.argv
@@ -349,6 +350,23 @@ def run():
         notify(f"Stock bot ({label}): order sent", done, "high")
         return 0
 
+    def snapshot(closes, market_open):
+        if label != "practice":
+            return  # never publish a real account's numbers
+        try:
+            import live_snapshot
+            live_snapshot.publish(live_snapshot.build(
+                broker, cfg, closes, market_open))
+        except Exception as e:  # the page must never stop the trading
+            print(f"Live page update skipped ({type(e).__name__}).")
+
+    if "--snapshot" in sys.argv:
+        symbols = [s["symbol"].upper() for s in cfg.get("stocks", [])]
+        snapshot(broker.daily_closes(symbols),
+                 bool(broker.clock().get("is_open")))
+        print("Live page updated.")
+        return 0
+
     if cfg.get("paused") or os.path.exists(PAUSE_FILE):
         print("Paused — no trades.")
         return 0
@@ -370,6 +388,7 @@ def run():
     every = max(every, 5)  # Alpaca's free plan allows 200 calls/min
     closes_at = dt.datetime.fromisoformat(broker.clock()["next_close"])
     last_reload = last_beat = time.monotonic()
+    last_snap = 0.0
     closes, closes_for = {}, None
     already, placed, checks, errors = {}, 0, 0, 0
     print(f"Watching every {every:g}s until the close.")
@@ -398,9 +417,13 @@ def run():
                                     for s in cfg.get("stocks", [])}))
             if symbols != closes_for:  # daily bars: once, or on list change
                 closes, closes_for = broker.daily_closes(list(symbols)), symbols
-            placed += check(broker, cfg, closes, label, False, already)
+            done = check(broker, cfg, closes, label, False, already)
+            placed += done
             checks += 1
             errors = 0
+            if done or now - last_snap >= SNAPSHOT_SECONDS:
+                snapshot(closes, True)
+                last_snap = now
         except (RuntimeError, urllib.error.URLError, OSError,
                 ValueError, KeyError) as e:
             errors += 1
@@ -415,6 +438,7 @@ def run():
             print(f"Still watching: {checks} checks so far.")
             last_beat = now
         time.sleep(every)
+    snapshot(closes, False)
     print(f"Done: {checks} checks, {placed} order(s) placed.")
     return 0
 

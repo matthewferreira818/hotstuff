@@ -1,22 +1,20 @@
-# Send sheet — texts & emails only (prepped 2026-09-26)
+# Send sheet — emails & DMs only (final, 2026-09-26)
 
-Matthew asked for no calls this round. Six messages, each to a business
-whose own channel is email or Facebook Messenger. **You press Send on
-every one.** Emails go from **ceohotstuff@yahoo.com**.
+Pages checked by C.C on 2026-09-26: four SEND, two SKIP, plus LeBlanc
+Restaurant's email found. **You press Send on every one.** Emails go from
+**ceohotstuff@yahoo.com**. The streak line says "since August 4", so it
+stays true on whatever day you send (the feed is at 54 days today).
 
-**Before each send (30 seconds, or ask C.C):**
-1. Open their Facebook page. Is it still quiet? If they've started posting
-   again, skip them (the message would be false).
-2. Check that they haven't already replied to you somewhere.
-3. Replace **[N]** with today's number from findhotstuff.com/automation
-   (the feed's daily streak, 54 on Sept 26). Phrase it exactly as written:
-   it's the store's feed, not a Facebook page.
+After sending, log each one in `prospects.md` (date + "email sent" / "DM sent").
 
-After sending, log it in `prospects.md` (date + "email sent" / "DM sent").
+Skipped: **Fener's Place** posted Aug 27 and 29, so they're not quiet.
+**Tidewater Books** posted about Sept 24. Telling either of them their page
+is quiet would be false.
 
 ---
 
 ## 1. LeBlancs Meat Market — Memramcook · EMAIL
+Last post May 17, 2025 (C.C, 09-26). First contact.
 **To:** leblancmeat.32@gmail.com
 **Subject:** Une semaine de publications pour Viandes LeBlanc — gratuit / A free week of posts for LeBlanc Meats
 
@@ -32,7 +30,7 @@ After sending, log it in `prospects.md` (date + "email sent" / "DM sent").
 > l'exemple sont inventés; on met les vrais à l'installation.
 >
 > Le fil de mon propre magasin publie une nouvelle publication chaque jour
-> depuis [N] jours : https://findhotstuff.com/automation
+> depuis le 4 août : https://findhotstuff.com/automation
 >
 > Ça vous intéresse? Répondez simplement à ce courriel.
 >
@@ -41,30 +39,15 @@ After sending, log it in `prospects.md` (date + "email sent" / "DM sent").
 > posts for LeBlanc Meats (link above). My service posts to your page every
 > day, automatically: you approve the look once and that's it. Free setup,
 > free first week, then $79/month, no contract. The prices in the sample are
-> placeholders; real ones go in at setup. Just reply if you'd like to try it.
+> placeholders; the real ones go in at setup. Just reply if you'd like to try it.
 >
 > Matthew Ferreira · East Coast Social · (506) 889-9737
 
 ---
 
-## 2. Fener's Place — Sackville · FACEBOOK MESSAGE
-**Where:** fb.com/fenersplace → Message. (Never contacted before.)
-
-> Hi! I'm Matthew, local (Memramcook). I made a sample week of posts for
-> Fener's Place to show what your page could look like posting every day:
-> https://findhotstuff.com/marketing/east-coast-social/engine/samples/feners-place/contact-sheet.png
->
-> My service posts to your page daily, automatically. You approve the style
-> once. Setup is free and so is the first week, then it's $79/month, cancel
-> anytime. My own store's feed has published a new post every day for [N]
-> days: findhotstuff.com/automation
->
-> Want me to run the free week for real?
-
----
-
-## 3. 150 Bridge Salon — Sackville · FACEBOOK MESSAGE (follow-up)
-**Where:** fb.com/150bridgesalon → Message. Touch 2 (first DM was 07-29).
+## 2. 150 Bridge Salon — Sackville · FACEBOOK MESSAGE (follow-up)
+Last post Apr 14, 2026. Your first DM (07-29, from your personal account)
+got no reply. Send from the same account, in the same thread.
 
 > Hi again! Matthew here. I messaged back in July about daily posts. Since
 > then I built a sample week for 150 Bridge Salon so you can see it instead
@@ -76,43 +59,22 @@ After sending, log it in `prospects.md` (date + "email sent" / "DM sent").
 
 ---
 
-## 4. Tidewater Books — Sackville · EMAIL
-**To:** tidewaterbooks@eastlink.ca (their Messenger auto-reply asked for email)
-**Subject:** Daily Facebook posts for Tidewater Books (free sample week)
-
-> Hi there,
->
-> I'm Matthew, a local from Memramcook. Your Messenger auto-reply said email
-> is best, so here I am. I run East Coast Social: I make a local business's
-> Facebook page post every day, automatically: new arrivals, staff picks,
-> events. You approve the style once and it runs.
->
-> Setup is free, the first week of posts is free, then $79/month with no
-> contract. You can see it working on my own store: its feed has published a
-> new post every day for [N] days (findhotstuff.com/automation).
->
-> If you'd like, I'll build a sample week for Tidewater before you decide
-> anything. Just reply.
->
-> Matthew Ferreira · (506) 889-9737
-
----
-
-## 5. CMA Plumbing & Heating — Sackville · EMAIL
-**To:** cmaplumbing@outlook.com (touch 2 — Facebook DM 07-29, no reply)
+## 3. CMA Plumbing & Heating — Sackville · EMAIL (follow-up)
+Last post Feb 28, 2026. The Facebook DM from 07-29 got no reply.
+**To:** cmaplumbing@outlook.com
 **Subject:** Keeping CMA's Facebook page busy before heating season
 
 > Hi,
 >
-> Matthew here, from Memramcook. Heating season is when people look up a
-> plumber's page before they call, and a page that's been quiet a while can
-> make them wonder if you're still around.
+> Matthew here, from Memramcook. I sent a Facebook message back in July, so
+> I'm trying email instead. Heating season is when people look up a
+> plumber's page before they call, and yours hasn't posted since February.
 >
 > I run a small local service that posts to your Facebook page every day,
 > automatically: seasonal tips, service reminders, your service area. You
 > approve the style once. Free setup, free first week, then $79/month, no
-> contract. My own store's feed has posted every day for [N] days:
-> findhotstuff.com/automation
+> contract. My own store's feed has published a new post every day since
+> August 4: findhotstuff.com/automation
 >
 > Worth a look? Reply and I'll build a sample week for CMA first.
 >
@@ -120,19 +82,21 @@ After sending, log it in `prospects.md` (date + "email sent" / "DM sent").
 
 ---
 
-## 6. Ducks Aren't Real — EMAIL
-**To:** ducksarentreal@gmail.com (touch 2 — their DM auto-reply said email)
+## 4. Ducks Aren't Real — EMAIL
+Last post Aug 24, 2026 (just over a month). Their Messenger auto-reply
+asked for email.
+**To:** ducksarentreal@gmail.com
 **Subject:** A week of daily posts for Ducks Aren't Real, free
 
 > Hi!
 >
-> Matthew here, local from Memramcook. Your DM auto-reply said you don't check
-> messages there, so I'm emailing instead. I run East Coast Social: your
-> Facebook page posts every day, automatically (menu items, specials, hours),
-> after you approve the look once.
+> Matthew here, local from Memramcook. Your Messenger auto-reply said email
+> is best, so here I am. I run East Coast Social: your Facebook page posts
+> every day, automatically (menu items, specials, hours), after you approve
+> the look once.
 >
-> Free setup, free first week, then $79/month, cancel anytime. My own store's
-> feed has published a new post every day for [N] days:
+> Free setup, free first week, then $79/month, cancel anytime. My own
+> store's feed has published a new post every day since August 4:
 > findhotstuff.com/automation
 >
 > Want me to make a sample week for you first? Just reply.
@@ -141,12 +105,26 @@ After sending, log it in `prospects.md` (date + "email sent" / "DM sent").
 
 ---
 
-## Not on this sheet, and why
+## 5. LeBlanc Restaurant (Ben's) — Memramcook · EMAIL (optional, one and done)
+They've had the printed pack since 08-14 with no reply. This is the one
+gentle touch the ledger allows, then they rest. Email from the Village de
+Memramcook tourism directory (found by C.C, 09-26).
+**To:** LeBlancRestaurant@hotmail.com
+**Subject:** Le paquet d'échantillons / The sample pack I dropped off
 
-- **LeBlanc Restaurant (Ben's).** Had the printed pack since 08-14 and
-  never replied (Matthew, 09-26). Treat as cooled, not hot. At most one
-  easy touch later (a walk-in when passing), then let it rest. Phone
-  only, so nothing to send here.
-- **CAVOK Brewing.** The ledger says no more texts or calls: four touches
-  with no reply. One walk-in on a day Serge is in, whenever that is.
-- **Norm's Pizza, Carlos Barber Shop.** Phone only; no email or page found.
+> Bonjour Ben,
+>
+> C'est Matthew, de Memramcook. Je vous ai laissé un paquet avec des
+> publications Facebook pour le restaurant en août. Le voici en ligne, au cas
+> où il se serait perdu :
+> https://findhotstuff.com/marketing/east-coast-social/engine/samples/leblanc-resto/contact-sheet.png
+>
+> Si jamais vous voulez l'essayer, la première semaine est gratuite. Sinon,
+> aucun souci, je ne vous relancerai pas.
+>
+> — Hi Ben, it's Matthew. I dropped off a sample pack of Facebook posts for
+> the restaurant in August; here it is online in case it got lost (link
+> above). If you ever want to try it, the first week is free. If not, no
+> worries at all. I won't follow up again.
+>
+> Matthew Ferreira · (506) 889-9737

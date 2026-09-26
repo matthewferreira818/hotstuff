@@ -16,8 +16,8 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 |---|---|---|
 | The Painted Pony Bar & Grill | bar & grill | ✅ active (posted Jul 10, checked 07-28) |
 | Holan Kitchen | restaurant | 🎯 DM SENT 07-28 (from Matthew's profile, Claude-assisted) |
-| Ducks Aren't Real | restaurant | 🎯 DM SENT 07-28 — auto-reply says they don't check DMs; FOLLOW UP BY EMAIL ducksarentreal@gmail.com |
-| Fener's Place | restaurant | ✅ borderline (Jun 27) — re-check ~Aug 12; fb.com/fenersplace |
+| Ducks Aren't Real | restaurant | 🎯 DM SENT 07-28 — auto-reply says they don't check DMs; FOLLOW UP BY EMAIL ducksarentreal@gmail.com · C.C 09-26: last post Aug 24 — email prepped |
+| Fener's Place | restaurant | ✅ ACTIVE again: posted Aug 27 + Aug 29 (C.C check 09-26). Skip for now; re-check in a month. Pack rendered. fb.com/fenersplace |
 | Cranewood On Main | café/restaurant | 🎯 DM SENT 08-03 (extension-assisted, dead feed) |
 | Goya's Pizza | pizza | ✅ active (posted Jul 21, checked 07-28) |
 | Patterson's Family Restaurant | family restaurant | ✅ very active (posts daily, checked 07-28) |
@@ -32,7 +32,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 |---|---|---|
 | Carlos Barber Shop (22 Lansdowne St) | barber | 📞 CALLED 08-04 — voicemail left (touch 1). Call back once in a few days; if no answer, walk-in prospect. ⚠️ IG @carlos.barbershop is a DIFFERENT shop (Dominican Republic), do not DM |
 | Steel Clippers Barbershop (80 Main St) | barber | ✅ active (posted Jul 28, checked 07-29) — one-person shop (Tammy), walk-in only |
-| 150 Bridge Salon | salon | 🎯 DM SENT 07-29 (last post mid-April; fb.com/150bridgesalon) |
+| 150 Bridge Salon | salon | 🎯 DM SENT 07-29, no reply. Still quiet: last post Apr 14 (C.C 09-26). Follow-up DM with sample link prepped (send sheet 09-26). fb.com/150bridgesalon |
 | Looking Good Hair Design | salon | ❌ NOT local — fb match is Maroochydore, Australia; no NB page found (07-29). Drop. |
 | A Touch of Class Hair & Tanning | salon | ❌ no NB page found (07-29). Drop or verify by phone book. |
 | Summit Hair Studio | salon | ❌ no NB page found (07-29). Drop or verify by phone book. |
@@ -40,7 +40,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 ## Memramcook / Dorchester
 | Business | Type | Feed check |
 |---|---|---|
-| LeBlanc Restaurant (Ben's, 583 rue Centrale) | restaurant, no FB page | ⏸️ Printed sample pack handed over in person 08-14 (walk-in). **Never replied** (confirmed by Matthew 09-26). Phone (506) 758-2554 only, no email found. Status: cooled. At most ONE low-pressure touch (walk-in or call) when convenient, then rest. Not the same business as LeBlancs Meat Market below. |
+| LeBlanc Restaurant (Ben's, 583 rue Centrale) | restaurant, no FB page | ⏸️ Printed sample pack handed over in person 08-14 (walk-in). **Never replied** (confirmed by Matthew 09-26). Phone (506) 758-2554; email LeBlancRestaurant@hotmail.com (Village de Memramcook directory, found by C.C 09-26). One gentle email prepped (send sheet 09-26), then rest. Status: cooled. At most ONE low-pressure touch (walk-in or call) when convenient, then rest. Not the same business as LeBlancs Meat Market below. |
 | LeBlancs Meat Market (32 La Mountain Rd) | butcher/market | 🎯 page messaging DISABLED (07-28) — reach via email leblancmeat.32@gmail.com (French draft ready) or walk-in with ECS flyer; page "Viandes LeBlanc Meats" |
 | _More: memramcook.com → business directory (markets, catering, pub)_ | | |
 
@@ -111,7 +111,7 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Ted's Garage | Port Elgin | auto repair garage | no social found |
 | The Garden House Restaurant | Port Elgin | restaurant/catering | no social found in search snippets |
 | Beale and Inch Construction | Sackville | excavation/construction (60-year family business) | no social found |
-| CMA Plumbing & Heating | Sackville | plumber/heating | 🎯 DM SENT 07-29 (quiet since Feb; email on page: cmaplumbing@outlook.com) |
+| CMA Plumbing & Heating | Sackville | plumber/heating | 🎯 DM SENT 07-29 (quiet since Feb; email on page: cmaplumbing@outlook.com) · C.C 09-26: still quiet (last post Feb 28), no reply to DM — follow-up email prepped |
 | Cafe Tintamarre | Sackville | cafe |  |
 | Cory Allen's Plumbing & Heating Ltd. | Sackville | plumber |  |
 | Dave's Rock Emporium | Sackville | rock/mineral shop |  |
@@ -128,7 +128,7 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Tantramar Lawn & Landscaping | Sackville | landscaper | no social found in results |
 | The Barn Shop | Sackville | retail shop |  |
 | The Roost Cafe on York | Sackville | cafe |  |
-| Tidewater Books | Sackville | independent bookstore | 🎯 DM SENT 07-29 (quiet since Oct 2025; auto-reply says EMAIL them: tidewaterbooks@eastlink.ca) |
+| Tidewater Books | Sackville | independent bookstore | 🎯 DM SENT 07-29 (quiet since Oct 2025; auto-reply says EMAIL them: tidewaterbooks@eastlink.ca) · C.C 09-26: ACTIVE again (posted ~Sep 24) — skip |
 | Wheeler Electric | Sackville | electrician | has own website; no FB/IG seen |
 | Fluffy Tails Dog Grooming | Sackville (Frosty Hollow) | pet groomer | FB page exists |
 | Boulangerie Leger Bakery | Shediac | bakery (also serves Cap-Pele) |  |

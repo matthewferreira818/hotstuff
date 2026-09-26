@@ -68,8 +68,10 @@ def tally(votes, screen, caps):
         n = len(set(backers.get(s, [])))
         if s in hard:
             status = "blocked (strength-5 veto)"
+        elif n == 0:
+            status = "no seat picked it"
         elif n < MIN_BACKERS:
-            status = f"only {n} seat{'s' if n != 1 else ''} picked it"
+            status = "only 1 seat picked it"
         elif score[s] <= 0:
             status = "vetoes outweigh picks"
         elif s not in stocks:

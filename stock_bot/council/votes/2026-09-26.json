@@ -1,0 +1,88 @@
+{
+ "date": "2026-09-26",
+ "seats": {
+  "Tally": {
+   "picks": [
+    {"symbol": "ASTS", "conviction": 4, "reason": "σ20/σ60 0.89; both rule sets profitable (+$89/24 trades, +$17/19) and beat holding (-$16); best rules-minus-hold of 58"},
+    {"symbol": "HOOD", "conviction": 4, "reason": "σ ratio 0.91 and rising; both rule sets positive and beat holding; $2.66B/day liquidity"},
+    {"symbol": "RIOT", "conviction": 3, "reason": "highest steady σ that passes; both rule sets positive and beat holding, but by less"}
+   ],
+   "vetoes": [
+    {"symbol": "SMR", "strength": 5, "reason": "$8.42, -85.8% worst drop, rules lost both ways"},
+    {"symbol": "MRNA", "strength": 4, "reason": "+177% day is 95% of the 60-day swing; σ collapsing"},
+    {"symbol": "MSTR", "strength": 4, "reason": "rules lost both ways; -77% worst drop"}
+   ],
+   "rules": {
+    "ASTS": {"dip": 8, "take_profit": 20, "stop_loss": 10},
+    "HOOD": {"dip": 8, "take_profit": 20, "stop_loss": 10},
+    "RIOT": {"dip": 8, "take_profit": 20, "stop_loss": 10}
+   },
+   "odds": 3,
+   "worry": "picked from last year's backtest winners on a survivor list; median default-rules result across 58 was only +$4.71"
+  },
+  "Scoop": {
+   "picks": [
+    {"symbol": "INTC", "conviction": 4, "reason": "Q3 earnings Thu Oct 22 AMC (MarketBeat/TipRanks); last 3 reports moved -17%, +23.6%, -7.9%"},
+    {"symbol": "NFLX", "conviction": 3, "reason": "Q3 earnings Tue Oct 20 AMC (Netflix IR); last 3 reports moved -8%, -9-10%, -6.4%"},
+    {"symbol": "HOOD", "conviction": 2, "reason": "HOOD Summit Sep 29-30, CEO keynote Sep 29 after close (Robinhood newsroom)"}
+   ],
+   "vetoes": [
+    {"symbol": "OKLO", "strength": 5, "reason": "new $1B at-the-market share sale launched Sep 11 (SEC 8-K)"},
+    {"symbol": "SMR", "strength": 4, "reason": "$984.5M dilution H1 2026; UBS downgrade to Sell Sep 18, -13% that day"},
+    {"symbol": "MRNA", "strength": 3, "reason": "already ran $63 to $195 on Aug 19 news; ESMO data Oct 24"}
+   ],
+   "rules": {},
+   "odds": 2,
+   "worry": "the two best catalysts land Oct 20-22, one gap each with no telling which way; the rules get little time to work"
+  },
+  "Rebound": {
+   "picks": [
+    {"symbol": "ASTS", "conviction": 3, "reason": "floor at 55.70 since Sep 1, higher lows, 7 tests held; down on launch delays and a miss, not a broken business"},
+    {"symbol": "HIMS", "conviction": 2, "reason": "6-week range 27.4-31.8, 11 tests held; revenue +40% but margins and FTC/Visa overhang"}
+   ],
+   "vetoes": [
+    {"symbol": "MRNA", "strength": 5, "reason": "+174% in 60 days, +37% in 7 sessions, closed at the high; who's left to buy?"},
+    {"symbol": "MSTR", "strength": 4, "reason": "+70% in 60 days, already slipping; the bitcoin rally is old news"},
+    {"symbol": "SMCI", "strength": 3, "reason": "+56% in 60 days within 1% of the high; nothing fixed but the price"}
+   ],
+   "rules": {
+    "ASTS": {"dip": 11, "take_profit": 14, "stop_loss": 10},
+    "HIMS": {"dip": 9, "take_profit": 12, "stop_loss": 10}
+   },
+   "odds": 2,
+   "worry": "a floor holds until it doesn't; SpaceX share-supply fears drag space names and HIMS can gap on lawsuit news; the bot lost -$48 on HIMS last year"
+  },
+  "Goalie": {
+   "picks": [
+    {"symbol": "NVDA", "conviction": 4, "reason": "7% stop wider than 2x ATR and its worst day all year (-6.2%); next earnings after this month"},
+    {"symbol": "CRWD", "conviction": 4, "reason": "11% stop > 2x ATR; no -10% day in a year; $11 at risk, inside the $15 limit"},
+    {"symbol": "ABNB", "conviction": 3, "reason": "shallowest drawdown on the screen (-21.5%); worst day -7.6%; but already 17% under its 20-day high"}
+   ],
+   "vetoes": [
+    {"symbol": "MRNA", "strength": 5, "reason": "+177% one day then -23.5% the next; no stop catches that"},
+    {"symbol": "SMR", "strength": 4, "reason": "honest stop is 17% = $17 on $100, over the limit; still sliding"},
+    {"symbol": "INTC", "strength": 4, "reason": "earnings ~Oct 22 inside the month; last January's report opened -13.7%, through any stop"}
+   ],
+   "rules": {
+    "NVDA": {"dip": 6, "take_profit": 9, "stop_loss": 7, "dollars": 100, "max_held": 100},
+    "CRWD": {"dip": 10, "take_profit": 15, "stop_loss": 11, "dollars": 100, "max_held": 100},
+    "ABNB": {"dip": 8, "take_profit": 12, "stop_loss": 8, "dollars": 100, "max_held": 100}
+   },
+   "odds": 3,
+   "worry": "three herds but all US growth; a market-wide down day could hit all three stops at once (worst case ~$26, ~$40 with gaps)"
+  },
+  "The Bear": {
+   "picks": [
+    {"symbol": "CRWD", "conviction": 2, "reason": "fine, not stupid: both rule sets made money over enough trades, steady σ, smallest drawdown of the swingers; but holding made more"}
+   ],
+   "vetoes": [
+    {"symbol": "MRNA", "strength": 5, "reason": "the whole chart is one trial day; remove it and all 58-stock totals go negative"},
+    {"symbol": "SMR", "strength": 5, "reason": "tops the swing list because it's collapsing; dip rule bought all the way down"},
+    {"symbol": "MSTR", "strength": 4, "reason": "rules lost both ways; -77% drawdown; leveraged bitcoin proxy"}
+   ],
+   "rules": {},
+   "odds": 2,
+   "worry": "the screen's own scoreboard: the rules made less than doing nothing (+$227/+$20 vs holding +$596, SPY ~+$812); live, friction is ~12-14% per $100 bet before tax"
+  }
+ }
+}

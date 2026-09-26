@@ -1,0 +1,3 @@
+{"date": "2026-09-26", "symbol": "ASTS", "price": 61.81, "steady_sigma": 4.76, "sigma60": 5.36, "score": 7, "backers": ["Tally", "Rebound"], "rules": {"dip": 9.5, "take_profit": 17, "stop_loss": 10, "dollars": 100.0, "max_held": 200.0}}
+{"date": "2026-09-26", "symbol": "CRWD", "price": 252.13, "steady_sigma": 4.65, "sigma60": 4.65, "score": 6, "backers": ["Goalie", "The Bear"], "rules": {"dip": 10, "take_profit": 15, "stop_loss": 11, "dollars": 100.0, "max_held": 100.0}}
+{"date": "2026-09-26", "symbol": "HOOD", "price": 119.4, "steady_sigma": 4.53, "sigma60": 4.53, "score": 6, "backers": ["Tally", "Scoop"], "rules": {"dip": 8, "take_profit": 20, "stop_loss": 10, "dollars": 100.0, "max_held": 200.0}}

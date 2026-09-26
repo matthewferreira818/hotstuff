@@ -33,9 +33,9 @@ _Cadence: 1 per day, after the product pins. Ten layouts, no two alike._
 **Link:** https://findhotstuff.com/automation/?ref=pin-ecs
 
 ## Pin 5 — pin-ecs-5.png (stats)
-**Title:** 180 Social Media Posts a Month Without Lifting a Finger
+**Title:** A Post a Day on Your Business Page, Without Lifting a Finger
 
-**Description:** 180+ posts a month, zero minutes of your time, $79 flat. That's what small business social media looks like when an engine does the posting. Free setup, no contracts.
+**Description:** A post every day, zero minutes of your time, $79 flat. That's what small business social media looks like when an engine does the posting. Free setup, no contracts.
 
 **Link:** https://findhotstuff.com/automation/?ref=pin-ecs
 

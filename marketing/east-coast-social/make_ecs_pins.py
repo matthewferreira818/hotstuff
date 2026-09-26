@@ -145,7 +145,10 @@ def pin_stats(msg, sub):
     img, d = base()
     big_text(d, "The math on autopilot.", 250, size=78)
     y = 520
-    for num, label in (("180+", "posts a month"), ("0 min", "of your time"), ("$79", "a month, flat")):
+    # "180+ posts a month" was false at every tier -- Starter is ONE post a
+    # day (~30/mo) and even Plus caps at 3/day. CLAUDE.md names that exact
+    # phrase as a retired sin; it was still rendering into the pin pack.
+    for num, label in (("30", "posts a month"), ("0 min", "of your time"), ("$79", "a month, flat")):
         d.rounded_rectangle((64, y, W - 64, y + 190), radius=26, fill=CARD)
         nf = _font(92, serif=True)
         d.text((104, y + 38), num, font=nf, fill=GOLD)
@@ -246,8 +249,8 @@ PINS = [
      "business; a quiet one looks closed. Here's the fix for local businesses — automated daily "
      "posts from $79/month."),
     (pin_stats, "", "",
-     "180 Social Media Posts a Month Without Lifting a Finger",
-     "180+ posts a month, zero minutes of your time, $79 flat. That's what small business social "
+     "A Post a Day on Your Business Page, Without Lifting a Finger",
+     "A post every day, zero minutes of your time, $79 flat. That's what small business social "
      "media looks like when an engine does the posting. Free setup, no contracts."),
     (pin_quote, "“I know I should post more.”",
      "— every business owner, ever. We fixed that.",

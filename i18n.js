@@ -53,7 +53,7 @@
     "ship-3-title": "Service à la clientèle",
     "ship-3-body": "HotsTuff est tenu par une vraie personne — Matthew, au Nouveau-Brunswick, Canada. Les articles partent directement de nos fournisseurs : c'est pourquoi la livraison prend 1 à 3 semaines et que les prix restent aussi bas. Un pépin? Textez-moi et je m'en occupe.<br>\n            📞 <a href=\"tel:+15068899737\">(506) 889-9737</a><br>\n            ✉️ <a href=\"mailto:ceohotstuff@yahoo.com\">ceohotstuff@yahoo.com</a>",
     "faq-1-q": "À quelle fréquence le catalogue change-t-il?",
-    "faq-1-a": "Assez souvent — de nouveaux produits s'ajoutent et d'autres sortent au rythme des tendances, pas sur un horaire fixe.",
+    "faq-1-a": "Tous les trois jours — toute la sélection se renouvelle selon un horaire fixe, donc il y a toujours du nouveau. Vérifiez les dates des nouveautés si vous voulez le confirmer.",
     "faq-2-q": "Est-ce une boutique à produit unique?",
     "faq-2-a": "Non. HotsTuff est volontairement multi-produits et fait tourner sa sélection selon ce qui est tendance et ce qui se vend.",
     "faq-3-q": "En combien de temps une nouvelle tendance apparaît-elle?",

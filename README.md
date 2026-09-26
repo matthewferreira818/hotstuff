@@ -221,7 +221,9 @@ shipping, and end-customer support for those orders. The merch tweet's ad card
 is regenerated with `python make_merch_card.py`.
 
 ### Known limitations
-- Only ships to the US (`shipping_address_collection` in the Worker).
+- Ships to 24 countries (`SHIP_COUNTRIES` in the Worker) — CA, US, GB, AU, NZ, IE and 18 more.
+  This line used to say US-only, which stopped being true and was never corrected;
+  a stale limitation note is how someone ends up "fixing" working code.
 - No inventory/stock check against CJ before accepting payment — if a
   product goes out of stock at CJ between page load and purchase, the CJ
   order call will fail (logged in `ORDERS_KV`, not currently surfaced back

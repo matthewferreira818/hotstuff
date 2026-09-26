@@ -283,6 +283,9 @@ tr:last-child td { border-bottom: 0; }
       <h3>Experiment EXP-0002: momentum with idle cash in SPY</h3>
       <p class="note" id="r-exp2-note">Pass conditions were set before the run.</p>
       <div class="table-wrap" id="r-exp2"></div>
+      <h3>Experiment EXP-0003: day trading (in and out the same day)</h3>
+      <p class="note" id="r-exp3-note"></p>
+      <div class="table-wrap" id="r-exp3"></div>
       <p class="note">The stock list was hand-picked from names that still exist today, which flatters every stock column. SPY doesn't have that problem.</p>
     </div>
   </section>
@@ -479,7 +482,18 @@ async function loadExperiment2() {
   } catch (e) { $("r-exp2").innerHTML = '<div class="empty">Experiment not published yet.</div>'; }
 }
 
-loadLive(); loadCouncil(); loadResearch(); loadExperiment(); loadExperiment2();
+async function loadExperiment3() {
+  try {
+    const x = await getJSON("../research/experiments/EXP-0003.json"), R = x.results;
+    $("r-exp3-note").textContent = `${x.days} trading days of 5-minute prices, ${x.stocks} stocks, costs included. Holding SPY with the same $${x.pot.toLocaleString()} made ${signed(x.spy_hold)}.`;
+    $("r-exp3").innerHTML = `<table><thead><tr><th>Strategy</th><th class="r">Trades</th><th class="r">P/L ($100 bets)</th><th class="r">P/L ($1,000 bets)</th><th class="r">Green days</th><th>Passed?</th></tr></thead><tbody>${Object.keys(x.names).map(k => {
+      const r = R[k];
+      return `<tr><td>${esc(x.names[k])}</td><td class="r num">${r.trades}</td><td class="r num ${cls(r.pnl_100)}">${signed(r.pnl_100)}</td><td class="r num ${cls(r.pnl_1000)}">${signed(r.pnl_1000)}</td><td class="r num">${r.green_days}</td><td>${x.passed[k] ? "yes" : "no"}</td></tr>`;
+    }).join("")}</tbody></table>`;
+  } catch (e) { $("r-exp3").innerHTML = '<div class="empty">Experiment not published yet.</div>'; }
+}
+
+loadLive(); loadCouncil(); loadResearch(); loadExperiment(); loadExperiment2(); loadExperiment3();
 setInterval(loadLive, 30000);
 setInterval(render, 20000);
 </script>

@@ -1,0 +1,210 @@
+{
+ "id": "EXP-0003",
+ "run": "2026-09-26",
+ "defaults": {
+  "OR": {
+   "target_x": 2
+  },
+  "DIP": {
+   "dip": 2,
+   "exit": 1.5
+  },
+  "RUN": {
+   "trigger": 2,
+   "trail": 1,
+   "vol_x": 2
+  }
+ },
+ "names": {
+  "OR": "Opening-range breakout",
+  "DIP": "Dip bounce",
+  "RUN": "Momentum run"
+ },
+ "results": {
+  "OR": {
+   "trades": 551,
+   "pnl_100": -1165.6,
+   "first_half_100": -642.37,
+   "second_half_100": -523.23,
+   "win_rate_100": 19,
+   "pnl_1000": -1743.83,
+   "first_half_1000": -1809.37,
+   "second_half_1000": 65.54,
+   "win_rate_1000": 40,
+   "gross_avg_move": 0.083,
+   "fees_100": 1212.2,
+   "green_days": "3/60",
+   "exits": {
+    "close": 488,
+    "stop": 46,
+    "target": 17
+   }
+  },
+  "DIP": {
+   "trades": 538,
+   "pnl_100": -1224.34,
+   "first_half_100": -708.51,
+   "second_half_100": -515.83,
+   "win_rate_100": 4,
+   "pnl_1000": -2572.88,
+   "first_half_1000": -1731.36,
+   "second_half_1000": -841.52,
+   "win_rate_1000": 44,
+   "gross_avg_move": -0.079,
+   "fees_100": 1183.6,
+   "green_days": "0/60",
+   "exits": {
+    "stop": 239,
+    "target": 215,
+    "close": 84
+   }
+  },
+  "RUN": {
+   "trades": 250,
+   "pnl_100": -556.73,
+   "first_half_100": -288.13,
+   "second_half_100": -268.6,
+   "win_rate_100": 4,
+   "pnl_1000": -1072.45,
+   "first_half_1000": -598.44,
+   "second_half_1000": -474.01,
+   "win_rate_1000": 24,
+   "gross_avg_move": -0.029,
+   "fees_100": 550.0,
+   "green_days": "0/55",
+   "exits": {
+    "close": 134,
+    "trail": 116
+   }
+  }
+ },
+ "passed": {
+  "OR": false,
+  "DIP": false,
+  "RUN": false
+ },
+ "spy_hold": 64.09,
+ "stock_hold": 267.65,
+ "pot": 2000,
+ "days": 60,
+ "stocks": 20,
+ "robustness": {
+  "OR": [
+   {
+    "target_x": 1,
+    "pnl_100": -1135.06
+   },
+   {
+    "target_x": 2,
+    "pnl_100": -1165.6
+   },
+   {
+    "target_x": 3,
+    "pnl_100": -1167.38
+   }
+  ],
+  "DIP": [
+   {
+    "dip": 1,
+    "exit": 1,
+    "pnl_100": -1709.97
+   },
+   {
+    "dip": 1,
+    "exit": 1.5,
+    "pnl_100": -1698.02
+   },
+   {
+    "dip": 1,
+    "exit": 2,
+    "pnl_100": -1715.25
+   },
+   {
+    "dip": 2,
+    "exit": 1,
+    "pnl_100": -1210.69
+   },
+   {
+    "dip": 2,
+    "exit": 1.5,
+    "pnl_100": -1224.34
+   },
+   {
+    "dip": 2,
+    "exit": 2,
+    "pnl_100": -1194.68
+   },
+   {
+    "dip": 3,
+    "exit": 1,
+    "pnl_100": -907.96
+   },
+   {
+    "dip": 3,
+    "exit": 1.5,
+    "pnl_100": -917.19
+   },
+   {
+    "dip": 3,
+    "exit": 2,
+    "pnl_100": -935.18
+   }
+  ],
+  "RUN": [
+   {
+    "trigger": 1,
+    "trail": 0.5,
+    "vol_x": 2,
+    "pnl_100": -775.63
+   },
+   {
+    "trigger": 1,
+    "trail": 1,
+    "vol_x": 2,
+    "pnl_100": -769.46
+   },
+   {
+    "trigger": 1,
+    "trail": 2,
+    "vol_x": 2,
+    "pnl_100": -774.65
+   },
+   {
+    "trigger": 2,
+    "trail": 0.5,
+    "vol_x": 2,
+    "pnl_100": -561.27
+   },
+   {
+    "trigger": 2,
+    "trail": 1,
+    "vol_x": 2,
+    "pnl_100": -556.73
+   },
+   {
+    "trigger": 2,
+    "trail": 2,
+    "vol_x": 2,
+    "pnl_100": -558.44
+   },
+   {
+    "trigger": 3,
+    "trail": 0.5,
+    "vol_x": 2,
+    "pnl_100": -418.29
+   },
+   {
+    "trigger": 3,
+    "trail": 1,
+    "vol_x": 2,
+    "pnl_100": -412.27
+   },
+   {
+    "trigger": 3,
+    "trail": 2,
+    "vol_x": 2,
+    "pnl_100": -419.95
+   }
+  ]
+ }
+}

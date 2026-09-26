@@ -277,6 +277,9 @@ tr:last-child td { border-bottom: 0; }
       <h3>Walk-forward: tuned on 6 months, tested on the next 3 it never saw</h3>
       <div class="facts" id="r-wf"></div>
       <div class="table-wrap" id="r-wf-table"></div>
+      <h3 id="r-exp-h">Experiment EXP-0001: dip-buying vs trend-following</h3>
+      <p class="note" id="r-exp-note">Four strategies, settings fixed before the run, tested on the same unseen months. Research only: the bot still trades the original dip rules.</p>
+      <div class="table-wrap" id="r-exp"></div>
       <p class="note">The stock list was hand-picked from names that still exist today, which flatters every stock column. SPY doesn't have that problem.</p>
     </div>
   </section>
@@ -449,7 +452,19 @@ async function loadResearch() {
   } catch (e) { $("r-wf").innerHTML = '<div class="empty">Walk-forward test not published yet.</div>'; }
 }
 
-loadLive(); loadCouncil(); loadResearch();
+async function loadExperiment() {
+  try {
+    const x = await getJSON("../research/experiments/EXP-0001.json"), R = x.results;
+    const names = {A: "Current dip (what the bot trades)", B: "Buy and hold", C: "Trend breakout + trailing stop", D: "Momentum + volume + trailing stop"};
+    const best = "ABCD".split("").reduce((m, k) => R[k].sharpe > R[m].sharpe ? k : m, "A");
+    $("r-exp").innerHTML = `<table><thead><tr><th>Strategy</th><th class="r">P/L</th><th class="r">Worst drop</th><th class="r">Risk-adjusted (Sharpe)</th><th class="r">Trades</th><th class="r">Time invested</th><th class="r">Beat SPY</th></tr></thead><tbody>${"ABCD".split("").map(k => {
+      const r = R[k];
+      return `<tr><td><b>${k}</b> ${names[k]}${k === best ? ' <span class="badge held">best</span>' : ""}</td><td class="r num ${cls(r.pnl)}">${signed(r.pnl)}</td><td class="r num down">${r.max_drawdown_pct}%</td><td class="r num">${r.sharpe}</td><td class="r num">${r.trades}</td><td class="r num">${r.exposure_pct}%</td><td class="r num">${r.windows_beat_spy}/${r.windows}</td></tr>`;
+    }).join("")}<tr><td>SPY, same money</td><td class="r num ${cls(R.A.spy_pnl)}">${signed(R.A.spy_pnl)}</td><td></td><td></td><td></td><td></td><td></td></tr></tbody></table>`;
+  } catch (e) { $("r-exp").innerHTML = '<div class="empty">Experiment not published yet.</div>'; }
+}
+
+loadLive(); loadCouncil(); loadResearch(); loadExperiment();
 setInterval(loadLive, 30000);
 setInterval(render, 20000);
 </script>

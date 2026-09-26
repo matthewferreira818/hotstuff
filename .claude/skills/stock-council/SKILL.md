@@ -43,6 +43,11 @@ restate or blend them. **Independence rules:**
 - Don't bias the brief toward buying. "None" is a valid answer for every
   seat.
 
+If those agent types aren't registered in this session (they load at
+session start), launch `general-purpose` agents instead, each told to read
+its own `.claude/agents/stock-<seat>.md` first and become that seat, using
+only the tools that file lists and editing nothing.
+
 If a seat comes back off-format or empty, it simply casts no votes; note
 the empty chair.
 

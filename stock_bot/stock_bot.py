@@ -42,6 +42,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+import strategy
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 WATCHLIST = os.path.join(HERE, "watchlist.json")
 PAUSE_FILE = os.path.join(HERE, "PAUSE")
@@ -166,15 +168,8 @@ def decide(cfg, prices, closes, positions, orders_today):
         pos = positions.get(sym)
         if price is None or not pos or sym in pending:
             continue
-        entry = float(pos["avg_entry_price"])
-        change = (price - entry) / entry * 100
-        reason = None
-        if s.get("sell_above") and price >= s["sell_above"]:
-            reason = f"price {price:.2f} >= sell_above {s['sell_above']}"
-        elif s.get("take_profit_pct") and change >= s["take_profit_pct"]:
-            reason = f"up {change:.1f}% (target {s['take_profit_pct']}%)"
-        elif s.get("stop_loss_pct") and change <= -s["stop_loss_pct"]:
-            reason = f"down {change:.1f}% (stop-loss {s['stop_loss_pct']}%)"
+        hit = strategy.sell_reason(price, float(pos["avg_entry_price"]), s)
+        reason = hit and hit[1]
         if reason and orders_left > 0:
             actions.append(("SELL", sym, float(pos["market_value"]), reason))
             invested -= float(pos["market_value"])
@@ -186,16 +181,11 @@ def decide(cfg, prices, closes, positions, orders_today):
         price = prices.get(sym)
         if price is None or sym in sold or sym in traded_today:
             continue
-        reason = None
-        if s.get("buy_below") and price <= s["buy_below"]:
-            reason = f"price {price:.2f} <= buy_below {s['buy_below']}"
-        elif s.get("buy_dip_pct") and closes.get(sym):
-            high = max(closes[sym][-20:])
-            dip = (high - price) / high * 100
-            if dip >= s["buy_dip_pct"]:
-                reason = f"{dip:.1f}% under its 20-day high {high:.2f}"
-        if not reason:
+        high = max(closes[sym][-20:]) if closes.get(sym) else None
+        hit = strategy.buy_reason(price, high, s)
+        if not hit:
             continue
+        reason = hit[1]
         held = float(positions.get(sym, {}).get("market_value", 0))
         dollars = min(float(s.get("dollars_per_buy", 0)),
                       float(s.get("max_position_dollars", 0)) - held,

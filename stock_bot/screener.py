@@ -112,32 +112,15 @@ def max_drawdown(closes):
 
 
 def backtest(closes, dip, take_profit, stop_loss, bet=BET):
-    """Replays the bot's rules on daily closes, one position at a time.
-
-    Buy $bet when the close is dip% under the prior 20-day high; sell it
-    all at +take_profit% or -stop_loss% from the buy. An open position at
-    the end is valued at the last close. Real fills would differ (the live
-    bot sees prices intraday; gaps can blow through a stop)."""
-    pnl, trades, wins, days_in = 0.0, 0, 0, 0
-    entry = None
-    for i in range(20, len(closes)):
-        c = closes[i]
-        if entry is None:
-            high = max(closes[i - 20:i])
-            if (high - c) / high * 100 >= dip:
-                entry = c
-            continue
-        days_in += 1
-        change = (c - entry) / entry * 100
-        if change >= take_profit or change <= -stop_loss:
-            pnl += bet * change / 100
-            trades += 1
-            wins += change > 0
-            entry = None
-    open_pnl = bet * (closes[-1] - entry) / entry if entry else 0.0
-    return {"trades": trades, "wins": wins,
-            "pnl": round(pnl + open_pnl, 2), "open": entry is not None,
-            "days_in_market": days_in}
+    """The bot's rules replayed on daily closes, costs included — a thin
+    wrapper over backtest.run (the one engine; see backtest.py)."""
+    import backtest as engine
+    import strategy
+    r = engine.run(closes, strategy.rules_from(dip, take_profit, stop_loss),
+                   bet=bet)
+    return {"trades": r["n"], "wins": r["wins"], "pnl": r["pnl"],
+            "open": any(t["reason"] == "still_open" for t in r["trades"]),
+            "days_in_market": round(r["exposure"] * max(1, len(closes) - 20))}
 
 
 def analyze(symbol, bars):
@@ -341,7 +324,8 @@ def grade():
 
 def selftest():
     # Staircase: dips 10%, then jumps 20%+, twice -> two winning trades.
-    closes = [100.0] * 25 + [90, 109] + [109] * 20 + [98, 118] + [118] * 20
+    # (Jumps are 23%+ because costs take ~2% off every round trip.)
+    closes = [100.0] * 25 + [90, 111] + [111] * 20 + [98, 121] + [121] * 20
     bt = backtest(closes, 8, 20, 10)
     assert bt["trades"] == 2 and bt["wins"] == 2 and not bt["open"], bt
     # Straight collapse -> the dip rule catches the falling knife twice and

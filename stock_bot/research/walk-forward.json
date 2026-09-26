@@ -1,0 +1,164 @@
+{
+ "generated": "2026-09-26",
+ "grid": {
+  "dip": [
+   4,
+   6,
+   8,
+   10,
+   12,
+   15
+  ],
+  "take_profit": [
+   6,
+   10,
+   15,
+   20,
+   30
+  ],
+  "stop_loss": [
+   5,
+   8,
+   10,
+   15,
+   100
+  ]
+ },
+ "windows": [
+  {
+   "train": "2023-10-24 \u2192 2024-04-24",
+   "test": "2024-04-25 \u2192 2024-07-25",
+   "stocks": 57,
+   "best_on_train": {
+    "dip": 4,
+    "take_profit": 30,
+    "stop_loss": 100
+   },
+   "train_pnl": 1832.53,
+   "test_tuned": 822.57,
+   "test_default": 726.44,
+   "test_hold": 1278.32,
+   "test_spy": 395.33
+  },
+  {
+   "train": "2024-01-25 \u2192 2024-07-25",
+   "test": "2024-07-26 \u2192 2024-10-23",
+   "stocks": 57,
+   "best_on_train": {
+    "dip": 4,
+    "take_profit": 30,
+    "stop_loss": 100
+   },
+   "train_pnl": 1239.72,
+   "test_tuned": 414.19,
+   "test_default": 204.63,
+   "test_hold": 679.87,
+   "test_spy": 351.25
+  },
+  {
+   "train": "2024-04-25 \u2192 2024-10-23",
+   "test": "2024-10-24 \u2192 2025-01-27",
+   "stocks": 57,
+   "best_on_train": {
+    "dip": 4,
+    "take_profit": 30,
+    "stop_loss": 15
+   },
+   "train_pnl": 1493.43,
+   "test_tuned": 1611.01,
+   "test_default": 1052.05,
+   "test_hold": 2981.23,
+   "test_spy": 198.09
+  },
+  {
+   "train": "2024-07-26 \u2192 2025-01-27",
+   "test": "2025-01-28 \u2192 2025-04-28",
+   "stocks": 58,
+   "best_on_train": {
+    "dip": 6,
+    "take_profit": 30,
+    "stop_loss": 100
+   },
+   "train_pnl": 2476.87,
+   "test_tuned": -697.34,
+   "test_default": -1293.12,
+   "test_hold": -664.54,
+   "test_spy": -514.93
+  },
+  {
+   "train": "2024-10-24 \u2192 2025-04-28",
+   "test": "2025-04-29 \u2192 2025-07-29",
+   "stocks": 58,
+   "best_on_train": {
+    "dip": 6,
+    "take_profit": 30,
+    "stop_loss": 100
+   },
+   "train_pnl": 1370.38,
+   "test_tuned": 1558.89,
+   "test_default": 1026.4,
+   "test_hold": 2705.59,
+   "test_spy": 846.9
+  },
+  {
+   "train": "2025-01-28 \u2192 2025-07-29",
+   "test": "2025-07-30 \u2192 2025-10-27",
+   "stocks": 58,
+   "best_on_train": {
+    "dip": 15,
+    "take_profit": 30,
+    "stop_loss": 100
+   },
+   "train_pnl": 1260.47,
+   "test_tuned": 756.51,
+   "test_default": 604.05,
+   "test_hold": 1245.82,
+   "test_spy": 464.21
+  },
+  {
+   "train": "2025-04-29 \u2192 2025-10-27",
+   "test": "2025-10-28 \u2192 2026-01-28",
+   "stocks": 58,
+   "best_on_train": {
+    "dip": 4,
+    "take_profit": 30,
+    "stop_loss": 100
+   },
+   "train_pnl": 2925.4,
+   "test_tuned": -646.63,
+   "test_default": -954.24,
+   "test_hold": -673.99,
+   "test_spy": 70.57
+  },
+  {
+   "train": "2025-07-30 \u2192 2026-01-28",
+   "test": "2026-01-29 \u2192 2026-04-29",
+   "stocks": 58,
+   "best_on_train": {
+    "dip": 6,
+    "take_profit": 30,
+    "stop_loss": 100
+   },
+   "train_pnl": 289.53,
+   "test_tuned": -429.96,
+   "test_default": -791.01,
+   "test_hold": -372.97,
+   "test_spy": 146.58
+  },
+  {
+   "train": "2025-10-28 \u2192 2026-04-29",
+   "test": "2026-04-30 \u2192 2026-07-30",
+   "stocks": 58,
+   "best_on_train": {
+    "dip": 15,
+    "take_profit": 30,
+    "stop_loss": 100
+   },
+   "train_pnl": -775.94,
+   "test_tuned": -136.16,
+   "test_default": -618.65,
+   "test_hold": 193.33,
+   "test_spy": 185.87
+  }
+ ]
+}

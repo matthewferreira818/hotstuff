@@ -77,9 +77,13 @@ months and tests them on the next 3 they never saw. Reports go to
 `stock_bot/research/`. The live bot and the backtests share one rulebook
 (`strategy.py`), so what's tested is what trades.
 
-Alpaca's real-money accounts aren't open to Canadians. The realistic
-route is **Interactive Brokers Canada**: it allows automated trading and
-TFSAs. Its connection needs an IBKR program logged in during market
+Alpaca's real-money accounts aren't open to Canadians. **Moomoo Canada**
+is the chosen route: its OpenAPI lets a bot trade US stocks and ETFs from
+a Moomoo CA account, at no extra cost. It needs moomoo's OpenD program
+logged in during market hours, and it has a practice mode to test in
+first. Matthew applied on 2026-09-27; approval takes up to 3 business
+days. The fallback is **Interactive Brokers Canada**: it allows automated
+trading and TFSAs. Its connection needs an IBKR program logged in during market
 hours, which means a computer left on or a small rented server. When
 the time comes, Claude builds that connection.
 

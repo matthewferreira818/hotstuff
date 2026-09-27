@@ -156,14 +156,30 @@ class Alpaca:
 
 # ------------------------------------------------------------ decision logic
 
-def decide(cfg, prices, closes, positions, orders_today):
+def bet_size(cfg, value):
+    """With "sizing" set, each buy is a share of the whole account (cash +
+    stocks), so bets grow as deposits come in. Returns (bet, per-stock cap,
+    smallest worthwhile bet) or None when sizing is off."""
+    z = cfg.get("sizing")
+    if not z:
+        return None
+    bet = max(float(z.get("min_bet", 100)),
+              value * float(z.get("bet_pct_of_account", 10)) / 100)
+    cap = max(bet, value * float(z.get("max_per_stock_pct", 20)) / 100)
+    return bet, cap, float(z.get("min_bet", 100))
+
+
+def decide(cfg, prices, closes, positions, orders_today, cash=None):
     """Pure function: returns a list of (side, symbol, dollars, reason).
 
     Sells are listed before buys so freed-up cash counts. Every cap is
-    enforced here, so the self-test covers them.
+    enforced here, so the self-test covers them. When the broker reports
+    `cash` and the watchlist has "sizing", buys are sized from the account
+    (see bet_size) and never spend more cash than there is.
     """
     actions = []
     invested = sum(float(p.get("market_value", 0)) for p in positions.values())
+    sizing = bet_size(cfg, cash + invested) if cash is not None else None
     # Any order today (buy or sell) blocks another buy of that stock, so a
     # stop-loss sell can't be followed by a dip re-buy seconds later.
     traded_today = {o["symbol"] for o in orders_today}
@@ -182,6 +198,8 @@ def decide(cfg, prices, closes, positions, orders_today):
         if reason and orders_left > 0:
             actions.append(("SELL", sym, float(pos["market_value"]), reason))
             invested -= float(pos["market_value"])
+            if cash is not None:
+                cash += float(pos["market_value"])
             orders_left -= 1
 
     sold = {a[1] for a in actions}
@@ -196,13 +214,21 @@ def decide(cfg, prices, closes, positions, orders_today):
             continue
         reason = hit[1]
         held = float(positions.get(sym, {}).get("market_value", 0))
-        dollars = min(float(s.get("dollars_per_buy", 0)),
-                      float(s.get("max_position_dollars", 0)) - held,
-                      float(cfg.get("max_total_invested", 0)) - invested)
+        if sizing:
+            bet, cap, floor = sizing
+            dollars = min(bet, cap - held, cash)
+            if dollars < floor:  # too small: the fee would eat it
+                continue
+        else:
+            dollars = min(float(s.get("dollars_per_buy", 0)),
+                          float(s.get("max_position_dollars", 0)) - held,
+                          float(cfg.get("max_total_invested", 0)) - invested)
         if dollars < 1 or orders_left <= 0:
             continue
         actions.append(("BUY", sym, round(dollars, 2), reason))
         invested += dollars
+        if cash is not None:
+            cash -= dollars
         orders_left -= 1
     return actions
 
@@ -274,8 +300,9 @@ def check(broker, cfg, closes, label, once, already):
     symbols = sorted({s["symbol"].upper() for s in cfg.get("stocks", [])})
     prices = broker.latest_prices(symbols)
     now = time.monotonic()
+    cash = broker.cash() if hasattr(broker, "cash") else None
     actions = [a for a in decide(cfg, prices, closes, broker.positions(),
-                                 broker.orders_today())
+                                 broker.orders_today(), cash)
                if already.get((a[0], a[1]), 0) <= now]
     if not actions:
         if once:
@@ -337,6 +364,11 @@ def run():
         from paper_broker import PaperBroker
         broker, live, label = PaperBroker(cfg.get("paper_costs")), False, \
             "practice"
+        try:  # paydays that have come due since the last run
+            if broker.apply_deposits(cfg.get("practice_deposits")):
+                print("Practice deposit added.")
+        except (RuntimeError, KeyError, ValueError):
+            print("Practice deposit skipped (no FX rate); retrying next run.")
         if "--order" in sys.argv:
             print("The practice account only trades by the rules.")
             return 0
@@ -499,6 +531,18 @@ def selftest():
                   {"AAA": {"avg_entry_price": "100", "market_value": "120"}},
                   [])
     assert acts[0][:2] == ("SELL", "AAA"), acts
+    # Sizing from the account: $2,000 value, 10% bets = $200, cash $150
+    # -> only $150 left, which is above the $100 floor, so it buys $150;
+    # with $50 cash it skips (the fee would eat a $50 bet).
+    zc = {"max_orders_per_day": 5, "sizing": {"bet_pct_of_account": 10,
+          "min_bet": 100, "max_per_stock_pct": 20},
+          "stocks": [{"symbol": "AAA", "buy_below": 50},
+                     {"symbol": "BBB", "buy_below": 50}]}
+    held = {"ZZZ": {"avg_entry_price": "1", "market_value": "1850"}}
+    acts = decide(zc, {"AAA": 40, "BBB": 40}, {}, held, [], cash=150)
+    assert [(a[1], a[2]) for a in acts] == [("AAA", 150)], acts
+    acts = decide(zc, {"AAA": 40}, {}, held, [], cash=50)
+    assert acts == [], acts
     # Real watchlist parses and has sane caps.
     real = load_cfg()
     assert real["mode"] in ("paper", "live"), real["mode"]

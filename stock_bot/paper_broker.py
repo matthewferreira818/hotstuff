@@ -49,7 +49,12 @@ def _get(url):
 
 def new_account(spy_price, now):
     return {"started": now, "start_cash": START_CASH, "cash": START_CASH,
-            "spy_at_start": spy_price, "positions": {}, "orders": []}
+            "spy_at_start": spy_price, "positions": {}, "orders": [],
+            # Everything paid in, and the SPY shares the same deposits would
+            # have bought: the fair "just hold SPY" comparison.
+            "deposited": START_CASH,
+            "spy_units": START_CASH / spy_price if spy_price else 0.0,
+            "deposits": []}
 
 
 class PaperBroker:
@@ -57,7 +62,10 @@ class PaperBroker:
 
     def __init__(self, costs=None, path=ACCOUNT, save_hook=None):
         costs = costs or {}
-        self.fee = float(costs.get("fee_per_trade", 1.0))
+        # Per order: the bigger of a minimum and a per-share charge (Moomoo
+        # Canada: US$0.99 + US$1.00 minimums, ~US$0.0099 a share combined).
+        self.fee = float(costs.get("fee_min", costs.get("fee_per_trade", 1.0)))
+        self.fee_per_share = float(costs.get("fee_per_share", 0.0))
         self.slip = float(costs.get("slippage_pct", 0.1)) / 100
         self.path = path
         self.save_hook = save_hook if save_hook is not None else git_save
@@ -70,7 +78,13 @@ class PaperBroker:
     def _load(self):
         if os.path.exists(self.path):
             with open(self.path) as f:
-                return json.load(f)
+                acct = json.load(f)
+            # Accounts from before deposits existed.
+            acct.setdefault("deposited", acct["start_cash"])
+            acct.setdefault("spy_units", acct["start_cash"] / acct["spy_at_start"]
+                            if acct.get("spy_at_start") else 0.0)
+            acct.setdefault("deposits", [])
+            return acct
         spy = self.latest_prices(["SPY"]).get("SPY")
         return new_account(spy, _now())
 
@@ -135,6 +149,38 @@ class PaperBroker:
 
     # --------------------------------------------------------- account
 
+    def cash(self):
+        return float(self.acct["cash"])
+
+    def order_fee(self, qty):
+        return max(self.fee, self.fee_per_share * qty)
+
+    def apply_deposits(self, plan, today=None):
+        """Mirror Matthew's paycheque deposits. plan = {"amount_cad": 100,
+        "every_days": 14, "first": "YYYY-MM-DD"}. Converted to US dollars
+        at the day's rate (Moomoo converts CAD->USD without a fee). Returns
+        how many were added."""
+        if not plan or not plan.get("first"):
+            return 0
+        today = today or dt.date.today().isoformat()
+        nxt = self.acct.get("next_deposit") or plan["first"]
+        added = 0
+        while nxt <= today:
+            rates = self.latest_prices(["CADUSD=X", "SPY"])
+            usd = round(float(plan["amount_cad"]) * rates["CADUSD=X"], 2)
+            self.acct["cash"] = round(self.acct["cash"] + usd, 2)
+            self.acct["deposited"] = round(self.acct["deposited"] + usd, 2)
+            self.acct["spy_units"] += usd / rates["SPY"]
+            self.acct["deposits"].append(
+                {"date": nxt, "cad": plan["amount_cad"], "usd": usd})
+            nxt = (dt.date.fromisoformat(nxt) + dt.timedelta(
+                days=int(plan.get("every_days", 14)))).isoformat()
+            added += 1
+        self.acct["next_deposit"] = nxt
+        if added:
+            self._save(f"Practice deposit x{added}")
+        return added
+
     def positions(self):
         prices = self._last_prices
         out = {}
@@ -153,9 +199,10 @@ class PaperBroker:
 
     def buy(self, symbol, dollars):
         price = self._price(symbol) * (1 + self.slip)
-        spend = dollars - self.fee
         if dollars > self.acct["cash"] + 1e-9:
             raise RuntimeError(f"not enough practice cash for {symbol}")
+        fee = self.order_fee((dollars - self.fee) / price)
+        spend = dollars - fee
         if spend <= 0:
             raise RuntimeError("buy is smaller than the fee")
         qty = spend / price
@@ -171,7 +218,7 @@ class PaperBroker:
             self.acct["positions"][symbol] = {
                 "qty": qty, "avg_entry_price": round(dollars / qty, 4)}
         self.acct["cash"] = round(self.acct["cash"] - dollars, 2)
-        self._record(symbol, "buy", qty, price, dollars)
+        self._record(symbol, "buy", qty, price, dollars, fee)
         self._save(f"Practice trade: buy {symbol}")
         return {"status": "filled"}
 
@@ -180,10 +227,11 @@ class PaperBroker:
         if not pos:
             raise RuntimeError(f"no practice position in {symbol}")
         price = self._price(symbol) * (1 - self.slip)
-        proceeds = pos["qty"] * price - self.fee
+        fee = self.order_fee(pos["qty"])
+        proceeds = pos["qty"] * price - fee
         self.acct["cash"] = round(self.acct["cash"] + proceeds, 2)
         del self.acct["positions"][symbol]
-        self._record(symbol, "sell", pos["qty"], price, proceeds)
+        self._record(symbol, "sell", pos["qty"], price, proceeds, fee)
         self._save(f"Practice trade: sell {symbol}")
         return {"status": "filled"}
 
@@ -193,12 +241,12 @@ class PaperBroker:
             raise RuntimeError(f"no live price for {symbol}")
         return p
 
-    def _record(self, symbol, side, qty, price, dollars):
+    def _record(self, symbol, side, qty, price, dollars, fee):
         self.acct["orders"].append({
             "time": _now(), "symbol": symbol, "side": side,
             "status": "filled", "qty": round(qty, 6),
             "price": round(price, 4), "dollars": round(dollars, 2),
-            "fee": self.fee})
+            "fee": round(fee, 2)})
 
 
 def _now():
@@ -235,12 +283,12 @@ def status():
     prices = b.latest_prices(syms)
     held = sum(p["market_value"] for p in b.positions().values())
     value = b.acct["cash"] + held
-    start = b.acct["start_cash"]
-    spy = start * prices["SPY"] / b.acct["spy_at_start"]
+    start = b.acct["deposited"]
+    spy = b.acct["spy_units"] * prices["SPY"]
     fees = sum(o["fee"] for o in b.acct["orders"])
     print(f"Practice account since {b.acct['started'][:10]}: "
           f"${value:,.2f} ({value / start * 100 - 100:+.1f}%)")
-    print(f"Same ${start:,.0f} in SPY: ${spy:,.2f} "
+    print(f"Same deposits in SPY: ${spy:,.2f} "
           f"({spy / start * 100 - 100:+.1f}%)")
     print(f"Cash ${b.acct['cash']:,.2f} · held ${held:,.2f} · "
           f"{len(b.acct['orders'])} trades · ${fees:,.2f} in fees")
@@ -250,7 +298,7 @@ def selftest():
     import tempfile
     path = os.path.join(tempfile.mkdtemp(), "acct.json")
     b = PaperBroker.__new__(PaperBroker)
-    b.fee, b.slip, b.path = 1.0, 0.001, path
+    b.fee, b.fee_per_share, b.slip, b.path = 1.0, 0.0, 0.001, path
     b.save_hook = lambda *a: None
     b._clock_cache, b._last_prices = (0, None), {}
     b.acct = new_account(500.0, _now())
@@ -275,6 +323,20 @@ def selftest():
         raise AssertionError("overspent")
     except RuntimeError:
         pass
+    # Moomoo-style fees: $1.99 minimum, per-share above that.
+    b.fee, b.fee_per_share = 1.99, 0.0099
+    assert b.order_fee(10) == 1.99 and abs(b.order_fee(1000) - 9.9) < 1e-9
+    # Deposits: two paydays due -> both added, converted to USD, and the
+    # SPY comparison buys the same amounts.
+    b.latest_prices = lambda syms: {"CADUSD=X": 0.72, "SPY": 500.0}
+    cash0, units0 = b.acct["cash"], b.acct["spy_units"]
+    n = b.apply_deposits({"amount_cad": 100, "every_days": 14,
+                          "first": "2026-01-02"}, today="2026-01-20")
+    assert n == 2 and abs(b.acct["cash"] - cash0 - 144) < 1e-9
+    assert abs(b.acct["spy_units"] - units0 - 144 / 500) < 1e-9
+    assert b.acct["next_deposit"] == "2026-01-30"
+    assert b.apply_deposits({"amount_cad": 100, "every_days": 14,
+                             "first": "2026-01-02"}, today="2026-01-21") == 0
     print("selftest OK")
 
 

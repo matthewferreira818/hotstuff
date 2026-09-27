@@ -29,9 +29,10 @@ def build(broker, cfg, closes, market_open, bot=None):
     traded = {o["symbol"] for o in broker.orders_today()}
     held = sum(p["market_value"] for p in positions.values())
     value = acct["cash"] + held
-    start = acct["start_cash"]
-    spy_value = (start * prices["SPY"] / acct["spy_at_start"]
-                 if prices.get("SPY") and acct.get("spy_at_start") else None)
+    start = acct.get("deposited", acct["start_cash"])
+    units = acct.get("spy_units") or (acct["start_cash"] / acct["spy_at_start"]
+                                      if acct.get("spy_at_start") else 0)
+    spy_value = units * prices["SPY"] if prices.get("SPY") and units else None
 
     stocks = []
     for s in cfg.get("stocks", []):
@@ -65,6 +66,8 @@ def build(broker, cfg, closes, market_open, bot=None):
         "market_open": market_open,
         "account": {
             "started": acct["started"], "start_cash": start,
+            "deposits": acct.get("deposits", [])[-10:],
+            "next_deposit": acct.get("next_deposit"),
             "cash": round(acct["cash"], 2), "held": round(held, 2),
             "value": round(value, 2),
             "spy_value": round(spy_value, 2) if spy_value else None,

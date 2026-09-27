@@ -18,9 +18,18 @@ Canadian tax residents, not even practice ones.
 - **Real live prices** from Yahoo's free feed, about 1 minute fresh.
 - **Fake money**: it starts with $1,000.
 - **Real-world costs on every trade** (`paper_costs` in watchlist.json):
-  a $1 fee plus fills 0.1% worse than the quote. That's roughly a small
-  account at Interactive Brokers Canada. Check their current prices
-  before relying on it.
+  Moomoo Canada's US-stock pricing, US$1.99 minimum per order (more above
+  ~200 shares), plus fills 0.1% worse than the quote. A $100 buy-and-sell
+  costs about $4, so a stock has to rise ~4% just to break even. The
+  practice account is in US dollars.
+- **Bets sized from the account** (`sizing`): each buy is 10% of the
+  whole account (cash + stocks), never under $100 (smaller and the fees
+  eat it), never over 20% in one stock, never more than the cash on hand.
+  As deposits grow the account, the bets grow and the fees matter less.
+- **Payday deposits** (`practice_deposits`): mirrors Matthew adding
+  $100 CAD per paycheque, converted to US dollars at the day's rate. The
+  "same money in SPY" comparison buys SPY with each deposit too, so it
+  stays fair. Set `first` to the next payday to switch it on.
 - **A public record**: the account lives in `stock_bot/paper/account.json`
   and is saved to GitHub after every trade, so nobody can quietly fix
   the numbers later.

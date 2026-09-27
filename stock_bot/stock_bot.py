@@ -12,7 +12,10 @@ Safety rails, in order:
     true — he places them himself (Run workflow button, see README).
   - "paused": true, or a stock_bot/PAUSE file, stops everything.
   - Caps: max_total_invested, max_orders_per_day, max_position_dollars,
-    and at most one buy per stock per day.
+    and at most one buy per stock per day. Caps limit BUYS: a stop-loss or
+    take-profit sell always goes, even on a day the order cap is used up.
+  - Everything held is guarded, including a stock taken off the list
+    (ORPHAN_RULES), so removing a stock never leaves it unwatched.
   - Only acts while the US market is open.
 
 PRIVACY: this repo is public, so Actions logs are public. Never print
@@ -62,6 +65,10 @@ RELOAD_SECONDS = 60      # re-read the watchlist from GitHub this often
 HEARTBEAT_SECONDS = 1800
 SNAPSHOT_SECONDS = 120   # live page refresh (practice account only)
 MAX_ERRORS_IN_A_ROW = 10
+
+# Sell rules for a stock still held after it was taken off the watchlist:
+# the default 8/20/10 set's exits (take profit +20%, stop-loss -10%).
+ORPHAN_RULES = {"take_profit_pct": 20, "stop_loss_pct": 10}
 
 LOCAL = "--local" in sys.argv
 
@@ -173,7 +180,10 @@ def decide(cfg, prices, closes, positions, orders_today, cash=None):
     """Pure function: returns a list of (side, symbol, dollars, reason).
 
     Sells are listed before buys so freed-up cash counts. Every cap is
-    enforced here, so the self-test covers them. When the broker reports
+    enforced here, so the self-test covers them. Sells are never blocked by
+    the daily order cap (it exists to stop buy churn); they still use up
+    slots, so a busy day means fewer buys, never a skipped stop-loss.
+    Every position is checked, not just listed stocks. When the broker reports
     `cash` and the watchlist has "sizing", buys are sized from the account
     (see bet_size) and never spend more cash than there is.
     """
@@ -187,15 +197,16 @@ def decide(cfg, prices, closes, positions, orders_today, cash=None):
                if o.get("status") in OPEN_STATUSES}
     orders_left = int(cfg.get("max_orders_per_day", 4)) - len(orders_today)
 
-    for s in cfg.get("stocks", []):
-        sym = s["symbol"].upper()
+    watch = {s["symbol"].upper(): s for s in cfg.get("stocks", [])}
+    for sym, pos in positions.items():
         price = prices.get(sym)
-        pos = positions.get(sym)
-        if price is None or not pos or sym in pending:
+        if price is None or sym in pending:
             continue
-        hit = strategy.sell_reason(price, float(pos["avg_entry_price"]), s)
-        reason = hit and hit[1]
-        if reason and orders_left > 0:
+        rules = watch.get(sym) or cfg.get("orphan_rules") or ORPHAN_RULES
+        hit = strategy.sell_reason(price, float(pos["avg_entry_price"]), rules)
+        reason = hit and (hit[1] if sym in watch
+                          else f"{hit[1]} — off the list, default exits")
+        if reason:
             actions.append(("SELL", sym, float(pos["market_value"]), reason))
             invested -= float(pos["market_value"])
             if cash is not None:
@@ -297,7 +308,10 @@ def check(broker, cfg, closes, label, once, already):
     `already` maps (side, symbol) to when it may be tried again, so an idea
     is sent once per run and a failed order is retried every 5 minutes, not
     every 10 seconds. Returns the number of orders placed."""
-    symbols = sorted({s["symbol"].upper() for s in cfg.get("stocks", [])})
+    # Price everything held as well as the list, so a stock taken off the
+    # list is still guarded and valued at today's price, not what was paid.
+    symbols = sorted({s["symbol"].upper() for s in cfg.get("stocks", [])}
+                     | set(broker.positions()))
     prices = broker.latest_prices(symbols)
     now = time.monotonic()
     cash = broker.cash() if hasattr(broker, "cash") else None
@@ -543,6 +557,18 @@ def selftest():
     assert [(a[1], a[2]) for a in acts] == [("AAA", 150)], acts
     acts = decide(zc, {"AAA": 40}, {}, held, [], cash=50)
     assert acts == [], acts
+    # Order cap used up (3 of 3) on a bad day: the stop-loss still sells,
+    # and no buy gets through.
+    acts = decide(cfg, {"AAA": 94, "BBB": 40, "CCC": 8}, closes, pos,
+                  [{"symbol": f"S{i}", "status": "filled"} for i in range(3)])
+    assert [(a[0], a[1]) for a in acts] == [("SELL", "CCC")], acts
+    # Taken off the list while held, now down 40%: still sold, on the
+    # default exits; up 5% it is left alone.
+    gone = {"PFE": {"avg_entry_price": "25", "market_value": "60"}}
+    acts = decide(cfg, {"PFE": 15}, closes, gone, [])
+    assert [(a[0], a[1]) for a in acts] == [("SELL", "PFE")], acts
+    assert "off the list" in acts[0][3], acts
+    assert decide(cfg, {"PFE": 26.25}, closes, gone, []) == []
     # Real watchlist parses and has sane caps.
     real = load_cfg()
     assert real["mode"] in ("paper", "live"), real["mode"]

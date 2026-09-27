@@ -23,7 +23,10 @@ BRANCH = "stock-live"
 
 def build(broker, cfg, closes, market_open, bot=None):
     symbols = [s["symbol"].upper() for s in cfg.get("stocks", [])]
-    prices = broker.latest_prices(symbols + ["SPY"])
+    # Held stocks that left the list still need today's price, or the
+    # account value counts them at what was paid.
+    off_list = [p for p in broker.positions() if p not in symbols]
+    prices = broker.latest_prices(symbols + off_list + ["SPY"])
     acct = broker.acct
     positions = broker.positions()
     traded = {o["symbol"] for o in broker.orders_today()}

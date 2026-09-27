@@ -70,13 +70,26 @@ def series(symbols):
     return out
 
 
+def holdings(broker):
+    """What the robot owns: the stored record (peak, trail) plus today's
+    market value. broker.positions() alone drops peak and trail, which
+    crashed the close check with KeyError 'trail' (REVIEW-2026-09-27)."""
+    held = broker.acct["positions"]
+    if held:
+        broker.latest_prices(list(held))  # value at today's price
+    values = broker.positions()
+    return {s: dict(raw, market_value=values[s]["market_value"])
+            for s, raw in held.items()}
+
+
 def decide(cfg, data, positions, cash, traded_today):
-    """Pure: (sells, buys). positions carry 'peak' and 'trail' (percent)."""
+    """Pure: (sells, buys). positions carry 'peak' and 'trail' (percent);
+    see holdings()."""
     p = cfg["rules"]
     sells, buys = [], []
     for sym, pos in positions.items():
         s = data.get(sym)
-        if not s or sym in traded_today:
+        if not s or sym in traded_today or not pos.get("trail"):
             continue
         price = s["c"][-1]
         peak = max(float(pos.get("peak", price)), price)
@@ -219,12 +232,19 @@ def run():
 
     def daily_check():
         nonlocal data
-        data = series(universe(cfg))
+        # Held stocks are fetched even if they dropped out of the screen,
+        # so their best close keeps moving and the close check guards them.
+        data = series(sorted(set(universe(cfg)) | set(broker.acct["positions"])))
         traded = {o["symbol"] for o in broker.orders_today()}
         for sym, raw in broker.acct["positions"].items():
             if sym in data:  # the best close moves only here, as tested
                 raw["peak"] = max(raw.get("peak", 0), data[sym]["c"][-1])
-        sells, buys = decide(cfg, data, broker.positions(), broker.cash(),
+                atr = data[sym]["ind"]["atr"][-1]
+                if not raw.get("trail") and atr:
+                    # A buy saved before its stop was set (a crash between
+                    # the two saves): set the stop now, as at entry.
+                    raw["trail"] = round(cfg["rules"]["atr_x"] * atr, 2)
+        sells, buys = decide(cfg, data, holdings(broker), broker.cash(),
                              traded)
         done = sell_all(sells)
         for sym, dollars, trail, why in buys:
@@ -354,6 +374,27 @@ def selftest():
     assert [x[0] for x in intraday_exits(FakeBroker(134.0), set())] == ["UP"]
     assert intraday_exits(FakeBroker(140.0), set()) == []
     assert intraday_exits(FakeBroker(134.0), {"UP"}) == []  # traded today
+    # Through a real PaperBroker, the way daily_check calls it: the stored
+    # peak and trail must reach decide(). Before 2026-09-27 this path raised
+    # KeyError 'trail' at the first close check after a buy.
+    import tempfile
+    b = paper_broker.PaperBroker.__new__(paper_broker.PaperBroker)
+    b.fee, b.fee_per_share, b.slip = 1.99, 0.0099, 0.001
+    b.path = os.path.join(tempfile.mkdtemp(), "acct.json")
+    b.save_hook = lambda *a: None
+    b._clock_cache, b._last_prices = (0, None), {}
+    b.acct = paper_broker.new_account(500.0, paper_broker._now())
+    b.acct["positions"]["UP"] = {"qty": 0.7, "avg_entry_price": 120.0,
+                                 "peak": 150.0, "trail": 10.0}
+    b.latest_prices = lambda syms: (b._last_prices.update(UP=134.0),
+                                    {"UP": 134.0})[1]
+    held = holdings(b)
+    assert abs(held["UP"]["market_value"] - 0.7 * 134) < 0.01, held
+    sells, buys = decide(cfg, {"UP": drop}, held, b.cash(), set())
+    assert [s[0] for s in sells] == ["UP"], sells
+    # A holding with no stop recorded is skipped, not a crash.
+    del b.acct["positions"]["UP"]["trail"]
+    assert decide(cfg, {"UP": drop}, holdings(b), b.cash(), set())[0] == []
     print("selftest OK")
 
 

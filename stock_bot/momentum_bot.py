@@ -26,6 +26,7 @@ import datetime as dt
 import json
 import os
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -159,7 +160,30 @@ def snapshot(broker, cfg, data, market_open, events):
     }
 
 
+def intraday_exits(broker, traded_today):
+    """Between the daily checks: sell any holding whose live price has
+    fallen to its stop line (best close x (1 - trail)). Returns
+    [(symbol, reason)]. The best close only moves at the daily check, as
+    in the backtest; this just stops waiting for 4pm to act on a drop."""
+    held = broker.acct["positions"]
+    if not held:
+        return []
+    prices = broker.latest_prices(list(held))
+    out = []
+    for sym, raw in held.items():
+        price = prices.get(sym)
+        if price is None or sym in traded_today or "trail" not in raw:
+            continue
+        stop = raw["peak"] * (1 - raw["trail"] / 100)
+        if price <= stop:
+            out.append((sym, f"hit its stop at {price:.2f} mid-day (best "
+                             f"close {raw['peak']:.2f}, {raw['trail']:.1f}% "
+                             "trailing stop)"))
+    return out
+
+
 def run():
+    started = time.monotonic()
     cfg = load_cfg()
     broker = paper_broker.PaperBroker(cfg.get("paper_costs"), path=ACCOUNT)
     events = []
@@ -167,6 +191,7 @@ def run():
     def event(text, kind="info"):
         events.append({"time": dt.datetime.now(dt.timezone.utc).isoformat(
             timespec="seconds"), "kind": kind, "text": text})
+        del events[:-40]
 
     try:
         if broker.apply_deposits(cfg.get("practice_deposits")):
@@ -174,43 +199,34 @@ def run():
     except (RuntimeError, KeyError, ValueError):
         print("Practice deposit skipped (no FX rate); retrying next run.")
 
-    clock = broker.clock()
-    closes_at = dt.datetime.fromisoformat(clock["next_close"])
-    mins_left = (closes_at - dt.datetime.now(dt.timezone.utc)).total_seconds() / 60
-    only_snapshot = "--snapshot" in sys.argv
-    if not only_snapshot and "--now" not in sys.argv and not (
-            clock.get("is_open") and 0 < mins_left <= WINDOW_MIN):
-        print("Not the end of a trading session; nothing to do.")
+    data = {}
+
+    def publish(market_open):
+        try:
+            live_snapshot.publish(snapshot(broker, cfg, data, market_open,
+                                           events), LIVE_BRANCH)
+        except Exception as e:  # the page must never stop the trading
+            print(f"Live page update skipped ({type(e).__name__}).")
+
+    if "--snapshot" in sys.argv:
+        data = series(universe(cfg))
+        publish(bool(broker.clock().get("is_open")))
+        print("Live page updated.")
         return 0
     if cfg.get("paused"):
         print("Paused.")
         return 0
 
-    today_ny = dt.datetime.now(dt.timezone.utc).astimezone(
-        closes_at.tzinfo or dt.timezone.utc).date().isoformat()
-    if (not only_snapshot and "--now" not in sys.argv
-            and broker.acct.get("last_close_check") == today_ny):
-        print("Already checked today.")  # several triggers cover cron delays
-        return 0
-    data = series(universe(cfg))
-    if not only_snapshot:
-        today = max((s["date"] for s in data.values()), default=None)
-        broker.acct["last_close_check"] = today_ny
+    def daily_check():
+        nonlocal data
+        data = series(universe(cfg))
         traded = {o["symbol"] for o in broker.orders_today()}
-        # Keep each holding's best close up to date before deciding.
         for sym, raw in broker.acct["positions"].items():
-            if sym in data:
+            if sym in data:  # the best close moves only here, as tested
                 raw["peak"] = max(raw.get("peak", 0), data[sym]["c"][-1])
         sells, buys = decide(cfg, data, broker.positions(), broker.cash(),
                              traded)
-        done = []
-        for sym, why in sells:
-            try:
-                broker.sell_all(sym)
-                done.append(f"SELL {sym} — {why}")
-                event(f"Sold {sym}: {why}", "sell")
-            except RuntimeError as e:
-                event(f"Sell {sym} didn't go through: {e}", "error")
+        done = sell_all(sells)
         for sym, dollars, trail, why in buys:
             try:
                 broker.buy(sym, dollars)
@@ -220,18 +236,87 @@ def run():
                 event(f"Bought {sym} ${dollars:,.2f}: {why}", "buy")
             except RuntimeError as e:
                 event(f"Buy {sym} didn't go through: {e}", "error")
-        broker._save(f"Momentum robot: {today} close check")
+        broker.acct["last_close_check"] = today_ny()
+        broker._save("Momentum robot: close check")
         if not done:
-            event(f"Checked {len(data)} stocks at the close. Nothing met the "
-                  "rules today.", "quiet")
-        print(f"Checked {len(data)} stocks: {len(done)} trade(s).")
+            event(f"Close check: {len(data)} stocks, nothing met the rules "
+                  "today.", "quiet")
+        report(done)
+        print(f"Close check: {len(data)} stocks, {len(done)} trade(s).")
+
+    def sell_all(sells):
+        done = []
+        for sym, why in sells:
+            try:
+                broker.sell_all(sym)
+                done.append(f"SELL {sym} — {why}")
+                event(f"Sold {sym}: {why}", "sell")
+            except RuntimeError as e:
+                event(f"Sell {sym} didn't go through: {e}", "error")
+        return done
+
+    def report(done):
         if done:
             stock_bot.notify("Momentum robot (practice): "
                              f"{len(done)} trade(s)", "\n".join(done))
-    snap = snapshot(broker, cfg, data, bool(clock.get("is_open")), events)
-    live_snapshot.publish(snap, LIVE_BRANCH)
-    print("Live page updated.")
+
+    if "--now" in sys.argv:  # testing: one close check right now
+        daily_check()
+        publish(bool(broker.clock().get("is_open")))
+        return 0
+
+    if not stock_bot.wait_for_open(broker, broker.clock()):
+        print("Market closed.")
+        return 0
+    closes_at = dt.datetime.fromisoformat(broker.clock()["next_close"])
+    every = max(float(cfg.get("check_every_seconds", 10)), 5)
+    event(f"Market's open. Guarding holdings every {every:g} seconds; "
+          "buying decisions come near the close.", "start")
+    last_snap, checks, errors = 0.0, 0, 0
+    while True:
+        now = time.monotonic()
+        left = (closes_at - dt.datetime.now(dt.timezone.utc)).total_seconds()
+        if left <= 0:
+            event("Market closed.", "stop")
+            break
+        if now - started >= stock_bot.MAX_LOOP_SECONDS:
+            print("Hit the job time limit; the next scheduled run takes over.")
+            break
+        try:
+            if (left <= WINDOW_MIN * 60
+                    and broker.acct.get("last_close_check") != today_ny()):
+                daily_check()
+            else:
+                traded = {o["symbol"] for o in broker.orders_today()}
+                done = sell_all(intraday_exits(broker, traded))
+                if done:
+                    broker._save("Momentum robot: mid-day stop")
+                    report(done)
+            checks += 1
+            errors = 0
+        except Exception as e:
+            errors += 1
+            print(f"Check failed ({type(e).__name__}), {errors} in a row.")
+            if errors >= stock_bot.MAX_ERRORS_IN_A_ROW:
+                stock_bot.notify("Momentum robot: stopped",
+                                 f"{errors} failed checks in a row: {e}",
+                                 "high")
+                return 1
+            time.sleep(30)
+            continue
+        if now - last_snap >= stock_bot.SNAPSHOT_SECONDS:
+            publish(True)
+            last_snap = now
+        time.sleep(every)
+    publish(False)
+    print(f"Done: {checks} checks.")
     return 0
+
+
+def today_ny():
+    """Today's date in New York (the trading day)."""
+    ny = dt.timezone(dt.timedelta(hours=-4))  # EDT; a day boundary at 8pm
+    return dt.datetime.now(dt.timezone.utc).astimezone(ny).date().isoformat()
 
 
 def selftest():
@@ -258,6 +343,17 @@ def selftest():
     # Too little cash for a $100 bet -> no buy.
     sells, buys = decide(cfg, {"UP": up}, {}, 60.0, set())
     assert buys == [], buys
+    # Mid-day guard: best close 150, 10% trail -> live 134 sells, 140 doesn't.
+    class FakeBroker:
+        def __init__(self, price):
+            self.acct = {"positions": {"UP": {"peak": 150.0, "trail": 10.0}}}
+            self.price = price
+
+        def latest_prices(self, syms):
+            return {"UP": self.price}
+    assert [x[0] for x in intraday_exits(FakeBroker(134.0), set())] == ["UP"]
+    assert intraday_exits(FakeBroker(140.0), set()) == []
+    assert intraday_exits(FakeBroker(134.0), {"UP"}) == []  # traded today
     print("selftest OK")
 
 

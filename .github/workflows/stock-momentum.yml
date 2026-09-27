@@ -1,23 +1,24 @@
 name: Stock bot (momentum)
 
 # Robot 2: the momentum strategy on its own practice account, next to the
-# dip robot (stock-bot.yml). It decides once a day in the last ~25 minutes
-# before the close, like the backtest it came from. Several triggers cover
-# GitHub's cron delays; the script acts only once per day and only inside
-# that window (EDT or EST). Public logs: the script prints counts only.
+# dip robot (stock-bot.yml). One run loops through the trading day: every
+# 10 seconds it guards what it holds (mid-day stop-loss), and in the last
+# ~25 minutes it makes the day's buy decisions, like the backtest. Same
+# hourly queue trick as the dip robot to cover the 6-hour job limit.
+# Public logs: the script prints counts only.
 
 on:
   schedule:
-    - cron: "36,44,52 19,20 * * 1-5"
+    - cron: "7 13-20 * * 1-5"
   workflow_dispatch:
     inputs:
       now:
-        description: "Act now even if it's not near the close (testing)"
+        description: "Run one close check right now (testing)"
         type: boolean
         default: false
 
 concurrency:
-  group: stock-momentum
+  group: stock-momentum-${{ github.event_name }}
   cancel-in-progress: false
 
 permissions:
@@ -26,7 +27,7 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 358
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

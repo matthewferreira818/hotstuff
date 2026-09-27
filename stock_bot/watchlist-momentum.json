@@ -1,11 +1,28 @@
 {
-  "_read_me": "Robot 2 (momentum), practice money. Strategy D from EXP-0001 (stock_bot/research/experiments/EXP-0001.md), settings unchanged from the test. Decides once a day in the last ~25 minutes before the close.",
+  "_read_me": "Robot 2 (momentum), practice money. Strategy D from EXP-0001, settings unchanged. Buys only near the close (as tested); guards what it holds every 10 seconds and sells mid-day if a holding falls to its stop line (Matthew's request, 2026-09-27).",
   "broker": "practice",
   "paused": false,
   "universe": "screen",
-  "rules": {"momentum": 10, "volume_x": 1.5, "atr_x": 3},
+  "rules": {
+    "momentum": 10,
+    "volume_x": 1.5,
+    "atr_x": 3
+  },
   "max_orders_per_day": 8,
-  "sizing": {"bet_pct_of_account": 10, "min_bet": 100, "max_per_stock_pct": 20},
-  "paper_costs": {"fee_min": 1.99, "fee_per_share": 0.0099, "slippage_pct": 0.1},
-  "practice_deposits": {"amount_cad": 100, "every_days": 14, "first": "2026-09-30"}
+  "sizing": {
+    "bet_pct_of_account": 10,
+    "min_bet": 100,
+    "max_per_stock_pct": 20
+  },
+  "paper_costs": {
+    "fee_min": 1.99,
+    "fee_per_share": 0.0099,
+    "slippage_pct": 0.1
+  },
+  "practice_deposits": {
+    "amount_cad": 100,
+    "every_days": 14,
+    "first": "2026-09-30"
+  },
+  "check_every_seconds": 10
 }

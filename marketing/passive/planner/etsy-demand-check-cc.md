@@ -4,6 +4,14 @@ _The 30-minute gate from spec.md, done in a real browser because Etsy
 blocks server-side lookups. Paste the block below into Chrome Claude's side
 panel. Read-only: nothing gets bought, favourited, messaged or posted._
 
+> **2026-09-27: Etsy blocked C.C on the first search** — "Access is
+> temporarily restricted", citing automated activity and developer or
+> inspection tools (the extension counts as one). Don't retry with C.C:
+> hammering Etsy from the device that will later hold the seller account
+> is not worth it. **Do the six searches by hand on the phone's Etsy app
+> and screenshot each results page**; Claude reads the numbers off the
+> screenshots. Same questions as below.
+
 **The gate:** fewer than about 5 real competing listings, or top listings
 with no recent sales → the sheet does not get listed.
 

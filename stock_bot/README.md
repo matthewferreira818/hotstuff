@@ -96,6 +96,14 @@ trading and TFSAs. Its connection needs an IBKR program logged in during market
 hours, which means a computer left on or a small rented server. When
 the time comes, Claude builds that connection.
 
+**Moomoo is connected (2026-09-27).** `moomoo_broker.py` places orders
+through OpenD on Matthew's Mac: `python3 stock_bot/stock_bot.py --moomoo`,
+started every weekday by `stock_bot/mac/install.sh`. Settings in
+`moomoo.json` (starts on Moomoo's paper account, $1,000 bankroll); setup
+steps in `MOOMOO-SETUP.md`. Same watchlist and rules as the practice
+account; whole shares only; it manages only stocks it bought; it never
+runs on GitHub and never publishes account numbers.
+
 The Alpaca code stays in place for anyone who can use it
 (`"broker": "alpaca"`, keys as GitHub secrets, `"mode": "live"`).
 In live mode the bot starts in **you-decide mode**

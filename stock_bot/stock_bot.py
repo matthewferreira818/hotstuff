@@ -33,6 +33,8 @@ Usage:
   python stock_bot/stock_bot.py --dry-run       # decide, don't place orders
   python stock_bot/stock_bot.py --order "BUY AAPL 100"   # one manual order
   python stock_bot/stock_bot.py --selftest      # offline logic check
+  python3 stock_bot/stock_bot.py --moomoo --local  # on Matthew's Mac: trade
+                                  # through Moomoo (moomoo.json, MOOMOO-SETUP.md)
 """
 
 import datetime as dt
@@ -71,6 +73,7 @@ MAX_ERRORS_IN_A_ROW = 10
 ORPHAN_RULES = {"take_profit_pct": 20, "stop_loss_pct": 10}
 
 LOCAL = "--local" in sys.argv
+MOOMOO = "--moomoo" in sys.argv
 
 # What the bot has been doing, newest last — shown on the Practice Desk.
 EVENTS = []
@@ -176,7 +179,8 @@ def bet_size(cfg, value):
     return bet, cap, float(z.get("min_bet", 100))
 
 
-def decide(cfg, prices, closes, positions, orders_today, cash=None):
+def decide(cfg, prices, closes, positions, orders_today, cash=None,
+           whole_shares=False):
     """Pure function: returns a list of (side, symbol, dollars, reason).
 
     Sells are listed before buys so freed-up cash counts. Every cap is
@@ -185,7 +189,9 @@ def decide(cfg, prices, closes, positions, orders_today, cash=None):
     slots, so a busy day means fewer buys, never a skipped stop-loss.
     Every position is checked, not just listed stocks. When the broker reports
     `cash` and the watchlist has "sizing", buys are sized from the account
-    (see bet_size) and never spend more cash than there is.
+    (see bet_size) and never spend more cash than there is. With
+    whole_shares (Moomoo's API takes no fractions) a buy smaller than one
+    share at the limit price is skipped rather than sent to fail.
     """
     actions = []
     invested = sum(float(p.get("market_value", 0)) for p in positions.values())
@@ -236,6 +242,8 @@ def decide(cfg, prices, closes, positions, orders_today, cash=None):
                           float(cfg.get("max_total_invested", 0)) - invested)
         if dollars < 1 or orders_left <= 0:
             continue
+        if whole_shares and dollars < price * 1.006:
+            continue
         actions.append(("BUY", sym, round(dollars, 2), reason))
         invested += dollars
         if cash is not None:
@@ -265,6 +273,19 @@ def notify(title, body, priority="default"):
 def load_cfg():
     with open(WATCHLIST) as f:
         return json.load(f)
+
+
+def moomoo_overrides(cfg):
+    """--moomoo (Matthew's Mac): same stocks and rules as the watchlist,
+    but the broker, mode and auto-trade switch come from moomoo.json, so
+    the practice bot on GitHub is never pointed at a real account."""
+    if not MOOMOO:
+        return cfg
+    import moomoo_broker
+    m = moomoo_broker.load_config()
+    return dict(cfg, broker="moomoo",
+                mode="live" if m.get("env") == "real" else "paper",
+                live_auto_trade=bool(m.get("live_auto_trade")))
 
 
 def fresh_cfg(cfg):
@@ -316,7 +337,8 @@ def check(broker, cfg, closes, label, once, already):
     now = time.monotonic()
     cash = broker.cash() if hasattr(broker, "cash") else None
     actions = [a for a in decide(cfg, prices, closes, broker.positions(),
-                                 broker.orders_today(), cash)
+                                 broker.orders_today(), cash,
+                                 getattr(broker, "whole_shares", False))
                if already.get((a[0], a[1]), 0) <= now]
     if not actions:
         if once:
@@ -333,8 +355,9 @@ def check(broker, cfg, closes, label, once, already):
         say(f"{len(actions)} trade idea(s) sent to phone, none placed.",
             "; ".join(lines))
         notify(f"Stock bot ({label}): {len(actions)} idea(s) — you decide",
-               "\n".join(lines) + "\n\nTo place one: Actions → Stock bot → "
-               "Run workflow → order, e.g. BUY AAPL 100", "high")
+               "\n".join(lines) + "\n\n" + getattr(
+                   broker, "manual_hint", "To place one: Actions → Stock bot → "
+                   "Run workflow → order, e.g. BUY AAPL 100"), "high")
         return 0
 
     done, failed = [], []
@@ -371,8 +394,19 @@ def wait_for_open(broker, clock):
 
 def run():
     started = time.monotonic()  # the job clock includes any wait for the open
-    cfg = load_cfg()
-    if cfg.get("broker", "practice") == "practice":
+    cfg = moomoo_overrides(load_cfg())
+    if cfg.get("broker") == "moomoo":
+        if os.environ.get("GITHUB_ACTIONS"):
+            print("Moomoo runs on Matthew's Mac only, never on GitHub.")
+            return 0
+        from moomoo_broker import MoomooBroker
+        broker = MoomooBroker()
+        live = broker.real
+        label = "LIVE" if live else "Moomoo practice"
+        if "--order" in sys.argv:
+            print("Place manual orders in the Moomoo app.")
+            return 0
+    elif cfg.get("broker", "practice") == "practice":
         # Our own practice account (paper_broker.py): real prices, fake
         # money, real-world fees. Alpaca won't take Canadian residents.
         from paper_broker import PaperBroker
@@ -391,7 +425,12 @@ def run():
         label = "LIVE" if live else "paper"
         broker = Alpaca(live)
     if not broker.ready():
-        print(f"No Alpaca {label} keys set — nothing to do. See README.")
+        print(getattr(broker, "not_ready_help",
+                      f"No Alpaca {label} keys set — nothing to do. See README."))
+        if label != "practice":
+            notify(f"Stock bot ({label}): not connected",
+                   getattr(broker, "not_ready_help", "Check the broker keys."),
+                   "high")
         return 0
 
     if "--order" in sys.argv:
@@ -437,7 +476,10 @@ def run():
         check(broker, cfg, broker.daily_closes(symbols), label, True, {})
         return 0
 
-    # Loop mode: keep watching until the close (or the 5h45m job budget).
+    # Loop mode: keep watching until the close (or, on GitHub, the 5h45m
+    # job budget — a Mac has no job limit, so it just runs to the close).
+    job_limit = (MAX_LOOP_SECONDS if os.environ.get("GITHUB_ACTIONS")
+                 else 8 * 3600)
     every = max(every, 5)  # Alpaca's free plan allows 200 calls/min
     closes_at = dt.datetime.fromisoformat(broker.clock()["next_close"])
     last_reload = last_beat = time.monotonic()
@@ -456,11 +498,12 @@ def run():
             event(f"Market closed. {checks:,} checks today, {placed} "
                   f"trade{'s' if placed != 1 else ''}.", "stop")
             break
-        if now - started >= MAX_LOOP_SECONDS:
+        if now - started >= job_limit:
             print("Hit the job time limit — the next scheduled run takes over.")
             break
         if now - last_reload >= RELOAD_SECONDS:
             cfg, paused = fresh_cfg(cfg)
+            cfg = moomoo_overrides(cfg)
             last_reload = now
             if paused:
                 print("Paused from the watchlist — stopping.")
@@ -557,6 +600,15 @@ def selftest():
     assert [(a[1], a[2]) for a in acts] == [("AAA", 150)], acts
     acts = decide(zc, {"AAA": 40}, {}, held, [], cash=50)
     assert acts == [], acts
+    # Whole shares (Moomoo): a $285 bet buys a $40 stock but not a $400
+    # one, which fractional practice shares would have bought.
+    zw = dict(zc, stocks=[{"symbol": "AAA", "buy_below": 50},
+                          {"symbol": "BBB", "buy_below": 500}])
+    acts = decide(zw, {"AAA": 40, "BBB": 400}, {}, held, [], cash=1000,
+                  whole_shares=True)
+    assert [(a[1], a[2]) for a in acts] == [("AAA", 285)], acts
+    acts = decide(zw, {"AAA": 40, "BBB": 400}, {}, held, [], cash=1000)
+    assert [a[1] for a in acts] == ["AAA", "BBB"], acts
     # Order cap used up (3 of 3) on a bad day: the stop-loss still sells,
     # and no buy gets through.
     acts = decide(cfg, {"AAA": 94, "BBB": 40, "CCC": 8}, closes, pos,

@@ -53,6 +53,7 @@ jobs:
         run: |
           python stock_bot/stock_bot.py --selftest
           python stock_bot/paper_broker.py --selftest
+          python stock_bot/moomoo_broker.py --selftest
       - name: Run
         env:
           ALPACA_KEY_ID: ${{ secrets.ALPACA_KEY_ID }}

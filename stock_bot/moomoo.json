@@ -1,0 +1,15 @@
+{
+  "_read_me": "How the bot talks to Matthew's Moomoo Canada account. Read by stock_bot.py --moomoo on his Mac (never on GitHub). Setup steps: stock_bot/MOOMOO-SETUP.md.",
+
+  "env": "simulate",
+  "_env": "simulate = Moomoo's own paper account (fake money, real order system). real = his real account. Even with real, nothing is bought unless live_auto_trade is true AND he has clicked Unlock in OpenD that day.",
+
+  "live_auto_trade": false,
+
+  "bankroll_usd": 1000,
+  "_bankroll_usd": "The most the bot may ever have in play, in US dollars, whatever else sits in the account. Moomoo's paper account starts with far more; this keeps its bets the same size as the practice account's. Raise it by hand when deposits should count.",
+
+  "host": "127.0.0.1",
+  "port": 11111,
+  "security_firm": "FUTUCA"
+}

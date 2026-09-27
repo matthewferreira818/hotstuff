@@ -75,7 +75,11 @@ Moomoo Canada (applied 09-27). Matthew plans to add ~$100 CAD per
 paycheque (every second Wednesday, from 09-30) to Moomoo; that money sits
 as cash until a strategy passes the six-condition gate in
 .claude/skills/stock-council/SKILL.md. The practice account mirrors the
-same deposits.
+same deposits. Moomoo approved 09-27 and is wired in:
+`stock_bot/moomoo_broker.py` runs on Matthew's Mac through moomoo OpenD
+(setup: stock_bot/MOOMOO-SETUP.md), on Moomoo's PAPER account by default.
+Real money needs three switches, all his: env real, live_auto_trade true,
+and Unlock clicked in OpenD. Never run the Moomoo path on GitHub.
 
 ## Where the real ledgers live (read before answering "what's next")
 

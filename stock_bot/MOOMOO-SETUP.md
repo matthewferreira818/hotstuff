@@ -9,6 +9,13 @@ called **OpenD**, which you log into yourself, so your password never
 touches our code. The bot talks to OpenD on the same Mac. And a real
 account's numbers never go near GitHub, where everything is public.
 
+## 0. Switch on paper trading (in the Moomoo app, 1 minute)
+
+No deposit needed: the paper account is Moomoo's own fake money (it
+starts with US$1 million; the bot only ever uses $1,000 of it). In the
+Moomoo app, open **Paper Trading**, pick the **US** market and tap **Get
+Now** if it offers it. If it already shows a paper account, you're done.
+
 ## 1. OpenD (Moomoo's bot connection)
 
 1. Download **moomoo OpenD** for Mac: https://www.moomoo.com/download/OpenAPI

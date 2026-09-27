@@ -86,8 +86,8 @@ def build(broker, cfg, closes, market_open, bot=None):
     }
 
 
-def publish(snapshot):
-    """Replace the stock-live branch with one commit holding live.json."""
+def publish(snapshot, branch=BRANCH):
+    """Replace `branch` with one commit holding live.json."""
     git = ["git", "-C", HERE]
     env = dict(os.environ, GIT_AUTHOR_NAME="stock-bot",
                GIT_AUTHOR_EMAIL="stock-bot@users.noreply.github.com",
@@ -105,7 +105,7 @@ def publish(snapshot):
         commit = run("commit-tree", tree, "-m", "live snapshot"
                      ).stdout.strip()
         ok = commit and run("push", "-q", "-f", "origin",
-                            f"{commit}:refs/heads/{BRANCH}").returncode == 0
+                            f"{commit}:refs/heads/{branch}").returncode == 0
     finally:
         os.unlink(f.name)
     if not ok:

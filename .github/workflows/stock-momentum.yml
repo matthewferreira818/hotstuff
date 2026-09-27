@@ -1,0 +1,43 @@
+name: Stock bot (momentum)
+
+# Robot 2: the momentum strategy on its own practice account, next to the
+# dip robot (stock-bot.yml). It decides once a day in the last ~25 minutes
+# before the close, like the backtest it came from. Several triggers cover
+# GitHub's cron delays; the script acts only once per day and only inside
+# that window (EDT or EST). Public logs: the script prints counts only.
+
+on:
+  schedule:
+    - cron: "36,44,52 19,20 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      now:
+        description: "Act now even if it's not near the close (testing)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: stock-momentum
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Self-test
+        run: |
+          python stock_bot/momentum_bot.py --selftest
+          python stock_bot/paper_broker.py --selftest
+      - name: Run
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          NOW: ${{ inputs.now && '--now' || '' }}
+        run: python stock_bot/momentum_bot.py $NOW

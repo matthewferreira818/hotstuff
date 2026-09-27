@@ -49,14 +49,18 @@ seconds, and assumptions blank means you have handed someone a grid.
 
 | Cell | Label | Default | Note |
 |---|---|---|---|
-| `B2` | Currency | CAD | Label only, no conversion |
-| `B4` | Platform fee % | 6.5% | Etsy transaction fee |
-| `B5` | Payment processing % | 3.0% | Varies by country — check yours |
-| `B6` | Payment processing fixed | 0.25 | Per order |
-| `B7` | Listing fee | 0.20 | Per listing |
-| `B8` | Shipping you absorb (worst case) | 8.00 | The one people forget |
-| `B9` | Minimum profit per sale | 1.00 | Your cushion, not a fee |
-| `B11` | **Total % fees** | `=B4+B5` | Derived, shown for sanity |
+| `D7` | Platform fee % | 6.50% | Etsy transaction fee |
+| `D8` | Payment processing % | 3.00% | Varies by country — check yours |
+| `D9` | Offsite Ads % | 0.00% | Only on ad-attributed orders |
+| `D12` | Payment processing fixed | 0.25 | Per order |
+| `D13` | Listing fee | 0.20 | Per listing |
+| `D14` | Shipping you absorb (worst case) | 8.00 | The one people forget |
+| `D17` | Minimum profit per sale | 1.00 | Your cushion, not a fee |
+| `D20` | Currency symbol | $ | Cosmetic, no conversion. Every label and verdict follows it |
+| `D23` | **Total % fees** | `=D7+D8+D9` | Derived, shown for sanity |
+
+Row numbers are never typed by hand: the script derives them from its
+settings list and audits every cross-sheet reference before saving.
 
 `Offsite Ads %` gets its own row, default **0**, with a note that it only
 applies to orders attributed to Etsy's ads and that sellers under the
@@ -66,7 +70,7 @@ lifetime threshold can opt out.
 
 This is tab 1 in the buyer's eye and the first listing image.
 
-Input: **item cost** (`B3`).
+Inputs: **item cost** (`D7`) and **your price** (`D8`).
 
 ```
 Floor  =  (cost + shipping + processing_fixed + listing_fee + min_profit)
@@ -76,7 +80,8 @@ Floor  =  (cost + shipping + processing_fixed + listing_fee + min_profit)
 In sheet terms, with `S` = `Start here`:
 
 ```
-=('Price floor'!B3 + S!B8 + S!B6 + S!B7 + S!B9) / (1 - S!B11)
+=IF(S!D23>=1, "FEES ≥ 100%",
+    (D7 + S!D14 + S!D12 + S!D13 + S!D17) / (1 - S!D23))
 ```
 
 That is the same shape as `min_profitable_price()` in
@@ -87,10 +92,14 @@ add it on — you solve for it.
 
 Below the floor, three live cells:
 
-- **Your price** (input)
-- **Profit per sale at your price** — `= price*(1-pct) - fixed - cost - shipping`
-- **Verdict** — conditional format: green **SAFE** at or above floor, red
-  **LOSES $X.XX A SALE** below it.
+- **Profit per sale at your price** — `= price*(1-pct) - fixed - shipping - cost`
+- **Verdict** — a big block with three answers, not two:
+  - **LOSES $X** — profit is below zero. Red.
+  - **UNDER $X** — still makes money, but less than the minimum profit you
+    set. Red, because it's under *your* floor. (v1 called this LOSES,
+    which was false.)
+  - **SAFE $X** — at or above the floor. Grey.
+  - Blank price shows **ENTER YOUR PRICE ABOVE**, never SAFE.
 
 That red cell is the product. It is the screenshot, the hook and the
 reason anyone pays.
@@ -135,6 +144,49 @@ refunds, and a tax set-aside bucket at a rate you set.
 
 **Refunds and chargebacks get a real line.** Processors keep the fixed fee
 on a refunded order; no free template knows that.
+
+## Design — v2, "Grid & Signal" (2026-09-27)
+
+v1 looked vintage: cream and amber, Calibri, italics, gridlines, a box
+around every input. Four design directions were built and scored by a
+panel; **swiss-grid** won (35, the only ship vote) over quiet-editorial
+(33), dashboard-dark (32.5) and soft-ui-cards (29). One idea was grafted
+from each runner-up.
+
+- **Palette:** white, near-black `#111111`, grey `#6E6E6E` for notes,
+  light grey `#EDEDED` for anything the sheet works out. **One colour —
+  red `#E30613` — only where the sheet says you're losing money.** No
+  green anywhere; SAFE is calm grey on purpose.
+- **Type:** Arial on every cell (it converts to Sheets), no italics, labels
+  not bold. Bold is kept for numbers, totals and verdicts.
+- **Space, not boxes:** gridlines off, the canvas painted white, ten legal
+  row heights (8 14 16 20 22 28 32 36 52 104), inputs marked by a single
+  black underline, rows by a hairline.
+- **Red is the static state** of the verdict block (graft from
+  soft-ui-cards); grey is the conditional override. If Sheets ever drops
+  the rule, the sheet over-warns — it can never hide a loss. The rule
+  keys off the verdict word, so colour and word can't disagree.
+- **Words carry the affordance** (graft from dashboard-dark): every tab's
+  legend says white = type, grey = worked out; product headers say
+  `COST (YOU)` / `FLOOR (AUTO)`.
+- **Currency symbol is an input** (graft from quiet-editorial); no `$` is
+  baked into any format or formula.
+
+Honesty fixes found while building v2, all verified in LibreOffice and a
+second formula engine:
+
+1. Price between break-even and the floor said LOSES while earning money
+   → now UNDER.
+2. Fees of 100% or more made the floor negative, so every price read SAFE
+   → floor shows `FEES ≥ 100%` and the verdict says LOSES.
+3. A blank price used to compute a verdict → now asks for the price.
+4. A fresh "This month" said BROKE EVEN on an empty month → now says
+   FILL IN YOUR MONTH ABOVE.
+
+The design spec's full measurements (382 × 229px verdict block, the
+200 × 200 thumbnail crop from a **real** Sheets screenshot) are the
+thumbnail procedure: default values D7 = 6.00, D8 = 12.00 put the sheet in
+the red.
 
 ## What it deliberately does not have
 

@@ -97,7 +97,30 @@
       "stop_loss_pct": 10,
       "sell_above": 0,
       "_source": "extra"
+    },
+    {
+      "symbol": "ONDS",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 100,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 10,
+      "sell_above": 0,
+      "_source": "matthew"
+    },
+    {
+      "symbol": "PFE",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 100,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 10,
+      "sell_above": 0,
+      "_source": "matthew"
     }
   ],
-  "_extras_from": "Added 2026-09-27 at Matthew's request, to watch more stocks: picks from a single council seat (NVDA, ABNB from Goalie; RIOT from Tally) plus ARM and MU from the screen. Kept only stocks where the rules made money in last year's backtest; NFLX and HIMS were left out because they lost. These are NOT council picks and aren't graded as such."
+  "_extras_from": "Added 2026-09-27 at Matthew's request, to watch more stocks: picks from a single council seat (NVDA, ABNB from Goalie; RIOT from Tally) plus ARM and MU from the screen. Kept only stocks where the rules made money in last year's backtest; NFLX and HIMS were left out because they lost. These are NOT council picks and aren't graded as such.",
+  "_matthew_picks": "ONDS and PFE added 2026-09-27 at Matthew's request. Rules 8/20/10: last-year backtest ONDS +$54 on 24 trades (holding +$2); PFE's daily swing is under 1%, so it rarely dips 8% (0 closed trades last year) and tighter rules sized to its swing lost money to fees (-$22). 10 slots x $100 = $1,200 of slots against $1,000 cash: first dips get the money."
 }

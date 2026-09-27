@@ -134,7 +134,7 @@
   "practice_deposits": {
     "amount_cad": 100,
     "every_days": 14,
-    "first": null,
-    "_note": "Mirrors Matthew's paycheque deposits. Set 'first' to the next payday (YYYY-MM-DD) to switch on."
+    "first": "2026-09-30",
+    "_note": "Mirrors Matthew's paycheques: $100 CAD every second Wednesday, starting Wed 2026-09-30."
   }
 }

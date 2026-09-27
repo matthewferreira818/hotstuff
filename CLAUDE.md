@@ -66,6 +66,17 @@ running costs $0/month. Free unlocks still open: Meta/Facebook auto-post
 hookup, TikTok app review, Zoho mail. GBP: fields done 08-19, verification video
 filmed 08-26 but NOT yet submitted through Google's flow.
 
+## Stock bot (as of 2026-09-27)
+
+Practice-money trading bot in `stock_bot/` (guide: stock_bot/README.md;
+live app: findhotstuff.com/stock_bot/live/). Research so far says its
+rules do NOT beat just holding (stock_bot/research/). Real broker route:
+Moomoo Canada (applied 09-27). Matthew plans to add ~$100 CAD per
+paycheque (every second Wednesday, from 09-30) to Moomoo; that money sits
+as cash until a strategy passes the six-condition gate in
+.claude/skills/stock-council/SKILL.md. The practice account mirrors the
+same deposits.
+
 ## Where the real ledgers live (read before answering "what's next")
 
 - `marketing/east-coast-social/call-kit.md` — prospect ledger + call log.

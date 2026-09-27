@@ -9,13 +9,13 @@ The live intel:
 - Requirements to expect: fit ACOA-directed categories + **revenue positive with customers**
   → every ECS client landed before October is also grant-eligibility evidence
 - Cathy asked for website links (sent Aug 6) — she's pre-reviewing what we do
-- Follow-up scheduled: late September
+- Follow-up SENT 2026-09-27 — waiting on Cathy's answer (parameters date + what "revenue positive with customers" means)
 
 _The application draft below is preserved for the successor program — most answers will transfer._
 
 ---
 
-# Late-September follow-up to Cathy — DRAFTED 2026-09-24, Matthew sends
+# Late-September follow-up to Cathy — ✅ SENT 2026-09-27 (Matthew, from ceohotstuff@yahoo.com; "52 days" changed to "every day since August 4"). Awaiting reply.
 
 **Status check before writing this, because it changes the email:** the
 reminder said to "lead with customer traction." There isn't any. Zero

@@ -1,0 +1,573 @@
+{
+ "id": "EXP-0001-moomoo-fees",
+ "run": "2026-09-27",
+ "hypothesis": "Trend/momentum entries with trailing exits beat the dip strategy and buy-and-hold on unseen windows.",
+ "defaults": {
+  "A": {
+   "dip": 8,
+   "take_profit": 20,
+   "stop_loss": 10
+  },
+  "B": {},
+  "C": {
+   "lookback": 20,
+   "trail": 10
+  },
+  "D": {
+   "momentum": 10,
+   "volume_x": 1.5,
+   "atr_x": 3
+  }
+ },
+ "grids": {
+  "A": {
+   "dip": [
+    6,
+    8,
+    10,
+    12
+   ],
+   "take_profit": [
+    10,
+    20,
+    30
+   ],
+   "stop_loss": [
+    5,
+    10,
+    100
+   ]
+  },
+  "B": {},
+  "C": {
+   "lookback": [
+    20,
+    50
+   ],
+   "trail": [
+    8,
+    10,
+    15,
+    20
+   ]
+  },
+  "D": {
+   "momentum": [
+    0,
+    10,
+    20
+   ],
+   "volume_x": [
+    1.0,
+    1.5
+   ],
+   "atr_x": [
+    2,
+    3,
+    4
+   ]
+  }
+ },
+ "costs": {
+  "fee": 1.99,
+  "slippage": 0.001,
+  "bet": 100.0
+ },
+ "results": {
+  "A": {
+   "pnl": -3455.73,
+   "return_pct": -60.6,
+   "max_drawdown_pct": -69.2,
+   "return_per_drawdown": -0.88,
+   "sharpe": -0.69,
+   "volatility_pct": 44.5,
+   "trades": 1575,
+   "win_rate": 32,
+   "profit_factor": 0.74,
+   "avg_trade": -1.75,
+   "exposure_pct": 73,
+   "fees": 7457.0,
+   "spy_pnl": 2147.34,
+   "windows_beat_spy": 2,
+   "windows": 9,
+   "per_window": [
+    271.49,
+    -149.1,
+    683.14,
+    -1852.1,
+    847.36,
+    396.84,
+    -1413.67,
+    -1169.73,
+    -1069.97
+   ]
+  },
+  "B": {
+   "pnl": 6144.99,
+   "return_pct": 107.8,
+   "max_drawdown_pct": -27.1,
+   "return_per_drawdown": 3.98,
+   "sharpe": 1.29,
+   "volatility_pct": 29.3,
+   "trades": 0,
+   "win_rate": null,
+   "profit_factor": null,
+   "avg_trade": 11.82,
+   "exposure_pct": 98,
+   "fees": 1139.0,
+   "spy_pnl": 2147.34,
+   "windows_beat_spy": 5,
+   "windows": 9,
+   "per_window": [
+    1132.62,
+    546.67,
+    2809.86,
+    -771.76,
+    2528.0,
+    1098.71,
+    -781.01,
+    -486.28,
+    68.19
+   ]
+  },
+  "C": {
+   "pnl": -145.96,
+   "return_pct": -2.6,
+   "max_drawdown_pct": -15.4,
+   "return_per_drawdown": -0.17,
+   "sharpe": -0.04,
+   "volatility_pct": 11.4,
+   "trades": 414,
+   "win_rate": 28,
+   "profit_factor": 0.6,
+   "avg_trade": -0.27,
+   "exposure_pct": 23,
+   "fees": 2000.0,
+   "spy_pnl": 2147.34,
+   "windows_beat_spy": 1,
+   "windows": 9,
+   "per_window": [
+    -113.65,
+    157.79,
+    138.76,
+    -68.43,
+    485.59,
+    -50.8,
+    -292.1,
+    -96.32,
+    -306.79
+   ]
+  },
+  "D": {
+   "pnl": 2416.07,
+   "return_pct": 42.4,
+   "max_drawdown_pct": -20.9,
+   "return_per_drawdown": 2.03,
+   "sharpe": 0.94,
+   "volatility_pct": 18.7,
+   "trades": 247,
+   "win_rate": 29,
+   "profit_factor": 0.96,
+   "avg_trade": 5.86,
+   "exposure_pct": 28,
+   "fees": 1394.0,
+   "spy_pnl": 2147.34,
+   "windows_beat_spy": 4,
+   "windows": 9,
+   "per_window": [
+    325.76,
+    532.32,
+    1652.85,
+    -442.3,
+    646.21,
+    471.4,
+    -337.36,
+    -92.38,
+    -340.44
+   ]
+  },
+  "_windows": [
+   "2024-04-25 \u2192 2024-07-25",
+   "2024-07-26 \u2192 2024-10-23",
+   "2024-10-24 \u2192 2025-01-27",
+   "2025-01-28 \u2192 2025-04-28",
+   "2025-04-29 \u2192 2025-07-29",
+   "2025-07-30 \u2192 2025-10-27",
+   "2025-10-28 \u2192 2026-01-28",
+   "2026-01-29 \u2192 2026-04-29",
+   "2026-04-30 \u2192 2026-07-30"
+  ]
+ },
+ "robustness": {
+  "A": [
+   {
+    "dip": 6,
+    "take_profit": 10,
+    "stop_loss": 5,
+    "pnl": -13502.71
+   },
+   {
+    "dip": 6,
+    "take_profit": 10,
+    "stop_loss": 10,
+    "pnl": -6761.62
+   },
+   {
+    "dip": 6,
+    "take_profit": 10,
+    "stop_loss": 100,
+    "pnl": 570.59
+   },
+   {
+    "dip": 6,
+    "take_profit": 20,
+    "stop_loss": 5,
+    "pnl": -8672.27
+   },
+   {
+    "dip": 6,
+    "take_profit": 20,
+    "stop_loss": 10,
+    "pnl": -3008.17
+   },
+   {
+    "dip": 6,
+    "take_profit": 20,
+    "stop_loss": 100,
+    "pnl": 1958.59
+   },
+   {
+    "dip": 6,
+    "take_profit": 30,
+    "stop_loss": 5,
+    "pnl": -6349.84
+   },
+   {
+    "dip": 6,
+    "take_profit": 30,
+    "stop_loss": 10,
+    "pnl": -1404.04
+   },
+   {
+    "dip": 6,
+    "take_profit": 30,
+    "stop_loss": 100,
+    "pnl": 3063.35
+   },
+   {
+    "dip": 8,
+    "take_profit": 10,
+    "stop_loss": 5,
+    "pnl": -12380.0
+   },
+   {
+    "dip": 8,
+    "take_profit": 10,
+    "stop_loss": 10,
+    "pnl": -6773.64
+   },
+   {
+    "dip": 8,
+    "take_profit": 10,
+    "stop_loss": 100,
+    "pnl": 51.3
+   },
+   {
+    "dip": 8,
+    "take_profit": 20,
+    "stop_loss": 5,
+    "pnl": -8611.13
+   },
+   {
+    "dip": 8,
+    "take_profit": 20,
+    "stop_loss": 10,
+    "pnl": -3455.73
+   },
+   {
+    "dip": 8,
+    "take_profit": 20,
+    "stop_loss": 100,
+    "pnl": 1339.44
+   },
+   {
+    "dip": 8,
+    "take_profit": 30,
+    "stop_loss": 5,
+    "pnl": -6523.12
+   },
+   {
+    "dip": 8,
+    "take_profit": 30,
+    "stop_loss": 10,
+    "pnl": -1825.58
+   },
+   {
+    "dip": 8,
+    "take_profit": 30,
+    "stop_loss": 100,
+    "pnl": 2408.01
+   },
+   {
+    "dip": 10,
+    "take_profit": 10,
+    "stop_loss": 5,
+    "pnl": -11464.2
+   },
+   {
+    "dip": 10,
+    "take_profit": 10,
+    "stop_loss": 10,
+    "pnl": -5911.19
+   },
+   {
+    "dip": 10,
+    "take_profit": 10,
+    "stop_loss": 100,
+    "pnl": -241.2
+   },
+   {
+    "dip": 10,
+    "take_profit": 20,
+    "stop_loss": 5,
+    "pnl": -8229.33
+   },
+   {
+    "dip": 10,
+    "take_profit": 20,
+    "stop_loss": 10,
+    "pnl": -2950.13
+   },
+   {
+    "dip": 10,
+    "take_profit": 20,
+    "stop_loss": 100,
+    "pnl": 1237.07
+   },
+   {
+    "dip": 10,
+    "take_profit": 30,
+    "stop_loss": 5,
+    "pnl": -6394.62
+   },
+   {
+    "dip": 10,
+    "take_profit": 30,
+    "stop_loss": 10,
+    "pnl": -1653.93
+   },
+   {
+    "dip": 10,
+    "take_profit": 30,
+    "stop_loss": 100,
+    "pnl": 2111.58
+   },
+   {
+    "dip": 12,
+    "take_profit": 10,
+    "stop_loss": 5,
+    "pnl": -9583.87
+   },
+   {
+    "dip": 12,
+    "take_profit": 10,
+    "stop_loss": 10,
+    "pnl": -5278.6
+   },
+   {
+    "dip": 12,
+    "take_profit": 10,
+    "stop_loss": 100,
+    "pnl": -316.89
+   },
+   {
+    "dip": 12,
+    "take_profit": 20,
+    "stop_loss": 5,
+    "pnl": -7111.27
+   },
+   {
+    "dip": 12,
+    "take_profit": 20,
+    "stop_loss": 10,
+    "pnl": -2821.54
+   },
+   {
+    "dip": 12,
+    "take_profit": 20,
+    "stop_loss": 100,
+    "pnl": 1208.98
+   },
+   {
+    "dip": 12,
+    "take_profit": 30,
+    "stop_loss": 5,
+    "pnl": -5367.13
+   },
+   {
+    "dip": 12,
+    "take_profit": 30,
+    "stop_loss": 10,
+    "pnl": -1411.73
+   },
+   {
+    "dip": 12,
+    "take_profit": 30,
+    "stop_loss": 100,
+    "pnl": 2257.55
+   }
+  ],
+  "C": [
+   {
+    "lookback": 20,
+    "trail": 8,
+    "pnl": -449.37
+   },
+   {
+    "lookback": 20,
+    "trail": 10,
+    "pnl": -145.96
+   },
+   {
+    "lookback": 20,
+    "trail": 15,
+    "pnl": 828.88
+   },
+   {
+    "lookback": 20,
+    "trail": 20,
+    "pnl": 1752.35
+   },
+   {
+    "lookback": 50,
+    "trail": 8,
+    "pnl": -469.37
+   },
+   {
+    "lookback": 50,
+    "trail": 10,
+    "pnl": -278.48
+   },
+   {
+    "lookback": 50,
+    "trail": 15,
+    "pnl": 544.7
+   },
+   {
+    "lookback": 50,
+    "trail": 20,
+    "pnl": 1380.43
+   }
+  ],
+  "D": [
+   {
+    "momentum": 0,
+    "volume_x": 1.0,
+    "atr_x": 2,
+    "pnl": 285.78
+   },
+   {
+    "momentum": 0,
+    "volume_x": 1.0,
+    "atr_x": 3,
+    "pnl": 2229.02
+   },
+   {
+    "momentum": 0,
+    "volume_x": 1.0,
+    "atr_x": 4,
+    "pnl": 3504.49
+   },
+   {
+    "momentum": 0,
+    "volume_x": 1.5,
+    "atr_x": 2,
+    "pnl": 569.24
+   },
+   {
+    "momentum": 0,
+    "volume_x": 1.5,
+    "atr_x": 3,
+    "pnl": 2592.27
+   },
+   {
+    "momentum": 0,
+    "volume_x": 1.5,
+    "atr_x": 4,
+    "pnl": 3174.41
+   },
+   {
+    "momentum": 10,
+    "volume_x": 1.0,
+    "atr_x": 2,
+    "pnl": 306.6
+   },
+   {
+    "momentum": 10,
+    "volume_x": 1.0,
+    "atr_x": 3,
+    "pnl": 2216.73
+   },
+   {
+    "momentum": 10,
+    "volume_x": 1.0,
+    "atr_x": 4,
+    "pnl": 3054.96
+   },
+   {
+    "momentum": 10,
+    "volume_x": 1.5,
+    "atr_x": 2,
+    "pnl": 648.6
+   },
+   {
+    "momentum": 10,
+    "volume_x": 1.5,
+    "atr_x": 3,
+    "pnl": 2416.07
+   },
+   {
+    "momentum": 10,
+    "volume_x": 1.5,
+    "atr_x": 4,
+    "pnl": 2863.85
+   },
+   {
+    "momentum": 20,
+    "volume_x": 1.0,
+    "atr_x": 2,
+    "pnl": 934.82
+   },
+   {
+    "momentum": 20,
+    "volume_x": 1.0,
+    "atr_x": 3,
+    "pnl": 2587.92
+   },
+   {
+    "momentum": 20,
+    "volume_x": 1.0,
+    "atr_x": 4,
+    "pnl": 2833.02
+   },
+   {
+    "momentum": 20,
+    "volume_x": 1.5,
+    "atr_x": 2,
+    "pnl": 895.55
+   },
+   {
+    "momentum": 20,
+    "volume_x": 1.5,
+    "atr_x": 3,
+    "pnl": 2423.21
+   },
+   {
+    "momentum": 20,
+    "volume_x": 1.5,
+    "atr_x": 4,
+    "pnl": 2591.86
+   }
+  ]
+ }
+}

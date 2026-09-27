@@ -107,9 +107,14 @@ class PaperBroker:
         return out
 
     def latest_prices(self, symbols):
-        q = urllib.parse.urlencode({"symbols": ",".join(symbols),
-                                    "range": "1d", "interval": "1m"})
-        data = _get(f"https://query1.finance.yahoo.com/v8/finance/spark?{q}")
+        # The feed takes at most 20 symbols per request.
+        symbols = list(dict.fromkeys(symbols))
+        data = {}
+        for i in range(0, len(symbols), 20):
+            q = urllib.parse.urlencode({"symbols": ",".join(symbols[i:i + 20]),
+                                        "range": "1d", "interval": "1m"})
+            data.update(_get(
+                f"https://query1.finance.yahoo.com/v8/finance/spark?{q}"))
         out = {}
         for sym, v in data.items():
             closes = [c for c in (v.get("close") or []) if c is not None]

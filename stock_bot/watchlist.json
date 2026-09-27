@@ -1,17 +1,16 @@
 {
   "_read_me": "Matthew's stock list. Add/remove stocks here; the bot reads this every run. See stock_bot/README.md for what each setting means.",
-
   "broker": "practice",
-  "paper_costs": {"fee_per_trade": 1.0, "slippage_pct": 0.1},
-
+  "paper_costs": {
+    "fee_per_trade": 1.0,
+    "slippage_pct": 0.1
+  },
   "mode": "paper",
   "live_auto_trade": false,
   "paused": false,
   "check_every_seconds": 10,
-
   "max_total_invested": 1000,
-  "max_orders_per_day": 4,
-
+  "max_orders_per_day": 8,
   "_stocks_from": "Stock council 2026-09-26 (stock_bot/council/SESSIONS.md). Matthew said yes, practice money only.",
   "stocks": [
     {
@@ -43,6 +42,62 @@
       "take_profit_pct": 20,
       "stop_loss_pct": 10,
       "sell_above": 0
+    },
+    {
+      "symbol": "NVDA",
+      "buy_below": 0,
+      "buy_dip_pct": 6,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 100,
+      "take_profit_pct": 9,
+      "stop_loss_pct": 7,
+      "sell_above": 0,
+      "_source": "extra"
+    },
+    {
+      "symbol": "ABNB",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 100,
+      "take_profit_pct": 12,
+      "stop_loss_pct": 8,
+      "sell_above": 0,
+      "_source": "extra"
+    },
+    {
+      "symbol": "RIOT",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 100,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 10,
+      "sell_above": 0,
+      "_source": "extra"
+    },
+    {
+      "symbol": "ARM",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 100,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 10,
+      "sell_above": 0,
+      "_source": "extra"
+    },
+    {
+      "symbol": "MU",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 100,
+      "max_position_dollars": 100,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 10,
+      "sell_above": 0,
+      "_source": "extra"
     }
-  ]
+  ],
+  "_extras_from": "Added 2026-09-27 at Matthew's request, to watch more stocks: picks from a single council seat (NVDA, ABNB from Goalie; RIOT from Tally) plus ARM and MU from the screen. Kept only stocks where the rules made money in last year's backtest; NFLX and HIMS were left out because they lost. These are NOT council picks and aren't graded as such."
 }

@@ -18,7 +18,7 @@ on:
         default: false
 
 concurrency:
-  group: stock-momentum-${{ github.event_name }}
+  group: stock-momentum-${{ inputs.now && 'manual' || 'loop' }}
   cancel-in-progress: false
 
 permissions:

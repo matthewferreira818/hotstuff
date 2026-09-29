@@ -1,12 +1,12 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 600.0,
+ "cash": 500.0,
  "spy_at_start": 764.32,
  "positions": {
   "ABNB": {
-   "qty": 0.6256763238039997,
-   "avg_entry_price": 159.827
+   "qty": 1.2534788880005112,
+   "avg_entry_price": 159.5559
   },
   "RIOT": {
    "qty": 8.914287217227724,
@@ -55,6 +55,16 @@
    "status": "filled",
    "qty": 4.450549,
    "price": 22.022,
+   "dollars": 100.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-09-29T13:30:35+00:00",
+   "symbol": "ABNB",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.627803,
+   "price": 156.116,
    "dollars": 100.0,
    "fee": 1.99
   }

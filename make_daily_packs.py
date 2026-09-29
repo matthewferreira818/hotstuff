@@ -155,33 +155,36 @@ AGENT_STORIES = [
                     "local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick"),
     },
     {
-        "hook": ("What if your shop", "posted before you woke?"),
-        "sub": "mine did. this morning. automatically.",
+        # Reworded 2026-09-28 (rule 1): it said a page posted "before you
+        # woke". The store's FEED publishes itself, mid-morning; the
+        # Facebook page doesn't post itself. CLAUDE.md: say "my store's feed".
+        "hook": ("What if your shop", "posted without you?"),
+        "sub": "my store's feed does. every day.",
         "hint": "proof →",
-        "receipts": "what ran this morning",
+        "receipts": "what the engine ran",
         "cta": ("this is the service", "not just my store"),
-        "caption": ("what if your business page posted before you even woke up? \U0001F634 mine "
-                    "did this morning — automatically. now building the same thing for local "
-                    "shops #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
+        "caption": ("what if your business posted every day without you touching it? \U0001F634 "
+                    "my own store's feed has published a new post every day since August 4 — "
+                    "automatically. now building the same thing for local shops #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
     },
     {
         "hook": ("Most local pages", "went quiet in spring."),
-        "sub": "this one hasn't missed a day.",
+        "sub": "my store's feed hasn't missed a day.",
         "hint": "how →",
         "receipts": "the difference",
         "cta": ("keep your page alive", "without touching it"),
-        "caption": ("most local business pages went quiet months ago \U0001F4A4 this one hasn't "
-                    "missed a single day — because nobody has to remember. building it for "
+        "caption": ("most local business pages went quiet months ago \U0001F4A4 my own store's "
+                    "feed hasn't missed a day since August 4 — because nobody has to remember. building it for "
                     "local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick"),
     },
     {
-        "hook": ("Nobody made", "this post."),
+        "hook": ("Nobody designed", "this post."),
         "sub": "the engine did. like every other day.",
         "hint": "seriously →",
         "receipts": "made without me",
         "cta": ("your page, same deal", "you approve it once"),
-        "caption": ("nobody made this post \u2699\ufe0f the engine picked it, designed it and "
-                    "published it — same as every other day this month. setting it up for "
+        "caption": ("nobody designed this post \u2699\ufe0f the engine picked it and built it, "
+                    "like it does every day — I just hit post. setting it up for "
                     "local businesses #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
     },
 ]

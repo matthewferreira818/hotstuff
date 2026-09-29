@@ -133,10 +133,9 @@ class Alpaca:
         return {p["symbol"]: p for p in self.trade("/v2/positions")}
 
     def orders_today(self):
-        # 08:00 UTC = 3-4am New York: after any late order from yesterday,
-        # before today's open. Runs only happen while the market is open.
-        since = dt.datetime.now(dt.timezone.utc).replace(
-            hour=8, minute=0, second=0, microsecond=0)
+        # The latest 08:00 UTC (3-4am New York): see trading_day_start.
+        from paper_broker import trading_day_start
+        since = trading_day_start()
         return self.trade("/v2/orders?" + urllib.parse.urlencode({
             "status": "all", "limit": 500,
             "after": since.strftime("%Y-%m-%dT%H:%M:%SZ")}))

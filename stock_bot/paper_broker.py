@@ -191,10 +191,9 @@ class PaperBroker:
                         "market_value": round(p["qty"] * price, 2)}
         return out
 
-    def orders_today(self):
-        # Same cut-off as the Alpaca path: 08:00 UTC today.
-        cut = dt.datetime.now(dt.timezone.utc).replace(
-            hour=8, minute=0, second=0, microsecond=0).isoformat()
+    def orders_today(self, now=None):
+        # Same cut-off as the Alpaca path: the latest 08:00 UTC.
+        cut = trading_day_start(now).isoformat()
         return [o for o in self.acct["orders"] if o["time"] >= cut]
 
     def buy(self, symbol, dollars):
@@ -251,6 +250,17 @@ class PaperBroker:
 
 def _now():
     return dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+
+
+def trading_day_start(now=None):
+    """The most recent 08:00 UTC (3-4am New York): after any late order
+    from the day before, before the open. Taking "08:00 today" instead
+    made a run between midnight and 08:00 UTC — a late GitHub cron —
+    lose the whole trading day's orders, and failed the selftest at
+    00:13 UTC on 2026-09-29."""
+    now = now or dt.datetime.now(dt.timezone.utc)
+    cut = now.replace(hour=8, minute=0, second=0, microsecond=0)
+    return cut if now >= cut else cut - dt.timedelta(days=1)
 
 
 def git_save(path, message):
@@ -318,6 +328,16 @@ def selftest():
     # 99/100.1 shares * 119.88 - $1 fee
     assert abs(b.acct["cash"] - (900 + 99 / 100.1 * 119.88 - 1)) < 0.01
     assert [o["side"] for o in b.orders_today()] == ["buy", "sell"]
+    # The trading day runs 08:00 UTC to 08:00 UTC: after midnight UTC,
+    # the evening's orders still count; the next 08:00 clears them.
+    utc = dt.timezone.utc
+    assert trading_day_start(dt.datetime(2026, 9, 29, 0, 13, tzinfo=utc)) \
+        == dt.datetime(2026, 9, 28, 8, 0, tzinfo=utc)
+    assert trading_day_start(dt.datetime(2026, 9, 29, 13, 30, tzinfo=utc)) \
+        == dt.datetime(2026, 9, 29, 8, 0, tzinfo=utc)
+    late = dt.datetime.fromisoformat(b.acct["orders"][-1]["time"])
+    assert len(b.orders_today(now=late + dt.timedelta(hours=3))) == 2
+    assert b.orders_today(now=late + dt.timedelta(days=1, hours=1)) == []
     try:
         b.buy("X", 5000)
         raise AssertionError("overspent")

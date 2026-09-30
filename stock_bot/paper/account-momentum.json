@@ -1,13 +1,19 @@
 {
  "started": "2026-09-28T15:02:28+00:00",
  "start_cash": 1000.0,
- "cash": 1000.0,
+ "cash": 1070.3,
  "spy_at_start": 764.384,
  "positions": {},
  "orders": [],
- "deposited": 1000.0,
- "spy_units": 1.3082429773516975,
- "deposits": [],
- "next_deposit": "2026-09-30",
+ "deposited": 1070.3,
+ "spy_units": 1.3999430151795935,
+ "deposits": [
+  {
+   "date": "2026-09-30",
+   "cad": 100,
+   "usd": 70.3
+  }
+ ],
+ "next_deposit": "2026-10-14",
  "last_close_check": "2026-09-29"
 }

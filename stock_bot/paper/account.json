@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 364.8,
+ "cash": 259.3,
  "spy_at_start": 764.32,
  "positions": {
   "ABNB": {
@@ -13,8 +13,8 @@
    "avg_entry_price": 22.4359
   },
   "ARM": {
-   "qty": 0.3462605223753861,
-   "avg_entry_price": 288.7999
+   "qty": 0.7046889223982403,
+   "avg_entry_price": 291.618
   },
   "ASTS": {
    "qty": 1.6373258848175238,
@@ -93,6 +93,16 @@
    "status": "filled",
    "qty": 0.920479,
    "price": 112.4523,
+   "dollars": 105.5,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-09-30T18:17:14+00:00",
+   "symbol": "ARM",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.358428,
+   "price": 288.7885,
    "dollars": 105.5,
    "fee": 1.99
   }

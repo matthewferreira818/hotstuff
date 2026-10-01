@@ -6,7 +6,9 @@
  "positions": {
   "MU": {
    "qty": 0.0965679361107491,
-   "avg_entry_price": 1108.3389
+   "avg_entry_price": 1108.3389,
+   "peak": 1086.4949951171875,
+   "trail": 13.02
   }
  },
  "orders": [
@@ -31,5 +33,5 @@
   }
  ],
  "next_deposit": "2026-10-14",
- "last_close_check": "2026-09-30"
+ "last_close_check": "2026-10-01"
 }

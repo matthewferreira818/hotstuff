@@ -55,15 +55,21 @@ def ffmpeg_exe():
 
 
 def stream_url(channel):
-    """The live video address for the channel, or None if not live."""
+    """The live video address for the channel, or None if it can't get one.
+    Prints streamlink's own reason, so "not live" never hides a real error.
+    (No --twitch-disable-ads: newer streamlink dropped that option and skips
+    ads by itself; passing it made every lookup fail.)"""
     cmd = [sys.executable, "-m", "streamlink", "--stream-url",
-           "--twitch-disable-ads", f"twitch.tv/{channel}", QUALITY]
-    try:
-        out = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
-    except FileNotFoundError:
-        sys.exit("No streamlink. Run: python3 -m pip install --user streamlink")
+           f"twitch.tv/{channel}", QUALITY]
+    out = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
     url = out.stdout.strip()
-    return url if url.startswith("http") else None
+    if url.startswith("http"):
+        return url
+    why = " ".join((out.stdout + " " + out.stderr).split())
+    if "No module named streamlink" in why:
+        sys.exit("No streamlink. Run: python3 -m pip install --user streamlink")
+    say(f"Couldn't open the stream: {why[:200] or 'no reason given'}")
+    return None
 
 
 def start_grabber(source, every, frame_path):
@@ -121,7 +127,7 @@ def main():
             if grabber is None or grabber.poll() is not None:
                 src = args.source or stream_url(args.channel)
                 if not src:
-                    say("Not live right now. Checking again in 30 s.")
+                    say("Checking again in 30 s.")
                     time.sleep(30)
                     continue
                 grabber = start_grabber(src, args.every, frame)

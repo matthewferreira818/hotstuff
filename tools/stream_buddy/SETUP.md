@@ -1,6 +1,6 @@
 # Stream buddy — a free AI that watches your stream
 
-While you're live, it looks at your Twitch stream every 20 seconds and
+While you're live, it looks at your Twitch stream every 30 seconds and
 prints one short line about what's happening ("low health — pop a potion",
 "inventory open, Battle Banner equipped"). It runs on your Mac.
 
@@ -52,13 +52,22 @@ That line is your start command from now on. Comments appear in that
 window; the first one takes 30-60 seconds while the AI loads. Stop it with
 **Ctrl + C**.
 
-## If it's slow or struggling
+## If it's slow or lagging the Mac
 
-Your MacBook has 8 GB of memory, so the AI shares it with everything else.
+Your MacBook has 8 GB of memory, and the AI shares it with everything else.
+Between looks the Mac is idle (it takes one picture every 30 seconds, then
+stops), but each look still works it hard for a few seconds.
 
-- Close other big apps (Chrome tabs especially) while streaming.
-- Look less often: `~/.streambuddy/bin/python tools/stream_buddy/stream_buddy.py --every 30`
-- Try a smaller AI: `ollama pull qwen2.5vl:3b`, then add `--model qwen2.5vl:3b` to the start command
+- Close other big apps (Chrome tabs especially) while it runs.
+- Look less often:
+
+      cd ~/hotstuff && ~/.streambuddy/bin/python tools/stream_buddy/stream_buddy.py --every 60
+
+- Use the lightest AI (about half the memory, less sharp):
+
+      ollama pull moondream
+      cd ~/hotstuff && ~/.streambuddy/bin/python tools/stream_buddy/stream_buddy.py --model moondream
+
 - The first comment is always slowest, because the AI is loading.
 
 ## What the messages mean

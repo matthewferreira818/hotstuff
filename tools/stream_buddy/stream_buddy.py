@@ -9,7 +9,7 @@ is posted anywhere, and no picture leaves the Mac. Setup: SETUP.md, next to
 this file.
 
     ~/.streambuddy/bin/python stream_buddy.py      # watch, a frame every 20 s
-    python3 stream_buddy.py --every 30             # slower Mac? look less often
+    python3 stream_buddy.py --every 60             # still laggy? look less often
     python3 stream_buddy.py --model qwen2.5vl:3b   # try another free model
 
 Stop it with Ctrl+C.
@@ -30,7 +30,7 @@ import urllib.request
 
 CHANNEL = "theycallmemattyb"
 OLLAMA = "http://localhost:11434"
-QUALITY = "480p,360p,worst"   # small frames: faster for the model, less data
+QUALITY = "360p,160p,worst"   # small frames: less for the Mac to decode
 
 PROMPT = """You are watching a live Minecraft Dungeons II stream by TheyCallMeMattyB.
 He plays a soul-damage glass cannon: Sculker's Bane dagger with Soul Blast,
@@ -72,14 +72,22 @@ def stream_url(channel):
     return None
 
 
-def start_grabber(source, every, frame_path):
-    """ffmpeg keeps one frame file up to date: a new picture every N seconds."""
-    live_speed = [] if source.startswith("http") else ["-re"]  # files play in real time
-    return subprocess.Popen(
-        [ffmpeg_exe(), "-loglevel", "error", *live_speed, "-i", source,
-         "-vf", f"fps=1/{every},scale=768:-2", "-q:v", "4",
-         "-update", "1", "-y", frame_path],
-        stdin=subprocess.DEVNULL)
+def grab_frame(source, frame_path):
+    """Take ONE picture from the stream and stop. The first version kept
+    ffmpeg decoding the whole stream non-stop between looks, which lagged
+    an 8 GB Mac for no reason; now the Mac is idle between looks."""
+    try:
+        r = subprocess.run(
+            [ffmpeg_exe(), "-loglevel", "error", "-i", source,
+             "-frames:v", "1", "-vf", "scale=640:-2", "-q:v", "5",
+             "-y", frame_path],
+            stdin=subprocess.DEVNULL, capture_output=True, timeout=30)
+    except subprocess.TimeoutExpired:
+        return None
+    if r.returncode != 0 or not os.path.exists(frame_path):
+        return None
+    with open(frame_path, "rb") as f:
+        return f.read()
 
 
 def ask(model, image_bytes, recent):
@@ -111,7 +119,7 @@ def say(text):
 def main():
     ap = argparse.ArgumentParser(description="Free AI that watches your stream.")
     ap.add_argument("--channel", default=CHANNEL)
-    ap.add_argument("--every", type=int, default=20, help="seconds between looks")
+    ap.add_argument("--every", type=int, default=30, help="seconds between looks")
     ap.add_argument("--model", default="gemma3:4b")
     ap.add_argument("--source", help="a video file or URL instead of Twitch (testing)")
     ap.add_argument("--max-looks", type=int, default=0, help=argparse.SUPPRESS)
@@ -119,41 +127,40 @@ def main():
 
     check_ollama(args.model)
     frame = os.path.join(tempfile.mkdtemp(), "frame.jpg")
-    recent, looks, last_seen, grabber = [], 0, 0.0, None
+    recent, looks, src = [], 0, args.source
     say(f"Stream buddy on: watching {args.source or 'twitch.tv/' + args.channel} "
         f"every {args.every}s with {args.model}. Ctrl+C to stop.")
     try:
         while True:
-            if grabber is None or grabber.poll() is not None:
-                src = args.source or stream_url(args.channel)
+            started = time.monotonic()
+            if not src:
+                src = stream_url(args.channel)
                 if not src:
                     say("Checking again in 30 s.")
                     time.sleep(30)
                     continue
-                grabber = start_grabber(src, args.every, frame)
-            if os.path.exists(frame) and os.path.getmtime(frame) > last_seen:
-                last_seen = os.path.getmtime(frame)
-                time.sleep(0.3)  # let ffmpeg finish writing the picture
-                with open(frame, "rb") as f:
-                    img = f.read()
-                try:
-                    line = ask(args.model, img, recent[-3:])
-                except (urllib.error.URLError, OSError, ValueError) as e:
-                    say(f"(the model didn't answer: {type(e).__name__})")
-                    line = ""
-                if line and line.lower().strip(" .") != "nothing new" \
-                        and line not in recent[-3:]:
-                    say(line)
-                    recent.append(line)
-                looks += 1
-                if args.max_looks and looks >= args.max_looks:
-                    break
-            time.sleep(1)
+            img = grab_frame(src, frame)
+            if img is None:
+                if not args.source:
+                    src = None  # the stream address went stale; get a fresh one
+                time.sleep(5)
+                continue
+            try:
+                line = ask(args.model, img, recent[-3:])
+            except (urllib.error.URLError, OSError, ValueError) as e:
+                say(f"(the model didn't answer: {type(e).__name__})")
+                line = ""
+            if line and line.lower().strip(" .") != "nothing new" \
+                    and line not in recent[-3:]:
+                say(line)
+                recent.append(line)
+            looks += 1
+            if args.max_looks and looks >= args.max_looks:
+                break
+            time.sleep(max(0, args.every - (time.monotonic() - started)))
     except KeyboardInterrupt:
         pass
     finally:
-        if grabber and grabber.poll() is None:
-            grabber.terminate()
         say("Stream buddy off.")
 
 

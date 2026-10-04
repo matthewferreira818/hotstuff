@@ -23,12 +23,16 @@ Open **Terminal** and paste:
 
     ollama pull gemma3:4b
 
-## 3. Install the two helper pieces
+## 3. Give it its own Python, with the two helper pieces
 
-    python3 -m pip install --user streamlink imageio-ffmpeg
+Paste these one at a time. The first makes a private Python just for the
+stream buddy, so it can't clash with anything else on the Mac:
 
-(If your Mac asks to install developer tools, click **Install**, then run
-the line again.)
+    python3 -m venv ~/.streambuddy
+    ~/.streambuddy/bin/pip install streamlink imageio-ffmpeg
+
+(A yellow "newer version of pip" warning is harmless. If your Mac asks to
+install developer tools, click **Install**, then run the line again.)
 
 ## 4. Get the latest code
 
@@ -42,22 +46,26 @@ If not:
 
 ## 5. Go live on Twitch, then start it
 
-    cd ~/hotstuff && python3 tools/stream_buddy/stream_buddy.py
+    cd ~/hotstuff && ~/.streambuddy/bin/python tools/stream_buddy/stream_buddy.py
 
-Comments appear in that window. Stop it with **Ctrl + C**.
+That line is your start command from now on. Comments appear in that
+window; the first one takes 30-60 seconds while the AI loads. Stop it with
+**Ctrl + C**.
 
 ## If it's slow or struggling
 
 Your MacBook has 8 GB of memory, so the AI shares it with everything else.
 
 - Close other big apps (Chrome tabs especially) while streaming.
-- Look less often: `python3 tools/stream_buddy/stream_buddy.py --every 30`
-- Try a smaller AI: `ollama pull qwen2.5vl:3b`, then add `--model qwen2.5vl:3b`
+- Look less often: `~/.streambuddy/bin/python tools/stream_buddy/stream_buddy.py --every 30`
+- Try a smaller AI: `ollama pull qwen2.5vl:3b`, then add `--model qwen2.5vl:3b` to the start command
 - The first comment is always slowest, because the AI is loading.
 
 ## What the messages mean
 
 - **"Ollama isn't running"**: open the Ollama app.
 - **"Model isn't downloaded"**: run step 2.
-- **"Not live right now"**: it checks every 30 seconds and starts by itself
-  when you go live.
+- **"No streamlink"**: you started it with plain `python3`; use the start
+  command above (it uses the private Python from step 3).
+- **"Couldn't open the stream"**: it prints Twitch's reason, checks again
+  every 30 seconds, and starts by itself once you're live.

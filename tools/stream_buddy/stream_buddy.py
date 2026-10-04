@@ -8,7 +8,7 @@ a one-line comment prints in this window. Free: nothing is paid for, nothing
 is posted anywhere, and no picture leaves the Mac. Setup: SETUP.md, next to
 this file.
 
-    python3 stream_buddy.py                        # watch, a frame every 20 s
+    ~/.streambuddy/bin/python stream_buddy.py      # watch, a frame every 20 s
     python3 stream_buddy.py --every 30             # slower Mac? look less often
     python3 stream_buddy.py --model qwen2.5vl:3b   # try another free model
 

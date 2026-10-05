@@ -11,90 +11,185 @@ enum Noir {
 
 enum OrbState { case off, idle, listening, thinking, speaking }
 
-// A soft glowing sphere with light that drifts around inside it, like a voice assistant's orb.
-// It only draws. The caller passes the state, the clock (`t`) and how loud the sound is (`level`, 0 to 1).
+// Appearance stays on this Mac. Keeping the picker here avoids changing the voice engines.
+enum FridayLook: String, CaseIterable, Identifiable {
+ case orb, faces, robot, fire
+ var id: String { rawValue }
+ var title: String {
+  switch self { case .orb: return "Red orb"; case .faces: return "Emoji faces"; case .robot: return "Robot"; case .fire: return "Fire" }
+ }
+ func emoji(for state: OrbState) -> String {
+  switch self {
+  case .orb: return ""
+  case .faces:
+   switch state { case .off: return "😴"; case .idle: return "🙂"; case .listening: return "👂"; case .thinking: return "🤔"; case .speaking: return "😄" }
+  case .robot:
+   switch state { case .off: return "💤"; case .thinking: return "💭"; default: return "🤖" }
+  case .fire: return state == .off ? "💤" : "🔥"
+  }
+ }
+}
+
+@MainActor final class FridayAppearance: ObservableObject {
+ @Published var look: FridayLook {
+  didSet { UserDefaults.standard.set(look.rawValue,forKey:"friday.appearance") }
+ }
+ init() { look = FridayLook(rawValue:UserDefaults.standard.string(forKey:"friday.appearance") ?? "") ?? .orb }
+}
+
+// The caller supplies the current activity, clock and measured sound level (0...1).
+// No microphone, network connection or speech starts from this view.
 struct FridayOrb: View {
  var state: OrbState
  var t: Double
  var level: Double = 0
  var size: CGFloat = 230
  var animated = true
+ @StateObject private var appearance = FridayAppearance()
+ @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
- // How fast the light drifts inside the orb.
+ private var moves: Bool { animated && !reduceMotion }
+ private var sound: Double {
+  guard moves, level.isFinite, state == .listening || state == .speaking else { return 0 }
+  return min(1,max(0,level))
+ }
  private var flow: Double {
-  switch state { case .off: return 0.35; case .idle: return 0.7; case .listening: return 1.1; case .thinking: return 2.2; case .speaking: return 1.6 }
+  switch state { case .off: return 0; case .idle: return 0.28; case .listening: return 0.55; case .thinking: return 0.95; case .speaking: return 0.7 }
  }
- private var speed: Double {
-  switch state { case .off: return 0.5; case .idle: return 1.0; case .listening: return 1.6; case .thinking: return 2.4; case .speaking: return 2.2 }
- }
- private var swing: Double {
-  switch state { case .off: return 0.01; case .idle: return 0.025; case .listening: return 0.03; case .thinking: return 0.035; case .speaking: return 0.04 }
- }
- private var glow: Double {
-  switch state { case .off: return 0.22; case .idle: return 0.5; case .listening: return 0.62; case .thinking: return 0.6; case .speaking: return 0.78 }
+ private var activity: String {
+  switch state { case .off: return "Asleep"; case .idle: return "Ready"; case .listening: return "Listening"; case .thinking: return "Thinking"; case .speaking: return "Speaking" }
  }
 
  var body: some View {
-  let time = animated ? t : 0
-  let breath = sin(time * speed)
-  let swell = 1 + swing * breath + level * 0.12
+  let time = moves ? t : 0
+  let phase = time * flow
+  let breath = moves && state != .off ? sin(time * 1.4) * 0.012 : 0
+  let swell = 1 + breath + sound * 0.085
   ZStack {
-   Circle().fill(Noir.crimson).frame(width:size,height:size).blur(radius:size*0.26)
-    .opacity(min(1,glow * (0.8 + 0.2 * breath) + level * 0.25)).scaleEffect(1.2 + level * 0.12)
-   if animated && (state == .listening || state == .speaking) {
-    ForEach(0..<3,id:\.self) { i in ring(i,time) }
+   halo
+   if appearance.look == .orb {
+    fluid(phase).scaleEffect(swell).opacity(state == .off ? 0.45 : 1)
+   } else {
+    emoji(phase).scaleEffect(1 + sound * 0.10).opacity(state == .off ? 0.55 : 1)
    }
-   sphere(time)
-    .scaleEffect(swell)
-    .opacity(state == .off ? 0.6 : 1)
   }
   .frame(width:size*1.7,height:size*1.45)
-  .drawingGroup()
+  .overlay(alignment:.bottom) { appearanceMenu.padding(.bottom,4) }
  }
 
- private func sphere(_ time: Double) -> some View {
-  ZStack {
-   Circle().fill(RadialGradient(colors:[Noir.crimsonDeep,Color.black],center:.center,startRadius:0,endRadius:size*0.6))
-   ForEach(0..<4,id:\.self) { i in blob(i,time) }
-   // A soft dark rim gives the sphere depth.
-   Circle().fill(RadialGradient(colors:[Color.clear,Color.black.opacity(0.55)],center:.center,startRadius:size*0.30,endRadius:size*0.52))
-   highlight
+ private var halo: some View {
+  Circle()
+   .fill(RadialGradient(colors:[Noir.crimson.opacity(state == .off ? 0.12 : 0.28 + sound * 0.18),Noir.crimsonDeep.opacity(0.10),.clear],center:.center,startRadius:size*0.20,endRadius:size*0.69))
+   .frame(width:size*1.4,height:size*1.4)
+   .scaleEffect(1 + sound * 0.12)
+   .accessibilityHidden(true)
+ }
+
+ private func fluid(_ phase: Double) -> some View {
+  let contour = FridayContour(phase:phase,energy:sound)
+  return ZStack {
+   contour.fill(RadialGradient(colors:[Noir.crimsonLight,Noir.crimson,Noir.crimsonDeep],center:.topLeading,startRadius:0,endRadius:size*0.9))
+   ZStack {
+    ForEach(0..<5,id:\.self) { i in current(i,phase) }
+    // A warm bright crest and shaded base give the moving colour depth.
+    Ellipse()
+     .fill(LinearGradient(colors:[Color(red:1,green:0.86,blue:0.84).opacity(0.85),Noir.crimsonLight.opacity(0.05)],startPoint:.topLeading,endPoint:.bottomTrailing))
+     .frame(width:size*0.92,height:size*0.39)
+     .rotationEffect(.degrees(-25 + sin(phase*0.8)*12))
+     .offset(x:-size*0.12,y:-size*(0.24 + sound*0.035))
+     .blur(radius:size*0.075)
+    Ellipse().fill(Noir.crimsonDeep.opacity(0.85))
+     .frame(width:size*1.15,height:size*0.36)
+     .rotationEffect(.degrees(16 + sin(phase)*10))
+     .offset(x:size*0.1,y:size*0.38).blur(radius:size*0.08)
+   }
+   .frame(width:size,height:size)
+   .clipShape(contour)
+   contour.stroke(LinearGradient(colors:[Color.white.opacity(0.35),Noir.crimsonLight.opacity(0.18),Noir.crimsonDeep.opacity(0.40)],startPoint:.topLeading,endPoint:.bottomTrailing),lineWidth:1)
   }
   .frame(width:size,height:size)
-  .clipShape(Circle())
-  .overlay(Circle().stroke(Color.white.opacity(0.10),lineWidth:1))
+  .drawingGroup()
+  .accessibilityElement(children:.ignore)
+  .accessibilityLabel("Friday, red orb")
+  .accessibilityValue(activity)
  }
 
- // Four blurred patches of light that wander inside the sphere. Louder sound lets them roam further.
- private func blob(_ i: Int,_ time: Double) -> some View {
-  let angle = time * flow * (0.55 + 0.17 * Double(i)) + Double(i) * 1.9
-  let reach = size * (0.16 + 0.05 * Double(i % 2)) * (1 + level * 0.8)
-  let colors: [Color] = [Noir.crimsonLight,Noir.crimson,Color(red:1.0,green:0.46,blue:0.52),Noir.crimsonDeep]
-  return Circle()
-   .fill(colors[i])
-   .frame(width:size*0.62,height:size*0.62)
-   .blur(radius:size*0.15)
-   .offset(x:cos(angle) * reach * 1.5,y:sin(angle * 1.31) * reach * 1.3)
-   .blendMode(.plusLighter)
-   .opacity(i == 3 ? 0.5 : 0.78)
+ private func current(_ i: Int,_ phase: Double) -> some View {
+  let angle = phase * (0.6 + Double(i)*0.13) + Double(i)*1.9
+  let colors = [Noir.crimsonLight,Color(red:1,green:0.55,blue:0.51),Noir.crimsonDeep,Noir.crimson,Color(red:1,green:0.72,blue:0.66)]
+  return FridayContour(phase:angle,energy:0.4 + sound*0.6)
+   .fill(LinearGradient(colors:[colors[i],colors[i].opacity(0.15)],startPoint:.topLeading,endPoint:.bottomTrailing))
+   .frame(width:size*(0.88 + sound*0.12),height:size*0.76)
+   .rotationEffect(.radians(angle))
+   .offset(x:cos(angle)*size*0.23,y:sin(angle*0.9)*size*0.20)
+   .blur(radius:size*0.07)
+   .blendMode(i == 2 ? .multiply : .plusLighter)
+   .opacity(i == 2 ? 0.80 : 0.62)
  }
 
- private var highlight: some View {
-  Ellipse()
-   .fill(LinearGradient(colors:[Color.white.opacity(0.45),Color.white.opacity(0)],startPoint:.top,endPoint:.bottom))
-   .frame(width:size*0.42,height:size*0.2)
-   .blur(radius:size*0.03)
-   .offset(x:-size*0.12,y:-size*0.28)
+ private func emoji(_ phase: Double) -> some View {
+  ZStack {
+   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.24),Noir.crimsonDeep.opacity(0.08)],center:.center,startRadius:0,endRadius:size*0.55))
+   Circle().stroke(Noir.crimsonLight.opacity(0.28 + sound*0.4),lineWidth:1.5 + sound*2)
+   Text(appearance.look.emoji(for:state))
+    .font(.system(size:size*0.52))
+    .rotationEffect(.degrees(moves && state == .thinking ? sin(phase*2)*6 : 0))
+    .offset(y:moves && state == .speaking ? -sound*size*0.04 : 0)
+  }
+  .frame(width:size*0.88,height:size*0.88)
+  .accessibilityElement(children:.ignore)
+  .accessibilityLabel("Friday, \(appearance.look.title)")
+  .accessibilityValue(activity)
  }
 
- // Rings that spread outward while she is listening or speaking.
- private func ring(_ i: Int,_ time: Double) -> some View {
-  let rate = state == .speaking ? 0.55 : 0.35
-  let phase = (time * rate + Double(i) / 3).truncatingRemainder(dividingBy:1)
-  return Circle()
-   .stroke(Noir.crimsonLight.opacity((1 - phase) * 0.35),lineWidth:2)
-   .frame(width:size,height:size)
-   .scaleEffect(1 + phase * 0.55)
+ private var appearanceMenu: some View {
+  Menu {
+   ForEach(FridayLook.allCases) { look in
+    Button { appearance.look = look } label: {
+     Label(look.title,systemImage:appearance.look == look ? "checkmark" : "circle")
+    }
+   }
+  } label: {
+   Label(appearance.look.title,systemImage:"face.smiling")
+    .font(.system(size:10,weight:.medium,design:.rounded))
+    .foregroundStyle(Color.white.opacity(0.72))
+    .padding(.horizontal,10).padding(.vertical,5)
+    .background(Capsule().fill(Color.white.opacity(0.06)))
+  }
+  .menuStyle(.borderlessButton)
+  .fixedSize()
+  .accessibilityLabel("Friday’s appearance")
+  .accessibilityValue(appearance.look.title)
+  .help("Choose the red orb or an emoji. Saved on this Mac.")
+ }
+}
+
+// A smoothly curved outline: sound changes its shape without sharp jumps or spikes.
+private struct FridayContour: Shape {
+ var phase: Double
+ var energy: Double
+ func path(in rect: CGRect) -> Path {
+  let count = 60
+  let radius = Double(min(rect.width,rect.height)) * 0.46
+  let points: [CGPoint] = (0..<count).map { i in
+   let angle = Double(i) * 2 * .pi / Double(count)
+   let ripple = sin(angle*3 + phase) * (0.022 + energy*0.032) + sin(angle*5 - phase*0.8) * (0.010 + energy*0.018)
+   let r = radius * (1 + ripple)
+   return CGPoint(x:Double(rect.midX) + cos(angle)*r,y:Double(rect.midY) + sin(angle)*r)
+  }
+  var path = Path()
+  path.move(to:points[0])
+  for i in 0..<count {
+   let a = points[(i + count - 1) % count]
+   let b = points[i]
+   let c = points[(i + 1) % count]
+   let d = points[(i + 2) % count]
+   path.addCurve(to:c,
+    control1:CGPoint(x:b.x + (c.x-a.x)/6,y:b.y + (c.y-a.y)/6),
+    control2:CGPoint(x:c.x - (d.x-b.x)/6,y:c.y - (d.y-b.y)/6))
+  }
+  path.closeSubpath()
+  return path
  }
 }
 

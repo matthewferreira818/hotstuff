@@ -75,7 +75,7 @@ This folder holds the upgraded `Companion.swift` so it can travel through git.
      the login tokens go in the Keychain (`GameCompanion.TwitchTokens`).
    - **Setup, all his clicks:** (a) make the clip account at twitch.tv (turn on 2FA, needed for step b);
      (b) with that account, dev.twitch.tv/console → Register Your Application: name anything, OAuth
-     Redirect URL `http://localhost`, Category Application Integration, **Client Type: Public**; copy the
+     Redirect URL `https://localhost` (the form rejects http; it is never opened, the sign-in uses a code), Category Application Integration, **Client Type: Public**; copy the
      Client ID; (c) in the app: type the stream channel name, paste the Client ID, click Sign in, approve
      on the Twitch page that opens while logged in as the clip account.
    - Honest limits: the clip is credited to the clip account but lives on his channel's clips page; the

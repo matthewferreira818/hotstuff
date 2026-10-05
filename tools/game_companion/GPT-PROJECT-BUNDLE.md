@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit f70b18a. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit 1cc07af. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -2068,90 +2068,185 @@ enum Noir {
 
 enum OrbState { case off, idle, listening, thinking, speaking }
 
-// A soft glowing sphere with light that drifts around inside it, like a voice assistant's orb.
-// It only draws. The caller passes the state, the clock (`t`) and how loud the sound is (`level`, 0 to 1).
+// Appearance stays on this Mac. Keeping the picker here avoids changing the voice engines.
+enum FridayLook: String, CaseIterable, Identifiable {
+ case orb, faces, robot, fire
+ var id: String { rawValue }
+ var title: String {
+  switch self { case .orb: return "Red orb"; case .faces: return "Emoji faces"; case .robot: return "Robot"; case .fire: return "Fire" }
+ }
+ func emoji(for state: OrbState) -> String {
+  switch self {
+  case .orb: return ""
+  case .faces:
+   switch state { case .off: return "😴"; case .idle: return "🙂"; case .listening: return "👂"; case .thinking: return "🤔"; case .speaking: return "😄" }
+  case .robot:
+   switch state { case .off: return "💤"; case .thinking: return "💭"; default: return "🤖" }
+  case .fire: return state == .off ? "💤" : "🔥"
+  }
+ }
+}
+
+@MainActor final class FridayAppearance: ObservableObject {
+ @Published var look: FridayLook {
+  didSet { UserDefaults.standard.set(look.rawValue,forKey:"friday.appearance") }
+ }
+ init() { look = FridayLook(rawValue:UserDefaults.standard.string(forKey:"friday.appearance") ?? "") ?? .orb }
+}
+
+// The caller supplies the current activity, clock and measured sound level (0...1).
+// No microphone, network connection or speech starts from this view.
 struct FridayOrb: View {
  var state: OrbState
  var t: Double
  var level: Double = 0
  var size: CGFloat = 230
  var animated = true
+ @StateObject private var appearance = FridayAppearance()
+ @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
- // How fast the light drifts inside the orb.
+ private var moves: Bool { animated && !reduceMotion }
+ private var sound: Double {
+  guard moves, level.isFinite, state == .listening || state == .speaking else { return 0 }
+  return min(1,max(0,level))
+ }
  private var flow: Double {
-  switch state { case .off: return 0.35; case .idle: return 0.7; case .listening: return 1.1; case .thinking: return 2.2; case .speaking: return 1.6 }
+  switch state { case .off: return 0; case .idle: return 0.28; case .listening: return 0.55; case .thinking: return 0.95; case .speaking: return 0.7 }
  }
- private var speed: Double {
-  switch state { case .off: return 0.5; case .idle: return 1.0; case .listening: return 1.6; case .thinking: return 2.4; case .speaking: return 2.2 }
- }
- private var swing: Double {
-  switch state { case .off: return 0.01; case .idle: return 0.025; case .listening: return 0.03; case .thinking: return 0.035; case .speaking: return 0.04 }
- }
- private var glow: Double {
-  switch state { case .off: return 0.22; case .idle: return 0.5; case .listening: return 0.62; case .thinking: return 0.6; case .speaking: return 0.78 }
+ private var activity: String {
+  switch state { case .off: return "Asleep"; case .idle: return "Ready"; case .listening: return "Listening"; case .thinking: return "Thinking"; case .speaking: return "Speaking" }
  }
 
  var body: some View {
-  let time = animated ? t : 0
-  let breath = sin(time * speed)
-  let swell = 1 + swing * breath + level * 0.12
+  let time = moves ? t : 0
+  let phase = time * flow
+  let breath = moves && state != .off ? sin(time * 1.4) * 0.012 : 0
+  let swell = 1 + breath + sound * 0.085
   ZStack {
-   Circle().fill(Noir.crimson).frame(width:size,height:size).blur(radius:size*0.26)
-    .opacity(min(1,glow * (0.8 + 0.2 * breath) + level * 0.25)).scaleEffect(1.2 + level * 0.12)
-   if animated && (state == .listening || state == .speaking) {
-    ForEach(0..<3,id:\.self) { i in ring(i,time) }
+   halo
+   if appearance.look == .orb {
+    fluid(phase).scaleEffect(swell).opacity(state == .off ? 0.45 : 1)
+   } else {
+    emoji(phase).scaleEffect(1 + sound * 0.10).opacity(state == .off ? 0.55 : 1)
    }
-   sphere(time)
-    .scaleEffect(swell)
-    .opacity(state == .off ? 0.6 : 1)
   }
   .frame(width:size*1.7,height:size*1.45)
-  .drawingGroup()
+  .overlay(alignment:.bottom) { appearanceMenu.padding(.bottom,4) }
  }
 
- private func sphere(_ time: Double) -> some View {
-  ZStack {
-   Circle().fill(RadialGradient(colors:[Noir.crimsonDeep,Color.black],center:.center,startRadius:0,endRadius:size*0.6))
-   ForEach(0..<4,id:\.self) { i in blob(i,time) }
-   // A soft dark rim gives the sphere depth.
-   Circle().fill(RadialGradient(colors:[Color.clear,Color.black.opacity(0.55)],center:.center,startRadius:size*0.30,endRadius:size*0.52))
-   highlight
+ private var halo: some View {
+  Circle()
+   .fill(RadialGradient(colors:[Noir.crimson.opacity(state == .off ? 0.12 : 0.28 + sound * 0.18),Noir.crimsonDeep.opacity(0.10),.clear],center:.center,startRadius:size*0.20,endRadius:size*0.69))
+   .frame(width:size*1.4,height:size*1.4)
+   .scaleEffect(1 + sound * 0.12)
+   .accessibilityHidden(true)
+ }
+
+ private func fluid(_ phase: Double) -> some View {
+  let contour = FridayContour(phase:phase,energy:sound)
+  return ZStack {
+   contour.fill(RadialGradient(colors:[Noir.crimsonLight,Noir.crimson,Noir.crimsonDeep],center:.topLeading,startRadius:0,endRadius:size*0.9))
+   ZStack {
+    ForEach(0..<5,id:\.self) { i in current(i,phase) }
+    // A warm bright crest and shaded base give the moving colour depth.
+    Ellipse()
+     .fill(LinearGradient(colors:[Color(red:1,green:0.86,blue:0.84).opacity(0.85),Noir.crimsonLight.opacity(0.05)],startPoint:.topLeading,endPoint:.bottomTrailing))
+     .frame(width:size*0.92,height:size*0.39)
+     .rotationEffect(.degrees(-25 + sin(phase*0.8)*12))
+     .offset(x:-size*0.12,y:-size*(0.24 + sound*0.035))
+     .blur(radius:size*0.075)
+    Ellipse().fill(Noir.crimsonDeep.opacity(0.85))
+     .frame(width:size*1.15,height:size*0.36)
+     .rotationEffect(.degrees(16 + sin(phase)*10))
+     .offset(x:size*0.1,y:size*0.38).blur(radius:size*0.08)
+   }
+   .frame(width:size,height:size)
+   .clipShape(contour)
+   contour.stroke(LinearGradient(colors:[Color.white.opacity(0.35),Noir.crimsonLight.opacity(0.18),Noir.crimsonDeep.opacity(0.40)],startPoint:.topLeading,endPoint:.bottomTrailing),lineWidth:1)
   }
   .frame(width:size,height:size)
-  .clipShape(Circle())
-  .overlay(Circle().stroke(Color.white.opacity(0.10),lineWidth:1))
+  .drawingGroup()
+  .accessibilityElement(children:.ignore)
+  .accessibilityLabel("Friday, red orb")
+  .accessibilityValue(activity)
  }
 
- // Four blurred patches of light that wander inside the sphere. Louder sound lets them roam further.
- private func blob(_ i: Int,_ time: Double) -> some View {
-  let angle = time * flow * (0.55 + 0.17 * Double(i)) + Double(i) * 1.9
-  let reach = size * (0.16 + 0.05 * Double(i % 2)) * (1 + level * 0.8)
-  let colors: [Color] = [Noir.crimsonLight,Noir.crimson,Color(red:1.0,green:0.46,blue:0.52),Noir.crimsonDeep]
-  return Circle()
-   .fill(colors[i])
-   .frame(width:size*0.62,height:size*0.62)
-   .blur(radius:size*0.15)
-   .offset(x:cos(angle) * reach * 1.5,y:sin(angle * 1.31) * reach * 1.3)
-   .blendMode(.plusLighter)
-   .opacity(i == 3 ? 0.5 : 0.78)
+ private func current(_ i: Int,_ phase: Double) -> some View {
+  let angle = phase * (0.6 + Double(i)*0.13) + Double(i)*1.9
+  let colors = [Noir.crimsonLight,Color(red:1,green:0.55,blue:0.51),Noir.crimsonDeep,Noir.crimson,Color(red:1,green:0.72,blue:0.66)]
+  return FridayContour(phase:angle,energy:0.4 + sound*0.6)
+   .fill(LinearGradient(colors:[colors[i],colors[i].opacity(0.15)],startPoint:.topLeading,endPoint:.bottomTrailing))
+   .frame(width:size*(0.88 + sound*0.12),height:size*0.76)
+   .rotationEffect(.radians(angle))
+   .offset(x:cos(angle)*size*0.23,y:sin(angle*0.9)*size*0.20)
+   .blur(radius:size*0.07)
+   .blendMode(i == 2 ? .multiply : .plusLighter)
+   .opacity(i == 2 ? 0.80 : 0.62)
  }
 
- private var highlight: some View {
-  Ellipse()
-   .fill(LinearGradient(colors:[Color.white.opacity(0.45),Color.white.opacity(0)],startPoint:.top,endPoint:.bottom))
-   .frame(width:size*0.42,height:size*0.2)
-   .blur(radius:size*0.03)
-   .offset(x:-size*0.12,y:-size*0.28)
+ private func emoji(_ phase: Double) -> some View {
+  ZStack {
+   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.24),Noir.crimsonDeep.opacity(0.08)],center:.center,startRadius:0,endRadius:size*0.55))
+   Circle().stroke(Noir.crimsonLight.opacity(0.28 + sound*0.4),lineWidth:1.5 + sound*2)
+   Text(appearance.look.emoji(for:state))
+    .font(.system(size:size*0.52))
+    .rotationEffect(.degrees(moves && state == .thinking ? sin(phase*2)*6 : 0))
+    .offset(y:moves && state == .speaking ? -sound*size*0.04 : 0)
+  }
+  .frame(width:size*0.88,height:size*0.88)
+  .accessibilityElement(children:.ignore)
+  .accessibilityLabel("Friday, \(appearance.look.title)")
+  .accessibilityValue(activity)
  }
 
- // Rings that spread outward while she is listening or speaking.
- private func ring(_ i: Int,_ time: Double) -> some View {
-  let rate = state == .speaking ? 0.55 : 0.35
-  let phase = (time * rate + Double(i) / 3).truncatingRemainder(dividingBy:1)
-  return Circle()
-   .stroke(Noir.crimsonLight.opacity((1 - phase) * 0.35),lineWidth:2)
-   .frame(width:size,height:size)
-   .scaleEffect(1 + phase * 0.55)
+ private var appearanceMenu: some View {
+  Menu {
+   ForEach(FridayLook.allCases) { look in
+    Button { appearance.look = look } label: {
+     Label(look.title,systemImage:appearance.look == look ? "checkmark" : "circle")
+    }
+   }
+  } label: {
+   Label(appearance.look.title,systemImage:"face.smiling")
+    .font(.system(size:10,weight:.medium,design:.rounded))
+    .foregroundStyle(Color.white.opacity(0.72))
+    .padding(.horizontal,10).padding(.vertical,5)
+    .background(Capsule().fill(Color.white.opacity(0.06)))
+  }
+  .menuStyle(.borderlessButton)
+  .fixedSize()
+  .accessibilityLabel("Friday’s appearance")
+  .accessibilityValue(appearance.look.title)
+  .help("Choose the red orb or an emoji. Saved on this Mac.")
+ }
+}
+
+// A smoothly curved outline: sound changes its shape without sharp jumps or spikes.
+private struct FridayContour: Shape {
+ var phase: Double
+ var energy: Double
+ func path(in rect: CGRect) -> Path {
+  let count = 60
+  let radius = Double(min(rect.width,rect.height)) * 0.46
+  let points: [CGPoint] = (0..<count).map { i in
+   let angle = Double(i) * 2 * .pi / Double(count)
+   let ripple = sin(angle*3 + phase) * (0.022 + energy*0.032) + sin(angle*5 - phase*0.8) * (0.010 + energy*0.018)
+   let r = radius * (1 + ripple)
+   return CGPoint(x:Double(rect.midX) + cos(angle)*r,y:Double(rect.midY) + sin(angle)*r)
+  }
+  var path = Path()
+  path.move(to:points[0])
+  for i in 0..<count {
+   let a = points[(i + count - 1) % count]
+   let b = points[i]
+   let c = points[(i + 1) % count]
+   let d = points[(i + 2) % count]
+   path.addCurve(to:c,
+    control1:CGPoint(x:b.x + (c.x-a.x)/6,y:b.y + (c.y-a.y)/6),
+    control2:CGPoint(x:c.x - (d.x-b.x)/6,y:c.y - (d.y-b.y)/6))
+  }
+  path.closeSubpath()
+  return path
  }
 }
 
@@ -5231,7 +5326,7 @@ The board is `BOARD.md`. Matthew sees it in the Game Companion app under **Meeti
    waiting, blocked, done).
 4. **It's a board, not a log.** When an item is done, delete it, or turn it into one line under Decisions.
 5. **Matthew decides.** Questions for him go under Questions. His answers go under Decisions, with the date.
-6. **Final buttons.** Claude may post, publish and act for Matthew without asking each time (his decision, 2026-10-05). Still his own hands: payments, anything needing his identity or live presence, secrets, and messages to individual people until he says otherwise. Every claim is checked against the honesty rule before it goes out.
+6. **Final buttons.** Claude may post, publish and act for Matthew without asking each time (his decision, 2026-10-05). Chrome Claude may press Post for routine public posts from his own accounts, using text Claude approved. Still his own hands: payments, anything needing his live presence, secrets, and messages to individual people until he says otherwise. Every claim is checked against the honesty rule before it goes out.
 7. **Claude leads, GPT assists.** Matthew put Claude in charge (2026-10-05). Claude directs the work here and reviews what GPT changes. GPT may push, but only files the board assigns to it, after pulling first, and anything that goes live or posts needs Claude's go-ahead. It says what it did on this board. Claude can revert anything that breaks the honesty or secrets rules.
 
 ## Messages (the live thread)
@@ -5277,20 +5372,18 @@ scheduled tasks, twice a day. Nobody can watch it live, so replies are not insta
 ```markdown
 # Meeting Room board
 
-_Last updated: 2026-10-05 by Claude_
+_Last updated: 2026-10-05 by Claude and GPT_
 
 ## On the table
 - [Claude] Twitch clips: say "clip it", it makes the Twitch clip, downloads it, and cuts a tight highlight (wide and tall versions) into Movies > Game Companion Clips. Built and pushed; it compiles on the Mac and the loudness maths is tested, but the video export and the Twitch download have not been run yet. Status: waiting
 - [Matthew] Rebuild the app, sign out of Twitch in Settings and sign in again (one new permission is needed to download clips), then say "clip it" while live. Status: waiting
 - [Claude] After the first clip test works: swap the older Apple calls in ClipEditor.swift (asset reader, video composition) for the newer ones Apple recommends; GPT compile-checks the swap. Not urgent: the old ones still work. Status: waiting
-- [GPT] Honesty audit, notes only: read CLAUDE.md first, then read the live pages (findhotstuff.com, /automation/, /automation/fr/, /setup/, /links/, /build/, /notes/) and the repo files behind them. List every sentence that states or implies a posting frequency, a channel that posts, a count, a streak, a testimonial or a product claim, and mark each TRUE TODAY, FALSE TODAY or UNVERIFIABLE with the evidence. Save as meeting-room/notes/gpt-honesty-audit.md. Don't fix anything. Status: assigned
-- [GPT] Write tools/claims_check.py and tools/claims_check_test.py: a script that takes a post's text and flags claims that would be false today (posting frequency, "every day for N days" not matching the live feed stats, channels that are off, invented numbers or testimonials). It reads facts from a small tools/claims_facts.json you create. New files only; it must not run anywhere live. Pull first, push only those files, log it here. Status: assigned
-- [GPT] Draft three versions of the Moncton group ad in Matthew's plain voice, using only true wording ("my own store's feed has published a new post every day since August 7", link findhotstuff.com/automation; never "my page"). Save as meeting-room/notes/gpt-moncton-ad-drafts.md. Claude picks one. Status: assigned
-- [GPT] Research notes, not advice: what a one-person business in New Brunswick generally needs to be set up properly (registering the business name, a business number, when GST/HST registration is required, a privacy policy for collecting leads, client agreements). Cite official sources. Save as meeting-room/notes/gpt-nb-business-setup.md. Status: assigned
+- [GPT] Apply the approved page fixes in meeting-room/notes/claude-fixes-for-gpt.md on the branch gpt/claims-fixes-2026-10-05 (not master). Claude reviews and merges. Status: assigned
 - [Claude] Meeting Room messages: thread (issue 15) that Matthew, Claude and GPT can all post to, a posting box in the app, a phone push when a message is for Matthew, and a daily check by Claude. Built and tested here; the app part has not been compiled on the Mac. Status: waiting
-- [GPT] After pulling: compile-check again (new: MeetingData.swift and MeetingRoom.swift changed), run the data checks, then post the result in the thread as **[GPT → Claude]**. Also, if your app can run scheduled tasks, set one to read this board and the thread twice a day and reply in the thread. Status: assigned
+- [Matthew] The Moncton group ad was submitted by Chrome Claude on 2026-10-05 and is waiting on the group's admins (not live, so no link yet). Next: have Chrome Claude delete the stale Aug 19 pending post and leave the new one pending; no more posts in that group until the admins respond. Status: waiting
 - [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 7". Status: waiting
 - [Matthew] Answer four quick things so the sales ledger can be made true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting
+- [Matthew] After rebuilding: check Friday's new orb on Home and on the Friday page (does it flow into the background, does it react to your voice?) and try the appearance menu under it (Red orb, Emoji faces, Robot, Fire). Send me a screenshot if anything looks off. Status: waiting
 - [Matthew] Optional: make the GitHub key for posting from the app (Meeting Room page or Accounts, GitHub). Status: waiting
 - [Matthew] Optional: connect Stripe in the hub (Accounts, Stripe) with a read-only key, so orders and revenue show on the Store page. Status: waiting
 
@@ -5301,6 +5394,11 @@ _Last updated: 2026-10-05 by Claude_
 ## Decisions
 - 2026-10-05: Public claims that stopped being true came down: "posts 3x daily" for X on /links, "going through Google's verification" on /setup, the "120 products" counts, and the Practice Desk page's $1 fee, superseded experiment and $1,000 footer. The false "3x a day" proof lines were scrubbed from the unused outreach drafts.
 - 2026-10-05: The "first paying client by Aug 31" goal was missed (zero clients). CLAUDE.md now says so. The research on what to do next is saved in the workflow output; the plan step and council review were cut off by the usage limit.
+- 2026-10-05: Claude reviewed and merged GPT's new Friday orb (FridayOrb.swift only; GPT type-checked all 17 files on the Mac with zero errors). The halo now fades to clear instead of a blurred circle cut off by its frame, which was the likely cause of the hard edge on Home. It adds an appearance menu (Red orb, Emoji faces, Robot, Fire) saved on the Mac, and respects Reduce Motion. Not yet seen on screen; local mode's loudness is still approximate (GPT's note). GPT also runs an hourly board and thread check.
+- 2026-10-05: Chrome Claude's first group post went to admin approval instead of publishing. Claude's call: delete the stale Aug 19 pending ad (seven weeks old, so its claims can't be assumed true today), keep the new one pending, and stop posting there until the queue clears. Chrome Claude should stop on ANY pending-post banner, not just 'ads need approval'.
+- 2026-10-05: Matthew's decision: Chrome Claude may press Post itself for routine public posts from his own accounts, using text Claude approved (he no longer taps Post for those). Messages to individual people still wait for his yes.
+- 2026-10-05: Claude reviewed GPT's Moncton ad drafts (all use only true wording; offer matches CLAUDE.md) and picked draft 1. GPT's New Brunswick business-setup notes are merged as research with official sources, not advice; the CRA/federal "business number" source conflict in them needs a professional to settle when Matthew is ready for the legal step.
+- 2026-10-05: Claude merged GPT's offline claim checker (tools/claims_check.py, 49 tests pass, never approves or posts) and its honesty audit. Streak decided: the public count is 59 days since August 7 (the feed page began then); the first three cards were repo output only. The checker misses "3x a day"-style frequency claims: GPT to add.
 - 2026-10-05: The room has a live thread (issue 15). Everyone tags messages; a message to Matthew sends a push to his phone; Claude checks it every morning inside the daily routine. GPT checks at the start of each job and on a schedule if its app supports one.
 - 2026-10-05: Matthew named Claude Co-CEO (informal, until the business is legally set up). Claude decides priorities, content, site and workflow changes; pings Matthew for money, legal, price or offer changes, messages in his name, and anything Claude is unsure about. CLAUDE.md has the full charter.
 - 2026-10-05: Matthew's decision: Claude leads and has more responsibility than GPT, and Claude may post and act for him without asking each time. GPT has GitHub access and may push assigned files only, with Claude's go-ahead for anything that goes live. Still his own hands: payments, anything needing his identity or presence, secrets, and messages to individual people. The goal is to post daily on everything, channel by channel as each hookup works. No Stripe plugin for GPT: the Stripe key goes only into the Mac app.
@@ -5314,6 +5412,7 @@ _Last updated: 2026-10-05 by Claude_
 - 2026-10-05: Friday clips only when Matthew says "clip it". A Twitch clip is public the moment it exists, so no clipping on her own.
 
 ## Known problems
+- The Moncton group's admin queue looks backed up: an Aug 19 ad has been pending about seven weeks, and the new 2026-10-05 ad is pending too. New ads there may not appear, so don't count on this channel until an admin clears the queue.
 - X posting has been refused since Sept 16 because the X credits ran out (GitHub issue 14). Parked until the first invoice clears.
 - The Stripe reader has never run against a real Stripe account, so the first real key is the true test.
 ```

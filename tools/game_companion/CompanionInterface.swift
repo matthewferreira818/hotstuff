@@ -83,7 +83,7 @@ struct CompanionInterfaceView: View {
 
  // Friday in the middle: a crimson orb that shows what she is doing right now.
  func orbSection(_ orb: CGFloat) -> some View {
-  TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
+  TimelineView(.animation(minimumInterval:1.0/60.0)) { timeline in
    let state = orbState(at:timeline.date)
    VStack(spacing:4) {
     FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:orb,animated:!reduceMotion)

@@ -39,61 +39,111 @@ enum FridayLook: String, CaseIterable, Identifiable {
  init() { look = FridayLook(rawValue:UserDefaults.standard.string(forKey:"friday.appearance") ?? "") ?? .orb }
 }
 
+// How the orb moves, worked out one frame at a time. Every number that depends on what Friday is doing (how fast the light drifts,
+// how bright the aura is, how far the edge wobbles, whether ripples and sparks show) EASES toward its goal instead of jumping, and
+// every speed is added up over time instead of multiplied by the clock, so changing speed never makes the picture jump. The sound
+// level has fast attack and slow release, like a meter, so swelling follows the voice smoothly. This is what makes going from
+// asleep to idle to hearing you to thinking to speaking look like one continuous motion.
+final class OrbDynamics: ObservableObject {
+ struct Frame {
+  var glow = 0.30
+  var level = 0.0            // smoothed sound, 0 to 1
+  var flowPhase = 0.0        // adds up: where the drifting light is
+  var wobble = 0.010         // how far the edge moves, as a fraction of the radius
+  var wobblePhase = 0.0
+  var ripples = 0.0          // 0 to 1: how visible the ripples are
+  var ripplePhase = 0.0
+  var sparks = 0.15          // 0 to 1: how visible the orbiting lights are
+  var breath = 0.012         // size of the slow breathing
+ }
+
+ private var last: Double?
+ private var frame = Frame()
+ private var flow = 0.25
+ private var wobbleBase = 0.010
+ private var wobbleSpeed = 0.55
+ private var rippleSpeed = 0.3
+
+ private func clamp(_ x: Double) -> Double { x.isFinite ? min(1,max(0,x)) : 0 }
+
+ // Moves everything a little toward where it should be. `t` is the clock; a repeat call with the same `t` returns the same frame.
+ func step(t: Double,state: OrbState,level raw: Double,moves: Bool) -> Frame {
+  guard moves else {
+   // Reduce Motion: nothing moves, nothing pulses. The picture is the calm resting one.
+   return Frame(glow:0.5,level:0,flowPhase:0,wobble:0,wobblePhase:0,ripples:0,ripplePhase:0,sparks:0.3,breath:0)
+  }
+  guard let previous = last else { last = t; return frame }
+  let dt = min(max(t - previous,0),0.1)   // a long gap (window hidden) must not make a jump
+  if dt <= 0 { return frame }
+  last = t
+
+  var glowGoal = 0.55, flowGoal = 0.8, wobbleGoal = 0.018, speedGoal = 0.8, rippleGoal = 0.0, sparkGoal = 0.50, breathGoal = 0.016
+  let sounding = state == .listening || state == .speaking
+  switch state {
+  case .off: glowGoal = 0.30; flowGoal = 0.25; wobbleGoal = 0.010; speedGoal = 0.55; sparkGoal = 0.15; breathGoal = 0.012
+  case .idle: break
+  case .listening: glowGoal = 0.70; flowGoal = 1.2; wobbleGoal = 0.026; speedGoal = 1.2; rippleGoal = 1; sparkGoal = 0.75
+  case .thinking: glowGoal = 0.66; flowGoal = 1.9; wobbleGoal = 0.034; speedGoal = 1.8; sparkGoal = 0.80
+  case .speaking: glowGoal = 0.84; flowGoal = 1.6; wobbleGoal = 0.030; speedGoal = 1.5; rippleGoal = 1; sparkGoal = 0.75
+  }
+
+  // exponential easing: after `tau` seconds it has covered about two thirds of the way
+  func ease(_ value: inout Double,to goal: Double,tau: Double) { value += (goal - value) * (1 - exp(-dt / tau)) }
+
+  ease(&frame.glow,to:glowGoal,tau:0.8)
+  ease(&flow,to:flowGoal,tau:0.9)
+  ease(&wobbleBase,to:wobbleGoal,tau:0.8)
+  ease(&wobbleSpeed,to:speedGoal,tau:0.9)
+  ease(&frame.ripples,to:rippleGoal,tau:0.6)
+  ease(&rippleSpeed,to:state == .speaking ? 0.55 : 0.35,tau:0.9)
+  ease(&frame.sparks,to:min(1,sparkGoal + (sounding ? frame.level * 0.25 : 0)),tau:0.8)
+  ease(&frame.breath,to:breathGoal,tau:0.9)
+
+  // the meter: quick to rise with the voice, slow to fall when it stops
+  let wanted = sounding ? clamp(raw) : 0
+  ease(&frame.level,to:wanted,tau:wanted > frame.level ? 0.07 : 0.40)
+
+  frame.flowPhase += dt * flow
+  frame.wobblePhase += dt * wobbleSpeed
+  frame.ripplePhase += dt * rippleSpeed
+  frame.wobble = wobbleBase + frame.level * 0.07
+  return frame
+ }
+}
+
 // Friday as a glowing orb: a wide aura that fades smoothly into whatever is behind it (no hard edges, no dark ring), a liquid sphere of
-// drifting light with a bright core that pulses with sound, a slowly turning glass rim, ripples while she talks or listens, and a few
-// sparks orbiting. It only draws. The caller passes the state, the clock (`t`) and how loud the sound is (`level`, 0 to 1).
+// drifting light with a soft core that pulses with sound, a slowly turning glass rim, ripples while she talks or listens, and a few
+// sparks orbiting. It only draws. The caller passes the state, the clock (`t`) and how loud the sound is (`level`, 0 to 1); OrbDynamics
+// turns those into smooth motion.
 struct FridayOrb: View {
  var state: OrbState
  var t: Double
  var level: Double = 0
  var size: CGFloat = 230
  var animated = true
- // The small look picker under the orb. Hidden where the orb is tiny.
+ // The small look picker under the orb. Hidden where the orb is tiny; shown only when the pointer is over the orb.
  var showsPicker = true
  @ObservedObject private var appearance = FridayAppearance.shared
+ @StateObject private var dynamics = OrbDynamics()
  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
  private var moves: Bool { animated && !reduceMotion }
- private var sound: Double {
-  guard moves, level.isFinite, state == .listening || state == .speaking else { return 0 }
-  return min(1,max(0,level))
- }
- // How fast the light drifts inside the orb.
- private var flow: Double {
-  switch state { case .off: return 0.25; case .idle: return 0.9; case .listening: return 1.3; case .thinking: return 2.0; case .speaking: return 1.8 }
- }
- // How far the orb's edge wobbles (a fraction of its radius), and how fast. It never stops, even asleep, and swells with sound.
- private var wobble: Double {
-  guard moves else { return 0 }
-  switch state {
-  case .off: return 0.010
-  case .idle: return 0.020
-  case .listening: return 0.030 + sound * 0.060
-  case .thinking: return 0.040
-  case .speaking: return 0.035 + sound * 0.075
-  }
- }
- private var wobbleSpeed: Double {
-  switch state { case .off: return 0.6; case .idle: return 0.9; case .listening: return 1.4; case .thinking: return 2.2; case .speaking: return 1.8 }
- }
- private var glow: Double {
-  switch state { case .off: return 0.30; case .idle: return 0.60; case .listening: return 0.72; case .thinking: return 0.68; case .speaking: return 0.88 }
- }
 
  var body: some View {
+  let m = dynamics.step(t:t,state:state,level:level,moves:moves)
   let time = moves ? t : 0
   ZStack {
-   aura(time)
+   aura(m,time)
    if appearance.look == .orb {
-    sphere(time)
-     .scaleEffect(1 + (moves ? sin(time * 1.0) * (state == .off ? 0.012 : 0.016) : 0) + sound * 0.10)
-     .opacity(state == .off ? 0.72 : 1)
+    sphere(m,time)
+     .scaleEffect(1 + sin(time * 1.0) * m.breath + m.level * 0.10)
+     .opacity(0.72 + 0.28 * min(1,m.glow / 0.55))
    } else {
-    bubble(time)
-     .scaleEffect(1 + sound * 0.08)
-     .opacity(state == .off ? 0.7 : 1)
+    bubble(m,time)
+     .scaleEffect(1 + m.level * 0.08)
+     .opacity(0.7 + 0.3 * min(1,m.glow / 0.55))
    }
-   sparks(time)
+   sparks(m,time)
   }
   .frame(width:size * 1.7,height:size * 1.45)
   .contentShape(Rectangle())
@@ -101,9 +151,9 @@ struct FridayOrb: View {
   .overlay(alignment:.bottom) {
    if showsPicker {
     FridayLookDock()
-     .opacity(appearance.hovering ? 1 : 0.55)
+     .opacity(appearance.hovering ? 1 : 0)
      .scaleEffect(appearance.hovering ? 1 : 0.94)
-     .animation(.spring(response:0.35,dampingFraction:0.8),value:appearance.hovering)
+     .animation(.spring(response:0.45,dampingFraction:0.85),value:appearance.hovering)
      .padding(.bottom,2)
    }
   }
@@ -111,60 +161,59 @@ struct FridayOrb: View {
 
  // The aura. Every gradient ends in the same colour at zero strength, never plain clear, so the fade has no grey or black fringe,
  // and none of it is blurred inside a box, so nothing is cut off at an edge.
- private func aura(_ time: Double) -> some View {
+ private func aura(_ m: OrbDynamics.Frame,_ time: Double) -> some View {
   let breath = 0.5 + 0.5 * sin(time * 0.9)
-  let strength = glow * (0.85 + 0.15 * breath) + sound * 0.30
+  let strength = m.glow * (0.85 + 0.15 * breath) + m.level * 0.28
   let violet = Color(red:0.50,green:0.30,blue:0.72)
   return ZStack {
-   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(min(0.75,0.62 * strength)),Noir.crimson.opacity(0.22 * strength),Noir.crimson.opacity(0)],center:.center,startRadius:size * 0.28,endRadius:size * 1.12))
+   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(min(0.70,0.58 * strength)),Noir.crimson.opacity(0.20 * strength),Noir.crimson.opacity(0)],center:.center,startRadius:size * 0.28,endRadius:size * 1.12))
     .frame(width:size * 2.3,height:size * 2.3)
-    .scaleEffect(1 + 0.035 * breath + sound * 0.12)
-   Circle().fill(RadialGradient(colors:[violet.opacity(0.30 * glow),violet.opacity(0)],center:.center,startRadius:0,endRadius:size * 0.85))
+    .scaleEffect(1 + 0.035 * breath + m.level * 0.12)
+   Circle().fill(RadialGradient(colors:[violet.opacity(0.26 * m.glow),violet.opacity(0)],center:.center,startRadius:0,endRadius:size * 0.85))
     .frame(width:size * 1.7,height:size * 1.7)
     .offset(x:cos(time * 0.33) * size * 0.16,y:sin(time * 0.27) * size * 0.12)
-   Circle().stroke(Noir.crimsonLight.opacity(0.30 * glow + sound * 0.35),lineWidth:size * 0.03)
+   Circle().stroke(Noir.crimsonLight.opacity(0.26 * m.glow + m.level * 0.30),lineWidth:size * 0.03)
     .frame(width:size,height:size)
     .blur(radius:size * 0.05)
-   if moves && (state == .listening || state == .speaking) {
-    ForEach(0..<3,id:\.self) { i in ripple(i,time) }
+   if m.ripples > 0.01 {
+    ForEach(0..<3,id:\.self) { i in ripple(i,m) }
    }
   }
  }
 
- private func ripple(_ i: Int,_ time: Double) -> some View {
-  let rate = state == .speaking ? 0.55 : 0.35
-  let phase = (time * rate + Double(i) / 3).truncatingRemainder(dividingBy:1)
+ private func ripple(_ i: Int,_ m: OrbDynamics.Frame) -> some View {
+  let phase = (m.ripplePhase + Double(i) / 3).truncatingRemainder(dividingBy:1)
   return Circle()
-   .stroke(Noir.crimsonLight.opacity((1 - phase) * 0.32),lineWidth:1.6)
+   .stroke(Noir.crimsonLight.opacity((1 - phase) * 0.28 * m.ripples),lineWidth:1.6)
    .frame(width:size,height:size)
    .scaleEffect(1 + phase * 0.6)
  }
 
- // The sphere: warm body, drifting light, liquid streaks, a pulsing core, a soft inner shade (crimson, never black) and a glass rim.
- private func sphere(_ time: Double) -> some View {
+ // The sphere: warm body, drifting light, liquid streaks, a soft core, a soft inner shade (crimson, never black) and a glass rim.
+ private func sphere(_ m: OrbDynamics.Frame,_ time: Double) -> some View {
   ZStack {
    Circle().fill(RadialGradient(colors:[Color(red:0.80,green:0.46,blue:0.52),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.36,y:0.30),startRadius:0,endRadius:size * 0.80))
-   ForEach(0..<5,id:\.self) { i in blob(i,time) }
-   ForEach(0..<2,id:\.self) { i in streak(i,time) }
-   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.84,blue:0.86).opacity(0.22 + sound * 0.28),Noir.crimsonLight.opacity(0)],center:.center,startRadius:0,endRadius:size * (0.17 + sound * 0.12)))
+   ForEach(0..<5,id:\.self) { i in blob(i,m) }
+   ForEach(0..<2,id:\.self) { i in streak(i,m) }
+   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.84,blue:0.86).opacity(0.22 + m.level * 0.28),Noir.crimsonLight.opacity(0)],center:.center,startRadius:0,endRadius:size * (0.17 + m.level * 0.12)))
     .blendMode(.plusLighter)
    Circle().fill(RadialGradient(colors:[Noir.crimsonDeep.opacity(0),Noir.crimsonDeep.opacity(0.50)],center:.center,startRadius:size * 0.30,endRadius:size * 0.50))
    highlight
   }
   .frame(width:size,height:size)
-  .clipShape(FridayBlob(phase:time * wobbleSpeed,amount:wobble))
-  .overlay(rim(time))
+  .clipShape(FridayBlob(phase:m.wobblePhase,amount:m.wobble))
+  .overlay(rim(m,time))
   .drawingGroup()
  }
 
- private func rim(_ time: Double) -> some View {
-  FridayBlob(phase:time * wobbleSpeed,amount:wobble).stroke(AngularGradient(colors:[Color.white.opacity(0.36),Noir.crimsonLight.opacity(0.10),Color.white.opacity(0.04),Noir.crimsonLight.opacity(0.40),Color.white.opacity(0.36)],center:.center,angle:.degrees(time * 16)),lineWidth:1.3)
+ private func rim(_ m: OrbDynamics.Frame,_ time: Double) -> some View {
+  FridayBlob(phase:m.wobblePhase,amount:m.wobble).stroke(AngularGradient(colors:[Color.white.opacity(0.36),Noir.crimsonLight.opacity(0.10),Color.white.opacity(0.04),Noir.crimsonLight.opacity(0.40),Color.white.opacity(0.36)],center:.center,angle:.degrees(time * 16)),lineWidth:1.3)
  }
 
  // Five blurred patches of light wandering inside the sphere. Louder sound lets them roam further.
- private func blob(_ i: Int,_ time: Double) -> some View {
-  let angle = time * flow * (0.55 + 0.17 * Double(i)) + Double(i) * 1.9
-  let reach = size * (0.15 + 0.05 * Double(i % 2)) * (1 + sound * 0.9)
+ private func blob(_ i: Int,_ m: OrbDynamics.Frame) -> some View {
+  let angle = m.flowPhase * (0.55 + 0.17 * Double(i)) + Double(i) * 1.9
+  let reach = size * (0.15 + 0.05 * Double(i % 2)) * (1 + m.level * 0.9)
   let palette: [Color] = [Noir.crimsonLight,Color(red:0.95,green:0.67,blue:0.58),Color(red:0.86,green:0.42,blue:0.62),Noir.crimson,Color(red:0.66,green:0.25,blue:0.46)]
   return Circle()
    .fill(palette[i])
@@ -176,8 +225,8 @@ struct FridayOrb: View {
  }
 
  // Two soft bright streaks that turn slowly through the sphere, like light moving in liquid.
- private func streak(_ i: Int,_ time: Double) -> some View {
-  let turn = time * flow * (0.35 + 0.2 * Double(i)) * 57.2958 + Double(i) * 70
+ private func streak(_ i: Int,_ m: OrbDynamics.Frame) -> some View {
+  let turn = m.flowPhase * (0.35 + 0.2 * Double(i)) * 57.2958 + Double(i) * 70
   return Ellipse()
    .fill(LinearGradient(colors:[Noir.crimsonLight.opacity(0),Color.white.opacity(0.15),Noir.crimsonLight.opacity(0)],startPoint:.leading,endPoint:.trailing))
    .frame(width:size * 1.15,height:size * 0.26)
@@ -195,11 +244,8 @@ struct FridayOrb: View {
  }
 
  // A dozen tiny lights orbiting on slightly different paths. Calm when she is idle, brighter when she talks.
- private func sparks(_ time: Double) -> some View {
-  let visible: Double = {
-   switch state { case .off: return 0.15; case .idle: return 0.55; case .thinking: return 0.80; default: return 0.75 + sound * 0.25 }
-  }()
-  return ZStack {
+ private func sparks(_ m: OrbDynamics.Frame,_ time: Double) -> some View {
+  ZStack {
    ForEach(0..<12,id:\.self) { i in
     let angle = time * (0.10 + 0.012 * Double(i % 5)) + Double(i) * 0.5236 + sin(time * 0.3 + Double(i)) * 0.2
     let radius = size * (0.60 + 0.06 * Double(i % 4))
@@ -208,20 +254,20 @@ struct FridayOrb: View {
      .frame(width:size * 0.016 * CGFloat(1 + i % 3),height:size * 0.016 * CGFloat(1 + i % 3))
      .shadow(color:Noir.crimsonLight,radius:size * 0.025)
      .offset(x:cos(angle) * radius * 1.18,y:sin(angle) * radius * 0.80)
-     .opacity((0.25 + 0.6 * twinkle) * visible)
+     .opacity((0.25 + 0.6 * twinkle) * m.sparks)
    }
   }
  }
 
  // The emoji looks: the same aura, with the emoji in a glass bubble that bobs, tilts and bounces with sound.
- private func bubble(_ time: Double) -> some View {
+ private func bubble(_ m: OrbDynamics.Frame,_ time: Double) -> some View {
   ZStack {
    Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.34),Noir.crimsonDeep.opacity(0.14)],center:UnitPoint(x:0.4,y:0.3),startRadius:0,endRadius:size * 0.6))
-   Circle().strokeBorder(AngularGradient(colors:[Color.white.opacity(0.55),Noir.crimsonLight.opacity(0.10),Color.white.opacity(0.05),Noir.crimsonLight.opacity(0.45),Color.white.opacity(0.55)],center:.center,angle:.degrees(time * 14)),lineWidth:1.5 + sound * 2)
+   Circle().strokeBorder(AngularGradient(colors:[Color.white.opacity(0.55),Noir.crimsonLight.opacity(0.10),Color.white.opacity(0.05),Noir.crimsonLight.opacity(0.45),Color.white.opacity(0.55)],center:.center,angle:.degrees(time * 14)),lineWidth:1.5 + m.level * 2)
    Text(appearance.look.emoji(for:state))
     .font(.system(size:size * 0.50))
     .rotationEffect(.degrees(moves && state == .thinking ? sin(time * 2.2) * 7 : 0))
-    .offset(y:moves ? (state == .speaking ? -sound * size * 0.05 : sin(time * 1.2) * size * 0.012) : 0)
+    .offset(y:moves ? (state == .speaking ? -m.level * size * 0.05 : sin(time * 1.2) * size * 0.012) : 0)
   }
   .frame(width:size * 0.9,height:size * 0.9)
  }

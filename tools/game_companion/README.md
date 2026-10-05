@@ -447,3 +447,13 @@ its outline slowly wobbles like a voice assistant's orb (`FridayBlob` in `Friday
 and swelling with the sound level while she listens (your voice) or speaks (hers), faster while she thinks. The light inside drifts
 even when asleep. Reduce Motion still freezes it. It can only react to a voice while Friday is live, because that is the only time
 the mic is open. Not seen on the Mac yet.
+
+## Fluid orb motion (2026-10-05)
+
+Matthew: the change from listening to hearing something was abrupt; make it fluid, keep it the orb. The cause: every state set the
+drift speed, brightness and wobble in one jump, and speeds were multiplied by the clock, so a change of speed made the picture leap.
+Fix (`OrbDynamics` in `FridayOrb.swift`): each of those values now eases toward its goal over a second or so; speeds are added up
+frame by frame instead of multiplied by the clock; ripples and sparks fade in and out instead of popping; and the sound level
+behaves like a meter (fast to rise with the voice, slow to fall). The main orb and the Home orb now draw at 60 frames a second.
+The look picker under the orb now stays hidden until the pointer is over the orb, so the screen is just the orb. The easing rules
+were checked on their own (no jumps, meter rises and falls). Not seen on the Mac yet.

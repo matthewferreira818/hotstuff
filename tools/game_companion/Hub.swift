@@ -557,7 +557,7 @@ extension CompanionInterfaceView {
     Button { hubSelect(.friday) } label: { Label("Talk to Friday",systemImage:"waveform") }.buttonStyle(PillButtonStyle()).padding(.top,4)
    }
    Spacer()
-   TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
+   TimelineView(.animation(minimumInterval:1.0/60.0)) { timeline in
     FridayOrb(state:orbState(at:timeline.date),t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:130,animated:!reduceMotion,showsPicker:false)
    }
    .frame(width:230,height:190)

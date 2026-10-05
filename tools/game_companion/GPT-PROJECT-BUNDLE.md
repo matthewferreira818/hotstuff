@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit b3c0e71. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit 1398ed0. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -594,7 +594,7 @@ enum GeminiKey {
  @Published var keyInput = ""
  @Published var hasKey = GeminiKey.isSaved
  @Published var headphones = true
- @Published var voice = UserDefaults.standard.string(forKey:"live.voice") ?? "Puck" { didSet { UserDefaults.standard.set(voice,forKey:"live.voice") } }
+ @Published var voice = LiveBuddy.initialVoice() { didSet { UserDefaults.standard.set(voice,forKey:"live.voice") } }
  @Published var liveModel = UserDefaults.standard.string(forKey:"live.model") ?? "gemini-3.8-live" { didSet { UserDefaults.standard.set(liveModel,forKey:"live.model") } }
  // Google Search runs on Google's side; the app never has to answer a tool call for it.
  @Published var search = UserDefaults.standard.object(forKey:"live.search") as? Bool ?? false { didSet { UserDefaults.standard.set(search,forKey:"live.search"); if search && wiki { wiki = false } } }
@@ -604,7 +604,22 @@ enum GeminiKey {
  @Published var lowUsage = UserDefaults.standard.object(forKey:"live.low") as? Bool ?? true { didSet { UserDefaults.standard.set(lowUsage,forKey:"live.low") } }
  // In Steady mode (Low off): a picture every this many seconds. Matthew asked for 2.
  @Published var frameGap = UserDefaults.standard.object(forKey:"live.gap") as? Double ?? 2 { didSet { UserDefaults.standard.set(frameGap,forKey:"live.gap") } }
- let voices = ["Puck","Charon","Kore","Fenrir","Aoede","Leda","Orus","Zephyr"]
+ // Google doesn't label its voices by gender. The first group is the ones people describe as female-sounding; the last four
+ // are the male-sounding ones, kept so the choice can be switched back. The style words are Google's own.
+ let voices = ["Aoede","Zephyr","Leda","Laomedeia","Sulafat","Kore","Callirrhoe","Autonoe","Vindemiatrix","Achernar","Despina","Erinome","Gacrux","Pulcherrima","Puck","Charon","Fenrir","Orus"]
+ static let voiceStyles: [String:String] = ["Aoede":"breezy","Zephyr":"bright","Leda":"youthful","Laomedeia":"upbeat","Sulafat":"warm","Kore":"firm","Callirrhoe":"easy-going","Autonoe":"bright","Vindemiatrix":"gentle","Achernar":"soft","Despina":"smooth","Erinome":"clear","Gacrux":"mature","Pulcherrima":"forward","Puck":"upbeat","Charon":"informative","Fenrir":"excitable","Orus":"firm"]
+ func voiceLabel(_ name: String) -> String { LiveBuddy.voiceStyles[name].map { "\(name) · \($0)" } ?? name }
+
+ // Friday's voice was a man's (Puck). The first time this version runs it switches to Aoede, a breezy female-sounding voice;
+ // after that, whatever Matthew picks in Settings is kept.
+ nonisolated static func initialVoice() -> String {
+  let defaults = UserDefaults.standard
+  if !defaults.bool(forKey:"live.voice.girlDefault") {
+   defaults.set(true,forKey:"live.voice.girlDefault")
+   defaults.set("Aoede",forKey:"live.voice")
+  }
+  return defaults.string(forKey:"live.voice") ?? "Aoede"
+ }
 
  var socket: URLSessionWebSocketTask?
  var urlSession: URLSession?
@@ -1969,7 +1984,7 @@ struct CompanionInterfaceView: View {
  @ViewBuilder var googleSettings: some View {
   if live.hasKey { HStack { Text("Google key saved in Keychain"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
   else { HStack { SecureField("Google API key",text:$live.keyInput); Button("Save key") { live.saveKey() }.disabled(DesignPreview.enabled); Button("Get a key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }.disabled(DesignPreview.enabled) } }
-  Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text($0) } }.disabled(live.running)
+  Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)
   TextField("Live model",text:$live.liveModel).disabled(live.running)
   Toggle("Look up game facts using the wiki",isOn:$live.wiki).disabled(live.running)
   Toggle("Use Google Search for game facts",isOn:$live.search).disabled(live.running)
@@ -4871,6 +4886,15 @@ channel the moment it is made, so it only ever happens when he asks. Friday neve
 - **Not yet run on the Mac**: the AVFoundation code was written against Apple's current docs (checked: `export(to:as:)`, the
   asset reader, the Core Image composition; the last two are marked deprecated but still present, so they warn) but never
   compiled or run. Captions are not done: they would need speech recognition.
+
+## Friday's voice (2026-10-05)
+
+Friday was using Google's "Puck", a male-sounding voice. She now defaults to "Aoede" (breezy). The first run of this version
+switches the saved choice once; after that, whatever Matthew picks is kept. Settings, Live voice lists the female-sounding
+voices first with Google's own style words (Aoede breezy, Zephyr bright, Leda youthful, Laomedeia upbeat, Sulafat warm, and so
+on), then the male-sounding ones. Google doesn't label voices by gender (its docs give only the style word), so "female-sounding"
+is how people describe them; try two or three. The voice can only be changed while Friday is asleep. Local mode's voice is a
+separate macOS voice and was not changed.
 ```
 
 ## FILE: meeting-room/README.md
@@ -4928,7 +4952,7 @@ _Last updated: 2026-10-05 by Claude_
 ## On the table
 - [Claude] Twitch clips: say "clip it", it makes the Twitch clip, downloads it, and cuts a tight highlight (wide and tall versions) into Movies > Game Companion Clips. Built and pushed; the loudness maths is tested, the Mac video code and the Twitch download have not been run yet. Status: waiting
 - [Matthew] Rebuild the app, sign out of Twitch in Settings and sign in again (one new permission is needed to download clips), then say "clip it" while live. Status: waiting
-- [GPT] Notes only, no code files: list lines that probably won't compile on a Mac, write what counts as a Minecraft Dungeons 2 highlight, and write a click-through checklist for each hub page. Status: assigned
+- [GPT] Compile-check the newest bundle (24 files: it adds the Meeting Room, the Twitch clip code and the video editor). Compile only, don't install, and report any errors in plain words. Status: assigned
 - [Matthew] Optional: connect Stripe in the hub (Accounts, Stripe) with a read-only key, so orders and revenue show on the Store page. Status: waiting
 
 ## Questions
@@ -4939,6 +4963,7 @@ _Last updated: 2026-10-05 by Claude_
 - 2026-10-05: Real-money trading stays walled off from the hub and from every other chat. Practice money only.
 - 2026-10-05: Two AIs never edit the same file at once. While the Twitch work is open, Claude owns Clips, Live, Hub and CompanionInterface; GPT sends notes only.
 - 2026-10-05: The garbled "Sewage Hard" product was pulled from the store and blocked from future refreshes.
+- 2026-10-05: GPT compiled the 13 app files on Matthew's Mac (Swift 6.4, macOS 27): 0 errors, 11 warnings about older audio and Keychain calls that still work. So GPT can compile-check new code before Matthew rebuilds. Its highlight list is saved in tools/game_companion/HIGHLIGHT-IDEAS.md and its click-through checklist is in the chat history.
 - 2026-10-05: Everything is on master; the Mac app rebuilds from there.
 - 2026-10-05: The Meeting Room exists: this board, shown in the app, with copy-for-Claude and copy-for-GPT messages.
 - 2026-10-05: Friday clips only when Matthew says "clip it". A Twitch clip is public the moment it exists, so no clipping on her own.

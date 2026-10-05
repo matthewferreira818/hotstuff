@@ -28,7 +28,7 @@ enum GeminiKey {
  @Published var keyInput = ""
  @Published var hasKey = GeminiKey.isSaved
  @Published var headphones = true
- @Published var voice = UserDefaults.standard.string(forKey:"live.voice") ?? "Puck" { didSet { UserDefaults.standard.set(voice,forKey:"live.voice") } }
+ @Published var voice = LiveBuddy.initialVoice() { didSet { UserDefaults.standard.set(voice,forKey:"live.voice") } }
  @Published var liveModel = UserDefaults.standard.string(forKey:"live.model") ?? "gemini-3.8-live" { didSet { UserDefaults.standard.set(liveModel,forKey:"live.model") } }
  // Google Search runs on Google's side; the app never has to answer a tool call for it.
  @Published var search = UserDefaults.standard.object(forKey:"live.search") as? Bool ?? false { didSet { UserDefaults.standard.set(search,forKey:"live.search"); if search && wiki { wiki = false } } }
@@ -38,7 +38,22 @@ enum GeminiKey {
  @Published var lowUsage = UserDefaults.standard.object(forKey:"live.low") as? Bool ?? true { didSet { UserDefaults.standard.set(lowUsage,forKey:"live.low") } }
  // In Steady mode (Low off): a picture every this many seconds. Matthew asked for 2.
  @Published var frameGap = UserDefaults.standard.object(forKey:"live.gap") as? Double ?? 2 { didSet { UserDefaults.standard.set(frameGap,forKey:"live.gap") } }
- let voices = ["Puck","Charon","Kore","Fenrir","Aoede","Leda","Orus","Zephyr"]
+ // Google doesn't label its voices by gender. The first group is the ones people describe as female-sounding; the last four
+ // are the male-sounding ones, kept so the choice can be switched back. The style words are Google's own.
+ let voices = ["Aoede","Zephyr","Leda","Laomedeia","Sulafat","Kore","Callirrhoe","Autonoe","Vindemiatrix","Achernar","Despina","Erinome","Gacrux","Pulcherrima","Puck","Charon","Fenrir","Orus"]
+ static let voiceStyles: [String:String] = ["Aoede":"breezy","Zephyr":"bright","Leda":"youthful","Laomedeia":"upbeat","Sulafat":"warm","Kore":"firm","Callirrhoe":"easy-going","Autonoe":"bright","Vindemiatrix":"gentle","Achernar":"soft","Despina":"smooth","Erinome":"clear","Gacrux":"mature","Pulcherrima":"forward","Puck":"upbeat","Charon":"informative","Fenrir":"excitable","Orus":"firm"]
+ func voiceLabel(_ name: String) -> String { LiveBuddy.voiceStyles[name].map { "\(name) · \($0)" } ?? name }
+
+ // Friday's voice was a man's (Puck). The first time this version runs it switches to Aoede, a breezy female-sounding voice;
+ // after that, whatever Matthew picks in Settings is kept.
+ nonisolated static func initialVoice() -> String {
+  let defaults = UserDefaults.standard
+  if !defaults.bool(forKey:"live.voice.girlDefault") {
+   defaults.set(true,forKey:"live.voice.girlDefault")
+   defaults.set("Aoede",forKey:"live.voice")
+  }
+  return defaults.string(forKey:"live.voice") ?? "Aoede"
+ }
 
  var socket: URLSessionWebSocketTask?
  var urlSession: URLSession?

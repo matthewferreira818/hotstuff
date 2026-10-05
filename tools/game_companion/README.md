@@ -276,3 +276,12 @@ channel the moment it is made, so it only ever happens when he asks. Friday neve
 - **Not yet run on the Mac**: the AVFoundation code was written against Apple's current docs (checked: `export(to:as:)`, the
   asset reader, the Core Image composition; the last two are marked deprecated but still present, so they warn) but never
   compiled or run. Captions are not done: they would need speech recognition.
+
+## Friday's voice (2026-10-05)
+
+Friday was using Google's "Puck", a male-sounding voice. She now defaults to "Aoede" (breezy). The first run of this version
+switches the saved choice once; after that, whatever Matthew picks is kept. Settings, Live voice lists the female-sounding
+voices first with Google's own style words (Aoede breezy, Zephyr bright, Leda youthful, Laomedeia upbeat, Sulafat warm, and so
+on), then the male-sounding ones. Google doesn't label voices by gender (its docs give only the style word), so "female-sounding"
+is how people describe them; try two or three. The voice can only be changed while Friday is asleep. Local mode's voice is a
+separate macOS voice and was not changed.

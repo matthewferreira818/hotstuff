@@ -294,7 +294,7 @@ struct CompanionInterfaceView: View {
  @ViewBuilder var googleSettings: some View {
   if live.hasKey { HStack { Text("Google key saved in Keychain"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
   else { HStack { SecureField("Google API key",text:$live.keyInput); Button("Save key") { live.saveKey() }.disabled(DesignPreview.enabled); Button("Get a key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }.disabled(DesignPreview.enabled) } }
-  Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text($0) } }.disabled(live.running)
+  Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)
   TextField("Live model",text:$live.liveModel).disabled(live.running)
   Toggle("Look up game facts using the wiki",isOn:$live.wiki).disabled(live.running)
   Toggle("Use Google Search for game facts",isOn:$live.search).disabled(live.running)

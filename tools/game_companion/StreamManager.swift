@@ -105,41 +105,117 @@ import AppKit
 
  // Sends the title and category to Twitch. This changes the public channel, so it only runs when he presses Update.
  func save() async {
-  guard let tw = twitch, let info = channel, canEdit, !saving else { return }
+  guard canEdit, !saving else { return }
   if let problem = StreamData.titleProblem(titleDraft) { message = problem; return }
+  if await push(title:titleDraft,gameID:gameDraft?.id) {
+   touched = false
+   await refresh(force:true)
+  }
+ }
+
+ // The one place that changes the channel. Either part can be nil, so a title change leaves the category alone and the reverse.
+ private func push(title: String?,gameID: String?) async -> Bool {
+  guard let tw = twitch, let info = channel, canEdit, let body = StreamData.updateBody(title:title,gameID:gameID) else { return false }
   saving = true
   defer { saving = false }
   do {
-   let (code,json) = try await tw.call("/channels?broadcaster_id=\(info.id)",method:"PATCH",body:StreamData.updateBody(title:titleDraft,gameID:gameDraft?.id))
-   if code == 204 {
-    touched = false
-    message = "Saved on Twitch."
-    await refresh(force:true)
-   } else {
-    message = StreamData.explain(code:code,message:json["message"] as? String,doing:"change the title or category")
-   }
+   let (code,json) = try await tw.call("/channels?broadcaster_id=\(info.id)",method:"PATCH",body:body)
+   if code == 204 { message = "Saved on Twitch."; return true }
+   message = StreamData.explain(code:code,message:json["message"] as? String,doing:"change the title or category")
   } catch {
    message = "Couldn't reach Twitch: \(error.localizedDescription)"
   }
+  return false
  }
 
  // A marker is a bookmark in the live stream's recording, so he can find the moment later.
  func mark() async {
-  guard let tw = twitch, let info = channel, live != nil, !marking else { return }
+  if await mark(note:markerNote) { markerNote = "" }
+ }
+
+ @discardableResult func mark(note: String) async -> Bool {
+  guard let tw = twitch, let info = channel, live != nil, !marking else { return false }
   marking = true
   defer { marking = false }
   do {
-   let (code,json) = try await tw.call("/streams/markers",method:"POST",body:StreamData.markerBody(userID:info.id,note:markerNote))
+   let (code,json) = try await tw.call("/streams/markers",method:"POST",body:StreamData.markerBody(userID:info.id,note:note))
    if code == 200 {
     let seconds = StreamData.rows(json).first?["position_seconds"] as? Int
     message = seconds.map { "Marked at \(StreamData.duration($0)) into the stream." } ?? "Marked."
-    markerNote = ""
-   } else {
-    message = StreamData.explain(code:code,message:json["message"] as? String,doing:"add a marker")
+    return true
    }
+   message = StreamData.explain(code:code,message:json["message"] as? String,doing:"add a marker")
   } catch {
    message = "Couldn't reach Twitch: \(error.localizedDescription)"
   }
+  return false
+ }
+
+ // MARK: Friday's voice tools
+ // Each one returns a sentence Friday can say. They only run when Matthew asks out loud and has switched the tools on
+ // (see Live.swift). A title or category change touches only that one part and leaves whatever he is typing on the page alone.
+
+ // nil when the channel is loaded and ready, otherwise a sentence saying what is wrong.
+ private func voiceReady(needsEdit: Bool) async -> String? {
+  guard let tw = twitch, tw.signedIn else { return "Twitch isn't connected in the app yet." }
+  await refresh(force:true)
+  guard channel != nil else { return message.isEmpty ? "I couldn't load the channel from Twitch." : message }
+  if needsEdit && !canEdit { return "This Twitch login isn't the channel's own account, so I can't change the channel. Matthew needs to sign in as the channel in Accounts." }
+  return nil
+ }
+
+ func voiceStatus() async -> String {
+  if let problem = await voiceReady(needsEdit:false) { return problem }
+  let followerText = followers.map { ", \($0) followers" } ?? ""
+  if let now = live {
+   let time = now.startedAt.map { ", on air for \(StreamData.uptime(from:$0,to:Date()))" } ?? ""
+   return "Live now: \"\(now.title)\", category \(now.game.isEmpty ? "none" : now.game), \(now.viewers) viewer\(now.viewers == 1 ? "" : "s")\(time)\(followerText)."
+  }
+  let info = channel
+  return "Not live right now. The saved title is \"\(info?.title ?? "")\" and the category is \((info?.gameName.isEmpty ?? true) ? "none" : (info?.gameName ?? ""))\(followerText)."
+ }
+
+ func voiceSetTitle(_ raw: String) async -> String {
+  if let problem = StreamData.titleProblem(raw) { return problem }
+  if let problem = await voiceReady(needsEdit:true) { return problem }
+  let title = raw.trimmingCharacters(in:.whitespacesAndNewlines)
+  guard await push(title:title,gameID:nil) else { return message }
+  await refresh(force:true)
+  return "Done. The stream title is now: \(title)."
+ }
+
+ func voiceSetCategory(_ raw: String) async -> String {
+  let query = raw.trimmingCharacters(in:.whitespacesAndNewlines)
+  if query.count < 2 { return "I need the name of the game or category." }
+  if let problem = await voiceReady(needsEdit:true) { return problem }
+  guard let tw = twitch, let (_,json) = try? await tw.call("/search/categories?query=\(StreamData.encoded(query))&first=8") else { return "I couldn't search Twitch's categories just now." }
+  switch StreamData.chooseCategory(StreamData.parseCategories(json),query:query) {
+  case .none: return "Twitch has no category matching \"\(query)\". Nothing was changed."
+  case .ask(let names): return "Nothing was changed. Twitch has several close matches: \(names.joined(separator:", ")). Ask which one is meant."
+  case .use(let hit):
+   guard await push(title:nil,gameID:hit.id) else { return message }
+   await refresh(force:true)
+   return "Done. The category is now \(hit.name)."
+  }
+ }
+
+ func voicePreset(_ raw: String) async -> String {
+  if presets.isEmpty { return "There are no saved presets yet. Matthew can save one on the Stream page." }
+  let wanted = raw.trimmingCharacters(in:.whitespacesAndNewlines).lowercased()
+  guard !wanted.isEmpty, let preset = presets.first(where: { $0.name.lowercased() == wanted }) ?? presets.first(where: { $0.name.lowercased().contains(wanted) }) else {
+   return "I couldn't find that preset. The saved ones are: \(presets.map { $0.name }.joined(separator:", "))."
+  }
+  if let problem = await voiceReady(needsEdit:true) { return problem }
+  guard await push(title:preset.title,gameID:preset.gameID.isEmpty ? nil : preset.gameID) else { return message }
+  await refresh(force:true)
+  return "Done. Used the \(preset.name) preset: \"\(preset.title)\"\(preset.gameName.isEmpty ? "" : ", category \(preset.gameName)")."
+ }
+
+ func voiceMark(_ note: String) async -> String {
+  if let problem = await voiceReady(needsEdit:false) { return problem }
+  guard live != nil else { return "You're not live right now, so Twitch can't take a marker." }
+  if await mark(note:note) { return message }
+  return "Twitch didn't take the marker. Past broadcasts (VODs) must be switched on in Twitch."
  }
 
  func savePreset() {
@@ -391,6 +467,7 @@ extension CompanionInterfaceView {
    hubCheck(live.hasKey,"Friday has her Google key","Add it in Settings.")
    hubCheck(c.sharing,"A game window is chosen for Friday","Press Choose window on the Game page.")
    hubCheck(clips.voiceClips,"\"Clip it\" by voice is on","Tick it in Settings before starting Friday.")
+   hubCheck(clips.voiceStream,"Friday can run this page by voice","Tick it in Settings before starting Friday.")
    hubCheck(stream.live != nil,"You're live on Twitch","Start streaming in OBS or Streamlabs.")
   }
   .padding(18).frame(maxWidth:.infinity,minHeight:300,alignment:.topLeading).hubCard()

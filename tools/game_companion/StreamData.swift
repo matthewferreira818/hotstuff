@@ -112,11 +112,29 @@ enum StreamData {
   return nil
  }
 
- // The category is only sent when one is chosen, so a title-only change never clears the category.
- static func updateBody(title: String,gameID: String?) -> Data? {
-  var body: [String:Any] = ["title":title.trimmingCharacters(in:.whitespacesAndNewlines)]
+ // The title and the category are each only sent when there is one, so changing one never clears the other.
+ static func updateBody(title: String?,gameID: String?) -> Data? {
+  var body: [String:Any] = [:]
+  if let title = title?.trimmingCharacters(in:.whitespacesAndNewlines), !title.isEmpty { body["title"] = title }
   if let id = gameID, !id.isEmpty { body["game_id"] = id }
+  guard !body.isEmpty else { return nil }
   return try? JSONSerialization.data(withJSONObject:body)
+ }
+
+ // What Friday does with a spoken category: use the one that matches the name exactly (or the only one Twitch found),
+ // otherwise change nothing and let her ask which one was meant.
+ enum CategoryChoice: Equatable {
+  case use(CategoryHit)
+  case ask([String])
+  case none
+ }
+
+ static func chooseCategory(_ hits: [CategoryHit],query: String) -> CategoryChoice {
+  if hits.isEmpty { return .none }
+  let wanted = query.trimmingCharacters(in:.whitespacesAndNewlines).lowercased()
+  if let exact = hits.first(where: { $0.name.lowercased() == wanted }) { return .use(exact) }
+  if hits.count == 1 { return .use(hits[0]) }
+  return .ask(hits.prefix(3).map { $0.name })
  }
 
  static func markerBody(userID: String,note: String) -> Data? {

@@ -28,7 +28,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
@@ -325,6 +325,7 @@ struct CompanionInterfaceView: View {
     Button("Sign out of Twitch") { clips.signOut() }
    }
    Toggle("Let the buddy clip when I say \"clip it\" (set before starting it)",isOn:$clips.voiceClips).disabled(live.running)
+   Toggle("Let the buddy run my Stream page by voice: viewers, title, category, markers (set before starting it)",isOn:$clips.voiceStream).disabled(live.running)
    Toggle("Clean up each clip: download it and cut the highlight",isOn:$clips.autoEdit)
    Picker("Highlight length",selection:$clips.highlightSeconds) { Text("15 s").tag(15); Text("25 s").tag(25); Text("40 s").tag(40) }.pickerStyle(.segmented).disabled(!clips.autoEdit)
    Button("Open the clips folder") {

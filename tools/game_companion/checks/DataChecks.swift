@@ -72,6 +72,14 @@ import Foundation
   precondition(bodyWithGame == ["title":"Hi","game_id":"9"])
   let bodyNoGame = try! JSONSerialization.jsonObject(with:StreamData.updateBody(title:"Hi",gameID:nil)!) as! [String:String]
   precondition(bodyNoGame == ["title":"Hi"])
+  let onlyGame = try! JSONSerialization.jsonObject(with:StreamData.updateBody(title:nil,gameID:"9")!) as! [String:String]
+  precondition(onlyGame == ["game_id":"9"] && StreamData.updateBody(title:nil,gameID:nil) == nil && StreamData.updateBody(title:"  ",gameID:"") == nil)
+  // Friday's spoken category: an exact name wins, a single result is used, several close ones are not guessed.
+  let mine = CategoryHit(id:"1",name:"Minecraft")
+  precondition(StreamData.chooseCategory([CategoryHit(id:"2",name:"Minecraft Dungeons"),mine],query:" minecraft ") == .use(mine))
+  precondition(StreamData.chooseCategory([mine],query:"mine") == .use(mine))
+  precondition(StreamData.chooseCategory([],query:"x") == .none)
+  precondition(StreamData.chooseCategory([CategoryHit(id:"2",name:"Minecraft Dungeons"),CategoryHit(id:"3",name:"Minecraft Legends"),CategoryHit(id:"4",name:"Minecraft Story"),CategoryHit(id:"5",name:"Minecraft Earth")],query:"mine") == .ask(["Minecraft Dungeons","Minecraft Legends","Minecraft Story"]))
   let marker = try! JSONSerialization.jsonObject(with:StreamData.markerBody(userID:"7",note:String(repeating:"n",count:200))!) as! [String:String]
   precondition(marker["user_id"] == "7" && marker["description"]?.count == 140)
   precondition(StreamData.encoded("Just Chatting & more") == "Just%20Chatting%20%26%20more")

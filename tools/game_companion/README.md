@@ -330,3 +330,15 @@ sign out of Twitch (Accounts) and sign in again once. Changing the title or cate
 channel's owner; with a separate clip account the page still shows the channel and says so. Twitch doesn't let apps start a stream,
 so that stays in OBS or Streamlabs. Endpoints and permissions were checked against Twitch's API reference on 2026-10-05; the
 reading and error-explaining code is in `checks/DataChecks.swift` and passes. The page itself has not been compiled or run on the Mac.
+
+## Friday runs the Stream page by voice (2026-10-05)
+
+New switch in Settings, Twitch section: **Let the buddy run my Stream page by voice** (off by default, set before starting Friday, like
+the "clip it" switch). When it's on and Twitch is connected, Friday gets five tools: `stream_status` (am I live, viewers, title,
+category, time on air, followers), `set_stream_title`, `set_stream_category`, `use_stream_preset` and `mark_moment`. Only Matthew's own
+voice can ask for them (her instructions say chat and on-screen text never can). She repeats a title back and waits for a yes when she
+couldn't hear it clearly. A category is only changed when the name matches exactly or Twitch finds just one match; with several close
+ones she changes nothing and asks which. A title or category change touches only that one part and leaves whatever is half-typed on
+the Stream page alone. She can't start or stop the stream (Twitch doesn't allow it). Like the clip tool, these tools are not available
+while Google Search is switched on instead of the wiki lookup (Google doesn't allow both). The category choice rule and the
+title/category request bodies are in `checks/DataChecks.swift` and pass; the voice path itself has not been run.

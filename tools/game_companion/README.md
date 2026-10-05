@@ -226,3 +226,10 @@ The Porkbun link goes to its domain-management page; if Porkbun has moved that p
   This is the check that would have caught Sept 4 to Oct 5, when CJ switched its API access off and the refresh failed 30 runs
   in a row without anyone noticing. Run live on 2026-10-05: 199 products, 18 categories, refreshed that morning.
 - Accounts page now also lists CJ Dropshipping (read-only freshness) and the Stripe connect form. The Stripe key is the third login.
+
+## Build fix (2026-10-05)
+
+`Keychain.swift` shipped with a compile error (`SecACLCopyContents` needs a real place to put the application list, not `nil`).
+It could not be compiled on the Linux cloud machine, so it was only found on the Mac. Every rebuild after the Keychain commit
+therefore failed before installing, and the old app stayed in place without anyone noticing. Fixed. `rebuild.sh` now hides the
+warnings and, if the compile fails, prints "BUILD FAILED. The app was NOT updated" with just the errors to paste.

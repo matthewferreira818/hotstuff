@@ -12,7 +12,19 @@ TMP=$(mktemp -d)
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
 SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,StockData,VentureData,StripeData,Hub}.swift)
-xcrun swiftc -O -parse-as-library -target "arm64-apple-macos$MACOS.0" "${SOURCES[@]}" -o "$TMP/$EXE"
+# The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
+# loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
+LOG="$TMP/build.log"
+if ! xcrun swiftc -O -parse-as-library -target "arm64-apple-macos$MACOS.0" "${SOURCES[@]}" -o "$TMP/$EXE" >"$LOG" 2>&1; then
+ echo ""
+ echo "BUILD FAILED. The app was NOT updated: the old version is still installed."
+ echo "Copy everything between the two lines below and paste it to Claude:"
+ echo "------------------------------------------------------------"
+ grep -A4 "error:" "$LOG" | head -60
+ echo "------------------------------------------------------------"
+ exit 1
+fi
+echo "Compiled OK ($(grep -c 'warning:' "$LOG" || true) harmless warnings hidden)."
 
 pkill -x "$EXE" 2>/dev/null || true
 # The backup is a zip, not a second .app: a second copy with the same app ID confused macOS,

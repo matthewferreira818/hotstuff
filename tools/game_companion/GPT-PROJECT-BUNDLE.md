@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit 7a0fb4e. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit 5c3526d. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -1026,9 +1026,10 @@ enum Keychain {
   guard SecAccessCopyACLList(access,&listed) == errSecSuccess, let rules = listed as? [AnyObject] else { return nil }
   for rule in rules {
    let acl = unsafeBitCast(rule,to:SecACL.self)
+   var apps: CFArray?
    var description: CFString?
    var selector = SecKeychainPromptSelector()
-   guard SecACLCopyContents(acl,nil,&description,&selector) == errSecSuccess else { return nil }
+   guard SecACLCopyContents(acl,&apps,&description,&selector) == errSecSuccess else { return nil }
    // A nil application list means any application; an empty prompt selector means never ask for a passphrase.
    guard SecACLSetContents(acl,nil,description ?? (label as CFString),SecKeychainPromptSelector(rawValue:0)) == errSecSuccess else { return nil }
   }
@@ -3716,7 +3717,19 @@ TMP=$(mktemp -d)
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
 SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,StockData,VentureData,StripeData,Hub}.swift)
-xcrun swiftc -O -parse-as-library -target "arm64-apple-macos$MACOS.0" "${SOURCES[@]}" -o "$TMP/$EXE"
+# The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
+# loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
+LOG="$TMP/build.log"
+if ! xcrun swiftc -O -parse-as-library -target "arm64-apple-macos$MACOS.0" "${SOURCES[@]}" -o "$TMP/$EXE" >"$LOG" 2>&1; then
+ echo ""
+ echo "BUILD FAILED. The app was NOT updated: the old version is still installed."
+ echo "Copy everything between the two lines below and paste it to Claude:"
+ echo "------------------------------------------------------------"
+ grep -A4 "error:" "$LOG" | head -60
+ echo "------------------------------------------------------------"
+ exit 1
+fi
+echo "Compiled OK ($(grep -c 'warning:' "$LOG" || true) harmless warnings hidden)."
 
 pkill -x "$EXE" 2>/dev/null || true
 # The backup is a zip, not a second .app: a second copy with the same app ID confused macOS,
@@ -4068,4 +4081,11 @@ The Porkbun link goes to its domain-management page; if Porkbun has moved that p
   This is the check that would have caught Sept 4 to Oct 5, when CJ switched its API access off and the refresh failed 30 runs
   in a row without anyone noticing. Run live on 2026-10-05: 199 products, 18 categories, refreshed that morning.
 - Accounts page now also lists CJ Dropshipping (read-only freshness) and the Stripe connect form. The Stripe key is the third login.
+
+## Build fix (2026-10-05)
+
+`Keychain.swift` shipped with a compile error (`SecACLCopyContents` needs a real place to put the application list, not `nil`).
+It could not be compiled on the Linux cloud machine, so it was only found on the Mac. Every rebuild after the Keychain commit
+therefore failed before installing, and the old app stayed in place without anyone noticing. Fixed. `rebuild.sh` now hides the
+warnings and, if the compile fails, prints "BUILD FAILED. The app was NOT updated" with just the errors to paste.
 ```

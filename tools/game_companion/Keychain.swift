@@ -83,9 +83,10 @@ enum Keychain {
   guard SecAccessCopyACLList(access,&listed) == errSecSuccess, let rules = listed as? [AnyObject] else { return nil }
   for rule in rules {
    let acl = unsafeBitCast(rule,to:SecACL.self)
+   var apps: CFArray?
    var description: CFString?
    var selector = SecKeychainPromptSelector()
-   guard SecACLCopyContents(acl,nil,&description,&selector) == errSecSuccess else { return nil }
+   guard SecACLCopyContents(acl,&apps,&description,&selector) == errSecSuccess else { return nil }
    // A nil application list means any application; an empty prompt selector means never ask for a passphrase.
    guard SecACLSetContents(acl,nil,description ?? (label as CFString),SecKeychainPromptSelector(rawValue:0)) == errSecSuccess else { return nil }
   }

@@ -48,7 +48,7 @@ import Cocoa
   return String(data:data,encoding:.utf8)
  }
 
- // Posts to the thread as Matthew. Needs the GitHub key limited to Issues on one repo (saved in the Keychain).
+ // Posts to the thread as Matthew. Needs the GitHub key limited to Issues on one repo (saved privately on this Mac).
  func send() async {
   guard !sending else { return }
   let words = draft.trimmingCharacters(in:.whitespacesAndNewlines)
@@ -102,7 +102,7 @@ import Cocoa
  func saveToken() {
   if let problem = MeetingData.tokenProblem(tokenInput) { tokenNote = problem; return }
   let key = tokenInput.trimmingCharacters(in:.whitespacesAndNewlines)
-  guard Keychain.write(MeetingHub.tokenService,Data(key.utf8)) else { tokenNote = "Couldn't save the key to your Keychain."; return }
+  guard Keychain.write(MeetingHub.tokenService,Data(key.utf8)) else { tokenNote = "Couldn't save the key on this Mac."; return }
   tokenInput = ""
   hasToken = true
   tokenNote = "Saved. You can post from here now."
@@ -319,7 +319,7 @@ extension CompanionInterfaceView {
  @ViewBuilder var hubRoomTokenForm: some View {
   if meeting.hasToken {
    HStack(spacing:10) {
-    Label("Posting key saved in your Mac's Keychain",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
+    Label("Posting key saved privately on this Mac",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
     Spacer()
     Button("Remove key") { meeting.forgetToken() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }

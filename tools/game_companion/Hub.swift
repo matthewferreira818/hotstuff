@@ -184,7 +184,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
  }
 }
 
-// Sales from Stripe, read-only. The restricted key lives in the Keychain; it is read at most once per run, on a refresh.
+// Sales from Stripe, read-only. The restricted key is saved privately on this Mac (see Keychain.swift); it is read at most once per run, on a refresh.
 @MainActor final class SalesHub: ObservableObject {
  static let service = "stripe-readonly"
  @Published var hasKey = Keychain.exists(SalesHub.service)
@@ -197,7 +197,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
  func save() {
   if let problem = StripeData.keyProblem(keyInput) { message = problem; return }
   let key = keyInput.trimmingCharacters(in:.whitespacesAndNewlines)
-  guard Keychain.write(SalesHub.service,Data(key.utf8)) else { message = "Couldn't save the key to your Keychain."; return }
+  guard Keychain.write(SalesHub.service,Data(key.utf8)) else { message = "Couldn't save the key on this Mac."; return }
   keyInput = ""
   hasKey = true
   message = ""
@@ -1026,7 +1026,7 @@ extension CompanionInterfaceView {
     LazyVGrid(columns:[GridItem(.adaptive(minimum:200),spacing:14)],spacing:14) {
      hubStat("Game window",c.sharing ? "Shared" : "None chosen",c.sharing ? "Friday can see it" : "Choose one to start",tint:c.sharing ? HubColor.green : Color.white)
      hubStat("Friday",live.running ? "Live" : "Asleep",live.running ? "Window and mic are shared with Google" : "Nothing is being sent",tint:live.running ? Noir.crimsonLight : Color.white)
-     hubStat("Google key",live.hasKey ? "Saved" : "Missing",live.hasKey ? "In your Mac's Keychain" : "Add it in Settings",tint:live.hasKey ? HubColor.green : Noir.crimsonLight)
+     hubStat("Google key",live.hasKey ? "Saved" : "Missing",live.hasKey ? "Saved privately on this Mac" : "Add it in Settings",tint:live.hasKey ? HubColor.green : Noir.crimsonLight)
     }
     HStack(spacing:12) {
      Button { hubSelect(.friday) } label: { Label("Open Friday",systemImage:"waveform") }.buttonStyle(PillButtonStyle())
@@ -1070,7 +1070,7 @@ extension CompanionInterfaceView {
  var hubAccounts: some View {
   ScrollView {
    VStack(alignment:.leading,spacing:12) {
-    Text("Logins live in your Mac's Keychain. You paste them into the app yourself, never into chat.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).padding(.bottom,4)
+    Text("Logins are saved privately on this Mac. You paste them into the app yourself, never into chat.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).padding(.bottom,4)
     hubAccountRow("google","waveform",Noir.crimson,"Google Gemini","Friday's voice and eyes.",live.hasKey ? "Connected" : "Not connected",live.hasKey ? HubColor.green : Noir.crimsonLight,live.hasKey ? "Manage" : "Connect") { hubGoogleForm }
     hubAccountRow("twitch","scissors",HubColor.violet,"Twitch","Makes clips when you ask and runs the Stream page.",clips.signedIn ? "Connected" : "Not connected",clips.signedIn ? HubColor.green : Noir.crimsonLight,clips.signedIn ? "Manage" : "Connect") { clipSettings }
     hubAccountRow("stocks","chart.line.uptrend.xyaxis",HubColor.green,"Stock bot snapshot","Reads the public practice snapshot. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
@@ -1236,7 +1236,7 @@ extension CompanionInterfaceView {
  @ViewBuilder var hubStripeForm: some View {
   if sales.hasKey {
    HStack(spacing:10) {
-    Label("Read-only key saved in your Mac's Keychain",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
+    Label("Read-only key saved privately on this Mac",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
     Spacer()
     Button("Refresh now") { Task { await sales.refresh(force:true) } }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))).disabled(sales.loading)
     Button("Remove key") { sales.forget() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
@@ -1253,11 +1253,11 @@ extension CompanionInterfaceView {
   }
  }
 
- // The Google key: get one free (no card needed), paste it, and it goes into the Keychain.
+ // The Google key: get one free (no card needed), paste it, and it is saved privately on this Mac.
  @ViewBuilder var hubGoogleForm: some View {
   if live.hasKey {
    HStack {
-    Label("Key saved in your Mac's Keychain",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
+    Label("Key saved privately on this Mac",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
     Spacer()
     Button("Remove key") { live.forgetKey() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }

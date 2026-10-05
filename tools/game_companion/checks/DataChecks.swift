@@ -2,7 +2,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -127,6 +127,18 @@ import Foundation
   precondition(ChatPlan.outcome(code:401,json:[:]).note.contains("sign in again") && !ChatPlan.outcome(code:429,json:[:]).sent)
   let chatBody = try! JSONSerialization.jsonObject(with:ChatPlan.sendBody(broadcaster:"1",sender:"2",message:"hi")!) as! [String:String]
   precondition(chatBody == ["broadcaster_id":"1","sender_id":"2","message":"hi"])
+  // Secrets in private files: saved and read back, owner-only permissions, odd names can't escape the folder, empty is refused.
+  let vault = FileManager.default.temporaryDirectory.appendingPathComponent("SecretFileCheck-\(UUID().uuidString)")
+  precondition(SecretFile.write("GameCompanion.Test",Data("abc".utf8),in:vault) && SecretFile.read("GameCompanion.Test",in:vault) == Data("abc".utf8))
+  let secretAttrs = try! FileManager.default.attributesOfItem(atPath:SecretFile.url("GameCompanion.Test",in:vault).path)
+  let folderAttrs = try! FileManager.default.attributesOfItem(atPath:vault.path)
+  precondition((secretAttrs[.posixPermissions] as? NSNumber)?.intValue == 0o600 && (folderAttrs[.posixPermissions] as? NSNumber)?.intValue == 0o700)
+  precondition(SecretFile.write("GameCompanion.Test",Data("def".utf8),in:vault) && SecretFile.read("GameCompanion.Test",in:vault) == Data("def".utf8))
+  precondition(SecretFile.fileName("../../etc/passwd") == ".._.._etc_passwd.secret" && !SecretFile.fileName("a/b").contains("/"))
+  precondition(!SecretFile.write("empty",Data(),in:vault) && !SecretFile.exists("empty",in:vault))
+  SecretFile.remove("GameCompanion.Test",in:vault)
+  precondition(!SecretFile.exists("GameCompanion.Test",in:vault) && SecretFile.read("GameCompanion.Test",in:vault) == nil)
+  try? FileManager.default.removeItem(at:vault)
   print("All data checks passed.")
  }
 }

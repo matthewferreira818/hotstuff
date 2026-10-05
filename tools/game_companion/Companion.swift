@@ -365,9 +365,9 @@ struct LegacyContentView: View {
  // Split out so each half type-checks quickly.
  @ViewBuilder var liveControls: some View {
   if live.hasKey {
-   HStack { Text("Google key saved in Keychain ✓"); Button("Remove key") { live.forgetKey() } }
+   HStack { Text("Google key saved on this Mac ✓"); Button("Remove key") { live.forgetKey() } }
   } else {
-   Text("First time: get a free key from Google (no card needed), paste it here and click Save key. It goes into your Mac's Keychain, not into any file.").font(.caption).foregroundStyle(.secondary)
+   Text("First time: get a free key from Google (no card needed), paste it here and click Save key. It is saved privately on this Mac (a file only your account can read), never in Git.").font(.caption).foregroundStyle(.secondary)
    HStack { Button("Get a free key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }; SecureField("Paste key here",text:$live.keyInput); Button("Save key") { live.saveKey() } }
   }
   HStack {

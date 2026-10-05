@@ -3,7 +3,7 @@ import AVFoundation
 import ScreenCaptureKit
 import Security
 
-// The Google key lives in the macOS Keychain, never in the app's files or settings.
+// The Google key is saved privately on this Mac (see Keychain.swift), never in Git, chat or the app's settings.
 enum GeminiKey {
  static let service = "GameCompanion.GeminiKey"
  // "Is a key saved?" never asks for a password. Reading the key itself can, so that happens once per run (see Keychain.swift).
@@ -117,9 +117,9 @@ enum GeminiKey {
   keyInput = ""
   guard !key.isEmpty else { return }
   hasKey = GeminiKey.save(key)
-  status = hasKey ? "Key saved in your Mac's Keychain." : "Couldn't save the key. Try again."
+  status = hasKey ? "Key saved privately on this Mac." : "Couldn't save the key. Try again."
  }
- func forgetKey() { stop(); GeminiKey.delete(); hasKey = false; status = "Key removed from the Keychain." }
+ func forgetKey() { stop(); GeminiKey.delete(); hasKey = false; status = "Key removed from this Mac." }
 
  func start(filter: SCContentFilter?, notes: String) {
   guard !running else { return }

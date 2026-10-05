@@ -18,7 +18,8 @@ HERE = Path(__file__).parent
 FILES = [
     ("Companion.swift", "The app's entry point and the local (Ollama) conversation engine; the old UI kept for rollback."),
     ("Live.swift", "Friday's live voice and screen session with Google Gemini over a WebSocket, plus the Google key."),
-    ("Keychain.swift", "Saves the app's logins in the Mac Keychain so the password box stops coming back."),
+    ("SecretFile.swift", "Saves each login or key as a private file (owner-only) on the Mac. No Mac frameworks; tested."),
+    ("Keychain.swift", "Where the app's secrets are read and saved: private files, with a one-time copy out of the old Keychain.")
     ("Wiki.swift", "Free game-fact lookup (MetaBot, then the Minecraft wiki) that Friday calls as a tool."),
     ("Clips.swift", "Twitch clips: separate clip-account sign-in, the clip button and the 'clip that' voice command."),
     ("Conversation.swift", "Opt-in memory, stored on the Mac only, never in Git."),

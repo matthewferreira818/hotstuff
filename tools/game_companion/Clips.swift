@@ -2,7 +2,7 @@ import Cocoa
 import Security
 
 // Twitch login for the clip account. The Client ID is public (it only names the app), so it lives in
-// settings. The login tokens are secrets, so they live in the macOS Keychain, never in files or chat.
+// settings. The login tokens are secrets, so they are saved privately on this Mac (see Keychain.swift), never in Git or chat.
 enum TwitchTokens {
  static let service = "GameCompanion.TwitchTokens"
  // "Signed in?" never asks for a password. Reading the tokens can, so that happens once per run (see Keychain.swift).
@@ -77,7 +77,7 @@ enum TwitchTokens {
      if let access = reply["access_token"] as? String {
       let saved = TwitchTokens.save(["access":access,"refresh":reply["refresh_token"] as? String ?? ""])
       signedIn = saved; userCode = ""
-      status = saved ? "Signed in. Tokens are in your Mac's Keychain." : "Signed in, but the Keychain wouldn't save the login. Try again."
+      status = saved ? "Signed in. The login is saved privately on this Mac." : "Signed in, but this Mac wouldn't save the login. Try again."
       return
      }
      // "authorization_pending" just means he hasn't clicked Authorize yet.
@@ -93,7 +93,7 @@ enum TwitchTokens {
   }
  }
 
- func signOut() { loginTask?.cancel(); TwitchTokens.delete(); signedIn = false; userCode = ""; status = "Signed out. Login removed from the Keychain." }
+ func signOut() { loginTask?.cancel(); TwitchTokens.delete(); signedIn = false; userCode = ""; status = "Signed out. Login removed from this Mac." }
 
  // POSTs form fields and returns Twitch's JSON, whatever the status code (errors carry a "message").
  func form(_ url: String,_ fields: [String:String]) async throws -> [String:Any] {

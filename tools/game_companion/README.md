@@ -416,3 +416,17 @@ everyone). It needs the GitHub posting key in Accounts (the same one the Meeting
 instructions say never to pass on keys, passwords, addresses, phone numbers or private details; the app adds nothing of its own; at
 most 6 a hour; she is told not to promise an instant reply, because Claude and GPT read the room at their next check (Claude's daily
 routine, or when Matthew opens a chat). This is a relay, not a live link. Not run on the Mac.
+
+## Keys now live in private files, not the Keychain (2026-10-05)
+
+Matthew's report: macOS kept asking for the Mac password at launch (screenshot: "Game Companion wants to access key
+GameCompanion.GitHubIssuesToken"), and "Always Allow" didn't stick. Cause: the old file-based Keychain ties permission to the
+exact build of the app, which changes at every rebuild, and a self-made certificate can't make that stable. Fix: the Google key,
+the Twitch login, the GitHub posting key and the Stripe read-only key are now saved as private files in
+`~/Library/Application Support/GameCompanion/secrets` (folder 700, files 600; `SecretFile.swift`, tested), and `Keychain.swift` reads
+and writes those. On the first launch after this change, each old Keychain item is copied into a file once and then deleted
+(`Keychain.migrateLegacy`); that is the last password box macOS can show. What this changes, honestly: the Keychain encrypts each
+secret and a private file does not (FileVault still encrypts the disk), and other software running as the same user could read
+either one, since the previous "allow all applications" setting already allowed that. Nothing is in the repo, the settings or
+chat. CLAUDE.md was updated to match. To go back to the Keychain, ask Claude. The file read/write rules are in
+`checks/DataChecks.swift` and pass; the migration has not been run on the Mac.

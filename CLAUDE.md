@@ -118,8 +118,10 @@ and Unlock clicked in OpenD. Never run the Moomoo path on GitHub.
 
 **"GC" = the Game Companion** (he also says "gaming companion"; the app is named Game Companion).
 `tools/game_companion/` is the Mac app Matthew talks to while he plays: a
-live buddy (Google's free Gemini Live key, kept in his Keychain, never in
-files or chat), a local mode, and a free fact lookup (MetaBot + the
+live buddy (Google's free Gemini Live key, saved privately on his Mac as
+a file only his account can read, never in the repo or chat; since
+2026-10-05 the app's keys are no longer in the Keychain, because macOS
+asked for his password after every rebuild, a trade he chose), a local mode, and a free fact lookup (MetaBot + the
 Minecraft wiki). README there has the rebuild steps; permissions reset
 after every rebuild unless `make_cert.sh` was run once. Free-tier limits
 are real, so its default is Low usage.

@@ -31,7 +31,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; live.meeting = meeting; hands.attach(live); chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; live.meeting = meeting; hands.attach(live); chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
@@ -220,7 +220,7 @@ struct CompanionInterfaceView: View {
    HStack { VStack(alignment:.leading,spacing:5) { Label("Game window",systemImage:"rectangle.on.rectangle").font(.headline); Text(c.sharing ? (c.screenVerified ? "Access verified" : "Selected · not yet tested") : "No window shared").font(.caption).foregroundStyle(.secondary) }; Spacer(); Button("Choose window") { c.choose() }.disabled(DesignPreview.enabled); Button("Stop sharing") { live.stop(); c.stopScreen() }.disabled(!c.sharing) }
   }
   if c.tab == 0 {
-   HStack { Button(live.running ? "Stop live session" : "Start live session",systemImage:live.running ? "stop.circle" : "play.circle") { if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:conversation.page == 0 ? c.gameNotes : "") } }.buttonStyle(.borderedProminent).disabled(DesignPreview.enabled || !live.hasKey || !c.sharing); Text(live.hasKey ? "Google key saved in Keychain" : "Add your key in Settings").font(.caption).foregroundStyle(.secondary) }
+   HStack { Button(live.running ? "Stop live session" : "Start live session",systemImage:live.running ? "stop.circle" : "play.circle") { if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:conversation.page == 0 ? c.gameNotes : "") } }.buttonStyle(.borderedProminent).disabled(DesignPreview.enabled || !live.hasKey || !c.sharing); Text(live.hasKey ? "Google key saved on this Mac" : "Add your key in Settings").font(.caption).foregroundStyle(.secondary) }
   } else {
    HStack { Button(c.listening ? "Stop microphone" : "Listen",systemImage:"mic") { c.mic() }.disabled(DesignPreview.enabled || c.busy || !c.voiceReady); Text(c.voiceReady ? "Local voice available" : "Local speech unavailable").font(.caption).foregroundStyle(.secondary) }
   }
@@ -299,7 +299,7 @@ struct CompanionInterfaceView: View {
   Button("Delete all saved memory and topics",role:.destructive) { conversation.deleteConfirmation = true }.disabled(conversation.notes.isEmpty && conversation.proposals.isEmpty && !FileManager.default.fileExists(atPath:conversation.fileURL.path))
  }
  @ViewBuilder var googleSettings: some View {
-  if live.hasKey { HStack { Text("Google key saved in Keychain"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
+  if live.hasKey { HStack { Text("Google key saved on this Mac"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
   else { HStack { SecureField("Google API key",text:$live.keyInput); Button("Save key") { live.saveKey() }.disabled(DesignPreview.enabled); Button("Get a key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }.disabled(DesignPreview.enabled) } }
   Picker("Friday's job",selection:$live.role) { Text("Game buddy").tag(0); Text("Stream manager").tag(1) }.pickerStyle(.segmented).disabled(live.running)
   Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)

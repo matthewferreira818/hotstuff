@@ -129,3 +129,12 @@ outward while she listens or speaks, and swirls faster while she thinks. The sta
 macOS "Reduce motion" setting. Nothing about what is sent or saved changed. The buddy is also told its name is Friday.
 SwiftUI can't be compiled on the Linux cloud machine, so the first Mac rebuild is the real check.
 
+## Voice-first screen, like a voice assistant (2026-10-05)
+
+The main window is now one calm screen: a big fluid crimson orb in the middle (light drifting inside a sphere that swells with
+the sound of the mic and of her voice), the status and her words underneath, and five round buttons: choose window, keyboard,
+the big start/stop (or talk, in local mode), settings, stop everything. The old tabbed screen, with every control, is the
+"Settings & more" panel. While Google Live runs, a pill at the top says the window and mic are shared with Google.
+Main button is never greyed out: with no key or window, the status line says what is missing. The blue focus ring is gone.
+Panel and screen state live on `Companion` (`showPanel`, `showKeyboard`), not `@State`, which the command-line build can't expand.
+

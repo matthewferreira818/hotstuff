@@ -68,6 +68,11 @@ enum GeminiKey {
  let outFormat = AVAudioFormat(commonFormat:.pcmFormatFloat32,sampleRate:24000,channels:1,interleaved:false)!
  var speakingUntil = Date.distantPast
  var lastVoice = Date.distantPast
+ // Rough loudness (0 to 1) of the mic and of her voice, and when it was measured. The orb reads these so it moves with the sound.
+ var micLevel = 0.0
+ var micLevelAt = Date.distantPast
+ var voiceLevel = 0.0
+ var voiceLevelAt = Date.distantPast
  var lastFrame = Date.distantPast
  let talkWindow = 8.0
 
@@ -273,6 +278,9 @@ enum GeminiKey {
   pcm.withUnsafeBytes { raw in
    for i in 0..<count { out[i] = Float(Int16(littleEndian:raw.loadUnaligned(fromByteOffset:i*2,as:Int16.self)))/32768 }
   }
+  var sum: Float = 0
+  for i in 0..<count { sum += out[i] * out[i] }
+  voiceLevel = min(1.0,Double((sum / Float(count)).squareRoot()) * 6); voiceLevelAt = Date()
   player.scheduleBuffer(buffer,completionHandler:nil)
   if !player.isPlaying { player.play() }
   speakingUntil = max(speakingUntil,Date()).addingTimeInterval(Double(count)/24000)
@@ -300,17 +308,19 @@ enum GeminiKey {
      var energy: Float = 0
      for i in 0..<Int(out.frameLength) { let level = Float(samples[i])/32768; energy += level*level }
      let loud = energy/Float(out.frameLength) > 0.00012
-     Task { @MainActor in self.sendAudio(data,loud:loud) }
+     let level = min(1.0,Double((energy/Float(out.frameLength)).squareRoot()) * 9)
+     Task { @MainActor in self.sendAudio(data,loud:loud,level:level) }
     }
    } else { status = "No usable microphone found. You can still type questions." }
   }
   do { try engine.start(); player.play() } catch { status = "Sound couldn't start: \(error.localizedDescription)" }
  }
 
- func sendAudio(_ data: Data, loud: Bool) {
+ func sendAudio(_ data: Data, loud: Bool, level: Double) {
   guard ready else { return }
   // On speakers the mic would hear the buddy and it would answer itself, so stay quiet while it talks.
   if !headphones && Date() < speakingUntil { return }
+  micLevel = level; micLevelAt = Date()
   if loud {
    // The player just started talking: grab a picture now, so the answer matches what they're asking about.
    let wasQuiet = Date().timeIntervalSince(lastVoice) > talkWindow

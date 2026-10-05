@@ -25,6 +25,10 @@ import Darwin
  @Published var pauseSeconds: Double = 0.8
  // Which tab is showing. Lives here because a command-line build of SwiftUI can't use @State (its macro plugin ships only with Xcode).
  @Published var tab = 0
+ // Voice screen: whether the settings panel and the keyboard box are open. Kept here, not in @State,
+ // because a command-line build can't expand SwiftUI's @State macro.
+ @Published var showPanel = false
+ @Published var showKeyboard = false
  // What the player tells the companion about their game. Saved as a preference, like the voice.
  @Published var gameNotes = "" { didSet { UserDefaults.standard.set(gameNotes,forKey:"companion.notes") } }
  let voices = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix("en") }.sorted { a,b in a.quality.rawValue == b.quality.rawValue ? a.name < b.name : a.quality.rawValue > b.quality.rawValue }

@@ -10,22 +10,13 @@ struct CompanionInterfaceView: View {
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
  @Environment(\.accessibilityReduceMotion) private var reduceMotion
  var body: some View {
-  VStack(alignment:.leading,spacing:14) {
-   header
-   Picker("View",selection:$conversation.page) { Text("Game").tag(0); Text("Conversation").tag(1); Text("Memory & topics").tag(2) }.pickerStyle(.segmented).labelsHidden()
-   ScrollView {
-    VStack(alignment:.leading,spacing:16) {
-     if conversation.page == 0 { gamePage }
-     else if conversation.page == 1 { conversationPage }
-     else { memoryPage }
-    }.frame(maxWidth:.infinity,alignment:.leading)
-   }.scrollIndicators(.hidden)
-   HStack { Image(systemName:"lock.shield"); Text(conversation.memoryEnabled ? "Reviewed notes saved locally · chats and images not saved" : "Memory off · chats and images not saved by this app"); Spacer() }.font(.caption).foregroundStyle(.secondary)
-  }.padding(.horizontal,26).padding(.vertical,18).frame(width:760,height:800)
+  voiceScreen
+  .frame(width:620,height:780)
   .background(NoirBackground())
   .preferredColorScheme(.dark)
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
+  .focusEffectDisabled()
   .onAppear { c.conversation = conversation; live.conversation = conversation }
   .onDisappear { stopAll() }
   .onChange(of:conversation.page) { _,page in
@@ -39,26 +30,125 @@ struct CompanionInterfaceView: View {
     live.sendSuggestion(conversation.initiativePrompt)
    }
   }
+  .sheet(isPresented:$c.showPanel) { panel }
+ }
+
+ // The main screen: Friday's orb in the middle, a few round buttons underneath, everything else behind Settings.
+ var voiceScreen: some View {
+  VStack(spacing:0) {
+   modePill
+   Spacer(minLength:0)
+   orbSection
+   captions
+   Spacer(minLength:0)
+   if c.showKeyboard { composer.padding(.bottom,12) }
+   seesRow
+   controlBar
+   HStack(spacing:6) { Image(systemName:"lock.shield"); Text(conversation.memoryEnabled ? "Reviewed notes saved locally · chats and images not saved" : "Memory off · chats and images not saved by this app") }
+    .font(.system(size:10,design:.rounded)).foregroundStyle(Color.white.opacity(0.35)).padding(.top,14)
+  }
+  .padding(.horizontal,28).padding(.vertical,20)
+ }
+
+ // Says which brain is on. While Google Live runs it says so plainly, because the screen and mic are being shared.
+ var modePill: some View {
+  HStack {
+   HStack(spacing:7) {
+    Circle().fill(c.tab == 0 && live.running ? Noir.crimsonLight : Color.white.opacity(0.3)).frame(width:7,height:7)
+    Text(c.tab == 0 ? (live.running ? "LIVE · WINDOW + MIC SHARED WITH GOOGLE" : "GOOGLE LIVE") : "ON THIS MAC").font(.system(size:10,weight:.semibold,design:.rounded)).tracking(1.2)
+   }
+   .foregroundStyle(Color.white.opacity(c.tab == 0 && live.running ? 0.85 : 0.5))
+   .padding(.horizontal,12).padding(.vertical,7)
+   .background(Capsule().fill(Color.white.opacity(0.07)))
+   Spacer()
+  }
+ }
+
+ // Friday in the middle: a crimson orb that shows what she is doing right now.
+ var orbSection: some View {
+  TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
+   let state = orbState(at:timeline.date)
+   VStack(spacing:4) {
+    FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:230,animated:!reduceMotion)
+    Text("Friday").font(.system(size:26,weight:.light,design:.rounded)).tracking(8).foregroundStyle(Color.white.opacity(0.92))
+    Text(DesignPreview.enabled ? "Review draft · connections disabled" : stateLabel(state)).font(.system(size:11,weight:.medium,design:.rounded)).tracking(2).textCase(.uppercase).foregroundStyle(state == .off ? Color.white.opacity(0.4) : Noir.crimsonLight)
+   }
+   .frame(maxWidth:.infinity)
+  }
+ }
+
+ // What she heard, what she is saying, and the status line (which is where problems like "Choose a window first" show up).
+ var captions: some View {
+  VStack(spacing:8) {
+   Text(c.tab == 0 ? live.status : c.status).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).multilineTextAlignment(.center).lineLimit(3)
+   if c.tab == 0 && !live.heard.isEmpty { Text(live.heard).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)).multilineTextAlignment(.center).lineLimit(2) }
+   if !currentReply.isEmpty { Text(currentReply).font(.system(size:17,design:.rounded)).foregroundStyle(Color.white.opacity(0.92)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
+  }
+  .frame(maxWidth:.infinity,minHeight:120,alignment:.top)
+  .padding(.horizontal,10).padding(.top,6)
+ }
+
+ // A small look at the last picture she was sent, so what leaves the Mac is never a mystery.
+ @ViewBuilder var seesRow: some View {
+  if c.tab == 0, let seen = live.lastSeen {
+   HStack(spacing:10) {
+    Image(nsImage:seen).resizable().scaledToFit().frame(height:44).clipShape(RoundedRectangle(cornerRadius:6,style:.continuous))
+    Text("Friday sees this · \(live.picturesSent) sent").font(.system(size:11,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))
+    Spacer()
+   }
+   .padding(.bottom,10)
+  }
+ }
+
+ var controlBar: some View {
+  HStack(spacing:18) {
+   Button { c.choose() } label: { Image(systemName:"rectangle.on.rectangle") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.sharing)).disabled(DesignPreview.enabled).help("Choose the game window")
+   Button { c.showKeyboard.toggle() } label: { Image(systemName:"keyboard") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.showKeyboard)).help("Type instead of talking")
+   Button { mainAction() } label: { Image(systemName:mainIcon) }.buttonStyle(OrbButtonStyle(diameter:76,filled:true)).disabled(DesignPreview.enabled).help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session") : "Talk")
+   Button { c.showPanel = true } label: { Image(systemName:"slider.horizontal.3") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Settings and more")
+   Button { stopAll() } label: { Image(systemName:"xmark") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Stop everything")
+  }
+ }
+ var mainIcon: String {
+  if c.tab == 0 { return live.running ? "stop.fill" : "waveform" }
+  return c.listening ? "mic.slash.fill" : "mic.fill"
+ }
+ // Never greyed out: if the key or window is missing, live.start says so in the status line.
+ func mainAction() {
+  if c.tab == 0 {
+   if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:conversation.page == 0 ? c.gameNotes : "") }
+  } else {
+   c.mic()
+  }
+ }
+
+ // Everything the old screen had, now in a panel: the three views, window picker, keys, switches, memory.
+ var panel: some View {
+  VStack(alignment:.leading,spacing:14) {
+   HStack {
+    Text("Settings & more").font(.system(size:18,weight:.semibold,design:.rounded))
+    Spacer()
+    Button("Done") { c.showPanel = false }.buttonStyle(.borderedProminent).controlSize(.small)
+   }
+   Picker("View",selection:$conversation.page) { Text("Game").tag(0); Text("Conversation").tag(1); Text("Memory & topics").tag(2) }.pickerStyle(.segmented).labelsHidden()
+   ScrollView {
+    VStack(alignment:.leading,spacing:16) {
+     if conversation.page == 0 { gamePage }
+     else if conversation.page == 1 { conversationPage }
+     else { memoryPage }
+    }.frame(maxWidth:.infinity,alignment:.leading)
+   }.scrollIndicators(.hidden)
+  }
+  .padding(.horizontal,26).padding(.vertical,18).frame(width:620,height:720)
+  .background(NoirBackground())
+  .preferredColorScheme(.dark)
+  .tint(Noir.crimson)
+  .groupBoxStyle(NoirCard())
+  .focusEffectDisabled()
   .alert("Delete saved memory and topics?",isPresented:$conversation.deleteConfirmation) {
    Button("Cancel",role:.cancel) {}
    Button("Delete",role:.destructive) { stopAll(); conversation.deleteAll() }
   } message: { Text("This removes the reviewed notes and topic queue from this Mac. Copies already sent to Google cannot be recalled by this app.") }
- }
-
- // Friday in the middle: a crimson orb that shows what she is doing right now.
- var header: some View {
-  TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
-   let state = orbState(at:timeline.date)
-   VStack(spacing:0) {
-    FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,size:140,animated:!reduceMotion)
-    Text("Friday").font(.system(size:28,weight:.light,design:.rounded)).tracking(7).foregroundStyle(Color.white.opacity(0.92))
-    Text(DesignPreview.enabled ? "Review draft · connections disabled" : stateLabel(state)).font(.system(size:11,weight:.medium,design:.rounded)).tracking(2).textCase(.uppercase).foregroundStyle(state == .off ? Color.white.opacity(0.4) : Noir.crimsonLight).padding(.top,6)
-   }
-   .frame(maxWidth:.infinity)
-  }
-  .overlay(alignment:.topTrailing) {
-   Button { stopAll() } label: { Label("Stop all",systemImage:"stop.fill").font(.caption.weight(.semibold)) }.buttonStyle(.borderedProminent).controlSize(.small).tint(Noir.crimson)
-  }
  }
  // Google Live: asleep until started, then listening while you talk, thinking just after, speaking while her audio plays.
  // On this Mac: the same, from the local engine.
@@ -77,6 +167,17 @@ struct CompanionInterfaceView: View {
   if c.listening { return .listening }
   if c.busy { return .thinking }
   return .idle
+ }
+ // 0 to 1: how loud the sound is right now, from the mic or from her voice.
+ func orbLevel(at now: Date) -> Double {
+  if c.tab == 0 {
+   let voice = live.voiceLevel * max(0,1 - now.timeIntervalSince(live.voiceLevelAt) * 5)
+   let mic = live.micLevel * max(0,1 - now.timeIntervalSince(live.micLevelAt) * 5)
+   return min(1,max(voice,mic))
+  }
+  // The local engine has no level meter, so speaking gets a gentle pulse.
+  if c.speaker.isSpeaking { return 0.45 + 0.25 * sin(now.timeIntervalSinceReferenceDate * 9) }
+  return c.listening ? 0.25 : 0
  }
  func stateLabel(_ state: OrbState) -> String {
   switch state {
@@ -130,7 +231,7 @@ struct CompanionInterfaceView: View {
  }
  var currentReply: String { c.tab == 0 ? live.said : c.reply }
  @ViewBuilder var composer: some View {
-  HStack { TextField("What would you like to talk about?",text:c.tab == 0 ? $live.typed : $c.input).onSubmit { sendMessage() }; Button("Send",systemImage:"arrow.up.circle.fill") { sendMessage() }.disabled(DesignPreview.enabled || c.busy || (c.tab == 0 && !live.running)) }
+  HStack { TextField("What would you like to talk about?",text:c.tab == 0 ? $live.typed : $c.input).noirField().onSubmit { sendMessage() }; Button("Send",systemImage:"arrow.up.circle.fill") { sendMessage() }.disabled(DesignPreview.enabled || c.busy || (c.tab == 0 && !live.running)) }
  }
  func sendMessage() { if c.tab == 0 { live.sendTyped() } else { c.ask(c.input) } }
  func askReflection(_ text:String) { if c.tab == 0 { live.typed = text; live.sendTyped() } else { c.ask(text) } }

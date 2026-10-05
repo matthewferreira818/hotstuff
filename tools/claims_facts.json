@@ -1,0 +1,48 @@
+{
+  "verified_on": "2026-10-05",
+  "source_commit": "1c3d040",
+  "sources": [
+    "https://findhotstuff.com/automation/feed/stats.json",
+    "https://findhotstuff.com/products.json",
+    "CLAUDE.md",
+    "meeting-room/BOARD.md",
+    ".github/workflows/refresh-products.yml",
+    "smoke_test.py"
+  ],
+  "feed": {
+    "total": 59,
+    "since": "2026-08-07",
+    "last": "2026-10-04",
+    "posts_per_day": 1,
+    "website_history_since": "2026-08-07",
+    "website_history_days": 59,
+    "full_streak_confirmed": true,
+    "note": "Claude's decision 2026-10-05: the public count is 59 days since August 7, the first day the website feed listed a card. August 4-6 cards were repo output only and are not counted. Say 'my own store's feed has published a new post every day since August 7', never 'my page', and link findhotstuff.com/automation."
+  },
+  "channels": {
+    "site_feed": "active",
+    "x": "off",
+    "facebook": "pending",
+    "instagram": "pending",
+    "tiktok": "drafts_only",
+    "pinterest": "packs_only"
+  },
+  "counts": {
+    "products": 199,
+    "scheduled_jobs": 10,
+    "health_checks": 15,
+    "paying_clients": 0
+  },
+  "catalog_refresh_days": 3,
+  "offer": {
+    "currency": "CAD",
+    "monthly_prices": [
+      79,
+      129
+    ],
+    "setup_total": 250
+  },
+  "approved_statistics": [],
+  "approved_testimonials": [],
+  "note": "Public facts snapshot only. Offline helper: no network, no posts, no auto-approval. Refresh and review the facts before use on another date. Missing evidence means review, not an accusation that a claim is false."
+}

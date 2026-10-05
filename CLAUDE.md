@@ -66,13 +66,19 @@ than discovering something was papered over.
    words: "brush past your rule ... start a schedule where you do these
    cold emails and messages once or twice a week"):** Claude writes
    it and C.C. sends it from his own accounts, once or twice a week,
-   up to 5 messages a batch, taken from the call-kit ledger. It is NOT
-   running yet; it starts only after he confirms the channel, the
-   mailing address for the footer, and the CASL-safe format (Canada's
-   anti-spam law covers emails and DMs that sell a service: sender
-   name and mailing address, a working unsubscribe honored right away,
-   a note of where each address came from, no misleading lines; Claude
-   is not a lawyer and he should check it with a business advisor).
+   up to 5 messages a batch, taken from the prospects ledger. Channel:
+   Facebook page messages (his answer, 2026-10-05). He chose to have a
+   business advisor check the format as we go, and the footer uses his
+   home address and phone (he gave them; the phone is already public on
+   the ECS page). **His home address never goes in this public repo**:
+   he pastes the footer into C.C's session each time. The rules, the
+   templates and the batches live in
+   `marketing/east-coast-social/outreach/` (Canada's anti-spam law
+   covers emails and DMs that sell a service: sender name and mailing
+   address, a working unsubscribe honored right away, a record of why
+   each business was contacted, two touches at most, no misleading
+   lines; Claude is not a lawyer). The first batch waits for his "go";
+   after that it runs twice a week without per-batch approval.
    Every draft is claims-checked first, a "no" or an unsubscribe means
    never contact that person again, replies and any price or offer
    talk go to him, and the morning brief lists what went out. Rule 1 (honesty) still applies: every claim is

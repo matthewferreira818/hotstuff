@@ -1,3 +1,5 @@
+> **Superseded 2026-10-05** by `outreach/cc-session-prompt.md` (Facebook messages, Chrome Claude sends, anti-spam footer). Kept for history.
+
 # DM Outreach Session — instructions for Claude on the desktop
 
 You are helping Matthew send East Coast Social outreach DMs. He is at the

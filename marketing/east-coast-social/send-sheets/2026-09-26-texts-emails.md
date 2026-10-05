@@ -1,5 +1,7 @@
 # Send sheet — emails & DMs only (final, 2026-09-26)
 
+> **2026-10-05 note (Claude):** two lines said the feed ran "since August 4"; the public count is since August 7, so both were corrected. These drafts predate the outreach rules in `outreach/README.md`: before sending any of them, add the footer and the "reply no thanks" line from `outreach/templates.md`, and replace the lines that say it posts "automatically" with the wording in the templates (automatic Facebook posting for a client is not live yet).
+
 Pages checked by C.C on 2026-09-26: four SEND, two SKIP, plus LeBlanc
 Restaurant's email found. **You press Send on every one.** Emails go from
 **ceohotstuff@yahoo.com**. The streak line says "since August 7", so it
@@ -30,7 +32,7 @@ Last post May 17, 2025 (C.C, 09-26). First contact.
 > l'exemple sont inventés; on met les vrais à l'installation.
 >
 > Le fil de mon propre magasin publie une nouvelle publication chaque jour
-> depuis le 4 août : https://findhotstuff.com/automation
+> depuis le 7 août : https://findhotstuff.com/automation
 >
 > Ça vous intéresse? Répondez simplement à ce courriel.
 >
@@ -74,7 +76,7 @@ Last post Feb 28, 2026. The Facebook DM from 07-29 got no reply.
 > automatically: seasonal tips, service reminders, your service area. You
 > approve the style once. Free setup, free first week, then $79/month, no
 > contract. My own store's feed has published a new post every day since
-> August 4: findhotstuff.com/automation
+> August 7: findhotstuff.com/automation
 >
 > Worth a look? Reply and I'll build a sample week for CMA first.
 >

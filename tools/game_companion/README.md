@@ -254,3 +254,25 @@ and Copy puts a ready-to-paste message on the clipboard (the GPT version include
 The app only reads the board. Claude edits it and pushes; GPT hands Matthew a "Board update" block to paste. Home's briefing
 shows how many things are on the table. Nothing private belongs on it: the repo is public. The Command-number shortcut code
 was changed so a tenth page can't crash it.
+
+## Twitch clips: "clip it", download, cut the highlight (2026-10-05)
+
+Say "clip it" (or "clip that" / "clip this"). Two things listen for it, and they join into one clip: Friday's `clip_that` tool
+(she can also give the clip a short title, only from what she saw; if Twitch's AutoMod rejects a title it clips without one) and a
+backup that watches the transcript of Matthew's own words, in case she skips the tool call. A clip goes public on his Twitch
+channel the moment it is made, so it only ever happens when he asks. Friday never clips on her own.
+- **Twitch**: `POST /clips` with `duration` (Twitch allows 5 to 60 seconds; we ask for 30 to 55 depending on the highlight length
+  setting) and an optional title. Then `GET /clips/downloads` (verified against Twitch's reference page, 2026-10-05) for a
+  short-lived download link. That needs the `channel:manage:clips` or `editor:manage:clips` permission, which sign-ins made
+  before today don't have: the app says "sign out and sign in again". A clip account that isn't the broadcaster must be an
+  Editor on the channel (Creator Dashboard, Roles), or Twitch answers 403.
+- **Cut** (`ClipEditor.swift`, `ClipMath.swift`): measures how loud the clip is every quarter second, keeps the loudest stretch
+  (default 25 s, choices 15/25/40) with a beat of run-up and aftermath, and drops the quiet before and after. With no readable
+  sound it keeps the most recent stretch, because the clip is made right after the moment. The loudness maths is tested
+  (`checks/DataChecks.swift`). It is a loudness guess, not understanding: a quiet clutch moment can lose to a loud noise.
+- **Output**: `~/Movies/Game Companion Clips/<date> - <title>/` holds `original.mp4`, `highlight-wide.mp4` and `highlight-tall.mp4`
+  (1080x1920: the game fitted across the middle over a blurred, zoomed copy of itself, for TikTok, Reels and Shorts). Matthew
+  posts them himself. Free, and nothing to install: it uses Apple's own video tools.
+- **Not yet run on the Mac**: the AVFoundation code was written against Apple's current docs (checked: `export(to:as:)`, the
+  asset reader, the Core Image composition; the last two are marked deprecated but still present, so they warn) but never
+  compiled or run. Captions are not done: they would need speech recognition.

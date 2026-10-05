@@ -928,10 +928,30 @@ extension CompanionInterfaceView {
      }
      .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
     }
+    hubClipCard
    }
    .padding(.horizontal,32).padding(.bottom,30)
   }
   .scrollIndicators(.hidden)
+ }
+
+ // The latest Twitch clip: what the app did with it, and where the edited files are.
+ @ViewBuilder var hubClipCard: some View {
+  if !clips.status.isEmpty || !clips.editStatus.isEmpty {
+   VStack(alignment:.leading,spacing:10) {
+    HStack(spacing:8) {
+     Text("Latest clip").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     if clips.editing { ProgressView().controlSize(.small) }
+    }
+    if !clips.status.isEmpty { Text(clips.status).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.7)).textSelection(.enabled) }
+    if !clips.editStatus.isEmpty { Text(clips.editStatus).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.7)).textSelection(.enabled) }
+    HStack(spacing:10) {
+     if let folder = clips.lastFolder { Button { NSWorkspace.shared.open(folder) } label: { Label("Show the edited clip",systemImage:"folder") }.buttonStyle(PillButtonStyle()) }
+     if !clips.lastClipURL.isEmpty, let url = URL(string:clips.lastClipURL) { Button { NSWorkspace.shared.open(url) } label: { Label("Open on Twitch",systemImage:"arrow.up.right") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))) }
+    }
+   }
+   .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+  }
  }
 
  var hubAccounts: some View {

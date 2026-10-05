@@ -315,16 +315,23 @@ struct CompanionInterfaceView: View {
   HStack { Text("Your channel"); TextField("twitch.tv/…  (just the name)",text:$clips.channel) }
   if clips.signedIn {
    HStack {
-    Button("Clip the last 30 seconds") { Task { await clips.clipNow() } }.disabled(clips.busy)
+    Button("Clip it now") { Task { await clips.clipNow() } }.disabled(clips.busy)
     Button("Sign out of Twitch") { clips.signOut() }
    }
-   Toggle("Let the buddy clip when I say \"clip that\" (set before starting it)",isOn:$clips.voiceClips).disabled(live.running)
+   Toggle("Let the buddy clip when I say \"clip it\" (set before starting it)",isOn:$clips.voiceClips).disabled(live.running)
+   Toggle("Clean up each clip: download it and cut the highlight",isOn:$clips.autoEdit)
+   Picker("Highlight length",selection:$clips.highlightSeconds) { Text("15 s").tag(15); Text("25 s").tag(25); Text("40 s").tag(40) }.pickerStyle(.segmented).disabled(!clips.autoEdit)
+   Button("Open the clips folder") {
+    try? FileManager.default.createDirectory(at:TwitchClips.clipsRoot,withIntermediateDirectories:true)
+    NSWorkspace.shared.open(TwitchClips.clipsRoot)
+   }
   } else {
    Text("One time: make a free Twitch account for clips, register this app at dev.twitch.tv/console (type: Public), and paste its Client ID here. The Client ID isn't a secret. See the README.").font(.caption).foregroundStyle(.secondary)
    HStack { TextField("Client ID",text:$clips.clientID); Button("Sign in") { clips.signIn() } }
    if !clips.userCode.isEmpty { Text("Code: \(clips.userCode)").font(.title3.monospaced()) }
   }
   if !clips.status.isEmpty { Text(clips.status).font(.callout).foregroundStyle(.secondary).textSelection(.enabled) }
+  if !clips.editStatus.isEmpty { Text(clips.editStatus).font(.callout).foregroundStyle(.secondary).textSelection(.enabled) }
  }
  @ViewBuilder var localSettings: some View {
   Toggle("Hands-free conversation",isOn:$c.handsFree).disabled(!c.voiceReady || DesignPreview.enabled)

@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit 3216af3. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit b3c0e71. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -67,10 +67,13 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `StripeData.swift`: Reads store sales from Stripe with a read-only restricted key. GET requests only.
 - `MeetingData.swift`: Reads the shared Meeting Room board (meeting-room/BOARD.md) from GitHub. Read-only.
 - `MeetingRoom.swift`: The Meeting Room page: the board, the crew, and a box that makes a ready-to-paste note for Claude or GPT.
+- `ClipMath.swift`: Picks the highlight out of a clip from how loud it is. Pure maths, tested.
+- `ClipEditor.swift`: Cuts the highlight and makes a wide and a tall (9:16) version with Apple's video tools.
 - `Hub.swift`: The hub: sidebar sections, Home, Stock, Store, ECS, Systems, Launchpad, Game and Accounts pages.
 - `rebuild.sh`: Builds the app with swiftc (no Xcode), signs it and installs it.
 - `make_cert.sh`: One-time: makes the self-signed signing certificate so permissions and Keychain trust stick.
 - `checks/ReviewChecks.swift`: Small automated checks for the conversation code.
+- `checks/DataChecks.swift`: Automated checks for the highlight cut, the board reader and the Stripe key rules.
 - `README.md`: Running notes: what was built, what was tested, what is still unverified.
 - `meeting-room/README.md`: The Meeting Room rules: how Claude, GPT, Friday and Matthew share one board.
 - `meeting-room/BOARD.md`: The shared board right now: who is on what, open questions, decisions, known problems.
@@ -2979,6 +2982,193 @@ extension CompanionInterfaceView {
 }
 ```
 
+## FILE: ClipMath.swift
+
+```swift
+import Foundation
+
+// Picks the highlight out of a clip, using only how loud it is moment to moment. No AI and no network: the app measures
+// the clip's sound (see ClipEditor.swift), and this decides which stretch to keep. A loud stretch is usually the
+// action, a shout or the reaction to it; the quiet before and after is the dead air that gets cut.
+// Pure maths on a list of numbers, so it is tested on its own (checks/ClipMathChecks.swift).
+
+struct ClipCut: Equatable {
+ var start: Double
+ var end: Double
+ var length: Double { end - start }
+}
+
+enum ClipMath {
+ // levels: how loud each slice is, 0 to 1, `hop` seconds per slice. Returns the stretch to keep, at most maxLength long.
+ // lead and tail give a beat of run-up and aftermath so the cut doesn't start or end mid-sound.
+ static func highlight(levels: [Float],hop: Double,maxLength: Double,lead: Double = 1.5,tail: Double = 2.0,minLength: Double = 6) -> ClipCut? {
+  guard !levels.isEmpty, hop > 0, maxLength > 0 else { return nil }
+  let total = Double(levels.count) * hop
+  if total <= minLength { return ClipCut(start:0,end:total) }
+  // The clip is made right after the moment, so with nothing to go on the best guess is the most recent stretch.
+  let latest = ClipCut(start:max(0,total - maxLength),end:total)
+  let peak = levels.max() ?? 0
+  guard peak > 0.0005 else { return latest }
+  let sorted = levels.sorted()
+  let median = sorted[sorted.count / 2]
+  // Anything under this counts as quiet.
+  let floor = max(median * 1.5,peak * 0.10)
+  let energy = levels.map { max(0,Double($0) - Double(floor)) }
+  let window = max(1,min(levels.count,Int((maxLength / hop).rounded())))
+  var running = energy[0..<window].reduce(0,+)
+  var best = running
+  var bestStart = 0
+  var i = 1
+  while i + window <= levels.count {
+   running += energy[i + window - 1] - energy[i - 1]
+   // On a tie the later window wins: it is the more recent one.
+   if running >= best - 1e-9 { best = running; bestStart = i }
+   i += 1
+  }
+  let loud = (bestStart..<(bestStart + window)).filter { levels[$0] > floor }
+  guard let first = loud.first, let last = loud.last else { return latest }
+  var start = max(0,Double(first) * hop - lead)
+  var end = min(total,Double(last + 1) * hop + tail)
+  if end - start < minLength {
+   // A short burst: grow the cut around it until it is long enough to watch.
+   let middle = (start + end) / 2
+   start = max(0,middle - minLength / 2)
+   end = min(total,start + minLength)
+   start = max(0,end - minLength)
+  }
+  if end - start > maxLength { start = end - maxLength }
+  return ClipCut(start:start,end:end)
+ }
+}
+```
+
+## FILE: ClipEditor.swift
+
+```swift
+import AVFoundation
+import CoreImage
+import Cocoa
+
+// Cleans up a downloaded Twitch clip on the Mac, for free and with nothing to install (Apple's own video tools).
+//  1. Measures how loud the clip is moment to moment.
+//  2. ClipMath picks the highlight: the loudest stretch, with the quiet before and after cut off.
+//  3. Saves two files: the highlight as a normal wide video, and a tall 9:16 version (the game centered over a blurred copy
+//     of itself) for TikTok, Reels and Shorts.
+// It only reads the downloaded file and writes new files next to it. It never posts anything: Matthew does that himself.
+
+struct ClipFiles {
+ var original: URL
+ var landscape: URL?
+ var vertical: URL?
+ var cut: ClipCut
+ var note = ""
+}
+
+enum ClipEditError: LocalizedError {
+ case noExporter
+ var errorDescription: String? { "This Mac couldn't start its video exporter." }
+}
+
+enum ClipEditor {
+ static let hop = 0.25
+
+ // How loud each quarter second is, 0 to 1. Empty if the clip has no sound that can be read.
+ static func loudness(of url: URL) async -> [Float] {
+  let asset = AVURLAsset(url:url)
+  guard let tracks = try? await asset.loadTracks(withMediaType:.audio), let track = tracks.first,
+        let reader = try? AVAssetReader(asset:asset) else { return [] }
+  let settings: [String:Any] = [
+   AVFormatIDKey: Int(kAudioFormatLinearPCM),
+   AVLinearPCMBitDepthKey: 16,
+   AVLinearPCMIsFloatKey: false,
+   AVLinearPCMIsBigEndianKey: false,
+   AVLinearPCMIsNonInterleaved: false,
+   AVSampleRateKey: 16000,
+   AVNumberOfChannelsKey: 1
+  ]
+  let output = AVAssetReaderTrackOutput(track:track,outputSettings:settings)
+  guard reader.canAdd(output) else { return [] }
+  reader.add(output)
+  guard reader.startReading() else { return [] }
+  let perSlice = Int(16000 * hop)
+  var levels: [Float] = []
+  var sum = 0.0
+  var count = 0
+  while let buffer = output.copyNextSampleBuffer() {
+   guard let block = CMSampleBufferGetDataBuffer(buffer) else { continue }
+   let length = CMBlockBufferGetDataLength(block)
+   guard length >= 2 else { continue }
+   var samples = [Int16](repeating:0,count:length / 2)
+   let status = samples.withUnsafeMutableBytes { CMBlockBufferCopyDataBytes(block,atOffset:0,dataLength:length,destination:$0.baseAddress!) }
+   guard status == kCMBlockBufferNoErr else { continue }
+   for sample in samples {
+    let value = Double(sample) / 32768.0
+    sum += value * value
+    count += 1
+    if count == perSlice {
+     levels.append(Float((sum / Double(count)).squareRoot()))
+     sum = 0
+     count = 0
+    }
+   }
+  }
+  if count > perSlice / 2 { levels.append(Float((sum / Double(count)).squareRoot())) }
+  return levels
+ }
+
+ // Makes <folder>/highlight-wide.mp4 and <folder>/highlight-tall.mp4 from <folder>/original.mp4.
+ static func tidy(original: URL,folder: URL,maxLength: Double) async throws -> ClipFiles {
+  let asset = AVURLAsset(url:original)
+  let duration = try await asset.load(.duration).seconds
+  let levels = await loudness(of:original)
+  var cut = ClipMath.highlight(levels:levels,hop:hop,maxLength:maxLength) ?? ClipCut(start:max(0,duration - maxLength),end:duration)
+  cut.end = min(cut.end,duration)
+  cut.start = min(max(0,cut.start),max(0,cut.end - 1))
+  var files = ClipFiles(original:original,cut:cut)
+  if levels.isEmpty { files.note = "The clip's sound couldn't be read, so it kept the most recent \(Int(maxLength)) seconds. " }
+  let wide = folder.appendingPathComponent("highlight-wide.mp4")
+  let tall = folder.appendingPathComponent("highlight-tall.mp4")
+  do { try await export(original,to:wide,cut:cut,tall:false); files.landscape = wide }
+  catch { files.note += "The wide version failed: \(error.localizedDescription). " }
+  do { try await export(original,to:tall,cut:cut,tall:true); files.vertical = tall }
+  catch { files.note += "The tall version failed: \(error.localizedDescription). " }
+  if files.landscape == nil && files.vertical == nil { throw NSError(domain:"clips",code:10,userInfo:[NSLocalizedDescriptionKey:files.note]) }
+  return files
+ }
+
+ static func export(_ source: URL,to destination: URL,cut: ClipCut,tall: Bool) async throws {
+  let asset = AVURLAsset(url:source)
+  guard let session = AVAssetExportSession(asset:asset,presetName:AVAssetExportPresetHighestQuality) else { throw ClipEditError.noExporter }
+  session.timeRange = CMTimeRange(start:CMTime(seconds:cut.start,preferredTimescale:600),duration:CMTime(seconds:cut.length,preferredTimescale:600))
+  if tall { session.videoComposition = tallComposition(for:asset) }
+  try? FileManager.default.removeItem(at:destination)
+  try await session.export(to:destination,as:.mp4)
+ }
+
+ // 1080 x 1920: the video fitted to the full width in the middle, over a blurred, zoomed copy of itself that fills the frame.
+ // (Apple has marked this older, simpler composition class deprecated but it still works, and the warning it causes is harmless.)
+ static func tallComposition(for asset: AVAsset) -> AVVideoComposition {
+  let size = CGSize(width:1080,height:1920)
+  let composition = AVMutableVideoComposition(asset:asset,applyingCIFiltersWithHandler:{ request in
+   let source = request.sourceImage
+   let extent = source.extent
+   let fill = max(size.width / extent.width,size.height / extent.height)
+   var back = source.transformed(by:CGAffineTransform(scaleX:fill,y:fill))
+   let backExtent = back.extent
+   back = back.transformed(by:CGAffineTransform(translationX:(size.width - backExtent.width) / 2 - backExtent.origin.x,y:(size.height - backExtent.height) / 2 - backExtent.origin.y))
+   let blurred = back.clampedToExtent().applyingGaussianBlur(sigma:40).cropped(to:CGRect(origin:.zero,size:size))
+   let fit = size.width / extent.width
+   var front = source.transformed(by:CGAffineTransform(scaleX:fit,y:fit))
+   let frontExtent = front.extent
+   front = front.transformed(by:CGAffineTransform(translationX:-frontExtent.origin.x,y:(size.height - frontExtent.height) / 2 - frontExtent.origin.y))
+   request.finish(with:front.composited(over:blurred),context:nil)
+  })
+  composition.renderSize = size
+  return composition
+ }
+}
+```
+
 ## FILE: Hub.swift
 
 ```swift
@@ -4345,6 +4535,57 @@ import Foundation
   precondition(!CompanionPolicy.allowsAutomatic(engine:1,page:1,preview:false))
   precondition(!CompanionPolicy.allowsAutomatic(engine:1,page:0,preview:true))
   print("PASS: opt-in storage, cloud consent, pause/restart, removal, deletion, session declines, initiative cooldown, and local capture/automatic policy.")
+ }
+}
+```
+
+## FILE: checks/DataChecks.swift
+
+```swift
+import Foundation
+
+// Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader and the Stripe reader's key rules.
+// Run on any machine with Swift:
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+@main struct DataChecks {
+ static func main() {
+  let hop = 0.25
+  // A 30 second clip with a loud burst from 18 to 24 seconds keeps that burst plus a beat either side.
+  var burst = [Float](repeating:0.02,count:120)
+  for i in 72..<96 { burst[i] = 0.6 }
+  let cut = ClipMath.highlight(levels:burst,hop:hop,maxLength:25)!
+  precondition(abs(cut.start - 16.5) < 0.01 && abs(cut.end - 26.0) < 0.01)
+  // Two bursts and a short limit: the bigger, later one wins.
+  var two = [Float](repeating:0.02,count:120)
+  for i in 12..<16 { two[i] = 0.3 }
+  for i in 80..<92 { two[i] = 0.7 }
+  let later = ClipMath.highlight(levels:two,hop:hop,maxLength:8)!
+  precondition(later.start > 15 && later.length <= 8)
+  // Silence: nothing to go on, so keep the most recent stretch.
+  let quiet = ClipMath.highlight(levels:[Float](repeating:0,count:120),hop:hop,maxLength:25)!
+  precondition(abs(quiet.end - 30) < 0.01 && abs(quiet.length - 25) < 0.01)
+  precondition(ClipMath.highlight(levels:[],hop:hop,maxLength:25) == nil)
+  // Whatever the input, the cut stays inside the clip and never exceeds the limit (or the 6 second minimum).
+  for _ in 0..<500 {
+   let n = Int.random(in:8...240)
+   let levels = (0..<n).map { _ in Float.random(in:0...1) * (Bool.random() ? 0.05 : 0.9) }
+   let limit = Double.random(in:8...40)
+   let result = ClipMath.highlight(levels:levels,hop:hop,maxLength:limit)!
+   precondition(result.start >= 0 && result.end <= Double(n) * hop + 1e-9 && result.length > 0 && result.length <= max(limit,6) + 1e-6)
+  }
+
+  // The board: owner, text and status are pulled apart; an indented line continues the item above; done items aren't open.
+  let board = MeetingData.parse("# T\n_Last updated: x by y_\n## On the table\n- [A] one\n  more. Status: Done.\n- [B → C] two. Status: building\n## Q\n- hi\n")
+  precondition(board.sections.count == 2 && board.updated == "x by y")
+  let first = board.sections[0].items[0]
+  precondition(first.owner == "A" && first.text == "one more." && first.isDone)
+  precondition(board.sections[0].items[1].owner == "B → C" && board.openCount == 1)
+  precondition(MeetingData.parse("").sections.isEmpty)
+
+  // Stripe: only a restricted read-only key is accepted.
+  precondition(StripeData.keyProblem("sk_live_abc") != nil && StripeData.keyProblem("pk_live_abc") != nil)
+  precondition(StripeData.keyProblem("rk_live_abc") == nil && StripeData.keyProblem("rk_test_abc") == nil)
+  print("All data checks passed.")
  }
 }
 ```

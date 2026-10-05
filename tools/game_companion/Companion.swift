@@ -348,6 +348,7 @@ import Darwin
 struct LegacyContentView: View {
  @StateObject var c = Companion()
  @StateObject var live = LiveBuddy()
+ @StateObject var clips = TwitchClips()
  var body: some View {
   VStack(alignment:.leading,spacing:16) {
    Text("Game Companion").font(.largeTitle.bold())
@@ -359,7 +360,7 @@ struct LegacyContentView: View {
    HStack { Button("Test screen access (no AI)") { c.testScreenAccess() }.disabled(!c.sharing || c.busy); Button("Screen permission settings") { NSWorkspace.shared.open(URL(string:"x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!) } }
    HStack { Text("Game notes"); TextField("Game, build, what you want help with",text:$c.gameNotes) }
    if c.tab == 0 { liveControls } else { localControls }
-  }.padding(24).frame(width:650).onDisappear { live.stop(); c.stop() }
+  }.padding(24).frame(width:650).onAppear { live.clips = clips }.onDisappear { live.stop(); c.stop() }
  }
  // Split out so each half type-checks quickly.
  @ViewBuilder var liveControls: some View {
@@ -391,7 +392,27 @@ struct LegacyContentView: View {
   Text(live.status).font(.callout).foregroundStyle(.secondary)
   if !live.heard.isEmpty { Text("You: \(live.heard)").font(.callout) }
   ScrollView { Text(live.said.isEmpty ? "What your buddy says appears here." : live.said).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled) }.frame(minHeight:100)
+  clipControls
   Text("While it's on, Live buddy sends pictures of the chosen window (mostly while you talk, in Low usage) plus your microphone to Google. Google's free tier may use that data to improve its products. When it looks something up, only the name it's looking up goes to MetaBot or the Minecraft wiki. Nothing is saved on this Mac. Use headphones, or untick the box so it doesn't hear itself.").font(.caption).foregroundStyle(.secondary)
+ }
+ // Twitch clips: a separate Twitch account makes clips of the stream when Matthew clicks or asks.
+ @ViewBuilder var clipControls: some View {
+  Divider()
+  Text("Twitch clips").font(.headline)
+  HStack { Text("Your channel"); TextField("twitch.tv/…  (just the name)",text:$clips.channel) }
+  if clips.signedIn {
+   HStack {
+    Button("Clip the last 30 seconds") { Task { await clips.clipNow() } }.disabled(clips.busy)
+    Button("Sign out of Twitch") { clips.signOut() }
+   }
+   Toggle("Let the buddy clip when I say \"clip that\" (set before starting it)",isOn:$clips.voiceClips).disabled(live.running)
+  } else {
+   Text("One time: make a free Twitch account for clips, register this app at dev.twitch.tv/console (type: Public), and paste its Client ID here. The Client ID isn't a secret. See the README.").font(.caption).foregroundStyle(.secondary)
+   HStack { TextField("Client ID",text:$clips.clientID); Button("Sign in") { clips.signIn() } }
+   if !clips.userCode.isEmpty { Text("Code: \(clips.userCode)").font(.title3.monospaced()) }
+  }
+  if !clips.status.isEmpty { Text(clips.status).font(.callout).foregroundStyle(.secondary).textSelection(.enabled) }
+  if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } } }
  }
  @ViewBuilder var localControls: some View {
   Toggle("Hands-free conversation (use headphones)",isOn:$c.handsFree).disabled(!c.voiceReady)

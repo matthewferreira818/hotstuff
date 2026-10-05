@@ -6,6 +6,7 @@ import Combine
 struct CompanionInterfaceView: View {
  @StateObject var c = Companion()
  @StateObject var live = LiveBuddy()
+ @StateObject var clips = TwitchClips()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
  @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -17,7 +18,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips }
   .onDisappear { stopAll() }
   .onChange(of:conversation.page) { _,page in
    c.handsFree = false; c.stopMic(); c.cancelResponse(); c.automatic = false; c.history.removeAll(); c.reply = ""; c.input = ""; c.unloadModel()
@@ -82,6 +83,8 @@ struct CompanionInterfaceView: View {
   VStack(spacing:8) {
    Text(c.tab == 0 ? live.status : c.status).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).multilineTextAlignment(.center).lineLimit(3)
    if c.tab == 0 && !live.heard.isEmpty { Text(live.heard).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)).multilineTextAlignment(.center).lineLimit(2) }
+   if !clips.status.isEmpty { Text(clips.status).font(.system(size:12,design:.rounded)).foregroundStyle(Noir.crimsonLight.opacity(0.9)).multilineTextAlignment(.center).lineLimit(3).textSelection(.enabled) }
+   if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
    if !currentReply.isEmpty { Text(currentReply).font(.system(size:17,design:.rounded)).foregroundStyle(Color.white.opacity(0.92)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
   }
   .frame(maxWidth:.infinity,minHeight:120,alignment:.top)
@@ -105,6 +108,9 @@ struct CompanionInterfaceView: View {
    Button { c.choose() } label: { Image(systemName:"rectangle.on.rectangle") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.sharing)).disabled(DesignPreview.enabled).help("Choose the game window")
    Button { c.showKeyboard.toggle() } label: { Image(systemName:"keyboard") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.showKeyboard)).help("Type instead of talking")
    Button { mainAction() } label: { Image(systemName:mainIcon) }.buttonStyle(OrbButtonStyle(diameter:76,filled:true)).disabled(DesignPreview.enabled).help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session") : "Talk")
+   if clips.signedIn {
+    Button { Task { await clips.clipNow() } } label: { Image(systemName:"scissors") }.buttonStyle(OrbButtonStyle(diameter:54)).disabled(clips.busy).help("Clip the last 30 seconds")
+   }
    Button { c.showPanel = true } label: { Image(systemName:"slider.horizontal.3") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Settings and more")
    Button { stopAll() } label: { Image(systemName:"xmark") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Stop everything")
   }
@@ -292,6 +298,25 @@ struct CompanionInterfaceView: View {
    Text("Steady sends a picture on a timer, whether you talk or not. Shorter gaps use the free allowance faster. Google allows at most one picture per second.").font(.caption).foregroundStyle(.secondary)
   }
   Toggle("I'm wearing headphones",isOn:$live.headphones)
+  clipSettings
+ }
+ // Twitch clips: a separate Twitch account makes clips of the stream when asked (see Clips.swift and the README).
+ @ViewBuilder var clipSettings: some View {
+  Divider()
+  Text("Twitch clips").font(.headline)
+  HStack { Text("Your channel"); TextField("twitch.tv/…  (just the name)",text:$clips.channel) }
+  if clips.signedIn {
+   HStack {
+    Button("Clip the last 30 seconds") { Task { await clips.clipNow() } }.disabled(clips.busy)
+    Button("Sign out of Twitch") { clips.signOut() }
+   }
+   Toggle("Let the buddy clip when I say \"clip that\" (set before starting it)",isOn:$clips.voiceClips).disabled(live.running)
+  } else {
+   Text("One time: make a free Twitch account for clips, register this app at dev.twitch.tv/console (type: Public), and paste its Client ID here. The Client ID isn't a secret. See the README.").font(.caption).foregroundStyle(.secondary)
+   HStack { TextField("Client ID",text:$clips.clientID); Button("Sign in") { clips.signIn() } }
+   if !clips.userCode.isEmpty { Text("Code: \(clips.userCode)").font(.title3.monospaced()) }
+  }
+  if !clips.status.isEmpty { Text(clips.status).font(.callout).foregroundStyle(.secondary).textSelection(.enabled) }
  }
  @ViewBuilder var localSettings: some View {
   Toggle("Hands-free conversation",isOn:$c.handsFree).disabled(!c.voiceReady || DesignPreview.enabled)

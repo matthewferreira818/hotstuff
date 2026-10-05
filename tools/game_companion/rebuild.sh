@@ -22,8 +22,7 @@ cp "$DIR/Companion.swift" "$DIR/Live.swift" "$PROJECT/outputs/"
 # Screen Recording permission and the Keychain approval across rebuilds. An ad hoc signature
 # changes on every build, and macOS then treats the app as new.
 SIGN_ID="GameCompanion Signing"
-if security find-certificate -c "$SIGN_ID" >/dev/null 2>&1; then
- codesign --force --sign "$SIGN_ID" --preserve-metadata=entitlements,flags,runtime "$APP"
+if security find-certificate -c "$SIGN_ID" >/dev/null 2>&1 && codesign --force --sign "$SIGN_ID" --preserve-metadata=entitlements,flags,runtime "$APP"; then
  echo "Signed with the stable certificate, so permissions should stick from now on."
 else
  ID=$(codesign -dvv "$APP" 2>&1 | sed -n 's/^Authority=//p' | head -1)

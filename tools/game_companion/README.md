@@ -72,9 +72,11 @@ Each ad hoc signature is different, so after every rebuild macOS forgets the Scr
 permission and asks for the Keychain password again. The fix is a self-signed code-signing
 certificate, which `rebuild.sh` uses automatically when it exists:
 
-1. `open -a "Keychain Access"`, then use the menu: Keychain Access → Certificate Assistant →
-   Create a Certificate…
-2. Name: `GameCompanion Signing` · Identity Type: Self Signed Root · Certificate Type: Code Signing → Create.
+1. Run `zsh ~/hotstuff/tools/game_companion/make_cert.sh`. Newer macOS replaced Keychain Access
+   with the Passwords app, which can't make certificates, so the script does it with Apple's openssl
+   and `security import`.
+2. If the certificate exists but codesign won't use it, rebuild.sh falls back to ad hoc signing
+   instead of leaving a broken app.
 3. Rebuild. If macOS asks to let codesign use the key, enter the Mac password and choose Always Allow.
 4. Redo the screen permission and the Keychain "Always Allow" one last time.
 

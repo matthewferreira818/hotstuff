@@ -366,3 +366,19 @@ counts as switching the voice tools on, so the separate Stream switch is only ne
 Google's free live model is weaker at knowing things than at relaying what a tool returns, and Twitch's own answers are the
 reliable part. It does not make the model smarter; the model name is still in Settings ("Live model"). She still speaks only when
 Matthew talks to her.
+
+## Chat helper: posts Matthew's links and reminders in his Twitch chat (2026-10-05)
+
+A card on the Stream page (`ChatHelper.swift`, rules in `ChatData.swift`). It posts Matthew's own saved messages (starter set: his
+store link, a "use your Prime sub" reminder, a Follow reminder, and East Coast Social switched off) in his chat while he is live,
+from whichever Twitch account is signed in. Each message has its own on/off switch, text, and a wait (10 to 180 minutes); "Post now"
+sends one right away. **Off every time the app opens**; Start or Friday ("turn on the chat helper") turns it on. Rules built in:
+only while a Twitch check from the last 3 minutes says he is live; the first post waits 5 minutes after Start; at least 5 minutes
+between any two posts and at most 6 an hour; a message starting with `/` or `.` is refused (could be read as a chat command); 500
+characters max; two failures in a row switch it off. Friday can post a saved message by name (`post_chat_message`) or switch the helper
+(`chat_helper`), never free text. It writes "Posted in chat: …" to the Friday feed. Needs the `user:write:chat` permission, so sign out
+of Twitch (Accounts) and in again once. Twitch's Send Chat Message call was checked in its API reference on 2026-10-05. The rules and
+the reply reading are in `checks/DataChecks.swift` and pass; the posting itself has not been run on the Mac. The Prime starter
+message says Prime members get one free channel sub a month; Twitch's own pages could not be re-read from this build machine, so
+Matthew should check that wording against what Twitch offers today. NOT built yet: answering viewers' commands like `!store` (needs
+reading chat), and deleting spam or banning (needs the moderator permissions and a clear rule about who gets timed out).

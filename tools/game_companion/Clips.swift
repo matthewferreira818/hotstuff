@@ -47,8 +47,8 @@ enum TwitchTokens {
  var loginTask: Task<Void,Never>?
  var inFlight: Task<String,Never>?
  // clips:edit makes the clip. The two manage-clips permissions let the app download it (whichever fits the account).
- // channel:manage:broadcast lets the Stream page change the title and category and add stream markers.
- static let scopes = "clips:edit channel:manage:clips editor:manage:clips channel:manage:broadcast"
+ // channel:manage:broadcast lets the Stream page change the title and category and add stream markers; user:write:chat lets the chat helper post.
+ static let scopes = "clips:edit channel:manage:clips editor:manage:clips channel:manage:broadcast user:write:chat"
  static let queryAllowed = CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
 
  static let api = "https://api.twitch.tv/helix"

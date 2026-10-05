@@ -10,6 +10,7 @@ import AppKit
 
  @Published var channel: ChannelInfo?
  @Published var meID = ""
+ @Published var meLogin = ""
  @Published var live: StreamLive?
  @Published var followers: Int?
  @Published var clipRows: [ClipRow] = []
@@ -31,9 +32,13 @@ import AppKit
  // True once he has typed or picked something, so a refresh doesn't overwrite what he is working on.
  @Published var touched = false
  private var syncing = false
- private var lastRefresh = Date.distantPast
+ private(set) var lastRefresh = Date.distantPast
  private var twitch: TwitchClips?
  private var searchTask: Task<Void,Never>?
+
+ // Live according to a check made in the last three minutes. The chat helper posts only when this is true, so a failed check
+ // can't leave it posting after the stream has ended.
+ var liveNow: Bool { live != nil && Date().timeIntervalSince(lastRefresh) < 180 }
 
  // Changing the title needs the channel's own account. A separate clip account can still see the channel.
  var canEdit: Bool { channel != nil && !meID.isEmpty && channel?.id == meID }
@@ -56,6 +61,7 @@ import AppKit
   do {
    let (_,mine) = try await tw.call("/users")
    meID = (StreamData.rows(mine).first?["id"] as? String) ?? ""
+   meLogin = (StreamData.rows(mine).first?["login"] as? String) ?? ""
    let (_,theirs) = try await tw.call("/users?login=\(StreamData.encoded(login))")
    guard let id = StreamData.rows(theirs).first?["id"] as? String else {
     message = "Couldn't find a Twitch channel called \(login). Check the name in Settings."
@@ -266,6 +272,7 @@ extension CompanionInterfaceView {
      hubStreamStatus
      if !stream.canEdit { hubStreamWrongAccount }
      hubStreamEditor
+     hubStreamChat
      HStack(alignment:.top,spacing:14) {
       hubStreamActions
       hubStreamChecklist
@@ -468,6 +475,7 @@ extension CompanionInterfaceView {
    hubCheck(c.sharing,"A game window is chosen for Friday","Press Choose window on the Game page.")
    hubCheck(clips.voiceClips,"\"Clip it\" by voice is on","Tick it in Settings before starting Friday.")
    hubCheck(clips.voiceStream || live.role == 1,"Friday can run this page by voice","Set her job to Stream manager in Settings before starting her.")
+   hubCheck(chat.on,"Chat helper is on (posts your links while you're live)","Press Start in the Chat helper card.")
    hubCheck(stream.live != nil,"You're live on Twitch","Start streaming in OBS or Streamlabs.")
   }
   .padding(18).frame(maxWidth:.infinity,minHeight:300,alignment:.topLeading).hubCard()

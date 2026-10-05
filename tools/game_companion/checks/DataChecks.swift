@@ -2,7 +2,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -102,6 +102,31 @@ import Foundation
   precondition(many.count == 10 && many.first?.text == "m2" && many.last?.text == "m11")
   precondition(FeedFormat.clean(String(repeating:"x",count:2000)).count == FeedFormat.maxLength)
   precondition(FeedFormat.actionLabel("set_stream_title") == "Title" && FeedFormat.actionLabel("zzz") == "Action")
+  // The chat helper's rules: nothing posts right after starting, gaps and the hourly cap hold, the longest-waiting message goes
+  // first, and bad text (empty, too long, starting with / or .) is never sent.
+  let c0 = Date(timeIntervalSince1970:2_000_000)
+  let a = ChatTimer(id:"a",name:"A",text:"Store link",minutes:20,enabled:true)
+  let b = ChatTimer(id:"b",name:"B",text:"Prime",minutes:30,enabled:true)
+  let off = ChatTimer(id:"c",name:"C",text:"Off",minutes:10,enabled:false)
+  precondition(ChatPlan.next([a,b],lastPosted:[:],startedAt:c0,lastAny:nil,posts:[],now:c0.addingTimeInterval(4 * 60)) == nil)
+  precondition(ChatPlan.next([a,b],lastPosted:[:],startedAt:c0,lastAny:nil,posts:[],now:c0.addingTimeInterval(10 * 60)) == nil)
+  precondition(ChatPlan.next([a,b],lastPosted:[:],startedAt:c0,lastAny:nil,posts:[],now:c0.addingTimeInterval(21 * 60))?.id == "a")
+  // Both due, neither posted yet: the one that is further past its own wait goes first. After "A" went out at 21 minutes, "B" is next.
+  precondition(ChatPlan.next([a,b],lastPosted:[:],startedAt:c0,lastAny:nil,posts:[],now:c0.addingTimeInterval(55 * 60))?.id == "a")
+  precondition(ChatPlan.next([a,b],lastPosted:["a":c0.addingTimeInterval(21 * 60)],startedAt:c0,lastAny:c0.addingTimeInterval(21 * 60),posts:[c0.addingTimeInterval(21 * 60)],now:c0.addingTimeInterval(55 * 60))?.id == "b")
+  precondition(ChatPlan.next([a],lastPosted:["a":c0.addingTimeInterval(21 * 60)],startedAt:c0,lastAny:c0.addingTimeInterval(21 * 60),posts:[c0.addingTimeInterval(21 * 60)],now:c0.addingTimeInterval(38 * 60)) == nil)
+  precondition(ChatPlan.next([a],lastPosted:["a":c0.addingTimeInterval(21 * 60)],startedAt:c0,lastAny:c0.addingTimeInterval(21 * 60),posts:[c0.addingTimeInterval(21 * 60)],now:c0.addingTimeInterval(42 * 60))?.id == "a")
+  precondition(ChatPlan.next([off],lastPosted:[:],startedAt:c0,lastAny:nil,posts:[],now:c0.addingTimeInterval(99 * 60)) == nil)
+  let hourBurst = (0..<6).map { c0.addingTimeInterval(Double(100 * 60 + $0 * 360)) }
+  precondition(ChatPlan.next([a],lastPosted:[:],startedAt:c0,lastAny:hourBurst.last,posts:hourBurst,now:hourBurst.last!.addingTimeInterval(10 * 60)) == nil)
+  precondition(ChatPlan.problem("") != nil && ChatPlan.problem("/ban someone") != nil && ChatPlan.problem(".timeout x") != nil && ChatPlan.problem(String(repeating:"x",count:501)) != nil && ChatPlan.problem("Hi!") == nil)
+  precondition(ChatPlan.render("sub: twitch.tv/subs/{channel}",channel:"me") == "sub: twitch.tv/subs/me")
+  precondition(ChatPlan.clampMinutes(2) == 10 && ChatPlan.clampMinutes(999) == 180 && ChatPlan.defaults().allSatisfy { ChatPlan.problem($0.text) == nil })
+  precondition(ChatPlan.outcome(code:200,json:["data":[["message_id":"x","is_sent":true]]]).sent)
+  precondition(!ChatPlan.outcome(code:200,json:["data":[["is_sent":false,"drop_reason":["code":"x","message":"held by AutoMod"]]]]).sent && ChatPlan.outcome(code:200,json:["data":[["is_sent":false,"drop_reason":["code":"x","message":"held by AutoMod"]]]]).note.contains("AutoMod"))
+  precondition(ChatPlan.outcome(code:401,json:[:]).note.contains("sign in again") && !ChatPlan.outcome(code:429,json:[:]).sent)
+  let chatBody = try! JSONSerialization.jsonObject(with:ChatPlan.sendBody(broadcaster:"1",sender:"2",message:"hi")!) as! [String:String]
+  precondition(chatBody == ["broadcaster_id":"1","sender_id":"2","message":"hi"])
   print("All data checks passed.")
  }
 }

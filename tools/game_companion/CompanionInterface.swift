@@ -15,6 +15,7 @@ struct CompanionInterfaceView: View {
  @StateObject var meeting = MeetingHub()
  @StateObject var stream = StreamHub()
  @StateObject var feed = FridayFeed()
+ @StateObject var chat = ChatHub()
  @StateObject var corner = FridayCornerController()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
@@ -29,7 +30,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
@@ -207,7 +208,7 @@ struct CompanionInterfaceView: View {
   case .speaking: return "Speaking"
   }
  }
- func stopAll() { conversation.stopInitiative(); live.clearSession(); c.stop() }
+ func stopAll() { conversation.stopInitiative(); live.clearSession(); c.stop(); chat.stop() }
  @ViewBuilder var engineChoice: some View {
   Picker("Conversation mode",selection:$c.tab) { Text("On this Mac").tag(1); Text("Google Live").tag(0) }.pickerStyle(.segmented).disabled(live.running || c.busy)
   Text(c.tab == 0 ? "Google Live sends microphone audio, selected-window frames and messages to Google when started. Check your account's free-tier limits before use." : "On this Mac uses your existing Ollama model. A 4B model can slow an 8 GB Mac.").font(.caption).foregroundStyle(.secondary)

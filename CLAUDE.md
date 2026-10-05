@@ -51,9 +51,19 @@ than discovering something was papered over.
    here). Workflows must never echo payloads containing lead PII (public
    repo logs). One exception: URL-verification signature files are public
    tokens and may be copied in full.
-3. **Matthew clicks every final button** — Send/Post/Publish/Pay/Submit,
-   on every platform. Claude (and Chrome-extension Claude, "C.C") preps
-   everything and stops before submission. OS file dialogs are his.
+3. **Claude may post, publish and act for Matthew without asking each
+   time** (his decision, 2026-10-05, in his words: "you can post and do
+   things without me"): daily posts, site changes, workflows. Still his
+   own hands: payments and spending money, anything that needs his
+   identity or live presence (the Google verification video, signing,
+   bank and Moomoo logins), and secrets (rule 2). Messages to individual
+   people (prospects, clients, officials) still go through him until he
+   says otherwise. Rule 1 (honesty) still applies: every claim is
+   checked before it goes out, and the morning brief says what went out.
+   A channel only posts once its hookup works (X credits are shelved;
+   Meta and TikTok need their app reviews); until then Claude preps and
+   he posts. GPT posts or pushes live only with Claude's go-ahead. OS
+   file dialogs are his.
 4. **No fake documents, ever** — he once asked for a fake certificate; the
    answer was and remains no, and he accepted it. Same rule as #1.
 
@@ -144,6 +154,19 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   that's why worker alerts hop through a GitHub repository_dispatch relay.
 - raw.githubusercontent caches ~5 min — cache-bust paste links; GitHub
   Pages deploys in ~20–80s (poll with `?nc=$RANDOM`).
+
+## The crew (as of 2026-10-05)
+
+Matthew made Claude the lead, his right hand, with more responsibility than
+GPT (his ChatGPT Project, which has GitHub access). Claude directs the work
+on `meeting-room/BOARD.md` and reviews what GPT changes; if they disagree,
+Claude's call stands unless Matthew says otherwise. GPT may push to the repo
+but only files the board assigns to it, after pulling first, and anything
+that goes live or posts needs Claude's go-ahead; it logs what it did on the
+board. Claude reverts anything that breaks rule #1 (honesty) or #2
+(secrets). Several Claude chats can't see each other, so authority lives in
+this file and the board, not in any one chat. Claude still can't promise
+abilities it doesn't have.
 
 ## How decisions get made
 

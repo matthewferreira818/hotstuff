@@ -4,35 +4,84 @@ import Cocoa
 // The Meeting Room page: the shared board (see MeetingData.swift) plus a box that turns Matthew's message into a
 // ready-to-paste note for Claude or GPT. The chats can't see each other, so this is how they stay on the same page.
 @MainActor final class MeetingHub: ObservableObject {
+ static let tokenService = "GameCompanion.GitHubIssuesToken"
+ static let targets = ["Claude","GPT","Everyone"]
  @Published var board: Board?
+ @Published var messages: [RoomMessage] = []
  @Published var loading = false
  @Published var failed = false
- // Who the message is for: 0 Claude, 1 GPT, 2 a note for Claude to file on the board.
+ // Who a message is for: 0 Claude, 1 GPT, 2 everyone.
  @Published var to = 0
  @Published var draft = ""
  @Published var copied = ""
+ @Published var hasToken = Keychain.exists(MeetingHub.tokenService)
+ @Published var tokenInput = ""
+ @Published var tokenNote = ""
+ @Published var sending = false
+ @Published var sendNote = ""
  var lastRefresh = Date.distantPast
 
- func refresh(force: Bool = false) async {
+ // Reads the board and the message thread. Both are public, so no key is needed to read.
+ func refresh(minGap: Double = 600,force: Bool = false) async {
   guard !loading else { return }
-  if !force && Date().timeIntervalSince(lastRefresh) < 240 { return }
+  if !force && Date().timeIntervalSince(lastRefresh) < minGap { return }
   loading = true
   defer { loading = false }
-  if let fresh = await MeetingData.fetch() { board = fresh; failed = false } else { failed = (board == nil) }
+  async let boardResult = MeetingData.fetch()
+  async let messageResult = MeetingData.fetchMessages(token:nil)
+  let (fresh,thread) = await (boardResult,messageResult)
+  if let fresh = fresh { board = fresh; failed = false } else { failed = (board == nil) }
+  if let thread = thread { messages = thread }
   lastRefresh = Date()
  }
 
- // The text that gets copied. GPT gets the whole board because it can't read the repo by itself.
+ // Posts to the thread as Matthew. Needs the GitHub key limited to Issues on one repo (saved in the Keychain).
+ func send() async {
+  guard !sending else { return }
+  let words = draft.trimmingCharacters(in:.whitespacesAndNewlines)
+  guard !words.isEmpty else { return }
+  guard hasToken, let data = Keychain.read(MeetingHub.tokenService), let token = String(data:data,encoding:.utf8) else {
+   sendNote = "Connect posting first: the box below has the steps."
+   return
+  }
+  sending = true
+  defer { sending = false }
+  switch await MeetingData.post(words,from:"Matthew",to:MeetingHub.targets[to],token:token) {
+  case .ok:
+   draft = ""
+   sendNote = "Posted to the room."
+   await refresh(force:true)
+  case .failed(let reason):
+   sendNote = reason
+  }
+ }
+
+ func saveToken() {
+  if let problem = MeetingData.tokenProblem(tokenInput) { tokenNote = problem; return }
+  let key = tokenInput.trimmingCharacters(in:.whitespacesAndNewlines)
+  guard Keychain.write(MeetingHub.tokenService,Data(key.utf8)) else { tokenNote = "Couldn't save the key to your Keychain."; return }
+  tokenInput = ""
+  hasToken = true
+  tokenNote = "Saved. You can post from here now."
+ }
+
+ func forgetToken() {
+  Keychain.remove(MeetingHub.tokenService)
+  hasToken = false
+  tokenNote = ""
+ }
+
+ // The text that gets copied for pasting into a chat. GPT gets the whole board because it can't read the repo by itself.
  func message() -> String {
   let note = draft.trimmingCharacters(in:.whitespacesAndNewlines)
   switch to {
   case 0:
-   return "Message for Claude, from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nBefore you start, read meeting-room/BOARD.md in the hotstuff repo, and update it before you stop."
+   return "Message for Claude, from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nBefore you start, read meeting-room/BOARD.md and the thread (issue 15) in the hotstuff repo, and update them before you stop."
   case 1:
    let current = board?.raw ?? "(The board couldn't be loaded. Ask Matthew to paste it.)"
-   return "Message for GPT, from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nReply in plain words. If you did or decided something, finish with a \"Board update\" block in the board's format (## heading, then - [GPT] lines), so I can hand it to Claude. Never put keys, customer details or anything private in it. The current board:\n\n\(current)"
+   return "Message for GPT, from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nReply in plain words. If you did or decided something, post it in the thread (issue 15) as **[GPT]**, or finish with a \"Board update\" block. Never put keys, customer details or anything private in it. The current board:\n\n\(current)"
   default:
-   return "Claude, please add this to meeting-room/BOARD.md under the right heading (keep it short, one owner per item, no private details), then commit and push it:\n\n\(note)"
+   return "Message for everyone on the board, from Matthew:\n\n\(note)"
   }
  }
 
@@ -40,7 +89,7 @@ import Cocoa
   let pasteboard = NSPasteboard.general
   pasteboard.clearContents()
   pasteboard.setString(message(),forType:.string)
-  copied = to == 0 ? "Copied for Claude" : (to == 1 ? "Copied for GPT" : "Copied for the board")
+  copied = to == 0 ? "Copied for Claude" : (to == 1 ? "Copied for GPT" : "Copied")
   Task {
    try? await Task.sleep(nanoseconds:2_500_000_000)
    copied = ""
@@ -65,6 +114,7 @@ extension CompanionInterfaceView {
       .disabled(meeting.loading)
     }
     hubCrew
+    hubMessages
     if let board = meeting.board {
      ForEach(board.sections) { section in hubBoardSection(section) }
     } else if meeting.failed {
@@ -78,6 +128,7 @@ extension CompanionInterfaceView {
    .padding(.horizontal,32).padding(.bottom,30)
   }
   .scrollIndicators(.hidden)
+  .onAppear { Task { await meeting.refresh(minGap:60) } }
  }
 
  var hubCrew: some View {
@@ -146,10 +197,38 @@ extension CompanionInterfaceView {
   .hubCard()
  }
 
+ var hubMessages: some View {
+  VStack(alignment:.leading,spacing:12) {
+   HStack(spacing:8) {
+    Text("Messages").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    Text(String(meeting.messages.count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+    Spacer()
+    Button { if let url = URL(string:MeetingData.threadPage) { NSWorkspace.shared.open(url) } } label: { Label("Open the thread",systemImage:"arrow.up.right.square") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+   if meeting.messages.isEmpty {
+    Text("No messages yet. Say hello below.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   ForEach(meeting.messages.suffix(12)) { message in
+    VStack(alignment:.leading,spacing:5) {
+     HStack(spacing:8) {
+      hubPill(message.author.uppercased(),tint:hubOwnerTint(message.author))
+      if !message.to.isEmpty { Text("→ \(message.to)").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)) }
+      Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+     }
+     Text(message.text).font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.88)).textSelection(.enabled)
+    }
+   }
+  }
+  .padding(18)
+  .frame(maxWidth:.infinity,alignment:.leading)
+  .hubCard()
+ }
+
  var hubComposer: some View {
   VStack(alignment:.leading,spacing:12) {
    Text("Send a message").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
-   Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To GPT").tag(1); Text("Note for the board").tag(2) }
+   Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To GPT").tag(1); Text("To everyone").tag(2) }
     .pickerStyle(.segmented).labelsHidden().frame(maxWidth:440)
    TextEditor(text:$meeting.draft)
     .font(.system(size:13.5,design:.rounded))
@@ -159,19 +238,46 @@ extension CompanionInterfaceView {
     .background(RoundedRectangle(cornerRadius:14,style:.continuous).fill(Color.white.opacity(0.06)))
     .overlay(RoundedRectangle(cornerRadius:14,style:.continuous).stroke(Color.white.opacity(0.10),lineWidth:1))
    HStack(spacing:10) {
-    Button { meeting.copy() } label: { Label(meeting.copied.isEmpty ? "Copy message" : meeting.copied,systemImage:meeting.copied.isEmpty ? "doc.on.doc" : "checkmark") }
+    Button { Task { await meeting.send() } } label: { Label(meeting.sending ? "Posting…" : "Post to the room",systemImage:"paperplane.fill") }
      .buttonStyle(PillButtonStyle())
+     .disabled(meeting.sending || meeting.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
+    Button { meeting.copy() } label: { Label(meeting.copied.isEmpty ? "Copy for a chat" : meeting.copied,systemImage:meeting.copied.isEmpty ? "doc.on.doc" : "checkmark") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
      .disabled(meeting.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
     Button { if let url = URL(string:"https://claude.ai/code") { NSWorkspace.shared.open(url) } } label: { Label("Open Claude",systemImage:"arrow.up.right") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
     Button { if let url = URL(string:"https://chatgpt.com/") { NSWorkspace.shared.open(url) } } label: { Label("Open ChatGPT",systemImage:"arrow.up.right") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
-   Text(meeting.to == 0 ? "Copies your message plus a line telling Claude to read the board. Paste it into any Claude chat." : (meeting.to == 1 ? "Copies your message and today's board, so GPT starts from the same page. Paste it into your GPT Project." : "Copies a note for Claude to file on the board. To carry a GPT \"Board update\" over, paste GPT's block as your message and paste this into a Claude chat."))
+   if !meeting.sendNote.isEmpty { Text(meeting.sendNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
+   Text("Posting puts your message on the public thread for Claude and GPT to read, so keep it free of keys and private details. Copy for a chat puts the same message on your clipboard for pasting straight into a chat.")
     .font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))
+   if !meeting.hasToken { hubRoomTokenForm }
   }
   .padding(18)
   .frame(maxWidth:.infinity,alignment:.leading)
   .hubCard()
+ }
+
+ // The GitHub key for posting: fine-grained, one repo, Issues only. A classic key is refused on purpose.
+ @ViewBuilder var hubRoomTokenForm: some View {
+  if meeting.hasToken {
+   HStack(spacing:10) {
+    Label("Posting key saved in your Mac's Keychain",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
+    Spacer()
+    Button("Remove key") { meeting.forgetToken() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  } else {
+   Divider().overlay(Color.white.opacity(0.10))
+   Text("To post from here, make a free GitHub key that can only touch Issues on one repo:\n1. Click Make a GitHub key and sign in.\n2. Name it Meeting Room. Under Repository access choose Only select repositories, then hotstuff.\n3. Under Permissions, Repository permissions, set Issues to Read and write. Leave everything else on No access.\n4. Generate it, copy the key (it starts with github_pat_), paste it below and press Save key. Never paste it into a chat.")
+    .font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.65))
+   HStack(spacing:10) {
+    Button("Make a GitHub key") { if let url = URL(string:"https://github.com/settings/personal-access-tokens/new") { NSWorkspace.shared.open(url) } }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    SecureField("Paste your key here",text:$meeting.tokenInput).noirField()
+    Button("Save key") { meeting.saveToken() }.buttonStyle(PillButtonStyle())
+   }
+  }
+  if !meeting.tokenNote.isEmpty { Text(meeting.tokenNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
  }
 }

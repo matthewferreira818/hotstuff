@@ -527,8 +527,8 @@ extension CompanionInterfaceView {
   return c.sharing ? "Window chosen · ready" : "No window chosen yet"
  }
  var hubAccountsHeadline: String {
-  let connected = [live.hasKey,clips.signedIn,sales.hasKey].filter { $0 }.count
-  return "\(connected) of 3 logins connected"
+  let connected = [live.hasKey,clips.signedIn,sales.hasKey,meeting.hasToken].filter { $0 }.count
+  return "\(connected) of 4 logins connected"
  }
 
  // MARK: stock bot
@@ -966,6 +966,7 @@ extension CompanionInterfaceView {
     hubAccountRow("feed","megaphone.fill",HubColor.violet,"Your ECS feed","Reads the feed files findhotstuff.com already publishes. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
     hubAccountRow("github","gearshape.2.fill",HubColor.coral,"GitHub (automation status)","Reads the public status of your automations. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
     hubAccountRow("stripe","bag.fill",HubColor.amber,"Stripe (sales)","Orders and revenue, from a read-only key you paste yourself. It can't move money.",sales.hasKey ? "Connected" : "Not connected",sales.hasKey ? HubColor.green : Noir.crimsonLight,sales.hasKey ? "Manage" : "Connect") { hubStripeForm }
+    hubAccountRow("room","person.3.fill",HubColor.violet,"GitHub (Meeting Room posting)","Lets you post to the shared thread from this app. A key limited to Issues on one repo.",meeting.hasToken ? "Connected" : "Not connected",meeting.hasToken ? HubColor.green : Noir.crimsonLight,meeting.hasToken ? "Manage" : "Connect") { hubRoomTokenForm }
     hubAccountRow("cj","shippingbox.fill",HubColor.coral,"CJ Dropshipping (supplier)","Reads how fresh your product list is from the public site. The supplier login itself stays in GitHub.",hubCatalogStatus.0,hubCatalogStatus.1,nil) { EmptyView() }
     hubAccountRow("socials","person.2.fill",HubColor.violet,"X, TikTok, Facebook","Not connected. She would prepare posts and you click Post. TikTok and Meta also need their own app reviews first.","Coming later",HubColor.slate,nil) { EmptyView() }
    }

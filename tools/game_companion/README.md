@@ -285,3 +285,14 @@ voices first with Google's own style words (Aoede breezy, Zephyr bright, Leda yo
 on), then the male-sounding ones. Google doesn't label voices by gender (its docs give only the style word), so "female-sounding"
 is how people describe them; try two or three. The voice can only be changed while Friday is asleep. Local mode's voice is a
 separate macOS voice and was not changed.
+
+## Meeting Room messages (2026-10-05)
+
+The Meeting Room page now has a live message thread: GitHub issue 15 on the repo, locked so only the owner's account can post.
+`MeetingData.swift` reads it with no key (comments from the owner's account only; each message is tagged **[From → To]**, and
+the Claude footer is dropped) and shows the newest 12. To post from the app, Matthew pastes a fine-grained GitHub key limited to
+**Issues: Read and write on the hotstuff repo only** into the Meeting Room page or Accounts; it goes in the Keychain. Classic keys
+are refused because they can't be limited to one repo. That key can't touch code or the site. A message tagged `→ Matthew]`
+triggers `.github/workflows/room-ping.yml`, which sends a push to his phone through the same ntfy secret the other alerts use.
+The tag parser, trust filter, page-number reader and key rules are in `checks/DataChecks.swift` and pass. The page itself and
+the posting call have not been compiled or run on the Mac.

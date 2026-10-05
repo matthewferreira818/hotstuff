@@ -1,0 +1,32 @@
+name: Meeting Room ping
+
+# When Claude or GPT posts a message addressed to Matthew in the Meeting Room thread (issue 15), send a short push
+# to his phone. This is how a "ping" reaches him.
+# The thread is locked to people with write access, and only comments from the owner's own account are acted on.
+# The message text goes in through an environment variable, never pasted into the shell. Messages are public by
+# rule (no keys, no private details), and the ntfy topic is a secret that GitHub masks in logs.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    if: ${{ github.event.issue.number == 15 && github.event.comment.user.login == 'matthewferreira818' && contains(github.event.comment.body, '→ Matthew]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Matthew's phone
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          BODY: ${{ github.event.comment.body }}
+        run: |
+          if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC not set; no ping sent"; exit 0; fi
+          MSG=$(printf '%s' "$BODY" | head -n 1 | cut -c1-230)
+          curl -sS -o /dev/null -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
+            -H "Title: Meeting Room: a message for you" \
+            -H "Tags: speech_balloon" \
+            -H "Click: https://github.com/matthewferreira818/hotstuff/issues/15" \
+            -d "$MSG" || true

@@ -9,7 +9,7 @@ _Last updated: 2026-10-05 by Claude and GPT_
 - [GPT] Apply the approved page fixes in meeting-room/notes/claude-fixes-for-gpt.md on the branch gpt/claims-fixes-2026-10-05 (not master). Claude reviews and merges. Status: assigned
 - [Claude] Meeting Room messages: thread (issue 15) that Matthew, Claude and GPT can all post to, a posting box in the app, a phone push when a message is for Matthew, and a daily check by Claude. Built and tested here; the app part has not been compiled on the Mac. Status: waiting
 - [GPT] After pulling: compile-check again (new: MeetingData.swift and MeetingRoom.swift changed), run the data checks, then post the result in the thread as **[GPT → Claude]**. Also, if your app can run scheduled tasks, set one to read this board and the thread twice a day and reply in the thread. Status: assigned
-- [Matthew] Paste the Chrome Claude prompt (posting version) so it posts the Moncton group ad (draft 1 in meeting-room/notes/gpt-moncton-ad-drafts.md; last group ad was 08-28, so the 7-day rule allows it), then reply to real comments yourself. Status: waiting
+- [Matthew] The Moncton group ad was submitted by Chrome Claude on 2026-10-05 and is waiting on the group's admins (not live, so no link yet). Next: have Chrome Claude delete the stale Aug 19 pending post and leave the new one pending; no more posts in that group until the admins respond. Status: waiting
 - [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 7". Status: waiting
 - [Matthew] Answer four quick things so the sales ledger can be made true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting
 - [Matthew] Optional: make the GitHub key for posting from the app (Meeting Room page or Accounts, GitHub). Status: waiting
@@ -22,6 +22,7 @@ _Last updated: 2026-10-05 by Claude and GPT_
 ## Decisions
 - 2026-10-05: Public claims that stopped being true came down: "posts 3x daily" for X on /links, "going through Google's verification" on /setup, the "120 products" counts, and the Practice Desk page's $1 fee, superseded experiment and $1,000 footer. The false "3x a day" proof lines were scrubbed from the unused outreach drafts.
 - 2026-10-05: The "first paying client by Aug 31" goal was missed (zero clients). CLAUDE.md now says so. The research on what to do next is saved in the workflow output; the plan step and council review were cut off by the usage limit.
+- 2026-10-05: Chrome Claude's first group post went to admin approval instead of publishing. Claude's call: delete the stale Aug 19 pending ad (seven weeks old, so its claims can't be assumed true today), keep the new one pending, and stop posting there until the queue clears. Chrome Claude should stop on ANY pending-post banner, not just 'ads need approval'.
 - 2026-10-05: Matthew's decision: Chrome Claude may press Post itself for routine public posts from his own accounts, using text Claude approved (he no longer taps Post for those). Messages to individual people still wait for his yes.
 - 2026-10-05: Claude reviewed GPT's Moncton ad drafts (all use only true wording; offer matches CLAUDE.md) and picked draft 1. GPT's New Brunswick business-setup notes are merged as research with official sources, not advice; the CRA/federal "business number" source conflict in them needs a professional to settle when Matthew is ready for the legal step.
 - 2026-10-05: Claude merged GPT's offline claim checker (tools/claims_check.py, 49 tests pass, never approves or posts) and its honesty audit. Streak decided: the public count is 59 days since August 7 (the feed page began then); the first three cards were repo output only. The checker misses "3x a day"-style frequency claims: GPT to add.
@@ -38,5 +39,6 @@ _Last updated: 2026-10-05 by Claude and GPT_
 - 2026-10-05: Friday clips only when Matthew says "clip it". A Twitch clip is public the moment it exists, so no clipping on her own.
 
 ## Known problems
+- The Moncton group's admin queue looks backed up: an Aug 19 ad has been pending about seven weeks, and the new 2026-10-05 ad is pending too. New ads there may not appear, so don't count on this channel until an admin clears the queue.
 - X posting has been refused since Sept 16 because the X credits ran out (GitHub issue 14). Parked until the first invoice clears.
 - The Stripe reader has never run against a real Stripe account, so the first real key is the true test.

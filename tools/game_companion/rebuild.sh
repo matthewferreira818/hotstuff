@@ -18,9 +18,18 @@ cp -R "$APP" "$PROJECT/outputs/GameCompanion-backup.app"
 cp "$TMP/$EXE" "$APP/Contents/MacOS/$EXE"
 cp "$DIR/Companion.swift" "$DIR/Live.swift" "$PROJECT/outputs/"
 
-# Re-sign with whatever identity the app already had (ad hoc if none).
-ID=$(codesign -dvv "$APP" 2>&1 | sed -n 's/^Authority=//p' | head -1)
-codesign --force --sign "${ID:--}" --preserve-metadata=entitlements,requirements,flags,runtime "$APP"
+# Sign with the stable "GameCompanion Signing" certificate when it exists, so macOS keeps the
+# Screen Recording permission and the Keychain approval across rebuilds. An ad hoc signature
+# changes on every build, and macOS then treats the app as new.
+SIGN_ID="GameCompanion Signing"
+if security find-certificate -c "$SIGN_ID" >/dev/null 2>&1; then
+ codesign --force --sign "$SIGN_ID" --preserve-metadata=entitlements,flags,runtime "$APP"
+ echo "Signed with the stable certificate, so permissions should stick from now on."
+else
+ ID=$(codesign -dvv "$APP" 2>&1 | sed -n 's/^Authority=//p' | head -1)
+ codesign --force --sign "${ID:--}" --preserve-metadata=entitlements,requirements,flags,runtime "$APP"
+ echo "No \"$SIGN_ID\" certificate yet, so it's signed ad hoc and permissions will reset."
+fi
 
 echo "Done. Open Game Companion from the Desktop icon, then redo the screen permission."
 echo "(If anything is wrong, the old app is saved as outputs/GameCompanion-backup.app)"

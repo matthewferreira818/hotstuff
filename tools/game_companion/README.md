@@ -65,3 +65,16 @@ cloud machine has no Mac SDK. The first rebuild on the Mac is the full compile c
 
 3. If macOS asks for Screen Recording or Microphone permission again, allow it. A
    rebuilt app can look "new" to macOS.
+
+## Make permissions survive rebuilds (one time)
+
+Each ad hoc signature is different, so after every rebuild macOS forgets the Screen Recording
+permission and asks for the Keychain password again. The fix is a self-signed code-signing
+certificate, which `rebuild.sh` uses automatically when it exists:
+
+1. `open -a "Keychain Access"`, then use the menu: Keychain Access → Certificate Assistant →
+   Create a Certificate…
+2. Name: `GameCompanion Signing` · Identity Type: Self Signed Root · Certificate Type: Code Signing → Create.
+3. Rebuild. If macOS asks to let codesign use the key, enter the Mac password and choose Always Allow.
+4. Redo the screen permission and the Keychain "Always Allow" one last time.
+

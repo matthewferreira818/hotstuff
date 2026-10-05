@@ -17,6 +17,7 @@ The board is `BOARD.md`. Matthew sees it in the Game Companion app under **Meeti
 4. **It's a board, not a log.** When an item is done, delete it, or turn it into one line under Decisions.
 5. **Matthew decides.** Questions for him go under Questions. His answers go under Decisions, with the date.
 6. **Matthew clicks every final button.** Nothing on this board authorizes posting, paying, sending or publishing.
+7. **GPT reads, it doesn't push.** GPT has GitHub access to this repo (2026-10-05). The site deploys from `master`, so a push there goes live without Matthew's click. GPT never pushes to `master`. If its access ever includes write, it works only on a branch named `gpt/<topic>` and touches only `meeting-room/`; Claude merges. Everything else GPT sends as notes.
 
 ## Format
 

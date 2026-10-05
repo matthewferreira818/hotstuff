@@ -304,3 +304,29 @@ automations, sales and the Meeting Room together, spins while it works, and show
 Messages card has its own Refresh too. A page left open also refreshes itself once a minute (stocks, Meeting Room, or the
 store/ECS/Systems numbers), and the Meeting Room uses the saved GitHub key for its reads when there is one, because GitHub allows
 far more reads with a key than without (60 an hour). Without a key the Meeting Room refreshes about every five minutes.
+
+## New orb, corner popup, movable tabs and the Stream page (2026-10-05)
+
+**The orb** (`FridayOrb.swift`) was rewritten: a soft glow behind it that matches its colour and pulses with the voice, a
+glassy sphere with drifting colour inside and a bright core, and little sparks in orbit while she talks. It reacts to both
+her voice and Matthew's, in live mode and local mode. Under it, a small glass bar switches the look (red orb, emoji faces,
+robot, fire); it fades back until the pointer is over the orb. The choice is saved on the Mac. The Home page's orb hides the bar.
+
+**The corner popup** (`FridayCorner.swift`) is a small Siri-style card in a corner of the screen while Friday is live. It shows the
+orb (reacting to voice), what she is hearing or saying, and a close button. It appears whenever the app's window is out of sight:
+minimized, hidden, or another app (the game) in front. It floats over full-screen apps, can be dragged, and a click brings the
+app forward. Settings, Live voice has an on/off switch and a choice of corner. It starts nothing and sends nothing; it only shows
+what the live session already knows. Compiles and parses; not seen on the Mac yet.
+
+**Movable tabs**: drag any icon on the left rail to a new spot, or right-click an icon for Move up, Move down and Put the icons
+back in the original order. The order is saved on the Mac, and Command-1 to Command-0 now follow the order you set. Not run on
+the Mac yet (drag and drop in a scrolling list is the part most likely to need a fix).
+
+**The Stream page** (`StreamData.swift`, `StreamManager.swift`): a friendly Twitch channel manager. It shows live or offline,
+viewers, time on air, category and followers; lets you change the stream title and category (with a category search and saved
+presets); marks a moment in a live stream; clips the last moments (same as the clip button); lists the latest clips; and runs a
+go-live checklist. It uses the same Twitch login as the clip button, with one more permission (`channel:manage:broadcast`), so
+sign out of Twitch (Accounts) and sign in again once. Changing the title or category only works when the signed-in account is the
+channel's owner; with a separate clip account the page still shows the channel and says so. Twitch doesn't let apps start a stream,
+so that stays in OBS or Streamlabs. Endpoints and permissions were checked against Twitch's API reference on 2026-10-05; the
+reading and error-explaining code is in `checks/DataChecks.swift` and passes. The page itself has not been compiled or run on the Mac.

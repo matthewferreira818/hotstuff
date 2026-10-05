@@ -45,7 +45,8 @@ enum TwitchTokens {
  var loginTask: Task<Void,Never>?
  var inFlight: Task<String,Never>?
  // clips:edit makes the clip. The two manage-clips permissions let the app download it (whichever fits the account).
- static let scopes = "clips:edit channel:manage:clips editor:manage:clips"
+ // channel:manage:broadcast lets the Stream page change the title and category and add stream markers.
+ static let scopes = "clips:edit channel:manage:clips editor:manage:clips channel:manage:broadcast"
  static let queryAllowed = CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
 
  static let api = "https://api.twitch.tv/helix"
@@ -106,7 +107,7 @@ enum TwitchTokens {
  // MARK: clipping
 
  // Calls Twitch with the saved login. If the token has expired, refreshes it once and retries.
- func call(_ path: String,method: String = "GET") async throws -> (Int,[String:Any]) {
+ func call(_ path: String,method: String = "GET",body: Data? = nil) async throws -> (Int,[String:Any]) {
   guard var tokens = TwitchTokens.load(), let access = tokens["access"] else { throw NSError(domain:"clips",code:1,userInfo:[NSLocalizedDescriptionKey:"Not signed in to Twitch."]) }
   var token = access
   for attempt in 0..<2 {
@@ -114,6 +115,7 @@ enum TwitchTokens {
    request.httpMethod = method
    request.setValue("Bearer \(token)",forHTTPHeaderField:"Authorization")
    request.setValue(clientID.trimmingCharacters(in:.whitespacesAndNewlines),forHTTPHeaderField:"Client-Id")
+   if let body = body { request.httpBody = body; request.setValue("application/json",forHTTPHeaderField:"Content-Type") }
    let (data,response) = try await session.data(for:request)
    let code = (response as? HTTPURLResponse)?.statusCode ?? 0
    if code == 401 && attempt == 0, let refresh = tokens["refresh"], !refresh.isEmpty {

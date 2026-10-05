@@ -1,8 +1,8 @@
 import Foundation
 
-// Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader and the Stripe reader's key rules.
+// Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -52,6 +52,31 @@ import Foundation
   // Stripe: only a restricted read-only key is accepted.
   precondition(StripeData.keyProblem("sk_live_abc") != nil && StripeData.keyProblem("pk_live_abc") != nil)
   precondition(StripeData.keyProblem("rk_live_abc") == nil && StripeData.keyProblem("rk_test_abc") == nil)
+
+  // Twitch: an empty stream list means offline, a live row is read, titles are checked, and refusals come out in plain words.
+  precondition(StreamData.parseStream(["data":[]]) == nil)
+  let liveRow: [String:Any] = ["data":[["type":"live","title":"Night run","game_name":"Minecraft","viewer_count":12,"started_at":"2026-10-05T20:00:00Z"]]]
+  let onAir = StreamData.parseStream(liveRow)!
+  precondition(onAir.title == "Night run" && onAir.game == "Minecraft" && onAir.viewers == 12 && onAir.startedAt != nil)
+  let chan = StreamData.parseChannel(["data":[["broadcaster_id":"7","broadcaster_login":"me","broadcaster_name":"Me","title":"t","game_id":"27471","game_name":"Minecraft"]]])!
+  precondition(chan.id == "7" && chan.gameID == "27471" && StreamData.parseChannel(["data":[]]) == nil)
+  precondition(StreamData.parseCategories(["data":[["id":"1","name":"A"],["id":"","name":"skip"],["name":"no id"]]]).map { $0.name } == ["A"])
+  let clipRows = StreamData.parseClips(["data":[["id":"c","url":"u","title":"T","view_count":3,"duration":28.5,"created_at":"2026-10-05T20:00:00Z"],["id":"d"]]])
+  precondition(clipRows.count == 1 && clipRows[0].views == 3 && abs(clipRows[0].seconds - 28.5) < 0.001)
+  precondition(StreamData.parseFollowerTotal(["total":41,"data":[]]) == 41 && StreamData.parseFollowerTotal([:]) == nil)
+  precondition(StreamData.duration(7500) == "2h 05m" && StreamData.duration(420) == "7m")
+  let t0 = Date(timeIntervalSince1970:1_000_000)
+  precondition(StreamData.uptime(from:t0,to:t0.addingTimeInterval(20)) == "just started" && StreamData.uptime(from:t0,to:t0.addingTimeInterval(8040)) == "2h 14m")
+  precondition(StreamData.titleProblem("  ") != nil && StreamData.titleProblem(String(repeating:"x",count:141)) != nil && StreamData.titleProblem("Night run") == nil)
+  let bodyWithGame = try! JSONSerialization.jsonObject(with:StreamData.updateBody(title:" Hi ",gameID:"9")!) as! [String:String]
+  precondition(bodyWithGame == ["title":"Hi","game_id":"9"])
+  let bodyNoGame = try! JSONSerialization.jsonObject(with:StreamData.updateBody(title:"Hi",gameID:nil)!) as! [String:String]
+  precondition(bodyNoGame == ["title":"Hi"])
+  let marker = try! JSONSerialization.jsonObject(with:StreamData.markerBody(userID:"7",note:String(repeating:"n",count:200))!) as! [String:String]
+  precondition(marker["user_id"] == "7" && marker["description"]?.count == 140)
+  precondition(StreamData.encoded("Just Chatting & more") == "Just%20Chatting%20%26%20more")
+  precondition(StreamData.explain(code:401,message:nil,doing:"x").contains("sign in again") && StreamData.explain(code:404,message:nil,doing:"add a marker").contains("VODs"))
+  precondition(StreamData.explain(code:400,message:"bad",doing:"x").contains("bad"))
   print("All data checks passed.")
  }
 }

@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit 1cc07af. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit 2185c38. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -61,7 +61,8 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `Conversation.swift`: Opt-in memory, stored on the Mac only, never in Git.
 - `CompanionConversation.swift`: Hooks the memory and Friday's own questions into the local engine.
 - `CompanionInterface.swift`: The main window: Friday's orb, captions, controls and the settings sheet.
-- `FridayOrb.swift`: The look: noir palette, the animated crimson orb, background, cards and buttons.
+- `FridayOrb.swift`: The look: noir palette, the animated orb with its aura and look picker, background, cards and buttons.
+- `FridayCorner.swift`: The Siri-style popup in a screen corner while Friday is live and the window is out of sight.
 - `StockData.swift`: Reads the stock bot's public practice snapshots. Read-only.
 - `VentureData.swift`: Reads the store's public visitor counters, the ECS feed, GitHub automation status and the product list age.
 - `StripeData.swift`: Reads store sales from Stripe with a read-only restricted key. GET requests only.
@@ -69,6 +70,8 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `MeetingRoom.swift`: The Meeting Room page: the board, the crew, and a box that makes a ready-to-paste note for Claude or GPT.
 - `ClipMath.swift`: Picks the highlight out of a clip from how loud it is. Pure maths, tested.
 - `ClipEditor.swift`: Cuts the highlight and makes a wide and a tall (9:16) version with Apple's video tools.
+- `StreamData.swift`: Reads Twitch's answers (live status, channel, clips, followers) and explains its errors in plain words. Tested.
+- `StreamManager.swift`: The Stream page: live status, title and category editor with presets, markers, clips and a go-live checklist.
 - `Hub.swift`: The hub: sidebar sections, Home, Stock, Store, ECS, Systems, Launchpad, Game and Accounts pages.
 - `rebuild.sh`: Builds the app with swiftc (no Xcode), signs it and installs it.
 - `make_cert.sh`: One-time: makes the self-signed signing certificate so permissions and Keychain trust stick.
@@ -1304,7 +1307,8 @@ enum TwitchTokens {
  var loginTask: Task<Void,Never>?
  var inFlight: Task<String,Never>?
  // clips:edit makes the clip. The two manage-clips permissions let the app download it (whichever fits the account).
- static let scopes = "clips:edit channel:manage:clips editor:manage:clips"
+ // channel:manage:broadcast lets the Stream page change the title and category and add stream markers.
+ static let scopes = "clips:edit channel:manage:clips editor:manage:clips channel:manage:broadcast"
  static let queryAllowed = CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
 
  static let api = "https://api.twitch.tv/helix"
@@ -1365,7 +1369,7 @@ enum TwitchTokens {
  // MARK: clipping
 
  // Calls Twitch with the saved login. If the token has expired, refreshes it once and retries.
- func call(_ path: String,method: String = "GET") async throws -> (Int,[String:Any]) {
+ func call(_ path: String,method: String = "GET",body: Data? = nil) async throws -> (Int,[String:Any]) {
   guard var tokens = TwitchTokens.load(), let access = tokens["access"] else { throw NSError(domain:"clips",code:1,userInfo:[NSLocalizedDescriptionKey:"Not signed in to Twitch."]) }
   var token = access
   for attempt in 0..<2 {
@@ -1373,6 +1377,7 @@ enum TwitchTokens {
    request.httpMethod = method
    request.setValue("Bearer \(token)",forHTTPHeaderField:"Authorization")
    request.setValue(clientID.trimmingCharacters(in:.whitespacesAndNewlines),forHTTPHeaderField:"Client-Id")
+   if let body = body { request.httpBody = body; request.setValue("application/json",forHTTPHeaderField:"Content-Type") }
    let (data,response) = try await session.data(for:request)
    let code = (response as? HTTPURLResponse)?.statusCode ?? 0
    if code == 401 && attempt == 0, let refresh = tokens["refresh"], !refresh.isEmpty {
@@ -1703,6 +1708,8 @@ struct CompanionInterfaceView: View {
  @StateObject var ventures = VentureHub()
  @StateObject var sales = SalesHub()
  @StateObject var meeting = MeetingHub()
+ @StateObject var stream = StreamHub()
+ @StateObject var corner = FridayCornerController()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
  let refreshTick = Timer.publish(every:300,on:.main,in:.common).autoconnect()
@@ -1716,7 +1723,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
@@ -1987,6 +1994,8 @@ struct CompanionInterfaceView: View {
   if live.hasKey { HStack { Text("Google key saved in Keychain"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
   else { HStack { SecureField("Google API key",text:$live.keyInput); Button("Save key") { live.saveKey() }.disabled(DesignPreview.enabled); Button("Get a key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }.disabled(DesignPreview.enabled) } }
   Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)
+  Toggle("Pop up in a corner when the window is out of sight while Friday is live",isOn:$corner.enabled)
+  Picker("Corner",selection:$corner.position) { Text("Top right").tag(0); Text("Top left").tag(1); Text("Bottom right").tag(2); Text("Bottom left").tag(3) }.pickerStyle(.segmented).disabled(!corner.enabled)
   TextField("Live model",text:$live.liveModel).disabled(live.running)
   Toggle("Look up game facts using the wiki",isOn:$live.wiki).disabled(live.running)
   Toggle("Use Google Search for game facts",isOn:$live.search).disabled(live.running)
@@ -2068,7 +2077,7 @@ enum Noir {
 
 enum OrbState { case off, idle, listening, thinking, speaking }
 
-// Appearance stays on this Mac. Keeping the picker here avoids changing the voice engines.
+// How Friday looks. The choice is saved on this Mac and shared by every place she appears.
 enum FridayLook: String, CaseIterable, Identifiable {
  case orb, faces, robot, fire
  var id: String { rawValue }
@@ -2088,21 +2097,25 @@ enum FridayLook: String, CaseIterable, Identifiable {
 }
 
 @MainActor final class FridayAppearance: ObservableObject {
- @Published var look: FridayLook {
-  didSet { UserDefaults.standard.set(look.rawValue,forKey:"friday.appearance") }
- }
+ static let shared = FridayAppearance()
+ @Published var look: FridayLook { didSet { UserDefaults.standard.set(look.rawValue,forKey:"friday.appearance") } }
+ // True while the pointer is over an orb, which brings the look picker fully into view.
+ @Published var hovering = false
  init() { look = FridayLook(rawValue:UserDefaults.standard.string(forKey:"friday.appearance") ?? "") ?? .orb }
 }
 
-// The caller supplies the current activity, clock and measured sound level (0...1).
-// No microphone, network connection or speech starts from this view.
+// Friday as a glowing orb: a wide aura that fades smoothly into whatever is behind it (no hard edges, no dark ring), a liquid sphere of
+// drifting light with a bright core that pulses with sound, a slowly turning glass rim, ripples while she talks or listens, and a few
+// sparks orbiting. It only draws. The caller passes the state, the clock (`t`) and how loud the sound is (`level`, 0 to 1).
 struct FridayOrb: View {
  var state: OrbState
  var t: Double
  var level: Double = 0
  var size: CGFloat = 230
  var animated = true
- @StateObject private var appearance = FridayAppearance()
+ // The small look picker under the orb. Hidden where the orb is tiny.
+ var showsPicker = true
+ @ObservedObject private var appearance = FridayAppearance.shared
  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
  private var moves: Bool { animated && !reduceMotion }
@@ -2110,143 +2123,201 @@ struct FridayOrb: View {
   guard moves, level.isFinite, state == .listening || state == .speaking else { return 0 }
   return min(1,max(0,level))
  }
+ // How fast the light drifts inside the orb.
  private var flow: Double {
-  switch state { case .off: return 0; case .idle: return 0.28; case .listening: return 0.55; case .thinking: return 0.95; case .speaking: return 0.7 }
+  switch state { case .off: return 0.0; case .idle: return 0.6; case .listening: return 1.0; case .thinking: return 2.0; case .speaking: return 1.5 }
  }
- private var activity: String {
-  switch state { case .off: return "Asleep"; case .idle: return "Ready"; case .listening: return "Listening"; case .thinking: return "Thinking"; case .speaking: return "Speaking" }
+ private var glow: Double {
+  switch state { case .off: return 0.30; case .idle: return 0.60; case .listening: return 0.72; case .thinking: return 0.68; case .speaking: return 0.88 }
  }
 
  var body: some View {
   let time = moves ? t : 0
-  let phase = time * flow
-  let breath = moves && state != .off ? sin(time * 1.4) * 0.012 : 0
-  let swell = 1 + breath + sound * 0.085
   ZStack {
-   halo
+   aura(time)
    if appearance.look == .orb {
-    fluid(phase).scaleEffect(swell).opacity(state == .off ? 0.45 : 1)
+    sphere(time)
+     .scaleEffect(1 + (moves && state != .off ? sin(time * 1.3) * 0.012 : 0) + sound * 0.09)
+     .opacity(state == .off ? 0.62 : 1)
    } else {
-    emoji(phase).scaleEffect(1 + sound * 0.10).opacity(state == .off ? 0.55 : 1)
+    bubble(time)
+     .scaleEffect(1 + sound * 0.08)
+     .opacity(state == .off ? 0.7 : 1)
+   }
+   sparks(time)
+  }
+  .frame(width:size * 1.7,height:size * 1.45)
+  .contentShape(Rectangle())
+  .onHover { inside in appearance.hovering = inside }
+  .overlay(alignment:.bottom) {
+   if showsPicker {
+    FridayLookDock()
+     .opacity(appearance.hovering ? 1 : 0.55)
+     .scaleEffect(appearance.hovering ? 1 : 0.94)
+     .animation(.spring(response:0.35,dampingFraction:0.8),value:appearance.hovering)
+     .padding(.bottom,2)
    }
   }
-  .frame(width:size*1.7,height:size*1.45)
-  .overlay(alignment:.bottom) { appearanceMenu.padding(.bottom,4) }
  }
 
- private var halo: some View {
-  Circle()
-   .fill(RadialGradient(colors:[Noir.crimson.opacity(state == .off ? 0.12 : 0.28 + sound * 0.18),Noir.crimsonDeep.opacity(0.10),.clear],center:.center,startRadius:size*0.20,endRadius:size*0.69))
-   .frame(width:size*1.4,height:size*1.4)
-   .scaleEffect(1 + sound * 0.12)
-   .accessibilityHidden(true)
- }
-
- private func fluid(_ phase: Double) -> some View {
-  let contour = FridayContour(phase:phase,energy:sound)
+ // The aura. Every gradient ends in the same colour at zero strength, never plain clear, so the fade has no grey or black fringe,
+ // and none of it is blurred inside a box, so nothing is cut off at an edge.
+ private func aura(_ time: Double) -> some View {
+  let breath = 0.5 + 0.5 * sin(time * 0.9)
+  let strength = glow * (0.85 + 0.15 * breath) + sound * 0.30
+  let violet = Color(red:0.55,green:0.26,blue:0.90)
   return ZStack {
-   contour.fill(RadialGradient(colors:[Noir.crimsonLight,Noir.crimson,Noir.crimsonDeep],center:.topLeading,startRadius:0,endRadius:size*0.9))
-   ZStack {
-    ForEach(0..<5,id:\.self) { i in current(i,phase) }
-    // A warm bright crest and shaded base give the moving colour depth.
-    Ellipse()
-     .fill(LinearGradient(colors:[Color(red:1,green:0.86,blue:0.84).opacity(0.85),Noir.crimsonLight.opacity(0.05)],startPoint:.topLeading,endPoint:.bottomTrailing))
-     .frame(width:size*0.92,height:size*0.39)
-     .rotationEffect(.degrees(-25 + sin(phase*0.8)*12))
-     .offset(x:-size*0.12,y:-size*(0.24 + sound*0.035))
-     .blur(radius:size*0.075)
-    Ellipse().fill(Noir.crimsonDeep.opacity(0.85))
-     .frame(width:size*1.15,height:size*0.36)
-     .rotationEffect(.degrees(16 + sin(phase)*10))
-     .offset(x:size*0.1,y:size*0.38).blur(radius:size*0.08)
+   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(min(0.75,0.62 * strength)),Noir.crimson.opacity(0.22 * strength),Noir.crimson.opacity(0)],center:.center,startRadius:size * 0.28,endRadius:size * 1.12))
+    .frame(width:size * 2.3,height:size * 2.3)
+    .scaleEffect(1 + 0.035 * breath + sound * 0.12)
+   Circle().fill(RadialGradient(colors:[violet.opacity(0.30 * glow),violet.opacity(0)],center:.center,startRadius:0,endRadius:size * 0.85))
+    .frame(width:size * 1.7,height:size * 1.7)
+    .offset(x:cos(time * 0.33) * size * 0.16,y:sin(time * 0.27) * size * 0.12)
+   Circle().stroke(Noir.crimsonLight.opacity(0.30 * glow + sound * 0.35),lineWidth:size * 0.03)
+    .frame(width:size,height:size)
+    .blur(radius:size * 0.05)
+   if moves && (state == .listening || state == .speaking) {
+    ForEach(0..<3,id:\.self) { i in ripple(i,time) }
    }
+  }
+ }
+
+ private func ripple(_ i: Int,_ time: Double) -> some View {
+  let rate = state == .speaking ? 0.55 : 0.35
+  let phase = (time * rate + Double(i) / 3).truncatingRemainder(dividingBy:1)
+  return Circle()
+   .stroke(Noir.crimsonLight.opacity((1 - phase) * 0.32),lineWidth:1.6)
    .frame(width:size,height:size)
-   .clipShape(contour)
-   contour.stroke(LinearGradient(colors:[Color.white.opacity(0.35),Noir.crimsonLight.opacity(0.18),Noir.crimsonDeep.opacity(0.40)],startPoint:.topLeading,endPoint:.bottomTrailing),lineWidth:1)
+   .scaleEffect(1 + phase * 0.6)
+ }
+
+ // The sphere: warm body, drifting light, liquid streaks, a pulsing core, a soft inner shade (crimson, never black) and a glass rim.
+ private func sphere(_ time: Double) -> some View {
+  ZStack {
+   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.52,blue:0.54),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.36,y:0.30),startRadius:0,endRadius:size * 0.80))
+   ForEach(0..<5,id:\.self) { i in blob(i,time) }
+   ForEach(0..<2,id:\.self) { i in streak(i,time) }
+   Circle().fill(RadialGradient(colors:[Color.white.opacity(0.50 + sound * 0.35),Noir.crimsonLight.opacity(0)],center:.center,startRadius:0,endRadius:size * (0.17 + sound * 0.11)))
+    .blendMode(.plusLighter)
+   Circle().fill(RadialGradient(colors:[Noir.crimsonDeep.opacity(0),Noir.crimsonDeep.opacity(0.50)],center:.center,startRadius:size * 0.30,endRadius:size * 0.50))
+   highlight
   }
   .frame(width:size,height:size)
+  .clipShape(Circle())
+  .overlay(rim(time))
   .drawingGroup()
-  .accessibilityElement(children:.ignore)
-  .accessibilityLabel("Friday, red orb")
-  .accessibilityValue(activity)
  }
 
- private func current(_ i: Int,_ phase: Double) -> some View {
-  let angle = phase * (0.6 + Double(i)*0.13) + Double(i)*1.9
-  let colors = [Noir.crimsonLight,Color(red:1,green:0.55,blue:0.51),Noir.crimsonDeep,Noir.crimson,Color(red:1,green:0.72,blue:0.66)]
-  return FridayContour(phase:angle,energy:0.4 + sound*0.6)
-   .fill(LinearGradient(colors:[colors[i],colors[i].opacity(0.15)],startPoint:.topLeading,endPoint:.bottomTrailing))
-   .frame(width:size*(0.88 + sound*0.12),height:size*0.76)
-   .rotationEffect(.radians(angle))
-   .offset(x:cos(angle)*size*0.23,y:sin(angle*0.9)*size*0.20)
-   .blur(radius:size*0.07)
-   .blendMode(i == 2 ? .multiply : .plusLighter)
-   .opacity(i == 2 ? 0.80 : 0.62)
+ private func rim(_ time: Double) -> some View {
+  Circle().strokeBorder(AngularGradient(colors:[Color.white.opacity(0.70),Noir.crimsonLight.opacity(0.12),Color.white.opacity(0.06),Noir.crimsonLight.opacity(0.55),Color.white.opacity(0.70)],center:.center,angle:.degrees(time * 16)),lineWidth:1.5)
  }
 
- private func emoji(_ phase: Double) -> some View {
-  ZStack {
-   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.24),Noir.crimsonDeep.opacity(0.08)],center:.center,startRadius:0,endRadius:size*0.55))
-   Circle().stroke(Noir.crimsonLight.opacity(0.28 + sound*0.4),lineWidth:1.5 + sound*2)
-   Text(appearance.look.emoji(for:state))
-    .font(.system(size:size*0.52))
-    .rotationEffect(.degrees(moves && state == .thinking ? sin(phase*2)*6 : 0))
-    .offset(y:moves && state == .speaking ? -sound*size*0.04 : 0)
-  }
-  .frame(width:size*0.88,height:size*0.88)
-  .accessibilityElement(children:.ignore)
-  .accessibilityLabel("Friday, \(appearance.look.title)")
-  .accessibilityValue(activity)
+ // Five blurred patches of light wandering inside the sphere. Louder sound lets them roam further.
+ private func blob(_ i: Int,_ time: Double) -> some View {
+  let angle = time * flow * (0.55 + 0.17 * Double(i)) + Double(i) * 1.9
+  let reach = size * (0.15 + 0.05 * Double(i % 2)) * (1 + sound * 0.9)
+  let palette: [Color] = [Noir.crimsonLight,Color(red:1.0,green:0.62,blue:0.52),Color(red:1.0,green:0.34,blue:0.60),Noir.crimson,Color(red:0.78,green:0.16,blue:0.48)]
+  return Circle()
+   .fill(palette[i])
+   .frame(width:size * 0.60,height:size * 0.60)
+   .blur(radius:size * 0.14)
+   .offset(x:cos(angle) * reach * 1.5,y:sin(angle * 1.31) * reach * 1.3)
+   .blendMode(.plusLighter)
+   .opacity(i == 3 ? 0.55 : 0.72)
  }
 
- private var appearanceMenu: some View {
-  Menu {
-   ForEach(FridayLook.allCases) { look in
-    Button { appearance.look = look } label: {
-     Label(look.title,systemImage:appearance.look == look ? "checkmark" : "circle")
-    }
+ // Two soft bright streaks that turn slowly through the sphere, like light moving in liquid.
+ private func streak(_ i: Int,_ time: Double) -> some View {
+  let turn = time * flow * (0.35 + 0.2 * Double(i)) * 57.2958 + Double(i) * 70
+  return Ellipse()
+   .fill(LinearGradient(colors:[Noir.crimsonLight.opacity(0),Color.white.opacity(0.34),Noir.crimsonLight.opacity(0)],startPoint:.leading,endPoint:.trailing))
+   .frame(width:size * 1.15,height:size * 0.26)
+   .rotationEffect(.degrees(turn))
+   .blur(radius:size * 0.045)
+   .blendMode(.plusLighter)
+ }
+
+ private var highlight: some View {
+  Ellipse()
+   .fill(LinearGradient(colors:[Color.white.opacity(0.50),Color.white.opacity(0)],startPoint:.top,endPoint:.bottom))
+   .frame(width:size * 0.44,height:size * 0.20)
+   .blur(radius:size * 0.03)
+   .offset(x:-size * 0.13,y:-size * 0.29)
+ }
+
+ // A dozen tiny lights orbiting on slightly different paths. Calm when she is idle, brighter when she talks.
+ private func sparks(_ time: Double) -> some View {
+  let visible: Double = {
+   switch state { case .off: return 0.15; case .idle: return 0.55; case .thinking: return 0.80; default: return 0.75 + sound * 0.25 }
+  }()
+  return ZStack {
+   ForEach(0..<12,id:\.self) { i in
+    let angle = time * (0.10 + 0.012 * Double(i % 5)) + Double(i) * 0.5236 + sin(time * 0.3 + Double(i)) * 0.2
+    let radius = size * (0.60 + 0.06 * Double(i % 4))
+    let twinkle = 0.5 + 0.5 * sin(time * 1.7 + Double(i) * 1.3)
+    Circle().fill(Color.white)
+     .frame(width:size * 0.016 * CGFloat(1 + i % 3),height:size * 0.016 * CGFloat(1 + i % 3))
+     .shadow(color:Noir.crimsonLight,radius:size * 0.025)
+     .offset(x:cos(angle) * radius * 1.18,y:sin(angle) * radius * 0.80)
+     .opacity((0.25 + 0.6 * twinkle) * visible)
    }
-  } label: {
-   Label(appearance.look.title,systemImage:"face.smiling")
-    .font(.system(size:10,weight:.medium,design:.rounded))
-    .foregroundStyle(Color.white.opacity(0.72))
-    .padding(.horizontal,10).padding(.vertical,5)
-    .background(Capsule().fill(Color.white.opacity(0.06)))
   }
-  .menuStyle(.borderlessButton)
-  .fixedSize()
-  .accessibilityLabel("Friday’s appearance")
-  .accessibilityValue(appearance.look.title)
-  .help("Choose the red orb or an emoji. Saved on this Mac.")
+ }
+
+ // The emoji looks: the same aura, with the emoji in a glass bubble that bobs, tilts and bounces with sound.
+ private func bubble(_ time: Double) -> some View {
+  ZStack {
+   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.34),Noir.crimsonDeep.opacity(0.14)],center:UnitPoint(x:0.4,y:0.3),startRadius:0,endRadius:size * 0.6))
+   Circle().strokeBorder(AngularGradient(colors:[Color.white.opacity(0.55),Noir.crimsonLight.opacity(0.10),Color.white.opacity(0.05),Noir.crimsonLight.opacity(0.45),Color.white.opacity(0.55)],center:.center,angle:.degrees(time * 14)),lineWidth:1.5 + sound * 2)
+   Text(appearance.look.emoji(for:state))
+    .font(.system(size:size * 0.50))
+    .rotationEffect(.degrees(moves && state == .thinking ? sin(time * 2.2) * 7 : 0))
+    .offset(y:moves ? (state == .speaking ? -sound * size * 0.05 : sin(time * 1.2) * size * 0.012) : 0)
+  }
+  .frame(width:size * 0.9,height:size * 0.9)
  }
 }
 
-// A smoothly curved outline: sound changes its shape without sharp jumps or spikes.
-private struct FridayContour: Shape {
- var phase: Double
- var energy: Double
- func path(in rect: CGRect) -> Path {
-  let count = 60
-  let radius = Double(min(rect.width,rect.height)) * 0.46
-  let points: [CGPoint] = (0..<count).map { i in
-   let angle = Double(i) * 2 * .pi / Double(count)
-   let ripple = sin(angle*3 + phase) * (0.022 + energy*0.032) + sin(angle*5 - phase*0.8) * (0.010 + energy*0.018)
-   let r = radius * (1 + ripple)
-   return CGPoint(x:Double(rect.midX) + cos(angle)*r,y:Double(rect.midY) + sin(angle)*r)
+// The look picker: a small glass pill with one round button per look. The chosen one glows crimson and slides between choices.
+struct FridayLookDock: View {
+ @ObservedObject private var appearance = FridayAppearance.shared
+ @Namespace private var pick
+
+ var body: some View {
+  HStack(spacing:4) {
+   ForEach(FridayLook.allCases) { look in
+    Button {
+     withAnimation(.spring(response:0.4,dampingFraction:0.72)) { appearance.look = look }
+    } label: {
+     glyph(look)
+      .frame(width:34,height:30)
+      .background {
+       if appearance.look == look {
+        Capsule()
+         .fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing))
+         .matchedGeometryEffect(id:"look",in:pick)
+         .shadow(color:Noir.crimson.opacity(0.55),radius:7)
+       }
+      }
+    }
+    .buttonStyle(.plain)
+    .help(look.title)
+   }
   }
-  var path = Path()
-  path.move(to:points[0])
-  for i in 0..<count {
-   let a = points[(i + count - 1) % count]
-   let b = points[i]
-   let c = points[(i + 1) % count]
-   let d = points[(i + 2) % count]
-   path.addCurve(to:c,
-    control1:CGPoint(x:b.x + (c.x-a.x)/6,y:b.y + (c.y-a.y)/6),
-    control2:CGPoint(x:c.x - (d.x-b.x)/6,y:c.y - (d.y-b.y)/6))
+  .padding(4)
+  .background(.ultraThinMaterial,in:Capsule())
+  .overlay(Capsule().strokeBorder(LinearGradient(colors:[Color.white.opacity(0.32),Color.white.opacity(0.06)],startPoint:.top,endPoint:.bottom),lineWidth:1))
+  .shadow(color:Color.black.opacity(0.30),radius:10,y:5)
+ }
+
+ @ViewBuilder private func glyph(_ look: FridayLook) -> some View {
+  switch look {
+  case .orb:
+   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.62,blue:0.62),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.30),startRadius:0,endRadius:14)).frame(width:18,height:18)
+  case .faces: Text("😊").font(.system(size:17))
+  case .robot: Text("🤖").font(.system(size:17))
+  case .fire: Text("🔥").font(.system(size:17))
   }
-  path.closeSubpath()
-  return path
  }
 }
 
@@ -2313,6 +2384,221 @@ extension View {
    .padding(.vertical,11)
    .background(RoundedRectangle(cornerRadius:14,style:.continuous).fill(Color.white.opacity(0.06)))
    .overlay(RoundedRectangle(cornerRadius:14,style:.continuous).stroke(Color.white.opacity(0.10),lineWidth:1))
+ }
+}
+```
+
+## FILE: FridayCorner.swift
+
+```swift
+import SwiftUI
+import Cocoa
+import Combine
+
+// A small Siri-style popup in a corner of the screen while Friday is live and watching. It floats above other windows (a full-screen game
+// included) and shows her orb in our colours with a line of what she is hearing or saying. It appears whenever the app's window is out of
+// sight (minimized, hidden, or another app such as your game is in front) and tucks away when you come back to the window. Clicking it
+// brings the app forward; drag it to move it.
+// It only shows what the live session already knows. It starts nothing, records nothing and sends nothing.
+@MainActor final class FridayCornerController: ObservableObject {
+ static let width: CGFloat = 340
+ static let height: CGFloat = 150
+
+ @Published var enabled = UserDefaults.standard.object(forKey:"corner.enabled") as? Bool ?? true {
+  didSet { UserDefaults.standard.set(enabled,forKey:"corner.enabled"); refresh() }
+ }
+ // 0 top right (like Siri), 1 top left, 2 bottom right, 3 bottom left.
+ @Published var position = UserDefaults.standard.integer(forKey:"corner.position") {
+  didSet { UserDefaults.standard.set(position,forKey:"corner.position"); place() }
+ }
+ // Drives the pop-in and tuck-away animation.
+ @Published var shown = false
+ // Set by the small close button; lasts until Friday is started again.
+ @Published var dismissed = false
+
+ private var panel: NSPanel?
+ private var live: LiveBuddy?
+ private var watchers: [AnyCancellable] = []
+ private var hideTask: Task<Void,Never>?
+
+ func attach(_ buddy: LiveBuddy) {
+  guard live == nil else { return }
+  live = buddy
+  watchers.append(buddy.$running.removeDuplicates().sink { [weak self] running in
+   Task { @MainActor in
+    if running { self?.dismissed = false }
+    self?.refresh()
+   }
+  })
+  let names: [Notification.Name] = [NSApplication.didBecomeActiveNotification,NSApplication.didResignActiveNotification,NSApplication.didHideNotification,NSApplication.didUnhideNotification,NSWindow.didMiniaturizeNotification,NSWindow.didDeminiaturizeNotification,NSWindow.didBecomeMainNotification]
+  for name in names {
+   watchers.append(NotificationCenter.default.publisher(for:name).sink { [weak self] _ in
+    Task { @MainActor in self?.refresh() }
+   })
+  }
+ }
+
+ // True when you can see the app's own window: the app is in front, not hidden, and the window is not minimized.
+ // (The popup itself is a panel and doesn't count.)
+ private var windowInSight: Bool {
+  NSApp.isActive && !NSApp.isHidden && NSApp.windows.contains { !($0 is NSPanel) && $0.isVisible && !$0.isMiniaturized }
+ }
+
+ func refresh() {
+  let watching = live?.running ?? false
+  if enabled && watching && !dismissed && !windowInSight { show() } else { hide() }
+ }
+
+ func dismiss() { dismissed = true; refresh() }
+
+ func openMain() {
+  NSApp.activate()
+  for window in NSApp.windows where !(window is NSPanel) { window.makeKeyAndOrderFront(nil) }
+ }
+
+ private func show() {
+  hideTask?.cancel()
+  guard let live = live else { return }
+  if panel == nil {
+   let made = NSPanel(contentRect:NSRect(x:0,y:0,width:FridayCornerController.width,height:FridayCornerController.height),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+   made.isFloatingPanel = true
+   made.level = .statusBar
+   made.collectionBehavior = [.canJoinAllSpaces,.fullScreenAuxiliary,.stationary]
+   made.isOpaque = false
+   made.backgroundColor = .clear
+   made.hasShadow = false
+   made.hidesOnDeactivate = false
+   made.isMovableByWindowBackground = true
+   made.contentView = NSHostingView(rootView:FridayCornerView(controller:self,live:live))
+   panel = made
+  }
+  place()
+  panel?.orderFrontRegardless()
+  withAnimation(.spring(response:0.5,dampingFraction:0.78)) { shown = true }
+ }
+
+ private func hide() {
+  withAnimation(.easeIn(duration:0.25)) { shown = false }
+  hideTask?.cancel()
+  hideTask = Task { [weak self] in
+   try? await Task.sleep(nanoseconds:350_000_000)
+   guard !Task.isCancelled else { return }
+   self?.panel?.orderOut(nil)
+  }
+ }
+
+ func place() {
+  guard let panel = panel, let screen = NSScreen.main else { return }
+  let area = screen.visibleFrame
+  let margin: CGFloat = 14
+  let left = position == 1 || position == 3
+  let bottom = position == 2 || position == 3
+  let x = left ? area.minX + margin : area.maxX - FridayCornerController.width - margin
+  let y = bottom ? area.minY + margin : area.maxY - FridayCornerController.height - margin
+  panel.setFrame(NSRect(x:x,y:y,width:FridayCornerController.width,height:FridayCornerController.height),display:true)
+ }
+}
+
+struct FridayCornerView: View {
+ @ObservedObject var controller: FridayCornerController
+ @ObservedObject var live: LiveBuddy
+
+ private var onRight: Bool { controller.position == 0 || controller.position == 2 }
+ private var onTop: Bool { controller.position == 0 || controller.position == 1 }
+ private var alignment: Alignment {
+  switch controller.position {
+  case 1: return .topLeading
+  case 2: return .bottomTrailing
+  case 3: return .bottomLeading
+  default: return .topTrailing
+  }
+ }
+
+ var body: some View {
+  TimelineView(.animation(minimumInterval:1.0 / 30.0)) { timeline in
+   card(timeline.date)
+  }
+  .frame(width:FridayCornerController.width,height:FridayCornerController.height,alignment:alignment)
+ }
+
+ // Same rules as the main window's orb, for the live session.
+ private func state(at now: Date) -> OrbState {
+  guard live.running else { return .off }
+  guard live.ready else { return .thinking }
+  if now < live.speakingUntil { return .speaking }
+  if live.status.hasPrefix("Looking up") { return .thinking }
+  let since = now.timeIntervalSince(live.lastVoice)
+  if since < 1.2 { return .listening }
+  if since < 6 { return .thinking }
+  return .idle
+ }
+
+ private func level(at now: Date) -> Double {
+  let voice = live.voiceLevel * max(0,1 - now.timeIntervalSince(live.voiceLevelAt) * 5)
+  let mic = live.micLevel * max(0,1 - now.timeIntervalSince(live.micLevelAt) * 5)
+  return min(1,max(voice,mic))
+ }
+
+ private func label(_ state: OrbState) -> String {
+  switch state {
+  case .off: return "ASLEEP"
+  case .idle: return "WATCHING"
+  case .listening: return "LISTENING"
+  case .thinking: return "THINKING"
+  case .speaking: return "SPEAKING"
+  }
+ }
+
+ // The newest words, so a long reply shows its latest part.
+ private func tail(_ text: String) -> String {
+  let clean = text.trimmingCharacters(in:.whitespacesAndNewlines)
+  return clean.count > 80 ? "…" + String(clean.suffix(80)) : clean
+ }
+
+ private func line(_ state: OrbState) -> String {
+  switch state {
+  case .speaking:
+   let said = tail(live.said)
+   return said.isEmpty ? "…" : said
+  case .listening:
+   let heard = tail(live.heard)
+   return heard.isEmpty ? "Go ahead, I'm listening." : heard
+  case .thinking: return live.status.hasPrefix("Looking up") ? live.status : "Thinking about it…"
+  case .idle: return "Watching your game. Just talk to me."
+  case .off: return ""
+  }
+ }
+
+ private func card(_ now: Date) -> some View {
+  let current = state(at:now)
+  let sound = level(at:now)
+  let spin = now.timeIntervalSinceReferenceDate * 10
+  return HStack(spacing:4) {
+   FridayOrb(state:current,t:now.timeIntervalSinceReferenceDate,level:sound,size:44,animated:true,showsPicker:false)
+    .frame(width:66,height:60)
+   VStack(alignment:.leading,spacing:3) {
+    Text(label(current)).font(.system(size:10.5,weight:.bold,design:.rounded)).tracking(1.2).foregroundStyle(Noir.crimsonLight)
+    Text(line(current)).font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.92)).lineLimit(2).multilineTextAlignment(.leading)
+   }
+   Spacer(minLength:0)
+   Button { controller.dismiss() } label: {
+    Image(systemName:"xmark").font(.system(size:9,weight:.bold)).foregroundStyle(Color.white.opacity(0.55))
+     .frame(width:20,height:20).background(Circle().fill(Color.white.opacity(0.10)))
+   }
+   .buttonStyle(.plain)
+   .help("Hide until Friday is started again")
+  }
+  .padding(.leading,6).padding(.trailing,12).padding(.vertical,8)
+  .frame(width:300)
+  .background(RoundedRectangle(cornerRadius:28,style:.continuous).fill(LinearGradient(colors:[Noir.crimsonDeep.opacity(0.55),Color.black.opacity(0.42)],startPoint:.topLeading,endPoint:.bottomTrailing)))
+  .background(.ultraThinMaterial,in:RoundedRectangle(cornerRadius:28,style:.continuous))
+  .overlay(RoundedRectangle(cornerRadius:28,style:.continuous).strokeBorder(AngularGradient(colors:[Color.white.opacity(0.45),Noir.crimsonLight.opacity(0.15),Color.white.opacity(0.05),Noir.crimsonLight.opacity(0.45),Color.white.opacity(0.45)],center:.center,angle:.degrees(spin)),lineWidth:1))
+  .shadow(color:Noir.crimson.opacity(0.30 + sound * 0.30),radius:18,y:6)
+  .scaleEffect(controller.shown ? 1 : 0.6,anchor:UnitPoint(x:onRight ? 1 : 0,y:onTop ? 0 : 1))
+  .opacity(controller.shown ? 1 : 0)
+  .offset(y:controller.shown ? 0 : (onTop ? -14 : 14))
+  .contentShape(Rectangle())
+  .onTapGesture { controller.openMain() }
  }
 }
 ```
@@ -3526,11 +3812,588 @@ enum ClipEditor {
 }
 ```
 
+## FILE: StreamData.swift
+
+```swift
+import Foundation
+
+// The pieces of the Stream page that need no Mac frameworks, so they can be tested anywhere: reading Twitch's answers and
+// turning Twitch's error codes into plain words. The calls themselves are made by StreamHub (StreamManager.swift) with the
+// saved Twitch login. Endpoints and permissions checked against dev.twitch.tv/docs/api/reference on 2026-10-05:
+//   GET /streams            who is live, title, category, viewers, start time       (any login)
+//   GET /channels           current title and category, live or not                 (any login)
+//   GET /channels/followers the total follower count                                (any login; the list needs more)
+//   GET /clips              the channel's clips                                     (any login)
+//   GET /search/categories  find a game or category by name                         (any login)
+//   PATCH /channels         change title and category                               (channel:manage:broadcast, own channel)
+//   POST /streams/markers   mark a moment of a live stream                          (channel:manage:broadcast, live with VODs on)
+// Nothing here starts or stops a stream: Twitch doesn't let apps do that, only the streaming software (OBS, Streamlabs) can.
+
+struct StreamLive {
+ var title: String
+ var game: String
+ var viewers: Int
+ var startedAt: Date?
+}
+
+struct ChannelInfo {
+ var id: String
+ var login: String
+ var name: String
+ var title: String
+ var gameID: String
+ var gameName: String
+}
+
+struct CategoryHit: Identifiable, Equatable {
+ var id: String
+ var name: String
+}
+
+struct ClipRow: Identifiable {
+ var id: String
+ var title: String
+ var url: String
+ var views: Int
+ var seconds: Double
+ var created: Date?
+}
+
+// A saved title and category the Stream page can fill in with one click.
+struct StreamPreset: Codable, Identifiable, Equatable {
+ var id: String
+ var name: String
+ var title: String
+ var gameID: String
+ var gameName: String
+}
+
+enum StreamData {
+ static let titleLimit = 140
+
+ // Twitch wraps every list in {"data":[...]}.
+ static func rows(_ json: [String:Any]) -> [[String:Any]] { (json["data"] as? [[String:Any]]) ?? [] }
+
+ static func date(_ text: Any?) -> Date? {
+  guard let text = text as? String else { return nil }
+  return ISO8601DateFormatter().date(from:text)
+ }
+
+ // An empty list means the channel is offline, so this returns nil.
+ static func parseStream(_ json: [String:Any]) -> StreamLive? {
+  guard let row = rows(json).first, (row["type"] as? String ?? "live") == "live" else { return nil }
+  return StreamLive(title:row["title"] as? String ?? "",game:row["game_name"] as? String ?? "",viewers:row["viewer_count"] as? Int ?? 0,startedAt:date(row["started_at"]))
+ }
+
+ static func parseChannel(_ json: [String:Any]) -> ChannelInfo? {
+  guard let row = rows(json).first, let id = row["broadcaster_id"] as? String else { return nil }
+  return ChannelInfo(id:id,login:row["broadcaster_login"] as? String ?? "",name:row["broadcaster_name"] as? String ?? "",title:row["title"] as? String ?? "",gameID:row["game_id"] as? String ?? "",gameName:row["game_name"] as? String ?? "")
+ }
+
+ static func parseCategories(_ json: [String:Any]) -> [CategoryHit] {
+  rows(json).compactMap { row in
+   guard let id = row["id"] as? String, let name = row["name"] as? String, !id.isEmpty else { return nil }
+   return CategoryHit(id:id,name:name)
+  }
+ }
+
+ static func parseClips(_ json: [String:Any]) -> [ClipRow] {
+  rows(json).compactMap { row in
+   guard let id = row["id"] as? String, let url = row["url"] as? String else { return nil }
+   return ClipRow(id:id,title:row["title"] as? String ?? "(untitled)",url:url,views:row["view_count"] as? Int ?? 0,seconds:(row["duration"] as? Double) ?? Double(row["duration"] as? Int ?? 0),created:date(row["created_at"]))
+  }
+ }
+
+ static func parseFollowerTotal(_ json: [String:Any]) -> Int? { json["total"] as? Int }
+
+ // "2h 14m", "7m", "just started".
+ static func uptime(from start: Date,to now: Date) -> String {
+  let seconds = max(0,Int(now.timeIntervalSince(start)))
+  return seconds < 60 ? "just started" : duration(seconds)
+ }
+
+ // "1h 02m" for a long stretch, "7m" for a short one.
+ static func duration(_ total: Int) -> String {
+  let seconds = max(0,total)
+  let hours = seconds / 3600
+  let minutes = (seconds % 3600) / 60
+  if hours > 0 { return "\(hours)h \(minutes < 10 ? "0" : "")\(minutes)m" }
+  return "\(minutes)m"
+ }
+
+ // Twitch won't take an empty title, and stops at 140 characters.
+ static func titleProblem(_ raw: String) -> String? {
+  let title = raw.trimmingCharacters(in:.whitespacesAndNewlines)
+  if title.isEmpty { return "Type a title first. Twitch doesn't allow an empty one." }
+  if title.count > titleLimit { return "That title is \(title.count) characters. Twitch's limit is \(titleLimit)." }
+  return nil
+ }
+
+ // The category is only sent when one is chosen, so a title-only change never clears the category.
+ static func updateBody(title: String,gameID: String?) -> Data? {
+  var body: [String:Any] = ["title":title.trimmingCharacters(in:.whitespacesAndNewlines)]
+  if let id = gameID, !id.isEmpty { body["game_id"] = id }
+  return try? JSONSerialization.data(withJSONObject:body)
+ }
+
+ static func markerBody(userID: String,note: String) -> Data? {
+  var body: [String:Any] = ["user_id":userID]
+  let text = String(note.trimmingCharacters(in:.whitespacesAndNewlines).prefix(140))
+  if !text.isEmpty { body["description"] = text }
+  return try? JSONSerialization.data(withJSONObject:body)
+ }
+
+ static let queryAllowed = CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+
+ static func encoded(_ text: String) -> String { text.addingPercentEncoding(withAllowedCharacters:queryAllowed) ?? "" }
+
+ // A Twitch refusal in plain words. `doing` finishes "Couldn't ...", for example "change the title".
+ static func explain(code: Int,message: String?,doing: String) -> String {
+  switch code {
+  case 401: return "Twitch needs one more permission to \(doing). Open Accounts, sign out of Twitch, then sign in again."
+  case 403: return "Twitch won't let this account \(doing). Sign in as the account that owns the channel."
+  case 404: return "Twitch couldn't \(doing). For a marker, you must be live with past broadcasts (VODs) switched on."
+  case 429: return "Twitch says slow down. Try again in a minute."
+  case 400:
+   let reason = (message ?? "").trimmingCharacters(in:.whitespacesAndNewlines)
+   return reason.isEmpty ? "Twitch didn't accept that." : "Twitch didn't accept that: \(reason)"
+  default: return "Couldn't \(doing) (Twitch answered \(code))."
+  }
+ }
+}
+```
+
+## FILE: StreamManager.swift
+
+```swift
+import SwiftUI
+import AppKit
+
+// The Stream page: a friendly manager for Matthew's Twitch channel. It shows whether he is live, lets him change the title and
+// category in two clicks (with saved presets), mark a moment, clip the last stretch and open the clips, and runs a go-live checklist.
+// It uses the same Twitch login as the clip button (Clips.swift). Twitch doesn't let any app press "Start streaming": that stays in
+// OBS or Streamlabs, and the page says so. It only changes anything when he presses Update, Mark or Clip.
+@MainActor final class StreamHub: ObservableObject {
+ static let presetsKey = "stream.presets"
+
+ @Published var channel: ChannelInfo?
+ @Published var meID = ""
+ @Published var live: StreamLive?
+ @Published var followers: Int?
+ @Published var clipRows: [ClipRow] = []
+ @Published var titleDraft = "" { didSet { if !syncing { touched = true } } }
+ @Published var gameDraft: CategoryHit? { didSet { if !syncing { touched = true } } }
+ @Published var categoryQuery = "" { didSet { searchSoon() } }
+ @Published var hits: [CategoryHit] = []
+ @Published var searching = false
+ @Published var markerNote = ""
+ @Published var presetName = ""
+ @Published var presets: [StreamPreset] = StreamHub.loadPresets() {
+  didSet { UserDefaults.standard.set(try? JSONEncoder().encode(presets),forKey:StreamHub.presetsKey) }
+ }
+ @Published var message = ""
+ @Published var loading = false
+ @Published var saving = false
+ @Published var marking = false
+ @Published var loaded = false
+ // True once he has typed or picked something, so a refresh doesn't overwrite what he is working on.
+ @Published var touched = false
+ private var syncing = false
+ private var lastRefresh = Date.distantPast
+ private var twitch: TwitchClips?
+ private var searchTask: Task<Void,Never>?
+
+ // Changing the title needs the channel's own account. A separate clip account can still see the channel.
+ var canEdit: Bool { channel != nil && !meID.isEmpty && channel?.id == meID }
+
+ static func loadPresets() -> [StreamPreset] {
+  guard let data = UserDefaults.standard.data(forKey:presetsKey), let list = try? JSONDecoder().decode([StreamPreset].self,from:data) else { return [] }
+  return list
+ }
+
+ func attach(_ clips: TwitchClips) { if twitch == nil { twitch = clips } }
+
+ func refresh(force: Bool = false) async {
+  guard let tw = twitch, tw.signedIn, !loading else { return }
+  if !force && Date().timeIntervalSince(lastRefresh) < 50 { return }
+  let login = tw.channel.trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased()
+  guard !login.isEmpty else { return }
+  loading = true
+  defer { loading = false }
+  // One call at a time: if the login has expired, only one of them should refresh it.
+  do {
+   let (_,mine) = try await tw.call("/users")
+   meID = (StreamData.rows(mine).first?["id"] as? String) ?? ""
+   let (_,theirs) = try await tw.call("/users?login=\(StreamData.encoded(login))")
+   guard let id = StreamData.rows(theirs).first?["id"] as? String else {
+    message = "Couldn't find a Twitch channel called \(login). Check the name in Settings."
+    return
+   }
+   let (_,streamJSON) = try await tw.call("/streams?user_id=\(id)")
+   let (_,channelJSON) = try await tw.call("/channels?broadcaster_id=\(id)")
+   let (_,followJSON) = try await tw.call("/channels/followers?broadcaster_id=\(id)&first=1")
+   let (_,clipJSON) = try await tw.call("/clips?broadcaster_id=\(id)&first=6")
+   live = StreamData.parseStream(streamJSON)
+   channel = StreamData.parseChannel(channelJSON)
+   followers = StreamData.parseFollowerTotal(followJSON) ?? followers
+   clipRows = StreamData.parseClips(clipJSON)
+   if !touched, let info = channel {
+    syncing = true
+    titleDraft = info.title
+    gameDraft = info.gameID.isEmpty ? nil : CategoryHit(id:info.gameID,name:info.gameName)
+    syncing = false
+   }
+   loaded = true
+   lastRefresh = Date()
+  } catch {
+   message = "Couldn't reach Twitch: \(error.localizedDescription)"
+  }
+ }
+
+ private func searchSoon() {
+  searchTask?.cancel()
+  let query = categoryQuery.trimmingCharacters(in:.whitespacesAndNewlines)
+  guard query.count >= 2, let tw = twitch, tw.signedIn else { hits = []; return }
+  searchTask = Task { [weak self] in
+   try? await Task.sleep(nanoseconds:400_000_000)
+   guard !Task.isCancelled, let self = self else { return }
+   self.searching = true
+   if let (_,json) = try? await tw.call("/search/categories?query=\(StreamData.encoded(query))&first=8"), !Task.isCancelled {
+    self.hits = StreamData.parseCategories(json)
+   }
+   self.searching = false
+  }
+ }
+
+ func pick(_ hit: CategoryHit) {
+  gameDraft = hit
+  categoryQuery = ""
+  hits = []
+ }
+
+ // Sends the title and category to Twitch. This changes the public channel, so it only runs when he presses Update.
+ func save() async {
+  guard let tw = twitch, let info = channel, canEdit, !saving else { return }
+  if let problem = StreamData.titleProblem(titleDraft) { message = problem; return }
+  saving = true
+  defer { saving = false }
+  do {
+   let (code,json) = try await tw.call("/channels?broadcaster_id=\(info.id)",method:"PATCH",body:StreamData.updateBody(title:titleDraft,gameID:gameDraft?.id))
+   if code == 204 {
+    touched = false
+    message = "Saved on Twitch."
+    await refresh(force:true)
+   } else {
+    message = StreamData.explain(code:code,message:json["message"] as? String,doing:"change the title or category")
+   }
+  } catch {
+   message = "Couldn't reach Twitch: \(error.localizedDescription)"
+  }
+ }
+
+ // A marker is a bookmark in the live stream's recording, so he can find the moment later.
+ func mark() async {
+  guard let tw = twitch, let info = channel, live != nil, !marking else { return }
+  marking = true
+  defer { marking = false }
+  do {
+   let (code,json) = try await tw.call("/streams/markers",method:"POST",body:StreamData.markerBody(userID:info.id,note:markerNote))
+   if code == 200 {
+    let seconds = StreamData.rows(json).first?["position_seconds"] as? Int
+    message = seconds.map { "Marked at \(StreamData.duration($0)) into the stream." } ?? "Marked."
+    markerNote = ""
+   } else {
+    message = StreamData.explain(code:code,message:json["message"] as? String,doing:"add a marker")
+   }
+  } catch {
+   message = "Couldn't reach Twitch: \(error.localizedDescription)"
+  }
+ }
+
+ func savePreset() {
+  let name = presetName.trimmingCharacters(in:.whitespacesAndNewlines)
+  guard !name.isEmpty, StreamData.titleProblem(titleDraft) == nil else { message = "Type a title above and a name for the preset first."; return }
+  var next = presets
+  next.removeAll { $0.name.lowercased() == name.lowercased() }
+  next.append(StreamPreset(id:UUID().uuidString,name:name,title:titleDraft.trimmingCharacters(in:.whitespacesAndNewlines),gameID:gameDraft?.id ?? "",gameName:gameDraft?.name ?? ""))
+  presets = next
+  presetName = ""
+  message = "Saved the preset \"\(name)\". Click it any time to fill in the title and category."
+ }
+
+ func use(_ preset: StreamPreset) {
+  titleDraft = preset.title
+  gameDraft = preset.gameID.isEmpty ? nil : CategoryHit(id:preset.gameID,name:preset.gameName)
+ }
+
+ func remove(_ preset: StreamPreset) { presets.removeAll { $0.id == preset.id } }
+}
+
+extension CompanionInterfaceView {
+ var hubStream: some View {
+  ScrollView {
+   VStack(alignment:.leading,spacing:18) {
+    hubStreamHeader
+    if !clips.signedIn {
+     hubStreamConnect
+    } else if clips.channel.trimmingCharacters(in:.whitespaces).isEmpty {
+     VStack(alignment:.leading,spacing:12) {
+      Text("Which channel is yours?").font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+      Text("Type just the name (the part after twitch.tv/).").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+      hubField("your channel name",text:$clips.channel).frame(maxWidth:340)
+      Button { Task { await stream.refresh(force:true) } } label: { Label("Load my channel",systemImage:"arrow.clockwise") }.buttonStyle(PillButtonStyle())
+     }
+     .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+    } else if !stream.loaded {
+     if stream.loading { ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(40) }
+     else {
+      VStack(spacing:10) {
+       Text("Couldn't load your channel yet").font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+       if !stream.message.isEmpty { Text(stream.message).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.6)) }
+       Button { Task { await stream.refresh(force:true) } } label: { Label("Try again",systemImage:"arrow.clockwise") }.buttonStyle(PillButtonStyle())
+      }
+      .frame(maxWidth:.infinity).padding(30).hubCard()
+     }
+    } else {
+     hubStreamStatus
+     if !stream.canEdit { hubStreamWrongAccount }
+     hubStreamEditor
+     HStack(alignment:.top,spacing:14) {
+      hubStreamActions
+      hubStreamChecklist
+     }
+     hubStreamClips
+    }
+    if !stream.message.isEmpty {
+     Text(stream.message).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.75)).textSelection(.enabled)
+    }
+    Text("Twitch doesn't let any app press Start Streaming for you; that stays in OBS or Streamlabs. Nothing on this page changes your channel until you press Update, Mark or Clip.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+   .padding(.horizontal,32).padding(.bottom,30)
+  }
+  .scrollIndicators(.hidden)
+  .onAppear { stream.attach(clips); Task { await stream.refresh() } }
+ }
+
+ var hubStreamHeader: some View {
+  HStack(spacing:10) {
+   hubPill("TWITCH · YOUR CHANNEL",tint:HubColor.violet)
+   Spacer()
+   Button { hubOpen(hubTwitchDashboard) } label: { Label("Twitch Stream Manager",systemImage:"arrow.up.right.square") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   Button { Task { await stream.refresh(force:true) } } label: { Label(stream.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    .disabled(stream.loading || !clips.signedIn)
+  }
+ }
+
+ var hubStreamLogin: String { clips.channel.trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased() }
+ var hubTwitchDashboard: String { hubStreamLogin.isEmpty ? "https://dashboard.twitch.tv/" : "https://dashboard.twitch.tv/u/\(hubStreamLogin)/stream-manager" }
+ func hubOpen(_ link: String) { if let url = URL(string:link) { NSWorkspace.shared.open(url) } }
+
+ var hubStreamConnect: some View {
+  VStack(alignment:.leading,spacing:12) {
+   Text("Connect Twitch first").font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+   Text("This page uses the same Twitch login as the clip button. Sign in once and it shows whether you're live, lets you change your title and category, and lists your clips. If you signed in before this page existed, sign out and in once more so Twitch can give the new permission.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+   VStack(alignment:.leading,spacing:10) { clipSettings }
+  }
+  .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+ }
+
+ var hubStreamStatus: some View {
+  VStack(alignment:.leading,spacing:14) {
+   HStack(spacing:10) {
+    if let now = stream.live {
+     hubPill("LIVE NOW",tint:Noir.crimsonLight)
+     Text(now.title.isEmpty ? "(no title)" : now.title).font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white).lineLimit(2)
+    } else {
+     hubPill("OFFLINE",tint:HubColor.slate)
+     Text("Not streaming right now").font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    }
+    Spacer()
+   }
+   LazyVGrid(columns:[GridItem(.adaptive(minimum:200),spacing:14)],spacing:14) {
+    if let now = stream.live {
+     hubStat("Watching now","\(now.viewers)","viewers",tint:Color.white)
+     if let start = now.startedAt {
+      TimelineView(.periodic(from:Date(),by:30)) { timeline in
+       hubStat("On air for",StreamData.uptime(from:start,to:timeline.date),"since \(start.formatted(date:.omitted,time:.shortened))",tint:Color.white)
+      }
+     }
+     hubStat("Category",now.game.isEmpty ? "None" : now.game,"live category",tint:Color.white)
+    } else {
+     hubStat("Category",stream.channel?.gameName.isEmpty == false ? (stream.channel?.gameName ?? "") : "None","what you last streamed",tint:Color.white)
+    }
+    hubStat("Followers",stream.followers.map { $0.formatted() } ?? "—","total",tint:HubColor.violet)
+   }
+  }
+  .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+ }
+
+ var hubStreamWrongAccount: some View {
+  HStack(alignment:.top,spacing:12) {
+   Image(systemName:"exclamationmark.triangle.fill").foregroundStyle(HubColor.amber)
+   Text("You're signed in to Twitch as a different account than \(stream.channel?.name ?? hubStreamLogin). You can see your channel here, but changing the title or category needs the channel's own account. Sign out in Accounts and sign in as \(stream.channel?.name ?? hubStreamLogin) to turn those on.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.75))
+  }
+  .padding(16).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+ }
+
+ func hubField(_ placeholder: String,text: Binding<String>) -> some View {
+  TextField(placeholder,text:text).textFieldStyle(.plain)
+   .font(.system(size:14,design:.rounded))
+   .padding(.horizontal,14).padding(.vertical,10)
+   .background(RoundedRectangle(cornerRadius:12,style:.continuous).fill(Color.white.opacity(0.07)))
+   .overlay(RoundedRectangle(cornerRadius:12,style:.continuous).stroke(Color.white.opacity(0.10),lineWidth:1))
+ }
+
+ func hubChip(_ text: String,selected: Bool = false,tint: Color = Color.white.opacity(0.12),action: @escaping () -> Void) -> some View {
+  Button(action:action) {
+   Text(text).font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(Color.white).lineLimit(1)
+    .padding(.horizontal,12).padding(.vertical,7)
+    .background(Capsule().fill(selected ? Noir.crimson : tint))
+  }
+  .buttonStyle(.plain)
+ }
+
+ var hubStreamEditor: some View {
+  VStack(alignment:.leading,spacing:14) {
+   Text("Title and category").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+   VStack(alignment:.leading,spacing:6) {
+    HStack {
+     Text("Stream title").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.55))
+     Spacer()
+     Text("\(stream.titleDraft.count)/\(StreamData.titleLimit)").font(.system(size:11.5,design:.rounded)).foregroundStyle(stream.titleDraft.count > StreamData.titleLimit ? Noir.crimsonLight : Color.white.opacity(0.4))
+    }
+    hubField("What are you streaming?",text:$stream.titleDraft)
+   }
+   VStack(alignment:.leading,spacing:8) {
+    HStack(spacing:8) {
+     Text("Category").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.55))
+     if let game = stream.gameDraft { hubPill(game.name.uppercased(),tint:HubColor.violet) } else { Text("none chosen").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.4)) }
+    }
+    HStack(spacing:8) {
+     hubField("Search a game or category",text:$stream.categoryQuery)
+     if stream.searching { ProgressView().controlSize(.small) }
+    }
+    if !stream.hits.isEmpty {
+     LazyVGrid(columns:[GridItem(.adaptive(minimum:150),spacing:8)],alignment:.leading,spacing:8) {
+      ForEach(stream.hits) { hit in hubChip(hit.name) { stream.pick(hit) } }
+     }
+    }
+   }
+   VStack(alignment:.leading,spacing:8) {
+    Text("Presets").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.55))
+    if stream.presets.isEmpty {
+     Text("Save a title and category you use often, then fill it in with one click.").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+    } else {
+     LazyVGrid(columns:[GridItem(.adaptive(minimum:150),spacing:8)],alignment:.leading,spacing:8) {
+      ForEach(stream.presets) { preset in
+       hubChip(preset.name,tint:HubColor.violet.opacity(0.35)) { stream.use(preset) }
+        .help("\(preset.title)\(preset.gameName.isEmpty ? "" : " · \(preset.gameName)")")
+        .contextMenu { Button("Delete this preset",role:.destructive) { stream.remove(preset) } }
+      }
+     }
+     Text("Right-click a preset to delete it.").font(.system(size:11,design:.rounded)).foregroundStyle(Color.white.opacity(0.35))
+    }
+    HStack(spacing:8) {
+     hubField("Name for a new preset",text:$stream.presetName).frame(maxWidth:260)
+     Button { stream.savePreset() } label: { Label("Save as preset",systemImage:"plus") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    }
+   }
+   HStack(spacing:12) {
+    Button { Task { await stream.save() } } label: { Label(stream.saving ? "Updating…" : "Update on Twitch",systemImage:"arrow.up.circle.fill") }
+     .buttonStyle(PillButtonStyle())
+     .disabled(!stream.canEdit || stream.saving || !stream.touched)
+    if stream.touched {
+     Button { stream.touched = false; Task { await stream.refresh(force:true) } } label: { Label("Undo my edits",systemImage:"arrow.uturn.backward") }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    }
+    Text("This changes your public channel right away, live or not.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+  }
+  .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+ }
+
+ var hubStreamActions: some View {
+  VStack(alignment:.leading,spacing:12) {
+   Text("While you're live").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+   VStack(alignment:.leading,spacing:6) {
+    Text("Mark this moment").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.55))
+    hubField("Optional note, like \"clutch win\"",text:$stream.markerNote)
+    Button { Task { await stream.mark() } } label: { Label(stream.marking ? "Marking…" : "Mark it",systemImage:"bookmark.fill") }
+     .buttonStyle(PillButtonStyle())
+     .disabled(stream.live == nil || stream.marking)
+    Text("A bookmark in your stream's recording, so you can find the moment later. Needs past broadcasts switched on in Twitch.").font(.system(size:11,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+   Divider().overlay(Color.white.opacity(0.1))
+   VStack(alignment:.leading,spacing:6) {
+    Button { Task { await clips.clipNow() } } label: { Label(clips.busy ? "Clipping…" : "Clip the last moments",systemImage:"scissors") }
+     .buttonStyle(PillButtonStyle(tint:HubColor.violet))
+     .disabled(stream.live == nil || clips.busy)
+    Text("Makes a public Twitch clip, then cuts the highlight on this Mac. The same as the clip button on the Game page.").font(.system(size:11,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+   HStack(spacing:8) {
+    Button { hubOpen("https://www.twitch.tv/\(hubStreamLogin)") } label: { Label("My channel",systemImage:"tv") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    Button { hubOpen("https://dashboard.twitch.tv/u/\(hubStreamLogin)/content/clips") } label: { Label("My clips",systemImage:"film") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+  .padding(18).frame(maxWidth:.infinity,minHeight:300,alignment:.topLeading).hubCard()
+ }
+
+ func hubCheck(_ ok: Bool,_ text: String,_ fix: String) -> some View {
+  HStack(alignment:.top,spacing:10) {
+   Image(systemName:ok ? "checkmark.circle.fill" : "circle").foregroundStyle(ok ? HubColor.green : Color.white.opacity(0.35))
+   VStack(alignment:.leading,spacing:2) {
+    Text(text).font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(ok ? 0.9 : 0.75))
+    if !ok { Text(fix).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45)) }
+   }
+  }
+ }
+
+ var hubStreamChecklist: some View {
+  VStack(alignment:.leading,spacing:12) {
+   Text("Before you go live").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+   hubCheck(clips.signedIn,"Twitch is connected","Sign in under Accounts.")
+   hubCheck(!stream.titleDraft.trimmingCharacters(in:.whitespaces).isEmpty && !stream.touched,"Title is saved on Twitch","Type a title and press Update.")
+   hubCheck(stream.gameDraft != nil && !stream.touched,"Category is saved on Twitch","Search a game and press Update.")
+   hubCheck(live.hasKey,"Friday has her Google key","Add it in Settings.")
+   hubCheck(c.sharing,"A game window is chosen for Friday","Press Choose window on the Game page.")
+   hubCheck(clips.voiceClips,"\"Clip it\" by voice is on","Tick it in Settings before starting Friday.")
+   hubCheck(stream.live != nil,"You're live on Twitch","Start streaming in OBS or Streamlabs.")
+  }
+  .padding(18).frame(maxWidth:.infinity,minHeight:300,alignment:.topLeading).hubCard()
+ }
+
+ var hubStreamClips: some View {
+  VStack(alignment:.leading,spacing:12) {
+   Text("Latest clips").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+   if stream.clipRows.isEmpty {
+    Text("No clips found on your channel yet.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   } else {
+    ForEach(stream.clipRows) { clip in
+     HStack(spacing:12) {
+      Image(systemName:"film.fill").foregroundStyle(HubColor.violet)
+      VStack(alignment:.leading,spacing:2) {
+       Text(clip.title).font(.system(size:13.5,weight:.medium,design:.rounded)).foregroundStyle(Color.white).lineLimit(1)
+       Text("\(Int(clip.seconds.rounded())) s · \(clip.views) view\(clip.views == 1 ? "" : "s") · \(hubAgo(clip.created))").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+      }
+      Spacer()
+      Button { hubOpen(clip.url) } label: { Label("Open",systemImage:"arrow.up.right") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+     }
+    }
+   }
+  }
+  .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+ }
+}
+```
+
 ## FILE: Hub.swift
 
 ```swift
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 // The hub: a slim icon rail, a card dashboard, and a page per venture. Friday is one page of it and stays live while you browse.
 // Everything here is read-only. Nothing in the hub sends, posts, spends or trades.
@@ -3546,10 +4409,8 @@ enum HubColor {
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream
  var id: Int { rawValue }
- // Command-1 to Command-9 for the first nine pages, Command-0 for the tenth.
- var shortcutKey: Character { rawValue < 9 ? Character(String(rawValue + 1)) : "0" }
  var title: String {
   switch self {
   case .home: return "Home"
@@ -3562,6 +4423,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .game: return "Game"
   case .accounts: return "Accounts"
   case .meeting: return "Meeting Room"
+  case .stream: return "Stream"
   }
  }
  var icon: String {
@@ -3576,6 +4438,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .game: return "gamecontroller.fill"
   case .accounts: return "key.fill"
   case .meeting: return "person.3.fill"
+  case .stream: return "dot.radiowaves.left.and.right"
   }
  }
  var tint: Color {
@@ -3590,6 +4453,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .game: return HubColor.sky
   case .accounts: return HubColor.slate
   case .meeting: return HubColor.violet
+  case .stream: return HubColor.violet
   }
  }
  var blurb: String {
@@ -3604,6 +4468,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .game: return "Window, key and live status."
   case .accounts: return "What's connected, and what's not."
   case .meeting: return "Claude, GPT and Friday on one shared board."
+  case .stream: return "Your Twitch channel: go-live checks, title, category and clips."
   }
  }
 }
@@ -3617,6 +4482,61 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var expanded = ""
  // When the refresh-everything button last finished.
  @Published var refreshedAt: Date?
+ // The order of the icons on the left rail. Drag an icon to move it; the order is remembered. A page added in a later
+ // version lands at the end.
+ @Published var order: [HubSection] = HubModel.savedOrder() {
+  didSet { UserDefaults.standard.set(order.map { $0.rawValue },forKey:"hub.order") }
+ }
+ // The icon being dragged right now.
+ @Published var dragging: HubSection?
+
+ static func savedOrder() -> [HubSection] {
+  let saved = (UserDefaults.standard.array(forKey:"hub.order") as? [Int] ?? []).compactMap { HubSection(rawValue:$0) }
+  var seen = Set<HubSection>()
+  var result = saved.filter { seen.insert($0).inserted }
+  for section in HubSection.allCases where !seen.contains(section) { result.append(section) }
+  return result
+ }
+
+ // Drops the dragged icon into the slot of the one it is over.
+ func move(_ item: HubSection,onto target: HubSection) {
+  guard item != target, let from = order.firstIndex(of:item), let to = order.firstIndex(of:target) else { return }
+  var next = order
+  next.remove(at:from)
+  next.insert(item,at:to)
+  order = next
+ }
+
+ func nudge(_ item: HubSection,by step: Int) {
+  guard let from = order.firstIndex(of:item) else { return }
+  let to = min(max(from + step,0),order.count - 1)
+  guard to != from else { return }
+  var next = order
+  next.remove(at:from)
+  next.insert(item,at:to)
+  order = next
+ }
+
+ func resetOrder() { order = HubSection.allCases }
+
+ // Command-1 to Command-9 for the first nine icons on the rail, Command-0 for the tenth. They follow the order you set.
+ func shortcut(for section: HubSection) -> Character? {
+  guard let index = order.firstIndex(of:section), index < 10 else { return nil }
+  return index < 9 ? Character(String(index + 1)) : "0"
+ }
+}
+
+// Lets a rail icon be dropped onto another to swap places, with the others sliding aside as it passes over them.
+@MainActor struct RailDropDelegate: DropDelegate {
+ let target: HubSection
+ let hub: HubModel
+ func validateDrop(info: DropInfo) -> Bool { hub.dragging != nil }
+ func dropEntered(info: DropInfo) {
+  guard let item = hub.dragging, item != target else { return }
+  withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.move(item,onto:target) }
+ }
+ func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation:.move) }
+ func performDrop(info: DropInfo) -> Bool { hub.dragging = nil; return true }
 }
 
 // Store visits, the ECS feed and the automations' status. All public, all read-only (see VentureData.swift).
@@ -3791,6 +4711,11 @@ struct PillButtonStyle: ButtonStyle {
 }
 
 extension View {
+ // Command plus a number key, when the icon has one.
+ @ViewBuilder func hubShortcut(_ key: Character?) -> some View {
+  if let key = key { self.keyboardShortcut(KeyEquivalent(key),modifiers:.command) } else { self }
+ }
+
  // Frosted glass: the background gradient shows through, softened.
  func hubCard(radius: CGFloat = 22) -> some View {
   self.background(.ultraThinMaterial,in:RoundedRectangle(cornerRadius:radius,style:.continuous))
@@ -3835,7 +4760,19 @@ extension CompanionInterfaceView {
     .padding(.bottom,4)
    ScrollView(showsIndicators:false) {
     VStack(spacing:5) {
-     ForEach(HubSection.allCases) { section in hubRailButton(section) }
+     ForEach(hub.order) { section in
+      hubRailButton(section)
+       .onDrag {
+        hub.dragging = section
+        return NSItemProvider(object:String(section.rawValue) as NSString)
+       }
+       .onDrop(of:[UTType.text],delegate:RailDropDelegate(target:section,hub:hub))
+       .contextMenu {
+        Button("Move up") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.nudge(section,by:-1) } }
+        Button("Move down") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.nudge(section,by:1) } }
+        Button("Put the icons back in the original order") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.resetOrder() } }
+       }
+     }
     }
     .padding(.vertical,2)
    }
@@ -3874,7 +4811,7 @@ extension CompanionInterfaceView {
    }
   }
   .buttonStyle(.plain)
-  .keyboardShortcut(KeyEquivalent(section.shortcutKey),modifiers:.command)
+  .hubShortcut(hub.shortcut(for:section))
   .hubHover("rail-\(section.rawValue)",hub,lift:1.06)
  }
 
@@ -3927,7 +4864,7 @@ extension CompanionInterfaceView {
   .padding(.horizontal,32).padding(.top,26).padding(.bottom,12)
  }
 
- var hubAnyLoading: Bool { stocks.loading || ventures.loading || sales.loading || meeting.loading }
+ var hubAnyLoading: Bool { stocks.loading || ventures.loading || sales.loading || meeting.loading || stream.loading }
 
  // Everything that goes stale: the stock snapshots, store and ECS numbers, automations, sales and the Meeting Room.
  func hubRefreshAll() async {
@@ -3935,7 +4872,8 @@ extension CompanionInterfaceView {
   async let ventureRun: Void = ventures.refresh(force:true)
   async let salesRun: Void = sales.refresh(force:true)
   async let roomRun: Void = meeting.refresh(force:true)
-  _ = await (stockRun,ventureRun,salesRun,roomRun)
+  async let streamRun: Void = stream.refresh(force:true)
+  _ = await (stockRun,ventureRun,salesRun,roomRun,streamRun)
   hub.refreshedAt = Date()
  }
 
@@ -3944,6 +4882,7 @@ extension CompanionInterfaceView {
   switch hub.section {
   case .stocks: await stocks.refresh()
   case .meeting: await meeting.refresh(minGap:meeting.hasToken ? 55 : 290)
+  case .stream: await stream.refresh()
   case .home,.store,.ecs,.systems: await ventures.refresh()
   default: break
   }
@@ -3968,6 +4907,7 @@ extension CompanionInterfaceView {
   case .game: hubGame
   case .accounts: hubAccounts
   case .meeting: hubMeeting
+  case .stream: hubStream
   }
  }
 
@@ -4011,7 +4951,7 @@ extension CompanionInterfaceView {
    }
    Spacer()
    TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
-    FridayOrb(state:orbState(at:timeline.date),t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:130,animated:!reduceMotion)
+    FridayOrb(state:orbState(at:timeline.date),t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:130,animated:!reduceMotion,showsPicker:false)
    }
    .frame(width:230,height:190)
   }
@@ -4525,7 +5465,7 @@ extension CompanionInterfaceView {
    VStack(alignment:.leading,spacing:12) {
     Text("Logins live in your Mac's Keychain. You paste them into the app yourself, never into chat.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).padding(.bottom,4)
     hubAccountRow("google","waveform",Noir.crimson,"Google Gemini","Friday's voice and eyes.",live.hasKey ? "Connected" : "Not connected",live.hasKey ? HubColor.green : Noir.crimsonLight,live.hasKey ? "Manage" : "Connect") { hubGoogleForm }
-    hubAccountRow("twitch","scissors",HubColor.violet,"Twitch clips","A separate clip account makes clips when you ask.",clips.signedIn ? "Connected" : "Not connected",clips.signedIn ? HubColor.green : Noir.crimsonLight,clips.signedIn ? "Manage" : "Connect") { clipSettings }
+    hubAccountRow("twitch","scissors",HubColor.violet,"Twitch","Makes clips when you ask and runs the Stream page.",clips.signedIn ? "Connected" : "Not connected",clips.signedIn ? HubColor.green : Noir.crimsonLight,clips.signedIn ? "Manage" : "Connect") { clipSettings }
     hubAccountRow("stocks","chart.line.uptrend.xyaxis",HubColor.green,"Stock bot snapshot","Reads the public practice snapshot. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
     hubAccountRow("moomoo","lock.shield.fill",HubColor.slate,"Moomoo (real money)","Not connected here, on purpose. Real money only runs on your Mac with your three switches.","Walled off",HubColor.slate,nil) { EmptyView() }
     hubAccountRow("counters","chart.bar.fill",HubColor.amber,"GoatCounter (store visits)","Reads your site's public visitor counters. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
@@ -4798,7 +5738,7 @@ TMP=$(mktemp -d)
 
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,Hub}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -4937,9 +5877,9 @@ import Foundation
 ```swift
 import Foundation
 
-// Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader and the Stripe reader's key rules.
+// Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -4989,6 +5929,31 @@ import Foundation
   // Stripe: only a restricted read-only key is accepted.
   precondition(StripeData.keyProblem("sk_live_abc") != nil && StripeData.keyProblem("pk_live_abc") != nil)
   precondition(StripeData.keyProblem("rk_live_abc") == nil && StripeData.keyProblem("rk_test_abc") == nil)
+
+  // Twitch: an empty stream list means offline, a live row is read, titles are checked, and refusals come out in plain words.
+  precondition(StreamData.parseStream(["data":[]]) == nil)
+  let liveRow: [String:Any] = ["data":[["type":"live","title":"Night run","game_name":"Minecraft","viewer_count":12,"started_at":"2026-10-05T20:00:00Z"]]]
+  let onAir = StreamData.parseStream(liveRow)!
+  precondition(onAir.title == "Night run" && onAir.game == "Minecraft" && onAir.viewers == 12 && onAir.startedAt != nil)
+  let chan = StreamData.parseChannel(["data":[["broadcaster_id":"7","broadcaster_login":"me","broadcaster_name":"Me","title":"t","game_id":"27471","game_name":"Minecraft"]]])!
+  precondition(chan.id == "7" && chan.gameID == "27471" && StreamData.parseChannel(["data":[]]) == nil)
+  precondition(StreamData.parseCategories(["data":[["id":"1","name":"A"],["id":"","name":"skip"],["name":"no id"]]]).map { $0.name } == ["A"])
+  let clipRows = StreamData.parseClips(["data":[["id":"c","url":"u","title":"T","view_count":3,"duration":28.5,"created_at":"2026-10-05T20:00:00Z"],["id":"d"]]])
+  precondition(clipRows.count == 1 && clipRows[0].views == 3 && abs(clipRows[0].seconds - 28.5) < 0.001)
+  precondition(StreamData.parseFollowerTotal(["total":41,"data":[]]) == 41 && StreamData.parseFollowerTotal([:]) == nil)
+  precondition(StreamData.duration(7500) == "2h 05m" && StreamData.duration(420) == "7m")
+  let t0 = Date(timeIntervalSince1970:1_000_000)
+  precondition(StreamData.uptime(from:t0,to:t0.addingTimeInterval(20)) == "just started" && StreamData.uptime(from:t0,to:t0.addingTimeInterval(8040)) == "2h 14m")
+  precondition(StreamData.titleProblem("  ") != nil && StreamData.titleProblem(String(repeating:"x",count:141)) != nil && StreamData.titleProblem("Night run") == nil)
+  let bodyWithGame = try! JSONSerialization.jsonObject(with:StreamData.updateBody(title:" Hi ",gameID:"9")!) as! [String:String]
+  precondition(bodyWithGame == ["title":"Hi","game_id":"9"])
+  let bodyNoGame = try! JSONSerialization.jsonObject(with:StreamData.updateBody(title:"Hi",gameID:nil)!) as! [String:String]
+  precondition(bodyNoGame == ["title":"Hi"])
+  let marker = try! JSONSerialization.jsonObject(with:StreamData.markerBody(userID:"7",note:String(repeating:"n",count:200))!) as! [String:String]
+  precondition(marker["user_id"] == "7" && marker["description"]?.count == 140)
+  precondition(StreamData.encoded("Just Chatting & more") == "Just%20Chatting%20%26%20more")
+  precondition(StreamData.explain(code:401,message:nil,doing:"x").contains("sign in again") && StreamData.explain(code:404,message:nil,doing:"add a marker").contains("VODs"))
+  precondition(StreamData.explain(code:400,message:"bad",doing:"x").contains("bad"))
   print("All data checks passed.")
  }
 }
@@ -5303,6 +6268,32 @@ automations, sales and the Meeting Room together, spins while it works, and show
 Messages card has its own Refresh too. A page left open also refreshes itself once a minute (stocks, Meeting Room, or the
 store/ECS/Systems numbers), and the Meeting Room uses the saved GitHub key for its reads when there is one, because GitHub allows
 far more reads with a key than without (60 an hour). Without a key the Meeting Room refreshes about every five minutes.
+
+## New orb, corner popup, movable tabs and the Stream page (2026-10-05)
+
+**The orb** (`FridayOrb.swift`) was rewritten: a soft glow behind it that matches its colour and pulses with the voice, a
+glassy sphere with drifting colour inside and a bright core, and little sparks in orbit while she talks. It reacts to both
+her voice and Matthew's, in live mode and local mode. Under it, a small glass bar switches the look (red orb, emoji faces,
+robot, fire); it fades back until the pointer is over the orb. The choice is saved on the Mac. The Home page's orb hides the bar.
+
+**The corner popup** (`FridayCorner.swift`) is a small Siri-style card in a corner of the screen while Friday is live. It shows the
+orb (reacting to voice), what she is hearing or saying, and a close button. It appears whenever the app's window is out of sight:
+minimized, hidden, or another app (the game) in front. It floats over full-screen apps, can be dragged, and a click brings the
+app forward. Settings, Live voice has an on/off switch and a choice of corner. It starts nothing and sends nothing; it only shows
+what the live session already knows. Compiles and parses; not seen on the Mac yet.
+
+**Movable tabs**: drag any icon on the left rail to a new spot, or right-click an icon for Move up, Move down and Put the icons
+back in the original order. The order is saved on the Mac, and Command-1 to Command-0 now follow the order you set. Not run on
+the Mac yet (drag and drop in a scrolling list is the part most likely to need a fix).
+
+**The Stream page** (`StreamData.swift`, `StreamManager.swift`): a friendly Twitch channel manager. It shows live or offline,
+viewers, time on air, category and followers; lets you change the stream title and category (with a category search and saved
+presets); marks a moment in a live stream; clips the last moments (same as the clip button); lists the latest clips; and runs a
+go-live checklist. It uses the same Twitch login as the clip button, with one more permission (`channel:manage:broadcast`), so
+sign out of Twitch (Accounts) and sign in again once. Changing the title or category only works when the signed-in account is the
+channel's owner; with a separate clip account the page still shows the channel and says so. Twitch doesn't let apps start a stream,
+so that stays in OBS or Streamlabs. Endpoints and permissions were checked against Twitch's API reference on 2026-10-05; the
+reading and error-explaining code is in `checks/DataChecks.swift` and passes. The page itself has not been compiled or run on the Mac.
 ```
 
 ## FILE: meeting-room/README.md

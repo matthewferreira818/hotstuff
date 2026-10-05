@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 // The hub: a slim icon rail, a card dashboard, and a page per venture. Friday is one page of it and stays live while you browse.
 // Everything here is read-only. Nothing in the hub sends, posts, spends or trades.
@@ -15,10 +16,8 @@ enum HubColor {
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream
  var id: Int { rawValue }
- // Command-1 to Command-9 for the first nine pages, Command-0 for the tenth.
- var shortcutKey: Character { rawValue < 9 ? Character(String(rawValue + 1)) : "0" }
  var title: String {
   switch self {
   case .home: return "Home"
@@ -31,6 +30,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .game: return "Game"
   case .accounts: return "Accounts"
   case .meeting: return "Meeting Room"
+  case .stream: return "Stream"
   }
  }
  var icon: String {
@@ -45,6 +45,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .game: return "gamecontroller.fill"
   case .accounts: return "key.fill"
   case .meeting: return "person.3.fill"
+  case .stream: return "dot.radiowaves.left.and.right"
   }
  }
  var tint: Color {
@@ -59,6 +60,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .game: return HubColor.sky
   case .accounts: return HubColor.slate
   case .meeting: return HubColor.violet
+  case .stream: return HubColor.violet
   }
  }
  var blurb: String {
@@ -73,6 +75,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .game: return "Window, key and live status."
   case .accounts: return "What's connected, and what's not."
   case .meeting: return "Claude, GPT and Friday on one shared board."
+  case .stream: return "Your Twitch channel: go-live checks, title, category and clips."
   }
  }
 }
@@ -86,6 +89,61 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var expanded = ""
  // When the refresh-everything button last finished.
  @Published var refreshedAt: Date?
+ // The order of the icons on the left rail. Drag an icon to move it; the order is remembered. A page added in a later
+ // version lands at the end.
+ @Published var order: [HubSection] = HubModel.savedOrder() {
+  didSet { UserDefaults.standard.set(order.map { $0.rawValue },forKey:"hub.order") }
+ }
+ // The icon being dragged right now.
+ @Published var dragging: HubSection?
+
+ static func savedOrder() -> [HubSection] {
+  let saved = (UserDefaults.standard.array(forKey:"hub.order") as? [Int] ?? []).compactMap { HubSection(rawValue:$0) }
+  var seen = Set<HubSection>()
+  var result = saved.filter { seen.insert($0).inserted }
+  for section in HubSection.allCases where !seen.contains(section) { result.append(section) }
+  return result
+ }
+
+ // Drops the dragged icon into the slot of the one it is over.
+ func move(_ item: HubSection,onto target: HubSection) {
+  guard item != target, let from = order.firstIndex(of:item), let to = order.firstIndex(of:target) else { return }
+  var next = order
+  next.remove(at:from)
+  next.insert(item,at:to)
+  order = next
+ }
+
+ func nudge(_ item: HubSection,by step: Int) {
+  guard let from = order.firstIndex(of:item) else { return }
+  let to = min(max(from + step,0),order.count - 1)
+  guard to != from else { return }
+  var next = order
+  next.remove(at:from)
+  next.insert(item,at:to)
+  order = next
+ }
+
+ func resetOrder() { order = HubSection.allCases }
+
+ // Command-1 to Command-9 for the first nine icons on the rail, Command-0 for the tenth. They follow the order you set.
+ func shortcut(for section: HubSection) -> Character? {
+  guard let index = order.firstIndex(of:section), index < 10 else { return nil }
+  return index < 9 ? Character(String(index + 1)) : "0"
+ }
+}
+
+// Lets a rail icon be dropped onto another to swap places, with the others sliding aside as it passes over them.
+@MainActor struct RailDropDelegate: DropDelegate {
+ let target: HubSection
+ let hub: HubModel
+ func validateDrop(info: DropInfo) -> Bool { hub.dragging != nil }
+ func dropEntered(info: DropInfo) {
+  guard let item = hub.dragging, item != target else { return }
+  withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.move(item,onto:target) }
+ }
+ func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation:.move) }
+ func performDrop(info: DropInfo) -> Bool { hub.dragging = nil; return true }
 }
 
 // Store visits, the ECS feed and the automations' status. All public, all read-only (see VentureData.swift).
@@ -260,6 +318,11 @@ struct PillButtonStyle: ButtonStyle {
 }
 
 extension View {
+ // Command plus a number key, when the icon has one.
+ @ViewBuilder func hubShortcut(_ key: Character?) -> some View {
+  if let key = key { self.keyboardShortcut(KeyEquivalent(key),modifiers:.command) } else { self }
+ }
+
  // Frosted glass: the background gradient shows through, softened.
  func hubCard(radius: CGFloat = 22) -> some View {
   self.background(.ultraThinMaterial,in:RoundedRectangle(cornerRadius:radius,style:.continuous))
@@ -304,7 +367,19 @@ extension CompanionInterfaceView {
     .padding(.bottom,4)
    ScrollView(showsIndicators:false) {
     VStack(spacing:5) {
-     ForEach(HubSection.allCases) { section in hubRailButton(section) }
+     ForEach(hub.order) { section in
+      hubRailButton(section)
+       .onDrag {
+        hub.dragging = section
+        return NSItemProvider(object:String(section.rawValue) as NSString)
+       }
+       .onDrop(of:[UTType.text],delegate:RailDropDelegate(target:section,hub:hub))
+       .contextMenu {
+        Button("Move up") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.nudge(section,by:-1) } }
+        Button("Move down") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.nudge(section,by:1) } }
+        Button("Put the icons back in the original order") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.resetOrder() } }
+       }
+     }
     }
     .padding(.vertical,2)
    }
@@ -343,7 +418,7 @@ extension CompanionInterfaceView {
    }
   }
   .buttonStyle(.plain)
-  .keyboardShortcut(KeyEquivalent(section.shortcutKey),modifiers:.command)
+  .hubShortcut(hub.shortcut(for:section))
   .hubHover("rail-\(section.rawValue)",hub,lift:1.06)
  }
 
@@ -396,7 +471,7 @@ extension CompanionInterfaceView {
   .padding(.horizontal,32).padding(.top,26).padding(.bottom,12)
  }
 
- var hubAnyLoading: Bool { stocks.loading || ventures.loading || sales.loading || meeting.loading }
+ var hubAnyLoading: Bool { stocks.loading || ventures.loading || sales.loading || meeting.loading || stream.loading }
 
  // Everything that goes stale: the stock snapshots, store and ECS numbers, automations, sales and the Meeting Room.
  func hubRefreshAll() async {
@@ -404,7 +479,8 @@ extension CompanionInterfaceView {
   async let ventureRun: Void = ventures.refresh(force:true)
   async let salesRun: Void = sales.refresh(force:true)
   async let roomRun: Void = meeting.refresh(force:true)
-  _ = await (stockRun,ventureRun,salesRun,roomRun)
+  async let streamRun: Void = stream.refresh(force:true)
+  _ = await (stockRun,ventureRun,salesRun,roomRun,streamRun)
   hub.refreshedAt = Date()
  }
 
@@ -413,6 +489,7 @@ extension CompanionInterfaceView {
   switch hub.section {
   case .stocks: await stocks.refresh()
   case .meeting: await meeting.refresh(minGap:meeting.hasToken ? 55 : 290)
+  case .stream: await stream.refresh()
   case .home,.store,.ecs,.systems: await ventures.refresh()
   default: break
   }
@@ -437,6 +514,7 @@ extension CompanionInterfaceView {
   case .game: hubGame
   case .accounts: hubAccounts
   case .meeting: hubMeeting
+  case .stream: hubStream
   }
  }
 
@@ -480,7 +558,7 @@ extension CompanionInterfaceView {
    }
    Spacer()
    TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
-    FridayOrb(state:orbState(at:timeline.date),t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:130,animated:!reduceMotion)
+    FridayOrb(state:orbState(at:timeline.date),t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:130,animated:!reduceMotion,showsPicker:false)
    }
    .frame(width:230,height:190)
   }
@@ -994,7 +1072,7 @@ extension CompanionInterfaceView {
    VStack(alignment:.leading,spacing:12) {
     Text("Logins live in your Mac's Keychain. You paste them into the app yourself, never into chat.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).padding(.bottom,4)
     hubAccountRow("google","waveform",Noir.crimson,"Google Gemini","Friday's voice and eyes.",live.hasKey ? "Connected" : "Not connected",live.hasKey ? HubColor.green : Noir.crimsonLight,live.hasKey ? "Manage" : "Connect") { hubGoogleForm }
-    hubAccountRow("twitch","scissors",HubColor.violet,"Twitch clips","A separate clip account makes clips when you ask.",clips.signedIn ? "Connected" : "Not connected",clips.signedIn ? HubColor.green : Noir.crimsonLight,clips.signedIn ? "Manage" : "Connect") { clipSettings }
+    hubAccountRow("twitch","scissors",HubColor.violet,"Twitch","Makes clips when you ask and runs the Stream page.",clips.signedIn ? "Connected" : "Not connected",clips.signedIn ? HubColor.green : Noir.crimsonLight,clips.signedIn ? "Manage" : "Connect") { clipSettings }
     hubAccountRow("stocks","chart.line.uptrend.xyaxis",HubColor.green,"Stock bot snapshot","Reads the public practice snapshot. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
     hubAccountRow("moomoo","lock.shield.fill",HubColor.slate,"Moomoo (real money)","Not connected here, on purpose. Real money only runs on your Mac with your three switches.","Walled off",HubColor.slate,nil) { EmptyView() }
     hubAccountRow("counters","chart.bar.fill",HubColor.amber,"GoatCounter (store visits)","Reads your site's public visitor counters. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }

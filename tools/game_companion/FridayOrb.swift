@@ -11,7 +11,7 @@ enum Noir {
 
 enum OrbState { case off, idle, listening, thinking, speaking }
 
-// Appearance stays on this Mac. Keeping the picker here avoids changing the voice engines.
+// How Friday looks. The choice is saved on this Mac and shared by every place she appears.
 enum FridayLook: String, CaseIterable, Identifiable {
  case orb, faces, robot, fire
  var id: String { rawValue }
@@ -31,21 +31,25 @@ enum FridayLook: String, CaseIterable, Identifiable {
 }
 
 @MainActor final class FridayAppearance: ObservableObject {
- @Published var look: FridayLook {
-  didSet { UserDefaults.standard.set(look.rawValue,forKey:"friday.appearance") }
- }
+ static let shared = FridayAppearance()
+ @Published var look: FridayLook { didSet { UserDefaults.standard.set(look.rawValue,forKey:"friday.appearance") } }
+ // True while the pointer is over an orb, which brings the look picker fully into view.
+ @Published var hovering = false
  init() { look = FridayLook(rawValue:UserDefaults.standard.string(forKey:"friday.appearance") ?? "") ?? .orb }
 }
 
-// The caller supplies the current activity, clock and measured sound level (0...1).
-// No microphone, network connection or speech starts from this view.
+// Friday as a glowing orb: a wide aura that fades smoothly into whatever is behind it (no hard edges, no dark ring), a liquid sphere of
+// drifting light with a bright core that pulses with sound, a slowly turning glass rim, ripples while she talks or listens, and a few
+// sparks orbiting. It only draws. The caller passes the state, the clock (`t`) and how loud the sound is (`level`, 0 to 1).
 struct FridayOrb: View {
  var state: OrbState
  var t: Double
  var level: Double = 0
  var size: CGFloat = 230
  var animated = true
- @StateObject private var appearance = FridayAppearance()
+ // The small look picker under the orb. Hidden where the orb is tiny.
+ var showsPicker = true
+ @ObservedObject private var appearance = FridayAppearance.shared
  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
  private var moves: Bool { animated && !reduceMotion }
@@ -53,143 +57,201 @@ struct FridayOrb: View {
   guard moves, level.isFinite, state == .listening || state == .speaking else { return 0 }
   return min(1,max(0,level))
  }
+ // How fast the light drifts inside the orb.
  private var flow: Double {
-  switch state { case .off: return 0; case .idle: return 0.28; case .listening: return 0.55; case .thinking: return 0.95; case .speaking: return 0.7 }
+  switch state { case .off: return 0.0; case .idle: return 0.6; case .listening: return 1.0; case .thinking: return 2.0; case .speaking: return 1.5 }
  }
- private var activity: String {
-  switch state { case .off: return "Asleep"; case .idle: return "Ready"; case .listening: return "Listening"; case .thinking: return "Thinking"; case .speaking: return "Speaking" }
+ private var glow: Double {
+  switch state { case .off: return 0.30; case .idle: return 0.60; case .listening: return 0.72; case .thinking: return 0.68; case .speaking: return 0.88 }
  }
 
  var body: some View {
   let time = moves ? t : 0
-  let phase = time * flow
-  let breath = moves && state != .off ? sin(time * 1.4) * 0.012 : 0
-  let swell = 1 + breath + sound * 0.085
   ZStack {
-   halo
+   aura(time)
    if appearance.look == .orb {
-    fluid(phase).scaleEffect(swell).opacity(state == .off ? 0.45 : 1)
+    sphere(time)
+     .scaleEffect(1 + (moves && state != .off ? sin(time * 1.3) * 0.012 : 0) + sound * 0.09)
+     .opacity(state == .off ? 0.62 : 1)
    } else {
-    emoji(phase).scaleEffect(1 + sound * 0.10).opacity(state == .off ? 0.55 : 1)
+    bubble(time)
+     .scaleEffect(1 + sound * 0.08)
+     .opacity(state == .off ? 0.7 : 1)
+   }
+   sparks(time)
+  }
+  .frame(width:size * 1.7,height:size * 1.45)
+  .contentShape(Rectangle())
+  .onHover { inside in appearance.hovering = inside }
+  .overlay(alignment:.bottom) {
+   if showsPicker {
+    FridayLookDock()
+     .opacity(appearance.hovering ? 1 : 0.55)
+     .scaleEffect(appearance.hovering ? 1 : 0.94)
+     .animation(.spring(response:0.35,dampingFraction:0.8),value:appearance.hovering)
+     .padding(.bottom,2)
    }
   }
-  .frame(width:size*1.7,height:size*1.45)
-  .overlay(alignment:.bottom) { appearanceMenu.padding(.bottom,4) }
  }
 
- private var halo: some View {
-  Circle()
-   .fill(RadialGradient(colors:[Noir.crimson.opacity(state == .off ? 0.12 : 0.28 + sound * 0.18),Noir.crimsonDeep.opacity(0.10),.clear],center:.center,startRadius:size*0.20,endRadius:size*0.69))
-   .frame(width:size*1.4,height:size*1.4)
-   .scaleEffect(1 + sound * 0.12)
-   .accessibilityHidden(true)
- }
-
- private func fluid(_ phase: Double) -> some View {
-  let contour = FridayContour(phase:phase,energy:sound)
+ // The aura. Every gradient ends in the same colour at zero strength, never plain clear, so the fade has no grey or black fringe,
+ // and none of it is blurred inside a box, so nothing is cut off at an edge.
+ private func aura(_ time: Double) -> some View {
+  let breath = 0.5 + 0.5 * sin(time * 0.9)
+  let strength = glow * (0.85 + 0.15 * breath) + sound * 0.30
+  let violet = Color(red:0.55,green:0.26,blue:0.90)
   return ZStack {
-   contour.fill(RadialGradient(colors:[Noir.crimsonLight,Noir.crimson,Noir.crimsonDeep],center:.topLeading,startRadius:0,endRadius:size*0.9))
-   ZStack {
-    ForEach(0..<5,id:\.self) { i in current(i,phase) }
-    // A warm bright crest and shaded base give the moving colour depth.
-    Ellipse()
-     .fill(LinearGradient(colors:[Color(red:1,green:0.86,blue:0.84).opacity(0.85),Noir.crimsonLight.opacity(0.05)],startPoint:.topLeading,endPoint:.bottomTrailing))
-     .frame(width:size*0.92,height:size*0.39)
-     .rotationEffect(.degrees(-25 + sin(phase*0.8)*12))
-     .offset(x:-size*0.12,y:-size*(0.24 + sound*0.035))
-     .blur(radius:size*0.075)
-    Ellipse().fill(Noir.crimsonDeep.opacity(0.85))
-     .frame(width:size*1.15,height:size*0.36)
-     .rotationEffect(.degrees(16 + sin(phase)*10))
-     .offset(x:size*0.1,y:size*0.38).blur(radius:size*0.08)
+   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(min(0.75,0.62 * strength)),Noir.crimson.opacity(0.22 * strength),Noir.crimson.opacity(0)],center:.center,startRadius:size * 0.28,endRadius:size * 1.12))
+    .frame(width:size * 2.3,height:size * 2.3)
+    .scaleEffect(1 + 0.035 * breath + sound * 0.12)
+   Circle().fill(RadialGradient(colors:[violet.opacity(0.30 * glow),violet.opacity(0)],center:.center,startRadius:0,endRadius:size * 0.85))
+    .frame(width:size * 1.7,height:size * 1.7)
+    .offset(x:cos(time * 0.33) * size * 0.16,y:sin(time * 0.27) * size * 0.12)
+   Circle().stroke(Noir.crimsonLight.opacity(0.30 * glow + sound * 0.35),lineWidth:size * 0.03)
+    .frame(width:size,height:size)
+    .blur(radius:size * 0.05)
+   if moves && (state == .listening || state == .speaking) {
+    ForEach(0..<3,id:\.self) { i in ripple(i,time) }
    }
+  }
+ }
+
+ private func ripple(_ i: Int,_ time: Double) -> some View {
+  let rate = state == .speaking ? 0.55 : 0.35
+  let phase = (time * rate + Double(i) / 3).truncatingRemainder(dividingBy:1)
+  return Circle()
+   .stroke(Noir.crimsonLight.opacity((1 - phase) * 0.32),lineWidth:1.6)
    .frame(width:size,height:size)
-   .clipShape(contour)
-   contour.stroke(LinearGradient(colors:[Color.white.opacity(0.35),Noir.crimsonLight.opacity(0.18),Noir.crimsonDeep.opacity(0.40)],startPoint:.topLeading,endPoint:.bottomTrailing),lineWidth:1)
+   .scaleEffect(1 + phase * 0.6)
+ }
+
+ // The sphere: warm body, drifting light, liquid streaks, a pulsing core, a soft inner shade (crimson, never black) and a glass rim.
+ private func sphere(_ time: Double) -> some View {
+  ZStack {
+   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.52,blue:0.54),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.36,y:0.30),startRadius:0,endRadius:size * 0.80))
+   ForEach(0..<5,id:\.self) { i in blob(i,time) }
+   ForEach(0..<2,id:\.self) { i in streak(i,time) }
+   Circle().fill(RadialGradient(colors:[Color.white.opacity(0.50 + sound * 0.35),Noir.crimsonLight.opacity(0)],center:.center,startRadius:0,endRadius:size * (0.17 + sound * 0.11)))
+    .blendMode(.plusLighter)
+   Circle().fill(RadialGradient(colors:[Noir.crimsonDeep.opacity(0),Noir.crimsonDeep.opacity(0.50)],center:.center,startRadius:size * 0.30,endRadius:size * 0.50))
+   highlight
   }
   .frame(width:size,height:size)
+  .clipShape(Circle())
+  .overlay(rim(time))
   .drawingGroup()
-  .accessibilityElement(children:.ignore)
-  .accessibilityLabel("Friday, red orb")
-  .accessibilityValue(activity)
  }
 
- private func current(_ i: Int,_ phase: Double) -> some View {
-  let angle = phase * (0.6 + Double(i)*0.13) + Double(i)*1.9
-  let colors = [Noir.crimsonLight,Color(red:1,green:0.55,blue:0.51),Noir.crimsonDeep,Noir.crimson,Color(red:1,green:0.72,blue:0.66)]
-  return FridayContour(phase:angle,energy:0.4 + sound*0.6)
-   .fill(LinearGradient(colors:[colors[i],colors[i].opacity(0.15)],startPoint:.topLeading,endPoint:.bottomTrailing))
-   .frame(width:size*(0.88 + sound*0.12),height:size*0.76)
-   .rotationEffect(.radians(angle))
-   .offset(x:cos(angle)*size*0.23,y:sin(angle*0.9)*size*0.20)
-   .blur(radius:size*0.07)
-   .blendMode(i == 2 ? .multiply : .plusLighter)
-   .opacity(i == 2 ? 0.80 : 0.62)
+ private func rim(_ time: Double) -> some View {
+  Circle().strokeBorder(AngularGradient(colors:[Color.white.opacity(0.70),Noir.crimsonLight.opacity(0.12),Color.white.opacity(0.06),Noir.crimsonLight.opacity(0.55),Color.white.opacity(0.70)],center:.center,angle:.degrees(time * 16)),lineWidth:1.5)
  }
 
- private func emoji(_ phase: Double) -> some View {
-  ZStack {
-   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.24),Noir.crimsonDeep.opacity(0.08)],center:.center,startRadius:0,endRadius:size*0.55))
-   Circle().stroke(Noir.crimsonLight.opacity(0.28 + sound*0.4),lineWidth:1.5 + sound*2)
-   Text(appearance.look.emoji(for:state))
-    .font(.system(size:size*0.52))
-    .rotationEffect(.degrees(moves && state == .thinking ? sin(phase*2)*6 : 0))
-    .offset(y:moves && state == .speaking ? -sound*size*0.04 : 0)
-  }
-  .frame(width:size*0.88,height:size*0.88)
-  .accessibilityElement(children:.ignore)
-  .accessibilityLabel("Friday, \(appearance.look.title)")
-  .accessibilityValue(activity)
+ // Five blurred patches of light wandering inside the sphere. Louder sound lets them roam further.
+ private func blob(_ i: Int,_ time: Double) -> some View {
+  let angle = time * flow * (0.55 + 0.17 * Double(i)) + Double(i) * 1.9
+  let reach = size * (0.15 + 0.05 * Double(i % 2)) * (1 + sound * 0.9)
+  let palette: [Color] = [Noir.crimsonLight,Color(red:1.0,green:0.62,blue:0.52),Color(red:1.0,green:0.34,blue:0.60),Noir.crimson,Color(red:0.78,green:0.16,blue:0.48)]
+  return Circle()
+   .fill(palette[i])
+   .frame(width:size * 0.60,height:size * 0.60)
+   .blur(radius:size * 0.14)
+   .offset(x:cos(angle) * reach * 1.5,y:sin(angle * 1.31) * reach * 1.3)
+   .blendMode(.plusLighter)
+   .opacity(i == 3 ? 0.55 : 0.72)
  }
 
- private var appearanceMenu: some View {
-  Menu {
-   ForEach(FridayLook.allCases) { look in
-    Button { appearance.look = look } label: {
-     Label(look.title,systemImage:appearance.look == look ? "checkmark" : "circle")
-    }
+ // Two soft bright streaks that turn slowly through the sphere, like light moving in liquid.
+ private func streak(_ i: Int,_ time: Double) -> some View {
+  let turn = time * flow * (0.35 + 0.2 * Double(i)) * 57.2958 + Double(i) * 70
+  return Ellipse()
+   .fill(LinearGradient(colors:[Noir.crimsonLight.opacity(0),Color.white.opacity(0.34),Noir.crimsonLight.opacity(0)],startPoint:.leading,endPoint:.trailing))
+   .frame(width:size * 1.15,height:size * 0.26)
+   .rotationEffect(.degrees(turn))
+   .blur(radius:size * 0.045)
+   .blendMode(.plusLighter)
+ }
+
+ private var highlight: some View {
+  Ellipse()
+   .fill(LinearGradient(colors:[Color.white.opacity(0.50),Color.white.opacity(0)],startPoint:.top,endPoint:.bottom))
+   .frame(width:size * 0.44,height:size * 0.20)
+   .blur(radius:size * 0.03)
+   .offset(x:-size * 0.13,y:-size * 0.29)
+ }
+
+ // A dozen tiny lights orbiting on slightly different paths. Calm when she is idle, brighter when she talks.
+ private func sparks(_ time: Double) -> some View {
+  let visible: Double = {
+   switch state { case .off: return 0.15; case .idle: return 0.55; case .thinking: return 0.80; default: return 0.75 + sound * 0.25 }
+  }()
+  return ZStack {
+   ForEach(0..<12,id:\.self) { i in
+    let angle = time * (0.10 + 0.012 * Double(i % 5)) + Double(i) * 0.5236 + sin(time * 0.3 + Double(i)) * 0.2
+    let radius = size * (0.60 + 0.06 * Double(i % 4))
+    let twinkle = 0.5 + 0.5 * sin(time * 1.7 + Double(i) * 1.3)
+    Circle().fill(Color.white)
+     .frame(width:size * 0.016 * CGFloat(1 + i % 3),height:size * 0.016 * CGFloat(1 + i % 3))
+     .shadow(color:Noir.crimsonLight,radius:size * 0.025)
+     .offset(x:cos(angle) * radius * 1.18,y:sin(angle) * radius * 0.80)
+     .opacity((0.25 + 0.6 * twinkle) * visible)
    }
-  } label: {
-   Label(appearance.look.title,systemImage:"face.smiling")
-    .font(.system(size:10,weight:.medium,design:.rounded))
-    .foregroundStyle(Color.white.opacity(0.72))
-    .padding(.horizontal,10).padding(.vertical,5)
-    .background(Capsule().fill(Color.white.opacity(0.06)))
   }
-  .menuStyle(.borderlessButton)
-  .fixedSize()
-  .accessibilityLabel("Friday’s appearance")
-  .accessibilityValue(appearance.look.title)
-  .help("Choose the red orb or an emoji. Saved on this Mac.")
+ }
+
+ // The emoji looks: the same aura, with the emoji in a glass bubble that bobs, tilts and bounces with sound.
+ private func bubble(_ time: Double) -> some View {
+  ZStack {
+   Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.34),Noir.crimsonDeep.opacity(0.14)],center:UnitPoint(x:0.4,y:0.3),startRadius:0,endRadius:size * 0.6))
+   Circle().strokeBorder(AngularGradient(colors:[Color.white.opacity(0.55),Noir.crimsonLight.opacity(0.10),Color.white.opacity(0.05),Noir.crimsonLight.opacity(0.45),Color.white.opacity(0.55)],center:.center,angle:.degrees(time * 14)),lineWidth:1.5 + sound * 2)
+   Text(appearance.look.emoji(for:state))
+    .font(.system(size:size * 0.50))
+    .rotationEffect(.degrees(moves && state == .thinking ? sin(time * 2.2) * 7 : 0))
+    .offset(y:moves ? (state == .speaking ? -sound * size * 0.05 : sin(time * 1.2) * size * 0.012) : 0)
+  }
+  .frame(width:size * 0.9,height:size * 0.9)
  }
 }
 
-// A smoothly curved outline: sound changes its shape without sharp jumps or spikes.
-private struct FridayContour: Shape {
- var phase: Double
- var energy: Double
- func path(in rect: CGRect) -> Path {
-  let count = 60
-  let radius = Double(min(rect.width,rect.height)) * 0.46
-  let points: [CGPoint] = (0..<count).map { i in
-   let angle = Double(i) * 2 * .pi / Double(count)
-   let ripple = sin(angle*3 + phase) * (0.022 + energy*0.032) + sin(angle*5 - phase*0.8) * (0.010 + energy*0.018)
-   let r = radius * (1 + ripple)
-   return CGPoint(x:Double(rect.midX) + cos(angle)*r,y:Double(rect.midY) + sin(angle)*r)
+// The look picker: a small glass pill with one round button per look. The chosen one glows crimson and slides between choices.
+struct FridayLookDock: View {
+ @ObservedObject private var appearance = FridayAppearance.shared
+ @Namespace private var pick
+
+ var body: some View {
+  HStack(spacing:4) {
+   ForEach(FridayLook.allCases) { look in
+    Button {
+     withAnimation(.spring(response:0.4,dampingFraction:0.72)) { appearance.look = look }
+    } label: {
+     glyph(look)
+      .frame(width:34,height:30)
+      .background {
+       if appearance.look == look {
+        Capsule()
+         .fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing))
+         .matchedGeometryEffect(id:"look",in:pick)
+         .shadow(color:Noir.crimson.opacity(0.55),radius:7)
+       }
+      }
+    }
+    .buttonStyle(.plain)
+    .help(look.title)
+   }
   }
-  var path = Path()
-  path.move(to:points[0])
-  for i in 0..<count {
-   let a = points[(i + count - 1) % count]
-   let b = points[i]
-   let c = points[(i + 1) % count]
-   let d = points[(i + 2) % count]
-   path.addCurve(to:c,
-    control1:CGPoint(x:b.x + (c.x-a.x)/6,y:b.y + (c.y-a.y)/6),
-    control2:CGPoint(x:c.x - (d.x-b.x)/6,y:c.y - (d.y-b.y)/6))
+  .padding(4)
+  .background(.ultraThinMaterial,in:Capsule())
+  .overlay(Capsule().strokeBorder(LinearGradient(colors:[Color.white.opacity(0.32),Color.white.opacity(0.06)],startPoint:.top,endPoint:.bottom),lineWidth:1))
+  .shadow(color:Color.black.opacity(0.30),radius:10,y:5)
+ }
+
+ @ViewBuilder private func glyph(_ look: FridayLook) -> some View {
+  switch look {
+  case .orb:
+   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.62,blue:0.62),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.30),startRadius:0,endRadius:14)).frame(width:18,height:18)
+  case .faces: Text("😊").font(.system(size:17))
+  case .robot: Text("🤖").font(.system(size:17))
+  case .fire: Text("🔥").font(.system(size:17))
   }
-  path.closeSubpath()
-  return path
  }
 }
 

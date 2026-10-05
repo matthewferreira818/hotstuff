@@ -105,6 +105,10 @@ money mode still applies. Don't promise abilities Claude doesn't have.
 
 ## Where the real ledgers live (read before answering "what's next")
 
+- `meeting-room/BOARD.md` — the shared board for every Claude chat, GPT (his ChatGPT Project) and Friday; Matthew sees it
+  in the app's Meeting Room page. Chats can't see each other, so this is the room: read it at the start of a job, update
+  it before you stop, one owner per item. The repo is public, so nothing private on it. Rules: `meeting-room/README.md`.
+
 - `marketing/east-coast-social/call-kit.md` — prospect ledger + call log.
 - `.claude/council/DECISIONS.md` — council verdicts. Standing: design
   freeze on both sites until Aug 31 (photo block exempt); one-time

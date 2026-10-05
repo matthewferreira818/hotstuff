@@ -15,8 +15,10 @@ enum HubColor {
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting
  var id: Int { rawValue }
+ // Command-1 to Command-9 for the first nine pages, Command-0 for the tenth.
+ var shortcutKey: Character { rawValue < 9 ? Character(String(rawValue + 1)) : "0" }
  var title: String {
   switch self {
   case .home: return "Home"
@@ -28,6 +30,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .launchpad: return "Launchpad"
   case .game: return "Game"
   case .accounts: return "Accounts"
+  case .meeting: return "Meeting Room"
   }
  }
  var icon: String {
@@ -41,6 +44,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .launchpad: return "square.grid.2x2.fill"
   case .game: return "gamecontroller.fill"
   case .accounts: return "key.fill"
+  case .meeting: return "person.3.fill"
   }
  }
  var tint: Color {
@@ -54,6 +58,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .launchpad: return HubColor.indigo
   case .game: return HubColor.sky
   case .accounts: return HubColor.slate
+  case .meeting: return HubColor.violet
   }
  }
  var blurb: String {
@@ -67,6 +72,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .launchpad: return "Every dashboard you use, one click away."
   case .game: return "Window, key and live status."
   case .accounts: return "What's connected, and what's not."
+  case .meeting: return "Claude, GPT and Friday on one shared board."
   }
  }
 }
@@ -335,7 +341,7 @@ extension CompanionInterfaceView {
    }
   }
   .buttonStyle(.plain)
-  .keyboardShortcut(KeyEquivalent(Character("\(section.rawValue + 1)")),modifiers:.command)
+  .keyboardShortcut(KeyEquivalent(section.shortcutKey),modifiers:.command)
   .hubHover("rail-\(section.rawValue)",hub,lift:1.06)
  }
 
@@ -395,6 +401,7 @@ extension CompanionInterfaceView {
   case .launchpad: hubLaunchpad
   case .game: hubGame
   case .accounts: hubAccounts
+  case .meeting: hubMeeting
   }
  }
 
@@ -871,6 +878,7 @@ extension CompanionInterfaceView {
   if let cat = ventures.catalog {
    lines.append(cat.isStale() ? "Catalog: \(cat.count) products, but the last refresh was \(cat.ageDays() ?? 0) days ago." : "Catalog: \(cat.count) products, refreshed \(hubAgo(cat.refreshed)).")
   }
+  if let board = meeting.board { lines.append("Meeting Room: \(board.openCount) thing\(board.openCount == 1 ? "" : "s") on the table, board updated \(board.updated).") }
   if let runs = ventures.runs {
    let bad = ventures.attention
    lines.append(bad.isEmpty ? "Automations: all \(runs.count) ran without errors." : "Automations needing attention: \(bad.map { $0.name }.joined(separator:", ")).")

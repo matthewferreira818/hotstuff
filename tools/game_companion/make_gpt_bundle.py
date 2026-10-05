@@ -28,11 +28,15 @@ FILES = [
     ("StockData.swift", "Reads the stock bot's public practice snapshots. Read-only."),
     ("VentureData.swift", "Reads the store's public visitor counters, the ECS feed, GitHub automation status and the product list age."),
     ("StripeData.swift", "Reads store sales from Stripe with a read-only restricted key. GET requests only."),
+    ("MeetingData.swift", "Reads the shared Meeting Room board (meeting-room/BOARD.md) from GitHub. Read-only."),
+    ("MeetingRoom.swift", "The Meeting Room page: the board, the crew, and a box that makes a ready-to-paste note for Claude or GPT."),
     ("Hub.swift", "The hub: sidebar sections, Home, Stock, Store, ECS, Systems, Launchpad, Game and Accounts pages."),
     ("rebuild.sh", "Builds the app with swiftc (no Xcode), signs it and installs it."),
     ("make_cert.sh", "One-time: makes the self-signed signing certificate so permissions and Keychain trust stick."),
     ("checks/ReviewChecks.swift", "Small automated checks for the conversation code."),
     ("README.md", "Running notes: what was built, what was tested, what is still unverified."),
+    ("../../meeting-room/README.md", "The Meeting Room rules: how Claude, GPT, Friday and Matthew share one board."),
+    ("../../meeting-room/BOARD.md", "The shared board right now: who is on what, open questions, decisions, known problems."),
 ]
 
 INTRO = """# Game Companion: everything in one file (for a ChatGPT Project)
@@ -64,6 +68,10 @@ numbers and honest bad news. Never use jargon without explaining it.
 - **No paid services** until his first invoice clears. Everything here must run free.
 - **Honesty in anything public.** Do not invent numbers or claims. Streaks count the site's feed, not any social page.
 - Read-only by default: the Stripe reader sends GET requests only and refuses a full secret key.
+- **Use the Meeting Room.** The last two files in this bundle are the shared board and its rules. Read the board before you
+  start. When you finish a job, end with a "Board update" block in the board's format (`## heading`, then `- [GPT] ... Status: x`
+  lines) for Matthew to hand to Claude. Never put keys or private details on it: the repo is public. Don't change a file the
+  board says Claude owns while that item is open; send notes instead.
 
 ## Build facts that will trip you up
 
@@ -107,12 +115,15 @@ def main() -> None:
     except Exception:
         commit = "unknown"
     present = [(name, note) for name, note in FILES if (HERE / name).exists()]
-    filemap = "\n".join(f"- `{name}`: {note}" for name, note in present)
+    def shown(name: str) -> str:
+        return name.replace("../../", "")
+
+    filemap = "\n".join(f"- `{shown(name)}`: {note}" for name, note in present)
     parts = [INTRO.format(today=date.today().isoformat(), commit=commit, filemap=filemap)]
     for name, _ in present:
         text = (HERE / name).read_text(encoding="utf-8")
         fence = fence_for(text)
-        parts.append(f"\n## FILE: {name}\n\n{fence}{language(name)}\n{text.rstrip()}\n{fence}\n")
+        parts.append(f"\n## FILE: {shown(name)}\n\n{fence}{language(name)}\n{text.rstrip()}\n{fence}\n")
     out = HERE / "GPT-PROJECT-BUNDLE.md"
     out.write_text("".join(parts), encoding="utf-8")
     size = out.stat().st_size

@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit e2b2ef2. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit 0856b03. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -27,6 +27,10 @@ numbers and honest bad news. Never use jargon without explaining it.
 - **No paid services** until his first invoice clears. Everything here must run free.
 - **Honesty in anything public.** Do not invent numbers or claims. Streaks count the site's feed, not any social page.
 - Read-only by default: the Stripe reader sends GET requests only and refuses a full secret key.
+- **Use the Meeting Room.** The last two files in this bundle are the shared board and its rules. Read the board before you
+  start. When you finish a job, end with a "Board update" block in the board's format (`## heading`, then `- [GPT] ... Status: x`
+  lines) for Matthew to hand to Claude. Never put keys or private details on it: the repo is public. Don't change a file the
+  board says Claude owns while that item is open; send notes instead.
 
 ## Build facts that will trip you up
 
@@ -61,11 +65,15 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `StockData.swift`: Reads the stock bot's public practice snapshots. Read-only.
 - `VentureData.swift`: Reads the store's public visitor counters, the ECS feed, GitHub automation status and the product list age.
 - `StripeData.swift`: Reads store sales from Stripe with a read-only restricted key. GET requests only.
+- `MeetingData.swift`: Reads the shared Meeting Room board (meeting-room/BOARD.md) from GitHub. Read-only.
+- `MeetingRoom.swift`: The Meeting Room page: the board, the crew, and a box that makes a ready-to-paste note for Claude or GPT.
 - `Hub.swift`: The hub: sidebar sections, Home, Stock, Store, ECS, Systems, Launchpad, Game and Accounts pages.
 - `rebuild.sh`: Builds the app with swiftc (no Xcode), signs it and installs it.
 - `make_cert.sh`: One-time: makes the self-signed signing certificate so permissions and Keychain trust stick.
 - `checks/ReviewChecks.swift`: Small automated checks for the conversation code.
 - `README.md`: Running notes: what was built, what was tested, what is still unverified.
+- `meeting-room/README.md`: The Meeting Room rules: how Claude, GPT, Friday and Matthew share one board.
+- `meeting-room/BOARD.md`: The shared board right now: who is on what, open questions, decisions, known problems.
 
 ---
 
@@ -1566,6 +1574,7 @@ struct CompanionInterfaceView: View {
  @StateObject var stocks = StockHub()
  @StateObject var ventures = VentureHub()
  @StateObject var sales = SalesHub()
+ @StateObject var meeting = MeetingHub()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
  let refreshTick = Timer.publish(every:300,on:.main,in:.common).autoconnect()
@@ -1578,8 +1587,8 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true) } }
-  .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh() } }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
   .onChange(of:conversation.page) { _,page in
    c.handsFree = false; c.stopMic(); c.cancelResponse(); c.automatic = false; c.history.removeAll(); c.reply = ""; c.input = ""; c.unloadModel()
@@ -2567,6 +2576,292 @@ enum StripeData {
 }
 ```
 
+## FILE: MeetingData.swift
+
+```swift
+import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
+// The Meeting Room board: meeting-room/BOARD.md in the public repo, shared by Claude, GPT, Friday and Matthew.
+// Read-only here. The app only reads and shows it; nothing in the app edits the file. Format: see meeting-room/README.md.
+//   ## Section heading
+//   - [Owner] One or two sentences. Status: building
+
+struct BoardItem: Identifiable {
+ var id: String
+ var owner: String      // the text inside [ ], for example "Claude" or "Claude → Matthew"; empty if none
+ var text: String
+ var status: String     // the words after "Status:", lowercased; empty if none
+ var isDone: Bool { status.hasPrefix("done") }
+}
+
+struct BoardSection: Identifiable {
+ var id: String { title }
+ var title: String
+ var items: [BoardItem]
+}
+
+struct Board {
+ var updated = ""
+ var sections: [BoardSection] = []
+ var raw = ""
+ // Things on the table that aren't marked done.
+ var openCount: Int { (sections.first { $0.title.lowercased() == "on the table" }?.items ?? []).filter { !$0.isDone }.count }
+}
+
+enum MeetingData {
+ static let url = "https://api.github.com/repos/matthewferreira818/hotstuff/contents/meeting-room/BOARD.md?ref=master"
+ static let page = "https://github.com/matthewferreira818/hotstuff/blob/master/meeting-room/BOARD.md"
+
+ static func parse(_ text: String) -> Board {
+  var board = Board()
+  board.raw = text
+  var sections: [BoardSection] = []
+  var current: BoardSection?
+  var lastItemText: String?
+  func closeItem() {
+   guard var section = current, let body = lastItemText else { return }
+   section.items.append(makeItem(body,id:"\(section.title)-\(section.items.count)"))
+   current = section
+   lastItemText = nil
+  }
+  for line in text.components(separatedBy:"\n") {
+   let trimmed = line.trimmingCharacters(in:.whitespaces)
+   if trimmed.hasPrefix("_Last updated:") {
+    board.updated = trimmed.trimmingCharacters(in:CharacterSet(charactersIn:"_ ")).replacingOccurrences(of:"Last updated:",with:"").trimmingCharacters(in:.whitespaces)
+   } else if trimmed.hasPrefix("## ") {
+    closeItem()
+    if let section = current { sections.append(section) }
+    current = BoardSection(title:String(trimmed.dropFirst(3)).trimmingCharacters(in:.whitespaces),items:[])
+   } else if trimmed.hasPrefix("- "), current != nil {
+    closeItem()
+    lastItemText = String(trimmed.dropFirst(2))
+   } else if !trimmed.isEmpty, lastItemText != nil, line.hasPrefix(" ") {
+    lastItemText = (lastItemText ?? "") + " " + trimmed   // an indented line continues the item above
+   }
+  }
+  closeItem()
+  if let section = current { sections.append(section) }
+  board.sections = sections
+  return board
+ }
+
+ // "[Claude → Matthew] Some words. Status: waiting" becomes owner, text and status.
+ static func makeItem(_ body: String,id: String) -> BoardItem {
+  var rest = body.trimmingCharacters(in:.whitespaces)
+  var owner = ""
+  if rest.hasPrefix("["), let close = rest.firstIndex(of:"]") {
+   owner = String(rest[rest.index(after:rest.startIndex)..<close]).trimmingCharacters(in:.whitespaces)
+   rest = String(rest[rest.index(after:close)...]).trimmingCharacters(in:.whitespaces)
+  }
+  var status = ""
+  if let range = rest.range(of:"Status:",options:.backwards) {
+   status = String(rest[range.upperBound...]).trimmingCharacters(in:CharacterSet(charactersIn:". ")).lowercased()
+   rest = String(rest[..<range.lowerBound]).trimmingCharacters(in:.whitespaces)
+  }
+  return BoardItem(id:id,owner:owner,text:rest,status:status)
+ }
+
+ // GitHub's contents API with the "raw" media type returns the file itself, a minute fresher than the raw file host.
+ static func fetch() async -> Board? {
+  guard let target = URL(string:url) else { return nil }
+  var request = URLRequest(url:target)
+  request.cachePolicy = .reloadIgnoringLocalCacheData
+  request.timeoutInterval = 12
+  request.setValue("application/vnd.github.raw+json",forHTTPHeaderField:"Accept")
+  request.setValue("GameCompanion",forHTTPHeaderField:"User-Agent")
+  guard let (data,response) = try? await URLSession.shared.data(for:request),
+        (response as? HTTPURLResponse)?.statusCode == 200,
+        let text = String(data:data,encoding:.utf8), text.contains("##") else { return nil }
+  return parse(text)
+ }
+}
+```
+
+## FILE: MeetingRoom.swift
+
+```swift
+import SwiftUI
+import Cocoa
+
+// The Meeting Room page: the shared board (see MeetingData.swift) plus a box that turns Matthew's message into a
+// ready-to-paste note for Claude or GPT. The chats can't see each other, so this is how they stay on the same page.
+@MainActor final class MeetingHub: ObservableObject {
+ @Published var board: Board?
+ @Published var loading = false
+ @Published var failed = false
+ // Who the message is for: 0 Claude, 1 GPT, 2 a note for Claude to file on the board.
+ @Published var to = 0
+ @Published var draft = ""
+ @Published var copied = ""
+ var lastRefresh = Date.distantPast
+
+ func refresh(force: Bool = false) async {
+  guard !loading else { return }
+  if !force && Date().timeIntervalSince(lastRefresh) < 240 { return }
+  loading = true
+  defer { loading = false }
+  if let fresh = await MeetingData.fetch() { board = fresh; failed = false } else { failed = (board == nil) }
+  lastRefresh = Date()
+ }
+
+ // The text that gets copied. GPT gets the whole board because it can't read the repo by itself.
+ func message() -> String {
+  let note = draft.trimmingCharacters(in:.whitespacesAndNewlines)
+  switch to {
+  case 0:
+   return "Message for Claude, from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nBefore you start, read meeting-room/BOARD.md in the hotstuff repo, and update it before you stop."
+  case 1:
+   let current = board?.raw ?? "(The board couldn't be loaded. Ask Matthew to paste it.)"
+   return "Message for GPT, from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nReply in plain words. If you did or decided something, finish with a \"Board update\" block in the board's format (## heading, then - [GPT] lines), so I can hand it to Claude. Never put keys, customer details or anything private in it. The current board:\n\n\(current)"
+  default:
+   return "Claude, please add this to meeting-room/BOARD.md under the right heading (keep it short, one owner per item, no private details), then commit and push it:\n\n\(note)"
+  }
+ }
+
+ func copy() {
+  let pasteboard = NSPasteboard.general
+  pasteboard.clearContents()
+  pasteboard.setString(message(),forType:.string)
+  copied = to == 0 ? "Copied for Claude" : (to == 1 ? "Copied for GPT" : "Copied for the board")
+  Task {
+   try? await Task.sleep(nanoseconds:2_500_000_000)
+   copied = ""
+  }
+ }
+}
+
+extension CompanionInterfaceView {
+ var hubMeeting: some View {
+  ScrollView {
+   VStack(alignment:.leading,spacing:18) {
+    HStack(spacing:10) {
+     hubPill("THE SHARED BOARD · FROM GITHUB",tint:HubColor.indigo)
+     if let board = meeting.board, !board.updated.isEmpty {
+      Text("Updated \(board.updated)").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+     }
+     Spacer()
+     Button { if let url = URL(string:MeetingData.page) { NSWorkspace.shared.open(url) } } label: { Label("Open on GitHub",systemImage:"arrow.up.right.square") }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+     Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+      .disabled(meeting.loading)
+    }
+    hubCrew
+    if let board = meeting.board {
+     ForEach(board.sections) { section in hubBoardSection(section) }
+    } else if meeting.failed {
+     hubOffline("the board")
+    } else {
+     ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(40)
+    }
+    hubComposer
+    Text("Your chats can't see each other, so this board is the shared page. The repo is public: never put keys, customer details or anything private on it. The app only reads the board; Claude edits it.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+   .padding(.horizontal,32).padding(.bottom,30)
+  }
+  .scrollIndicators(.hidden)
+ }
+
+ var hubCrew: some View {
+  HStack(alignment:.top,spacing:14) {
+   hubCrewCard("Claude","Builds the app, runs the automations and keeps the repo. Reads the board at the start of a job.","hammer.fill",HubColor.amber,"Open Claude","https://claude.ai/code")
+   hubCrewCard("GPT","A second opinion and notes, in your ChatGPT Project. It can read the app but can't push to GitHub.","brain.head.profile",HubColor.green,"Open ChatGPT","https://chatgpt.com/")
+   hubCrewCard("Friday","Lives in this app: she hears you and sees your game. She doesn't write to the board yet.","waveform",Noir.crimson,"Talk to Friday",nil)
+  }
+ }
+
+ func hubCrewCard(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ button: String,_ url: String?) -> some View {
+  VStack(alignment:.leading,spacing:10) {
+   ZStack {
+    RoundedRectangle(cornerRadius:14,style:.continuous).fill(LinearGradient(colors:[tint,tint.opacity(0.55)],startPoint:.topLeading,endPoint:.bottomTrailing)).frame(width:40,height:40)
+    Image(systemName:icon).font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white)
+   }
+   Text(name).font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+   Text(job).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(4).multilineTextAlignment(.leading)
+   Spacer(minLength:4)
+   Button {
+    if let url = url, let target = URL(string:url) { NSWorkspace.shared.open(target) } else { hubSelect(.friday) }
+   } label: { Label(button,systemImage:url == nil ? "waveform" : "arrow.up.right") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+  }
+  .padding(16)
+  .frame(maxWidth:.infinity,minHeight:170,alignment:.topLeading)
+  .hubCard()
+ }
+
+ func hubOwnerTint(_ owner: String) -> Color {
+  let name = owner.lowercased()
+  if name.hasPrefix("claude") { return HubColor.amber }
+  if name.hasPrefix("gpt") { return HubColor.green }
+  if name.hasPrefix("matthew") { return HubColor.sky }
+  if name.hasPrefix("friday") { return Noir.crimsonLight }
+  return HubColor.slate
+ }
+
+ func hubStatusTint(_ status: String) -> Color {
+  if status.hasPrefix("done") { return HubColor.green }
+  if status.hasPrefix("blocked") { return Noir.crimsonLight }
+  if status.hasPrefix("building") { return HubColor.amber }
+  return HubColor.slate
+ }
+
+ func hubBoardSection(_ section: BoardSection) -> some View {
+  VStack(alignment:.leading,spacing:12) {
+   HStack(spacing:8) {
+    Text(section.title).font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    Text(String(section.items.count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+   if section.items.isEmpty {
+    Text("Nothing here.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   ForEach(section.items) { item in
+    HStack(alignment:.top,spacing:10) {
+     if !item.owner.isEmpty { hubPill(item.owner.uppercased(),tint:hubOwnerTint(item.owner)) }
+     Text(item.text).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(item.isDone ? 0.5 : 0.85)).lineLimit(5).multilineTextAlignment(.leading)
+     Spacer(minLength:8)
+     if !item.status.isEmpty { hubPill(item.status.uppercased(),tint:hubStatusTint(item.status)) }
+    }
+   }
+  }
+  .padding(18)
+  .frame(maxWidth:.infinity,alignment:.leading)
+  .hubCard()
+ }
+
+ var hubComposer: some View {
+  VStack(alignment:.leading,spacing:12) {
+   Text("Send a message").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+   Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To GPT").tag(1); Text("Note for the board").tag(2) }
+    .pickerStyle(.segmented).labelsHidden().frame(maxWidth:440)
+   TextEditor(text:$meeting.draft)
+    .font(.system(size:13.5,design:.rounded))
+    .scrollContentBackground(.hidden)
+    .frame(minHeight:90,maxHeight:140)
+    .padding(10)
+    .background(RoundedRectangle(cornerRadius:14,style:.continuous).fill(Color.white.opacity(0.06)))
+    .overlay(RoundedRectangle(cornerRadius:14,style:.continuous).stroke(Color.white.opacity(0.10),lineWidth:1))
+   HStack(spacing:10) {
+    Button { meeting.copy() } label: { Label(meeting.copied.isEmpty ? "Copy message" : meeting.copied,systemImage:meeting.copied.isEmpty ? "doc.on.doc" : "checkmark") }
+     .buttonStyle(PillButtonStyle())
+     .disabled(meeting.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
+    Button { if let url = URL(string:"https://claude.ai/code") { NSWorkspace.shared.open(url) } } label: { Label("Open Claude",systemImage:"arrow.up.right") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    Button { if let url = URL(string:"https://chatgpt.com/") { NSWorkspace.shared.open(url) } } label: { Label("Open ChatGPT",systemImage:"arrow.up.right") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+   Text(meeting.to == 0 ? "Copies your message plus a line telling Claude to read the board. Paste it into any Claude chat." : (meeting.to == 1 ? "Copies your message and today's board, so GPT starts from the same page. Paste it into your GPT Project." : "Copies a note for Claude to file on the board. To carry a GPT \"Board update\" over, paste GPT's block as your message and paste this into a Claude chat."))
+    .font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))
+  }
+  .padding(18)
+  .frame(maxWidth:.infinity,alignment:.leading)
+  .hubCard()
+ }
+}
+```
+
 ## FILE: Hub.swift
 
 ```swift
@@ -2587,8 +2882,10 @@ enum HubColor {
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting
  var id: Int { rawValue }
+ // Command-1 to Command-9 for the first nine pages, Command-0 for the tenth.
+ var shortcutKey: Character { rawValue < 9 ? Character(String(rawValue + 1)) : "0" }
  var title: String {
   switch self {
   case .home: return "Home"
@@ -2600,6 +2897,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .launchpad: return "Launchpad"
   case .game: return "Game"
   case .accounts: return "Accounts"
+  case .meeting: return "Meeting Room"
   }
  }
  var icon: String {
@@ -2613,6 +2911,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .launchpad: return "square.grid.2x2.fill"
   case .game: return "gamecontroller.fill"
   case .accounts: return "key.fill"
+  case .meeting: return "person.3.fill"
   }
  }
  var tint: Color {
@@ -2626,6 +2925,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .launchpad: return HubColor.indigo
   case .game: return HubColor.sky
   case .accounts: return HubColor.slate
+  case .meeting: return HubColor.violet
   }
  }
  var blurb: String {
@@ -2639,6 +2939,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .launchpad: return "Every dashboard you use, one click away."
   case .game: return "Window, key and live status."
   case .accounts: return "What's connected, and what's not."
+  case .meeting: return "Claude, GPT and Friday on one shared board."
   }
  }
 }
@@ -2907,7 +3208,7 @@ extension CompanionInterfaceView {
    }
   }
   .buttonStyle(.plain)
-  .keyboardShortcut(KeyEquivalent(Character("\(section.rawValue + 1)")),modifiers:.command)
+  .keyboardShortcut(KeyEquivalent(section.shortcutKey),modifiers:.command)
   .hubHover("rail-\(section.rawValue)",hub,lift:1.06)
  }
 
@@ -2967,6 +3268,7 @@ extension CompanionInterfaceView {
   case .launchpad: hubLaunchpad
   case .game: hubGame
   case .accounts: hubAccounts
+  case .meeting: hubMeeting
   }
  }
 
@@ -3443,6 +3745,7 @@ extension CompanionInterfaceView {
   if let cat = ventures.catalog {
    lines.append(cat.isStale() ? "Catalog: \(cat.count) products, but the last refresh was \(cat.ageDays() ?? 0) days ago." : "Catalog: \(cat.count) products, refreshed \(hubAgo(cat.refreshed)).")
   }
+  if let board = meeting.board { lines.append("Meeting Room: \(board.openCount) thing\(board.openCount == 1 ? "" : "s") on the table, board updated \(board.updated).") }
   if let runs = ventures.runs {
    let bad = ventures.attention
    lines.append(bad.isEmpty ? "Automations: all \(runs.count) ran without errors." : "Automations needing attention: \(bad.map { $0.name }.joined(separator:", ")).")
@@ -3775,7 +4078,7 @@ TMP=$(mktemp -d)
 
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,StockData,VentureData,StripeData,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,StockData,VentureData,StripeData,MeetingData,MeetingRoom,Hub}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -4157,4 +4460,88 @@ Now `VentureData.fetchAlerts()` reads GitHub's public open-issues list (pull req
 them. Open alerts do not trigger the Home warning banner, so a known, parked item doesn't nag; failing runs and a stale catalog
 still do. Tested live: it found issue #14. Also: the sidebar is tighter so more of the nine pages fit without scrolling
 (Accounts is also Command-9), and Launchpad tiles are wider so names like "CJ Dropshipping" no longer break mid-word.
+
+## Meeting Room (2026-10-05)
+
+A tenth hub page (Command-0). Claude's chats, the GPT Project and Friday can't see each other, so the room is a shared board:
+`meeting-room/BOARD.md` in the public repo (rules in `meeting-room/README.md`). `MeetingData.swift` (Foundation-only, tested
+against the real file) reads it through GitHub's contents API and splits it into sections and items (`- [Owner] text. Status: x`).
+The page shows the crew (Claude, GPT, Friday), the board, and a message box: pick To Claude, To GPT or Note for the board, type,
+and Copy puts a ready-to-paste message on the clipboard (the GPT version includes the whole board, since GPT can't read the repo).
+The app only reads the board. Claude edits it and pushes; GPT hands Matthew a "Board update" block to paste. Home's briefing
+shows how many things are on the table. Nothing private belongs on it: the repo is public. The Command-number shortcut code
+was changed so a tenth page can't crash it.
+```
+
+## FILE: meeting-room/README.md
+
+````markdown
+# Meeting Room
+
+One shared board for everyone who works on Matthew's ventures: Claude (several chats), GPT (the ChatGPT Project), Friday
+(inside the Mac app) and Matthew himself. These chats can't see each other, so this file is the room. Read the board
+before you start. Update it before you stop.
+
+The board is `BOARD.md`. Matthew sees it in the Game Companion app under **Meeting Room**.
+
+## Rules
+
+1. **This repo is public.** No keys, tokens, passwords, customer names or emails, phone numbers, or anything private.
+   If in doubt, leave it out and tell Matthew in chat instead.
+2. **One owner per item.** Put your name in square brackets. Don't edit another owner's files or items while theirs is
+   open; leave a note under Questions instead.
+3. **Short.** One or two plain sentences per item, no jargon. End an item with `Status: <word>` (building, assigned,
+   waiting, blocked, done).
+4. **It's a board, not a log.** When an item is done, delete it, or turn it into one line under Decisions.
+5. **Matthew decides.** Questions for him go under Questions. His answers go under Decisions, with the date.
+6. **Matthew clicks every final button.** Nothing on this board authorizes posting, paying, sending or publishing.
+
+## Format
+
+```
+## On the table
+- [Claude] What it is, in a sentence. Status: building
+## Questions
+- [Claude → Matthew] A question that needs his call.
+## Decisions
+- 2026-10-05: What was decided.
+## Known problems
+- Something broken or parked, and why.
+```
+
+## How each one writes to it
+
+- **Claude** edits `BOARD.md` and pushes it, like any other file.
+- **GPT** can't push. At the end of a job it gives Matthew a "Board update" block in the format above. Matthew pastes it
+  into the app's Meeting Room (it makes a ready-to-send note for Claude), and Claude files it.
+- **Friday** doesn't write to it yet.
+- **Matthew** types in the Meeting Room and copies the message to whichever chat should get it.
+````
+
+## FILE: meeting-room/BOARD.md
+
+```markdown
+# Meeting Room board
+
+_Last updated: 2026-10-05 by Claude_
+
+## On the table
+- [Claude] Twitch clips: say "clip it", it makes the Twitch clip, downloads it, and cuts a tight highlight (a landscape and a vertical version) into a folder on the Mac. Status: building
+- [Claude] This Meeting Room page in the hub. Status: building
+- [GPT] Notes only, no code files: list lines that probably won't compile on a Mac, write what counts as a Minecraft Dungeons 2 highlight, and write a click-through checklist for each hub page. Status: assigned
+- [Matthew] Optional: connect Stripe in the hub (Accounts, Stripe) with a read-only key, so orders and revenue show on the Store page. Status: waiting
+
+## Questions
+- [Claude → Matthew] Should Friday ever clip on her own, or only when you say "clip it"? For now: only when you say it, because a Twitch clip goes public on your channel right away.
+- [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild?
+
+## Decisions
+- 2026-10-05: Real-money trading stays walled off from the hub and from every other chat. Practice money only.
+- 2026-10-05: Two AIs never edit the same file at once. While the Twitch work is open, Claude owns Clips, Live, Hub and CompanionInterface; GPT sends notes only.
+- 2026-10-05: The garbled "Sewage Hard" product was pulled from the store and blocked from future refreshes.
+- 2026-10-05: Everything is on master; the Mac app rebuilds from there.
+
+## Known problems
+- X posting has been refused since Sept 16 because the X credits ran out (GitHub issue 14). Parked until the first invoice clears.
+- The Stripe reader has never run against a real Stripe account, so the first real key is the true test.
 ```

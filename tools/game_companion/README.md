@@ -243,3 +243,14 @@ Now `VentureData.fetchAlerts()` reads GitHub's public open-issues list (pull req
 them. Open alerts do not trigger the Home warning banner, so a known, parked item doesn't nag; failing runs and a stale catalog
 still do. Tested live: it found issue #14. Also: the sidebar is tighter so more of the nine pages fit without scrolling
 (Accounts is also Command-9), and Launchpad tiles are wider so names like "CJ Dropshipping" no longer break mid-word.
+
+## Meeting Room (2026-10-05)
+
+A tenth hub page (Command-0). Claude's chats, the GPT Project and Friday can't see each other, so the room is a shared board:
+`meeting-room/BOARD.md` in the public repo (rules in `meeting-room/README.md`). `MeetingData.swift` (Foundation-only, tested
+against the real file) reads it through GitHub's contents API and splits it into sections and items (`- [Owner] text. Status: x`).
+The page shows the crew (Claude, GPT, Friday), the board, and a message box: pick To Claude, To GPT or Note for the board, type,
+and Copy puts a ready-to-paste message on the clipboard (the GPT version includes the whole board, since GPT can't read the repo).
+The app only reads the board. Claude edits it and pushes; GPT hands Matthew a "Board update" block to paste. Home's briefing
+shows how many things are on the table. Nothing private belongs on it: the repo is public. The Command-number shortcut code
+was changed so a tenth page can't crash it.

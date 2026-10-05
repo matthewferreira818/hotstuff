@@ -7,18 +7,22 @@ struct CompanionInterfaceView: View {
  @StateObject var c = Companion()
  @StateObject var live = LiveBuddy()
  @StateObject var clips = TwitchClips()
+ @StateObject var hub = HubModel()
+ @StateObject var stocks = StockHub()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
- @Environment(\.accessibilityReduceMotion) private var reduceMotion
+ let refreshTick = Timer.publish(every:300,on:.main,in:.common).autoconnect()
+ @Environment(\.accessibilityReduceMotion) var reduceMotion
  var body: some View {
-  voiceScreen
-  .frame(width:620,height:780)
+  hubShell
+  .frame(width:1060,height:740)
   .background(NoirBackground())
   .preferredColorScheme(.dark)
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; Task { await stocks.refresh() } }
+  .onReceive(refreshTick) { _ in Task { await stocks.refresh() } }
   .onDisappear { stopAll() }
   .onChange(of:conversation.page) { _,page in
    c.handsFree = false; c.stopMic(); c.cancelResponse(); c.automatic = false; c.history.removeAll(); c.reply = ""; c.input = ""; c.unloadModel()
@@ -70,7 +74,7 @@ struct CompanionInterfaceView: View {
   TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
    let state = orbState(at:timeline.date)
    VStack(spacing:4) {
-    FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:230,animated:!reduceMotion)
+    FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:200,animated:!reduceMotion)
     Text("Friday").font(.system(size:26,weight:.light,design:.rounded)).tracking(8).foregroundStyle(Color.white.opacity(0.92))
     Text(DesignPreview.enabled ? "Review draft · connections disabled" : stateLabel(state)).font(.system(size:11,weight:.medium,design:.rounded)).tracking(2).textCase(.uppercase).foregroundStyle(state == .off ? Color.white.opacity(0.4) : Noir.crimsonLight)
    }

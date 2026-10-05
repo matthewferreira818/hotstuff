@@ -162,3 +162,12 @@ files, session fencing) and this branch (preview, Steady mode, item-lookup rule,
 three. Clips on the new screen: a scissors button next to Settings once signed in, and the clip settings inside Settings & more
 (Google settings). `rebuild.sh` lists every source file once, in `SOURCES`, so a new file is added in one place only.
 
+## The hub (2026-10-05)
+
+The app is now a hub: a slim icon rail on the left (Home, Friday, Stock bot, Store, ECS, Game, Accounts, Settings), an
+"Ask Friday" box on top, and a card dashboard on Home. Friday is one page of it and keeps listening while you browse; a LIVE
+badge shows whenever she is. `Hub.swift` holds the shell and every page; `StockData.swift` reads the stock bot's public
+practice snapshots (live.json on the stock-live and stock-live-momentum branches) and was compiled and run against the real
+files. Read-only: nothing in the hub can place an order, post or spend. Store and ECS are placeholders for now; Accounts shows
+what is connected. The old tabbed settings are still in the Settings panel (rail, bottom).
+

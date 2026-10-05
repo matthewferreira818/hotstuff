@@ -64,6 +64,9 @@ enum FeedFormat {
   case "tell_the_team": return "To the team"
   case "team_messages": return "Team inbox"
   case "point_at": return "Pointer"
+  case "click_at": return "Click"
+  case "type_text": return "Typing"
+  case "press_keys": return "Keys"
   default: return "Action"
   }
  }

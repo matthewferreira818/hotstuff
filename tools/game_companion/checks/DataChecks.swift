@@ -2,7 +2,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -139,6 +139,33 @@ import Foundation
   SecretFile.remove("GameCompanion.Test",in:vault)
   precondition(!SecretFile.exists("GameCompanion.Test",in:vault) && SecretFile.read("GameCompanion.Test",in:vault) == nil)
   try? FileManager.default.removeItem(at:vault)
+  // Friday's hands: where a named spot lands on the desk, how the screens are laid out in one picture, what may be typed and pressed,
+  // and where she may not act.
+  let leftScreen = CGRect(x:0,y:0,width:1440,height:900)
+  let rightScreen = CGRect(x:1440,y:-180,width:2560,height:1440)
+  let desk = HandsPlan.union([leftScreen,rightScreen])!
+  precondition(desk == CGRect(x:0,y:-180,width:4000,height:1440))
+  let plan = HandsPlan.layout([leftScreen,rightScreen],maxWidth:1600,maxHeight:900)!
+  precondition(plan.width == 1600 && plan.height == 576 && abs(plan.scale - 0.4) < 1e-9)
+  let spot = HandsPlan.desk(500,500,in:desk)
+  precondition(abs(spot.x - 2000) < 0.01 && abs(spot.y - 540) < 0.01)
+  precondition(HandsPlan.desk(-5,2000,in:desk) == CGPoint(x:0,y:1260))
+  let placed = HandsPlan.canvasRect(for:leftScreen,union:desk,scale:plan.scale,canvasHeight:plan.height)
+  precondition(abs(placed.minX) < 0.01 && abs(placed.minY - (576 - 72 - 360)) < 0.01 && abs(placed.width - 576) < 0.01 && abs(placed.height - 360) < 0.01)
+  precondition(HandsPlan.layout([CGRect(x:0,y:0,width:800,height:450)],maxWidth:1600,maxHeight:900)!.scale == 1 && HandsPlan.layout([],maxWidth:1,maxHeight:1) == nil)
+  precondition(HandsPlan.cleanTyped("hello\nthere") == "hello\nthere" && HandsPlan.cleanTyped("") == nil && HandsPlan.cleanTyped("a\u{07}b") == nil && HandsPlan.cleanTyped(String(repeating:"x",count:301)) == nil)
+  let combo = HandsPlan.parseKeys("Cmd + Shift + T")!
+  precondition(combo.code == 17 && combo.modifiers == ["shift","cmd"] && combo.label == "⇧⌘T")
+  precondition(HandsPlan.parseKeys("enter")!.code == 36 && HandsPlan.parseKeys("down")!.modifiers.isEmpty && HandsPlan.parseKeys("cmd+nonsense") == nil && HandsPlan.parseKeys("hyper+t") == nil && HandsPlan.parseKeys("") == nil)
+  precondition(HandsPlan.blockedCombo(HandsPlan.parseKeys("cmd+q")!) != nil && HandsPlan.blockedCombo(HandsPlan.parseKeys("cmd+opt+esc")!) != nil && HandsPlan.blockedCombo(HandsPlan.parseKeys("cmd+delete")!) != nil && HandsPlan.blockedCombo(HandsPlan.parseKeys("cmd+t")!) == nil)
+  precondition(HandsPlan.blockedReason(owner:"Safari",title:"Moomoo Canada - Trade") != nil && HandsPlan.blockedReason(owner:"Google Chrome",title:"Sign in - Twitch") != nil && HandsPlan.blockedReason(owner:"Terminal",title:"zsh") != nil && HandsPlan.blockedReason(owner:"Game Companion",title:"") != nil)
+  precondition(HandsPlan.blockedReason(owner:"Safari",title:"Minecraft Dungeons wiki - Power Amplifier") == nil && HandsPlan.blockedReason(owner:"Google Chrome",title:"findhotstuff.com") == nil)
+  // Anything that could send or buy needs Allow: buttons named like it, checkout pages, Return, and card-number-looking text is refused.
+  precondition(HandsPlan.riskyIntent("Send button") && HandsPlan.riskyIntent("place order") && HandsPlan.riskyIntent("Pay now") && HandsPlan.riskyIntent("Post"))
+  precondition(!HandsPlan.riskyIntent("search box") && !HandsPlan.riskyIntent("the border") && !HandsPlan.riskyIntent("") && !HandsPlan.riskyIntent("health bar"))
+  precondition(HandsPlan.riskyWindow(title:"Checkout - Shop") && HandsPlan.riskyWindow(title:"Your cart") && !HandsPlan.riskyWindow(title:"Minecraft wiki") && !HandsPlan.riskyWindow(title:""))
+  precondition(HandsPlan.looksLikeCardNumber("4242 4242 4242 4242") && HandsPlan.looksLikeCardNumber("4242-4242-4242-4242") && !HandsPlan.looksLikeCardNumber("call 5068899737 now") && !HandsPlan.looksLikeCardNumber("12345"))
+  precondition(HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!) && HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+return")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+t")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("down")!))
   print("All data checks passed.")
  }
 }

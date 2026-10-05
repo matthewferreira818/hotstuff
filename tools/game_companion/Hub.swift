@@ -1024,7 +1024,7 @@ extension CompanionInterfaceView {
   ScrollView {
    VStack(alignment:.leading,spacing:18) {
     LazyVGrid(columns:[GridItem(.adaptive(minimum:200),spacing:14)],spacing:14) {
-     hubStat("Game window",c.sharing ? "Shared" : "None chosen",c.sharing ? "Friday can see it" : "Choose one to start",tint:c.sharing ? HubColor.green : Color.white)
+     hubStat(live.sees == 0 ? "What she sees" : "Game window",live.sees == 0 ? "All screens" : (c.sharing ? "Shared" : "None chosen"),live.sees == 0 ? "Everything on every screen goes to Google while she is live" : (c.sharing ? "Friday can see it" : "Choose one to start"),tint:live.sees == 0 || c.sharing ? HubColor.green : Color.white)
      hubStat("Friday",live.running ? "Live" : "Asleep",live.running ? "Window and mic are shared with Google" : "Nothing is being sent",tint:live.running ? Noir.crimsonLight : Color.white)
      hubStat("Google key",live.hasKey ? "Saved" : "Missing",live.hasKey ? "Saved privately on this Mac" : "Add it in Settings",tint:live.hasKey ? HubColor.green : Noir.crimsonLight)
     }

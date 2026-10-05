@@ -125,6 +125,17 @@ asked for his password after every rebuild, a trade he chose), a local mode, and
 Minecraft wiki). README there has the rebuild steps; permissions reset
 after every rebuild unless `make_cert.sh` was run once. Free-tier limits
 are real, so its default is Low usage.
+**Friday's reach (his choices, 2026-10-05):** she sees ALL his screens while
+live, so everything visible (private windows, messages, banking tabs, a
+Moomoo window) goes to Google, whose free tier may use it to improve its
+products; he chose that knowingly and can switch to "just the window I
+pick" in Settings. Her "hands" (cursor, scroll, click, type, keys) work only
+when he tells her, off at every launch, with an on-screen Allow box plus a
+spoken check before anything that could send or buy; banking and payment
+pages, Moomoo, password and login pages, System Settings, the app itself
+and terminals are off-limits (a word-match safety net, not a guarantee).
+This does not loosen the real-money rule: Moomoo trading stays his own
+hands, and the app never wires into it.
 
 What he wants from it (and from Claude): introspective, chill, work-with
 conversations (statistics, politics), with screen-seeing and voice, and an

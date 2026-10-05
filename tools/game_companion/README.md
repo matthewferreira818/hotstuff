@@ -457,3 +457,25 @@ frame by frame instead of multiplied by the clock; ripples and sparks fade in an
 behaves like a meter (fast to rise with the voice, slow to fall). The main orb and the Home orb now draw at 60 frames a second.
 The look picker under the orb now stays hidden until the pointer is over the orb, so the screen is just the orb. The easing rules
 were checked on their own (no jumps, meter rises and falls). Not seen on the Mac yet.
+
+## Friday sees every screen, and her hands do more (2026-10-05)
+
+Matthew's choices, made after being told the trade-offs: **Friday sees all screens, all the time while live**, and **her hands act when
+he tells her**, with an Allow box only for anything that could send or buy.
+
+- **All screens** (`ScreenSnap.swift`, layout maths in `HandsData.swift`, tested): one picture of every screen side by side, laid
+  out the way they sit on the desk, up to 1600 x 900, sent where the window picture used to go. Settings, Friday sees: All my screens
+  (default) or Just the window I pick (the old way). What this means, plainly: everything visible on every screen goes to Google while
+  she is live, including private windows and banking tabs, and Google's free tier may use it to improve its products. The picture is
+  bigger than before, so it uses more of the free allowance. The Live bar says "LIVE · ALL SCREENS + MIC SHARED WITH GOOGLE".
+- **Hands** (`FridayHands.swift`): scroll, point, **click, type and press keys**, off at every launch, only while live. Her cursor
+  now glides along a curved path with an ease in and out, a fading trail and a click ripple, slow enough to watch (0.7 to 1.4
+  seconds). Needs Accessibility permission (the app asks). She is told to say out loud what she is about to do and wait for his yes
+  before anything that could send or buy. **The Allow box** (top of the screen, never steals the keyboard; no answer in 25 seconds is
+  a Deny) appears for: pressing Return or Enter (or typing a line break), clicking a button whose label or her own description says
+  Send, Post, Submit, Pay, Order, Buy and the like (the label is read from macOS accessibility data, never stored), and anything done
+  in a window titled like a checkout, cart, payment or order page. **Always refused**: banking and payment pages, Moomoo and other
+  trading apps, password and login pages and password fields, System Settings, this app, terminals; text that looks like a card
+  number; quit, force-quit and Trash shortcuts. The lists match the app name, window title and button label, so they can miss a
+  page that doesn't say what it is; the Allow box is the hard backstop. Parsed and the rules tested; the hands themselves,
+  the box and the all-screens picture have not been run on the Mac.

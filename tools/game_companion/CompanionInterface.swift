@@ -72,7 +72,7 @@ struct CompanionInterfaceView: View {
    Spacer()
    HStack(spacing:7) {
     Circle().fill(c.tab == 0 && live.running ? Noir.crimsonLight : Color.white.opacity(0.3)).frame(width:7,height:7)
-    Text(c.tab == 0 ? (live.running ? "LIVE · WINDOW + MIC SHARED WITH GOOGLE" : "GOOGLE LIVE") : "ON THIS MAC").font(.system(size:10,weight:.semibold,design:.rounded)).tracking(1.2)
+    Text(c.tab == 0 ? (live.running ? "LIVE · \(live.sees == 0 ? "ALL SCREENS" : "WINDOW") + MIC SHARED WITH GOOGLE" : "GOOGLE LIVE") : "ON THIS MAC").font(.system(size:10,weight:.semibold,design:.rounded)).tracking(1.2)
    }
    .foregroundStyle(Color.white.opacity(c.tab == 0 && live.running ? 0.85 : 0.5))
    .padding(.horizontal,12).padding(.vertical,7)
@@ -315,9 +315,11 @@ struct CompanionInterfaceView: View {
    HStack { Text("Picture every"); Slider(value:$live.frameGap,in:1...5,step:1); Text("\(Int(live.frameGap)) s").monospacedDigit() }
    Text("Steady sends a picture on a timer, whether you talk or not. Shorter gaps use the free allowance faster. Google allows at most one picture per second.").font(.caption).foregroundStyle(.secondary)
   }
-  Toggle("Let Friday scroll and point in the window she's watching",isOn:$hands.enabled)
-  if hands.enabled && !hands.hasAccess { HStack { Text("Pointing works. For scrolling, macOS must allow this app (Privacy & Security, Accessibility).").font(.caption).foregroundStyle(.secondary); Button("Open Settings") { hands.openSettings() } } }
-  Text("She gets her own cursor and can scroll the page. She can't click, type or press keys. Off every time the app opens, only works while she's live, and she leaves the page alone if you move the mouse.").font(.caption).foregroundStyle(.secondary)
+  Picker("Friday sees",selection:$live.sees) { Text("All my screens").tag(0); Text("Just the window I pick").tag(1) }.pickerStyle(.segmented).disabled(live.running)
+  Text("All my screens: while she is live, everything visible on every screen goes to Google, including private windows, messages and banking pages. Google's free tier may use it to improve its products. Pick Just the window to keep everything else private.").font(.caption).foregroundStyle(.secondary)
+  Toggle("Let Friday use her hands: scroll, point, click and type",isOn:$hands.enabled)
+  if hands.enabled && !hands.hasAccess { HStack { Text("Pointing works. For clicking, typing and scrolling, macOS must allow this app (Privacy & Security, Accessibility).").font(.caption).foregroundStyle(.secondary); Button("Open Settings") { hands.openSettings() } } }
+  Text("She gets her own cursor and does what you tell her: scroll, click, type, press keys. She must ask you out loud, and an Allow box appears, before anything that could send or buy (pressing Return, Send or Pay buttons, checkout pages). Banking and payment pages, Moomoo, password and login pages, System Settings, this app and terminals are off-limits. Off every time the app opens and only works while she's live.").font(.caption).foregroundStyle(.secondary)
   Picker("Sound output",selection:$live.output) { Text("Auto").tag(0); Text("Headphones").tag(1); Text("Speakers").tag(2) }.pickerStyle(.segmented)
   Text("On speakers the mic pauses while Friday talks, so she can't hear herself (you can't interrupt her then). On headphones the mic stays open so you can. Auto picks by what your Mac is playing through; if she still hears herself, choose Speakers.").font(.caption).foregroundStyle(.secondary)
   clipSettings

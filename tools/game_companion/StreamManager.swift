@@ -472,7 +472,7 @@ extension CompanionInterfaceView {
    hubCheck(!stream.titleDraft.trimmingCharacters(in:.whitespaces).isEmpty && !stream.touched,"Title is saved on Twitch","Type a title and press Update.")
    hubCheck(stream.gameDraft != nil && !stream.touched,"Category is saved on Twitch","Search a game and press Update.")
    hubCheck(live.hasKey,"Friday has her Google key","Add it in Settings.")
-   hubCheck(c.sharing,"A game window is chosen for Friday","Press Choose window on the Game page.")
+   hubCheck(c.sharing || live.sees == 0,"Friday can see your screen","Choose a window on the Game page, or let her see all screens in Settings.")
    hubCheck(clips.voiceClips,"\"Clip it\" by voice is on","Tick it in Settings before starting Friday.")
    hubCheck(clips.voiceStream || live.role == 1,"Friday can run this page by voice","Set her job to Stream manager in Settings before starting her.")
    hubCheck(chat.on,"Chat helper is on (posts your links while you're live)","Press Start in the Chat helper card.")

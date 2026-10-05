@@ -1,24 +1,79 @@
 import SwiftUI
 import AppKit
 import CoreGraphics
+import ApplicationServices
 import ScreenCaptureKit
 
-// Friday's hands: she can scroll the window she is watching, and show her own cursor (a crimson pointer that glides across the
-// screen) to point at things. She can NOT click, type or press keys. Safety rules, all enforced here:
-//  - Off every time the app opens. Matthew switches it on in Settings.
-//  - Works only while Friday is live, only in the window (or display) Matthew chose to share, and only if that window is the
-//    front-most thing at its middle, so a scroll can never land on some other app.
-//  - If Matthew is using the mouse (moved it in the last 1.5 seconds, or a button is down) she leaves the page alone.
-//  - At most one action every 0.4 seconds and 30 a minute. Every action shows her cursor first, so he can always see it.
-//  - Pointing never moves the real mouse and needs no permission. Scrolling needs macOS's Accessibility ("post events") permission.
-// Checked against Apple's docs on 2026-10-05: CGEvent(scrollWheelEvent2Source:), CGPreflightPostEventAccess and
-// CGRequestPostEventAccess (macOS 10.15+), SCContentFilter.includedWindows (macOS 15.2+), SCWindow.windowID.
+// Friday's hands: her own on-screen cursor, scrolling, clicking, typing and pressing keys. Matthew's rules (2026-10-05):
+//  - She acts when he tells her to. No box for ordinary clicks, typing and keys.
+//  - Anything that could SEND or BUY needs his Allow on an on-screen box first (and she is told to ask him out loud too): pressing
+//    Return or Enter, a button or label that says Send, Pay, Order, Post and the like, anything in a checkout, cart or payment window.
+//  - Never in: banking and payment pages, trading apps (Moomoo), password pages and fields, login pages, System Settings, this app, or a
+//    terminal. She also refuses to type what looks like a card number, and quit, log-out and Trash shortcuts.
+//  - Off every time the app opens, and only while Friday is live. At most 30 actions a minute.
+//  - Scrolling yields to the real mouse: if Matthew moved it in the last 1.5 seconds she leaves the page alone.
+//  - Her cursor always glides to the spot first, so he can watch what she is about to do.
+// The word lists are a safety net that matches the app name, the window title and the button's label. They can miss a page that
+// doesn't say what it is; the Allow box is the hard backstop for send and buy.
+// Needs macOS's Accessibility permission for clicking, typing, keys and scrolling. Pointing needs no permission.
+// Checked against Apple's docs on 2026-10-05: CGEvent (scroll, mouse, keyboard), CGPreflightPostEventAccess and CGRequestPostEventAccess
+// (macOS 10.15+), AXUIElementCopyElementAtPosition, SCContentFilter.includedWindows (macOS 15.2+).
+
+// MARK: her cursor
 
 @MainActor final class FridayCursorModel: ObservableObject {
  // In the overlay panel's own coordinates (origin top-left).
  @Published var point = CGPoint(x:-100,y:-100)
  @Published var visible = false
  @Published var label = ""
+ @Published var tilt = 0.0
+ @Published var trail: [CGPoint] = []
+ @Published var ringAt: Date?
+ private var smoothTilt = 0.0
+
+ private func bezier(_ a: CGPoint,_ b: CGPoint,_ c: CGPoint,_ d: CGPoint,_ t: Double) -> CGPoint {
+  let u = 1 - t
+  let x = u * u * u * Double(a.x) + 3 * u * u * t * Double(b.x) + 3 * u * t * t * Double(c.x) + t * t * t * Double(d.x)
+  let y = u * u * u * Double(a.y) + 3 * u * u * t * Double(b.y) + 3 * u * t * t * Double(c.y) + t * t * t * Double(d.y)
+  return CGPoint(x:x,y:y)
+ }
+
+ // Moves her cursor along a gentle curve with an ease in and an ease out, leaving a short fading trail, and tilting a little with
+ // its speed. It follows the clock, not the frame count, so it stays smooth if a frame is late.
+ func glide(from start: CGPoint,to end: CGPoint,duration: Double) async {
+  let dx = Double(end.x - start.x)
+  let dy = Double(end.y - start.y)
+  let distance = max(1,(dx * dx + dy * dy).squareRoot())
+  let side: Double = Int(abs(Double(end.x) + Double(end.y))) % 2 == 0 ? 1 : -1
+  let nx = -dy / distance * side
+  let ny = dx / distance * side
+  let bend = min(distance * 0.20,150)
+  let c1 = CGPoint(x:Double(start.x) + dx * 0.25 + nx * bend,y:Double(start.y) + dy * 0.25 + ny * bend)
+  let c2 = CGPoint(x:Double(start.x) + dx * 0.75 + nx * bend * 0.55,y:Double(start.y) + dy * 0.75 + ny * bend * 0.55)
+  let begin = ContinuousClock.now
+  var previous = start
+  while !Task.isCancelled {
+   let span = begin.duration(to:.now)
+   let elapsed = Double(span.components.seconds) + Double(span.components.attoseconds) / 1e18
+   let raw = min(1,elapsed / max(0.05,duration))
+   let eased = raw < 0.5 ? 4 * raw * raw * raw : 1 - pow(-2 * raw + 2,3) / 2
+   let here = bezier(start,c1,c2,end,eased)
+   let sway = max(-14,min(14,Double(here.x - previous.x) * 1.4))
+   smoothTilt += (sway - smoothTilt) * 0.25
+   point = here
+   tilt = smoothTilt
+   trail.append(here)
+   if trail.count > 16 { trail.removeFirst(trail.count - 16) }
+   previous = here
+   if raw >= 1 { break }
+   try? await Task.sleep(nanoseconds:8_000_000)
+  }
+  point = end
+  withAnimation(.easeOut(duration:0.5)) { tilt = 0; trail = [] }
+  smoothTilt = 0
+ }
+
+ func pulse() { ringAt = Date() }
 }
 
 struct FridayArrow: Shape {
@@ -41,28 +96,130 @@ struct FridayCursorView: View {
  @ObservedObject var model: FridayCursorModel
 
  var body: some View {
-  ZStack(alignment:.topLeading) {
-   Color.clear
+  TimelineView(.animation(minimumInterval:1.0 / 60.0,paused:model.ringAt == nil)) { timeline in
    ZStack(alignment:.topLeading) {
-    Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.55),Noir.crimson.opacity(0)],center:.center,startRadius:1,endRadius:34)).frame(width:68,height:68).offset(x:-34,y:-34)
-    FridayArrow()
-     .fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing))
-     .overlay(FridayArrow().stroke(Color.white,lineWidth:1.6))
-     .frame(width:20,height:32)
-     .shadow(color:Noir.crimson.opacity(0.7),radius:8)
-    Text(model.label.isEmpty ? "Friday" : model.label)
-     .font(.system(size:11.5,weight:.bold,design:.rounded)).foregroundStyle(Color.white)
-     .padding(.horizontal,9).padding(.vertical,4)
-     .background(Capsule().fill(Noir.crimson.opacity(0.92)))
-     .overlay(Capsule().stroke(Color.white.opacity(0.5),lineWidth:1))
-     .offset(x:16,y:30)
+    Color.clear
+    ForEach(Array(model.trail.enumerated()),id:\.offset) { index,spot in
+     let fraction = Double(index + 1) / Double(max(1,model.trail.count))
+     Circle().fill(Noir.crimsonLight.opacity(0.34 * fraction * fraction))
+      .frame(width:3 + 9 * fraction,height:3 + 9 * fraction)
+      .offset(x:spot.x - (1.5 + 4.5 * fraction),y:spot.y - (1.5 + 4.5 * fraction))
+    }
+    if let at = model.ringAt {
+     let progress = timeline.date.timeIntervalSince(at) / 0.6
+     if progress >= 0 && progress < 1 {
+      Circle().stroke(Noir.crimsonLight.opacity(0.85 * (1 - progress)),lineWidth:2.5)
+       .frame(width:20 + 60 * progress,height:20 + 60 * progress)
+       .offset(x:model.point.x - (10 + 30 * progress),y:model.point.y - (10 + 30 * progress))
+     }
+    }
+    ZStack(alignment:.topLeading) {
+     Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.55),Noir.crimson.opacity(0)],center:.center,startRadius:1,endRadius:34)).frame(width:68,height:68).offset(x:-34,y:-34)
+     FridayArrow()
+      .fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing))
+      .overlay(FridayArrow().stroke(Color.white,lineWidth:1.6))
+      .frame(width:20,height:32)
+      .rotationEffect(.degrees(model.tilt),anchor:.topLeading)
+      .shadow(color:Noir.crimson.opacity(0.7),radius:8)
+     Text(model.label.isEmpty ? "Friday" : model.label)
+      .font(.system(size:11.5,weight:.bold,design:.rounded)).foregroundStyle(Color.white)
+      .padding(.horizontal,9).padding(.vertical,4)
+      .background(Capsule().fill(Noir.crimson.opacity(0.92)))
+      .overlay(Capsule().stroke(Color.white.opacity(0.5),lineWidth:1))
+      .offset(x:16,y:30)
+    }
+    .offset(x:model.point.x,y:model.point.y)
+    .opacity(model.visible ? 1 : 0)
    }
-   .offset(x:model.point.x,y:model.point.y)
-   .opacity(model.visible ? 1 : 0)
   }
   .allowsHitTesting(false)
  }
 }
+
+// MARK: the Allow box
+
+// A small box at the top of the screen: what she wants to do, why it needs a yes, and Allow or Deny. It never takes keyboard focus away
+// from what Matthew is doing. No answer within 25 seconds counts as Deny.
+@MainActor final class FridayApproval: ObservableObject {
+ @Published var title = ""
+ @Published var detail = ""
+ @Published var pending = false
+ private var panel: NSPanel?
+ private var continuation: CheckedContinuation<Bool,Never>?
+ private var token = 0
+
+ func ask(_ title: String,detail: String) async -> Bool {
+  if pending { return false }
+  self.title = title
+  self.detail = detail
+  pending = true
+  token += 1
+  let mine = token
+  show()
+  NSSound.beep()
+  return await withCheckedContinuation { (waiting: CheckedContinuation<Bool,Never>) in
+   continuation = waiting
+   Task { [weak self] in
+    try? await Task.sleep(nanoseconds:25_000_000_000)
+    if let self = self, self.token == mine { self.answer(false) }
+   }
+  }
+ }
+
+ func answer(_ allow: Bool) {
+  guard let waiting = continuation else { return }
+  continuation = nil
+  pending = false
+  panel?.orderOut(nil)
+  waiting.resume(returning:allow)
+ }
+
+ private func show() {
+  guard let screen = NSScreen.main else { return }
+  if panel == nil {
+   let made = NSPanel(contentRect:NSRect(x:0,y:0,width:460,height:150),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
+   made.isFloatingPanel = true
+   made.level = NSWindow.Level(rawValue:NSWindow.Level.statusBar.rawValue + 2)
+   made.collectionBehavior = [.canJoinAllSpaces,.fullScreenAuxiliary,.stationary,.ignoresCycle]
+   made.isOpaque = false
+   made.backgroundColor = .clear
+   made.hasShadow = true
+   made.hidesOnDeactivate = false
+   made.contentView = NSHostingView(rootView:FridayApprovalView(model:self))
+   panel = made
+  }
+  let area = screen.visibleFrame
+  panel?.setFrame(NSRect(x:area.midX - 230,y:area.maxY - 170,width:460,height:150),display:true)
+  panel?.orderFrontRegardless()
+ }
+}
+
+struct FridayApprovalView: View {
+ @ObservedObject var model: FridayApproval
+
+ var body: some View {
+  VStack(alignment:.leading,spacing:10) {
+   HStack(spacing:8) {
+    Image(systemName:"hand.raised.fill").foregroundStyle(Noir.crimsonLight)
+    Text("Friday is asking").font(.system(size:11,weight:.bold,design:.rounded)).tracking(1.2).foregroundStyle(Noir.crimsonLight)
+   }
+   Text(model.title).font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white).lineLimit(2)
+   Text(model.detail).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.65)).lineLimit(2)
+   HStack(spacing:10) {
+    Spacer()
+    Button { model.answer(false) } label: { Text("Deny").frame(width:84) }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.14)))
+    Button { model.answer(true) } label: { Text("Allow").frame(width:84) }.buttonStyle(PillButtonStyle())
+   }
+  }
+  .padding(16)
+  .frame(width:460,alignment:.leading)
+  .background(RoundedRectangle(cornerRadius:20,style:.continuous).fill(Color(red:0.10,green:0.07,blue:0.10).opacity(0.96)))
+  .overlay(RoundedRectangle(cornerRadius:20,style:.continuous).stroke(Noir.crimsonLight.opacity(0.45),lineWidth:1))
+  .padding(10)
+ }
+}
+
+// MARK: the hands
 
 @MainActor final class FridayHands: ObservableObject {
  // Not saved: off every time the app opens.
@@ -74,6 +231,7 @@ struct FridayCursorView: View {
  @Published var hasAccess = CGPreflightPostEventAccess()
  @Published var status = ""
  let cursor = FridayCursorModel()
+ let approval = FridayApproval()
  private var live: LiveBuddy?
  private var panel: NSPanel?
  private var recent: [Date] = []
@@ -83,48 +241,61 @@ struct FridayCursorView: View {
  func attach(_ buddy: LiveBuddy) { if live == nil { live = buddy } }
 
  func checkAccess() {
-  hasAccess = CGPreflightPostEventAccess()
+  hasAccess = CGPreflightPostEventAccess() || AXIsProcessTrusted()
   if !hasAccess {
    _ = CGRequestPostEventAccess()
-   hasAccess = CGPreflightPostEventAccess()
+   _ = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String:true] as CFDictionary)
+   hasAccess = CGPreflightPostEventAccess() || AXIsProcessTrusted()
   }
-  status = hasAccess ? "" : "Pointing works now. For scrolling, allow this app in System Settings, Privacy & Security, Accessibility."
+  status = hasAccess ? "" : "Pointing works now. For clicking, typing and scrolling, allow this app in System Settings, Privacy & Security, Accessibility."
  }
 
  func openSettings() {
   if let url = URL(string:"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") { NSWorkspace.shared.open(url) }
  }
 
- // MARK: finding the window she is watching (Quartz coordinates: origin top-left of the main screen)
+ // MARK: windows and screens (desk coordinates: origin top-left of the main screen)
 
- private struct Target { var id: CGWindowID?; var rect: CGRect }
+ private struct Win { var id: CGWindowID; var rect: CGRect; var owner: String; var title: String; var pid: Int }
 
- private func target() -> Target? {
-  guard let filter = live?.filter else { return nil }
-  if let window = filter.includedWindows.first {
-   let id = window.windowID
-   if let info = CGWindowListCopyWindowInfo([.optionIncludingWindow],id) as? [[String:Any]],
-      let boundsInfo = info.first?[kCGWindowBounds as String] as? NSDictionary,
-      let rect = CGRect(dictionaryRepresentation:boundsInfo as CFDictionary), rect.width > 100, rect.height > 100 {
-    return Target(id:id,rect:rect)
-   }
-   return nil
-  }
-  if let display = filter.includedDisplays.first { return Target(id:nil,rect:CGDisplayBounds(display.displayID)) }
-  return nil
- }
-
- // True when the target window is the front-most normal window at that point, so a scroll can only reach it.
- private func isFront(_ target: Target,at point: CGPoint) -> Bool {
-  guard let id = target.id else { return true }   // a whole display: the top window there is whatever Matthew is looking at
-  guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly,.excludeDesktopElements],kCGNullWindowID) as? [[String:Any]] else { return false }
+ // Every normal on-screen window, front-most first.
+ private func windows() -> [Win] {
+  guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly,.excludeDesktopElements],kCGNullWindowID) as? [[String:Any]] else { return [] }
+  var found: [Win] = []
   for info in list {
    guard (info[kCGWindowLayer as String] as? Int) == 0,
          let boundsInfo = info[kCGWindowBounds as String] as? NSDictionary,
-         let rect = CGRect(dictionaryRepresentation:boundsInfo as CFDictionary), rect.contains(point) else { continue }
-   return (info[kCGWindowNumber as String] as? Int).map { CGWindowID($0) } == id
+         let rect = CGRect(dictionaryRepresentation:boundsInfo as CFDictionary), rect.width > 40, rect.height > 40,
+         let number = info[kCGWindowNumber as String] as? Int else { continue }
+   found.append(Win(id:CGWindowID(number),rect:rect,owner:info[kCGWindowOwnerName as String] as? String ?? "",title:info[kCGWindowName as String] as? String ?? "",pid:info[kCGWindowOwnerPID as String] as? Int ?? 0))
   }
-  return false
+  return found
+ }
+
+ private func topWindow(at point: CGPoint) -> Win? { windows().first { $0.rect.contains(point) } }
+
+ private func frontWindow() -> Win? {
+  guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return nil }
+  return windows().first { $0.pid == Int(pid) }
+ }
+
+ private func deskUnion() -> CGRect? {
+  var ids = [CGDirectDisplayID](repeating:0,count:16)
+  var count: UInt32 = 0
+  guard CGGetActiveDisplayList(16,&ids,&count) == .success, count > 0 else { return nil }
+  return HandsPlan.union(ids.prefix(Int(count)).map { CGDisplayBounds($0) })
+ }
+
+ // The window Matthew chose in "Just the window I pick" mode.
+ private func chosenWindow() -> Win? {
+  guard let filter = live?.filter, let window = filter.includedWindows.first else { return nil }
+  return windows().first { $0.id == window.windowID }
+ }
+
+ // The part of the desk her picture covers: every screen, or the chosen window.
+ private func pictureArea() -> CGRect? {
+  if live?.sees == 1 { return chosenWindow()?.rect }
+  return deskUnion()
  }
 
  private func usingMouse() -> Bool {
@@ -134,7 +305,7 @@ struct FridayCursorView: View {
 
  private func rateProblem() -> String? {
   let now = Date()
-  if now.timeIntervalSince(lastAction) < 0.4 { return "Too fast. Give it a second." }
+  if now.timeIntervalSince(lastAction) < 0.3 { return "Too fast. Give it a second." }
   recent = recent.filter { now.timeIntervalSince($0) < 60 }
   if recent.count >= 30 { return "That's a lot of moves in a minute, so I'm pausing for a bit." }
   return nil
@@ -142,17 +313,41 @@ struct FridayCursorView: View {
 
  private func noteAction() { lastAction = Date(); recent.append(lastAction) }
 
+ // The label of the button or field under a point, read from macOS's accessibility information. Used only to spot Send, Pay and
+ // similar words; it is not stored or sent anywhere. It never reads what is typed into a field.
+ private func elementLabel(at point: CGPoint) -> String {
+  guard AXIsProcessTrusted() else { return "" }
+  var element: AXUIElement?
+  guard AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(),Float(point.x),Float(point.y),&element) == .success, let found = element else { return "" }
+  var parts: [String] = []
+  for attribute in [kAXTitleAttribute,kAXDescriptionAttribute,kAXHelpAttribute,kAXRoleDescriptionAttribute] {
+   var value: CFTypeRef?
+   if AXUIElementCopyAttributeValue(found,attribute as CFString,&value) == .success, let text = value as? String, !text.isEmpty { parts.append(String(text.prefix(80))) }
+  }
+  return parts.joined(separator:" ")
+ }
+
+ // True when the field that has the keyboard is a password box.
+ private func passwordFieldFocused() -> Bool {
+  guard AXIsProcessTrusted() else { return false }
+  var focused: CFTypeRef?
+  guard AXUIElementCopyAttributeValue(AXUIElementCreateSystemWide(),kAXFocusedUIElementAttribute as CFString,&focused) == .success, let field = focused else { return false }
+  var subrole: CFTypeRef?
+  guard AXUIElementCopyAttributeValue(field as! AXUIElement,kAXSubroleAttribute as CFString,&subrole) == .success else { return false }
+  return (subrole as? String) == "AXSecureTextField"
+ }
+
  // MARK: her cursor on screen
 
  private var primaryHeight: CGFloat { NSScreen.screens.first?.frame.height ?? 0 }
 
- private func screen(for quartz: CGPoint) -> NSScreen? {
-  let appKit = NSPoint(x:quartz.x,y:primaryHeight - quartz.y)
+ private func screen(for desk: CGPoint) -> NSScreen? {
+  let appKit = NSPoint(x:desk.x,y:primaryHeight - desk.y)
   return NSScreen.screens.first { $0.frame.contains(appKit) } ?? NSScreen.main
  }
 
- private func local(_ quartz: CGPoint,in screen: NSScreen) -> CGPoint {
-  CGPoint(x:quartz.x - screen.frame.minX,y:screen.frame.maxY - (primaryHeight - quartz.y))
+ private func local(_ desk: CGPoint,in screen: NSScreen) -> CGPoint {
+  CGPoint(x:desk.x - screen.frame.minX,y:screen.frame.maxY - (primaryHeight - desk.y))
  }
 
  private func ensurePanel(on screen: NSScreen) {
@@ -173,21 +368,25 @@ struct FridayCursorView: View {
   panel?.orderFrontRegardless()
  }
 
- // Glides her cursor to a spot (Quartz coordinates), starting from where the real pointer is, and waits for it to arrive.
- private func showCursor(at quartz: CGPoint,label: String) async {
-  guard let screen = screen(for:quartz) else { return }
+ // Glides her cursor to a spot on the desk, starting from where it last was (or from the real pointer), and waits until it arrives.
+ private func moveCursor(to desk: CGPoint,label: String) async {
+  guard let screen = screen(for:desk) else { return }
   hideTask?.cancel()
   ensurePanel(on:screen)
   cursor.label = label
-  let destination = local(quartz,in:screen)
+  let destination = local(desk,in:screen)
   if !cursor.visible {
    let mouse = NSEvent.mouseLocation
    cursor.point = screen.frame.contains(mouse) ? CGPoint(x:mouse.x - screen.frame.minX,y:screen.frame.maxY - mouse.y) : destination
-   withAnimation(.easeOut(duration:0.2)) { cursor.visible = true }
-   try? await Task.sleep(nanoseconds:120_000_000)
+   cursor.trail = []
+   withAnimation(.easeOut(duration:0.25)) { cursor.visible = true }
+   try? await Task.sleep(nanoseconds:200_000_000)
   }
-  withAnimation(.spring(response:0.5,dampingFraction:0.82)) { cursor.point = destination }
-  try? await Task.sleep(nanoseconds:550_000_000)
+  let start = cursor.point
+  let distance = Double(hypot(destination.x - start.x,destination.y - start.y))
+  // Slow enough to watch: 0.7 seconds for a short hop, up to 1.4 for a long one.
+  await cursor.glide(from:start,to:destination,duration:min(1.4,0.7 + distance / 1600))
+  try? await Task.sleep(nanoseconds:180_000_000)
  }
 
  private func hideCursor(after seconds: Double) {
@@ -195,29 +394,42 @@ struct FridayCursorView: View {
   hideTask = Task { [weak self] in
    try? await Task.sleep(nanoseconds:UInt64(seconds * 1_000_000_000))
    guard !Task.isCancelled, let self = self else { return }
-   withAnimation(.easeIn(duration:0.4)) { self.cursor.visible = false }
-   try? await Task.sleep(nanoseconds:450_000_000)
+   withAnimation(.easeIn(duration:0.5)) { self.cursor.visible = false }
+   try? await Task.sleep(nanoseconds:550_000_000)
    if !Task.isCancelled { self.panel?.orderOut(nil) }
   }
  }
 
- // MARK: Friday's tools. Each returns a sentence she can say.
+ // MARK: checks every tool shares
 
  private func gate(needsAccess: Bool) -> String? {
   guard let live = live, live.running else { return "I'm not live right now, so I can't use my hands." }
-  guard enabled else { return "My hands are switched off. Matthew can turn them on in Settings: Let Friday scroll and point." }
+  guard enabled else { return "My hands are switched off. Matthew can turn them on in Settings: Let Friday use her hands." }
   if needsAccess && !hasAccess {
    checkAccess()
-   if !hasAccess { return "macOS hasn't let this app scroll yet. Matthew needs to allow it in System Settings, Privacy and Security, Accessibility. I can still point." }
+   if !hasAccess { return "macOS hasn't let this app control the Mac yet. Matthew needs to allow it in System Settings, Privacy and Security, Accessibility. I can still point." }
   }
   return rateProblem()
  }
 
- func scroll(direction: String,amount: String) async -> String {
+ // Asks for his Allow when something could send or buy. Returns nil if it can go ahead, or a sentence for Friday if it can't.
+ private func needAllow(_ title: String,detail: String) async -> String? {
+  let allowed = await approval.ask(title,detail:detail)
+  return allowed ? nil : "Matthew didn't allow it, so I didn't do it. Ask him what he'd like instead."
+ }
+
+ // MARK: Friday's tools. Each returns a sentence she can say.
+
+ // x and y are 0 to 1000 across the picture she sees (optional for scrolling).
+ func scroll(direction: String,amount: String,x: Double?,y: Double?) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
-  guard let found = target() else { return "I can't find the window I'm watching, so I didn't scroll." }
+  var target: Win?
+  if live?.sees == 1 { target = chosenWindow() }
+  else if let x = x, let y = y, let area = deskUnion() { target = topWindow(at:HandsPlan.desk(x,y,in:area)) }
+  else { target = frontWindow() }
+  guard let found = target else { return "I can't find the window to scroll, so I didn't." }
   let middle = CGPoint(x:found.rect.midX,y:found.rect.midY)
-  guard isFront(found,at:middle) else { return "The window I'm watching isn't in front at its middle (something is covering it), so I didn't scroll." }
+  guard topWindow(at:middle)?.id == found.id else { return "That window isn't in front at its middle (something is covering it), so I didn't scroll." }
   if usingMouse() { return "Matthew is using the mouse right now, so I left the page alone." }
   noteAction()
   let way = direction.lowercased()
@@ -234,8 +446,7 @@ struct FridayCursorView: View {
    total = way == "up" ? distance : -distance
    words = "\(way == "up" ? "up" : "down") about \(size == "small" ? "a little" : (size == "large" ? "a page" : "half a page"))"
   }
-  await showCursor(at:middle,label:"Friday")
-  // The real pointer has to be over the page for the scroll to reach it. It goes back right after.
+  await moveCursor(to:middle,label:"Friday")
   let saved = CGEvent(source:nil)?.location ?? middle
   CGWarpMouseCursorPosition(middle)
   let each = Int32((total / Double(steps)).rounded())
@@ -250,20 +461,140 @@ struct FridayCursorView: View {
   CGWarpMouseCursorPosition(saved)
   hideCursor(after:1.8)
   status = "Scrolled \(words)."
-  return "Scrolled \(words)."
+  return "Scrolled \(words) in \(found.owner)."
  }
 
- // x and y are 0 to 1000 across the picture she sees of the shared window: left to right, top to bottom.
  func point(x: Double,y: Double,label: String) async -> String {
   if let problem = gate(needsAccess:false) { return problem }
-  guard let found = target() else { return "I can't find the window I'm watching, so I can't point." }
+  guard let area = pictureArea() else { return "I can't tell where my picture is on the desk, so I can't point." }
   noteAction()
-  let nx = min(max(x,0),1000) / 1000
-  let ny = min(max(y,0),1000) / 1000
-  let spot = CGPoint(x:found.rect.minX + found.rect.width * nx,y:found.rect.minY + found.rect.height * ny)
+  let spot = HandsPlan.desk(x,y,in:area)
   let words = String(label.trimmingCharacters(in:.whitespacesAndNewlines).prefix(28))
-  await showCursor(at:spot,label:words.isEmpty ? "Friday" : words)
+  await moveCursor(to:spot,label:words.isEmpty ? "Friday" : words)
+  cursor.pulse()
   hideCursor(after:3.5)
-  return "Pointed there with my cursor. I can only point and scroll; I can't click."
+  return "Pointed there with my cursor."
+ }
+
+ func click(x: Double,y: Double,what: String,button: String,double: Bool) async -> String {
+  if let problem = gate(needsAccess:true) { return problem }
+  guard let area = pictureArea() else { return "I can't tell where my picture is on the desk, so I didn't click." }
+  let spot = HandsPlan.desk(x,y,in:area)
+  guard let under = topWindow(at:spot) else { return "I can't tell what window is at that spot, so I didn't click." }
+  if let why = HandsPlan.blockedReason(owner:under.owner,title:under.title) { return "I won't click there: \(why)." }
+  let label = elementLabel(at:spot)
+  let named = what.trimmingCharacters(in:.whitespacesAndNewlines)
+  let risky = HandsPlan.riskyIntent(named) || HandsPlan.riskyIntent(label) || HandsPlan.riskyWindow(title:under.title)
+  noteAction()
+  let shownName = String((named.isEmpty ? (label.isEmpty ? "Friday" : label) : named).prefix(28))
+  await moveCursor(to:spot,label:shownName)
+  let verb = double ? "Double-click" : (button.lowercased() == "right" ? "Right-click" : "Click")
+  if risky {
+   let where_ = "in \(under.owner)\(under.title.isEmpty ? "" : " — \(String(under.title.prefix(60)))")"
+   if let refusal = await needAllow("\(verb) “\(shownName)”? This might send or buy something.",detail:where_) { hideCursor(after:0.4); return refusal }
+   guard topWindow(at:spot)?.id == under.id else { hideCursor(after:0.4); return "The window changed while I waited, so I didn't click." }
+  }
+  let saved = CGEvent(source:nil)?.location ?? spot
+  CGWarpMouseCursorPosition(spot)
+  try? await Task.sleep(nanoseconds:60_000_000)
+  let right = button.lowercased() == "right"
+  let downType: CGEventType = right ? .rightMouseDown : .leftMouseDown
+  let upType: CGEventType = right ? .rightMouseUp : .leftMouseUp
+  let mouseButton: CGMouseButton = right ? .right : .left
+  for count in 1...(double ? 2 : 1) {
+   for type in [downType,upType] {
+    if let event = CGEvent(mouseEventSource:nil,mouseType:type,mouseCursorPosition:spot,mouseButton:mouseButton) {
+     event.setIntegerValueField(.mouseEventClickState,value:Int64(count))
+     event.post(tap:.cghidEventTap)
+    }
+    try? await Task.sleep(nanoseconds:35_000_000)
+   }
+  }
+  cursor.pulse()
+  try? await Task.sleep(nanoseconds:250_000_000)
+  CGWarpMouseCursorPosition(saved)
+  hideCursor(after:1.6)
+  status = "\(verb)ed \(shownName)."
+  return "\(verb == "Click" ? "Clicked" : (verb == "Right-click" ? "Right-clicked" : "Double-clicked")) \(shownName) in \(under.owner)."
+ }
+
+ // Types plain text into whatever has the keyboard. A line break (Return) needs his Allow, like any Return.
+ func type(_ raw: String) async -> String {
+  if let problem = gate(needsAccess:true) { return problem }
+  guard let text = HandsPlan.cleanTyped(raw) else { return "I can only type plain text up to \(HandsPlan.maxTyped) characters. Nothing was typed." }
+  if HandsPlan.looksLikeCardNumber(text) { return "That looks like a card number, so I won't type it. Matthew types those himself." }
+  if passwordFieldFocused() { return "A password box has the keyboard, so I won't type. Matthew types passwords himself." }
+  guard let front = frontWindow() else { return "I can't tell which window has the keyboard, so I didn't type." }
+  if let why = HandsPlan.blockedReason(owner:front.owner,title:front.title) { return "I won't type there: \(why)." }
+  noteAction()
+  let needsReturn = text.contains("\n")
+  if needsReturn || HandsPlan.riskyWindow(title:front.title) {
+   let preview = String(text.prefix(70)).replacingOccurrences(of:"\n",with:" ⏎ ")
+   let why = needsReturn ? "It includes a line break, which can send or submit." : "This window looks like a checkout or payment page."
+   if let refusal = await needAllow("Type “\(preview)”? \(why)",detail:"into \(front.owner)\(front.title.isEmpty ? "" : " — \(String(front.title.prefix(60)))")") { return refusal }
+  }
+  for (index,line) in text.components(separatedBy:"\n").enumerated() {
+   if index > 0 { await postKey(code:36,flags:[]) }
+   var chunk = ""
+   for character in line {
+    chunk.append(character)
+    if chunk.count >= 10 { await postText(chunk); chunk = "" }
+   }
+   if !chunk.isEmpty { await postText(chunk) }
+  }
+  status = "Typed \(text.count) characters."
+  return "Typed it into \(front.owner)."
+ }
+
+ // Presses a key or a combination such as cmd+t or escape. Return and Enter need his Allow.
+ func press(_ spec: String) async -> String {
+  if let problem = gate(needsAccess:true) { return problem }
+  guard let press = HandsPlan.parseKeys(spec) else { return "I don't know that key. Use names like enter, escape, tab, space, down, or combinations like cmd+t." }
+  if let why = HandsPlan.blockedCombo(press) { return "I won't press \(press.label): that's for \(why)." }
+  if passwordFieldFocused() { return "A password box has the keyboard, so I won't press keys. Matthew does that himself." }
+  guard let front = frontWindow() else { return "I can't tell which window has the keyboard, so I didn't press anything." }
+  if let why = HandsPlan.blockedReason(owner:front.owner,title:front.title) { return "I won't press keys there: \(why)." }
+  noteAction()
+  if HandsPlan.needsAllow(press) || HandsPlan.riskyWindow(title:front.title) {
+   let why = HandsPlan.needsAllow(press) ? "Return can send or submit something." : "This window looks like a checkout or payment page."
+   if let refusal = await needAllow("Press \(press.label)? \(why)",detail:"in \(front.owner)\(front.title.isEmpty ? "" : " — \(String(front.title.prefix(60)))")") { return refusal }
+  }
+  await postKey(code:press.code,flags:press.modifiers)
+  status = "Pressed \(press.label)."
+  return "Pressed \(press.label) in \(front.owner)."
+ }
+
+ // MARK: sending the actual events
+
+ private func postText(_ chunk: String) async {
+  let units = Array(chunk.utf16)
+  guard !units.isEmpty else { return }
+  for down in [true,false] {
+   if let event = CGEvent(keyboardEventSource:nil,virtualKey:0,keyDown:down) {
+    event.keyboardSetUnicodeString(stringLength:units.count,unicodeString:units)
+    event.post(tap:.cghidEventTap)
+   }
+  }
+  try? await Task.sleep(nanoseconds:12_000_000)
+ }
+
+ private func postKey(code: UInt16,flags names: [String]) async {
+  var flags = CGEventFlags()
+  for name in names {
+   switch name {
+   case "cmd": flags.insert(.maskCommand)
+   case "shift": flags.insert(.maskShift)
+   case "opt": flags.insert(.maskAlternate)
+   case "ctrl": flags.insert(.maskControl)
+   default: break
+   }
+  }
+  for down in [true,false] {
+   if let event = CGEvent(keyboardEventSource:nil,virtualKey:CGKeyCode(code),keyDown:down) {
+    event.flags = flags
+    event.post(tap:.cghidEventTap)
+   }
+   try? await Task.sleep(nanoseconds:25_000_000)
+  }
  }
 }

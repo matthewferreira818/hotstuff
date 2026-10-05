@@ -56,6 +56,8 @@ enum GeminiKey {
  var notes = ""
  var heardFresh = true
  var saidFresh = true
+ // Bumped on every start and stop, so callbacks from an earlier session can't act on a newer one.
+ var session = 0
  let engine = AVAudioEngine()
  let player = AVAudioPlayerNode()
  let outFormat = AVAudioFormat(commonFormat:.pcmFormatFloat32,sampleRate:24000,channels:1,interleaved:false)!
@@ -79,17 +81,18 @@ enum GeminiKey {
   guard let filter = filter else { status = "Choose the game window first (button at the top)."; return }
   self.filter = filter; self.notes = notes
   stopping = false; running = true; resumeHandle = nil; heard = ""; said = ""
+  session += 1; let current = session
   lastVoice = .distantPast; lastFrame = .distantPast
   connect(key:key)
   AVCaptureDevice.requestAccess(for:.audio) { granted in Task { @MainActor in
-   guard self.running else { return }
+   guard self.running, current == self.session else { return }
    self.startAudio(withMic:granted)
    if !granted { self.status = "Microphone permission denied. You can still type questions." }
   }}
  }
 
  func stop() {
-  stopping = true; running = false; ready = false
+  stopping = true; running = false; ready = false; session += 1
   frameTimer?.invalidate(); frameTimer = nil
   socket?.cancel(with:.normalClosure,reason:nil); socket = nil
   urlSession?.invalidateAndCancel(); urlSession = nil
@@ -121,7 +124,7 @@ enum GeminiKey {
   else if search { text += " For game facts you are not sure about (items, bosses, quests, builds), especially in newer games, use Google Search before answering, then answer briefly." }
   let trimmed = notes.trimmingCharacters(in:.whitespacesAndNewlines)
   if !trimmed.isEmpty { text += " The player's own notes about their game, which are true: \(trimmed.prefix(400))" }
-  return text
+  return text + conversationInstructions()
  }
 
  func sendSetup() {
@@ -242,8 +245,11 @@ enum GeminiKey {
   guard let id = call["id"] as? String, let name = call["name"] as? String else { return }
   let query = (call["args"] as? [String:Any])?["query"] as? String ?? ""
   status = "Looking up “\(query)”…"
+  // The answer belongs to the connection that asked. After a stop, restart or reconnect it is dropped.
+  let asker = socket
   Task {
    let result = name == "lookup_game_wiki" ? await GameWiki.lookup(query) : "That tool doesn't exist. Tell the player you couldn't check."
+   guard asker != nil, asker === socket else { return }
    let response: [String:Any] = ["result":result]
    let item: [String:Any] = ["id":id,"name":name,"response":response]
    send(["toolResponse":["functionResponses":[item]]])
@@ -320,14 +326,16 @@ enum GeminiKey {
    if Date().timeIntervalSince(lastFrame) < (talking ? 0.9 : 15) { return }
   }
   capturing = true; lastFrame = Date()
+  let current = session
   Task {
    defer { capturing = false }
    do {
     let config = SCStreamConfiguration(); config.width = 1024; config.height = 576; config.showsCursor = false; config.capturesAudio = false
     let image = try await SCScreenshotManager.captureImage(contentFilter:filter,configuration:config)
-    guard let jpeg = NSBitmapImageRep(cgImage:image).representation(using:.jpeg,properties:[.compressionFactor:0.6]) else { return }
+    guard current == session, let jpeg = NSBitmapImageRep(cgImage:image).representation(using:.jpeg,properties:[.compressionFactor:0.6]) else { return }
     send(["realtimeInput":["video":["data":jpeg.base64EncodedString(),"mimeType":"image/jpeg"]]])
    } catch {
+    guard current == session else { return }
     status = "Can't see the game window: \(error.localizedDescription). Redo the screen permission."
    }
   }

@@ -61,8 +61,21 @@ than discovering something was papered over.
    his own hands: payments and spending money, anything that needs his
    live presence (the Google verification video, signing, bank and
    Moomoo logins), and secrets (rule 2). Messages to individual
-   people (prospects, clients, officials) still go through him until he
-   says otherwise. Rule 1 (honesty) still applies: every claim is
+   people (clients, officials) still go through him until he says
+   otherwise. **Prospect outreach (his decision, 2026-10-05, in his
+   words: "brush past your rule ... start a schedule where you do these
+   cold emails and messages once or twice a week"):** Claude writes
+   it and C.C. sends it from his own accounts, once or twice a week,
+   up to 5 messages a batch, taken from the call-kit ledger. It is NOT
+   running yet; it starts only after he confirms the channel, the
+   mailing address for the footer, and the CASL-safe format (Canada's
+   anti-spam law covers emails and DMs that sell a service: sender
+   name and mailing address, a working unsubscribe honored right away,
+   a note of where each address came from, no misleading lines; Claude
+   is not a lawyer and he should check it with a business advisor).
+   Every draft is claims-checked first, a "no" or an unsubscribe means
+   never contact that person again, replies and any price or offer
+   talk go to him, and the morning brief lists what went out. Rule 1 (honesty) still applies: every claim is
    checked before it goes out, and the morning brief says what went out.
    A channel only posts once its hookup works (X credits are shelved;
    Meta and TikTok need their app reviews); where a channel has neither
@@ -176,7 +189,8 @@ person. Claude never presents itself as a human or as a legal officer.
 - **Pings Matthew first**: anything that spends or commits money; anything
   legal or contractual (registration, taxes, client agreements, terms,
   privacy); price or offer changes ($79/mo, the gated downsells); messages
-  in his name to individual people (until he says otherwise); anything that
+  in his name to individual people other than the scheduled prospect
+  outreach in rule 3 (until he says otherwise); anything that
   touches a client's account or private data; anything public that could
   hurt the brand and can't be undone; two rules in conflict; bad news; and
   any time Claude is genuinely unsure or worried.

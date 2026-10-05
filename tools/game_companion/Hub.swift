@@ -66,6 +66,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var query = ""
  // Which card or button the pointer is over, so it can lift a little. Empty means none.
  @Published var hovered = ""
+ // Which account row on the Accounts page is open, showing its connect form. Empty means none.
+ @Published var expanded = ""
 }
 
 @MainActor final class StockHub: ObservableObject {
@@ -467,36 +469,64 @@ extension CompanionInterfaceView {
   ScrollView {
    VStack(alignment:.leading,spacing:12) {
     Text("Logins live in your Mac's Keychain. You paste them into the app yourself, never into chat.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).padding(.bottom,4)
-    hubAccountRow("waveform",Noir.crimson,"Google Gemini","Friday's voice and eyes.",live.hasKey ? "Connected" : "Not connected",live.hasKey ? HubColor.green : Noir.crimsonLight,"Manage") { c.showPanel = true }
-    hubAccountRow("scissors",HubColor.violet,"Twitch clips","A separate clip account makes clips when you ask.",clips.signedIn ? "Connected" : "Not connected",clips.signedIn ? HubColor.green : Noir.crimsonLight,"Manage") { c.showPanel = true }
-    hubAccountRow("chart.line.uptrend.xyaxis",HubColor.green,"Stock bot snapshot","Reads the public practice snapshot. No login needed.","Read-only",HubColor.green,nil) {}
-    hubAccountRow("lock.shield.fill",HubColor.slate,"Moomoo (real money)","Not connected here, on purpose. Real money only runs on your Mac with your three switches.","Walled off",HubColor.slate,nil) {}
-    hubAccountRow("bag.fill",HubColor.amber,"Store","Visits first. Sales would need a Stripe login, added as its own switch.","Coming next",HubColor.amber,nil) {}
-    hubAccountRow("megaphone.fill",HubColor.violet,"X, TikTok, Facebook","She prepares posts. You click Post.","Coming later",HubColor.slate,nil) {}
+    hubAccountRow("google","waveform",Noir.crimson,"Google Gemini","Friday's voice and eyes.",live.hasKey ? "Connected" : "Not connected",live.hasKey ? HubColor.green : Noir.crimsonLight,live.hasKey ? "Manage" : "Connect") { hubGoogleForm }
+    hubAccountRow("twitch","scissors",HubColor.violet,"Twitch clips","A separate clip account makes clips when you ask.",clips.signedIn ? "Connected" : "Not connected",clips.signedIn ? HubColor.green : Noir.crimsonLight,clips.signedIn ? "Manage" : "Connect") { clipSettings }
+    hubAccountRow("stocks","chart.line.uptrend.xyaxis",HubColor.green,"Stock bot snapshot","Reads the public practice snapshot. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
+    hubAccountRow("moomoo","lock.shield.fill",HubColor.slate,"Moomoo (real money)","Not connected here, on purpose. Real money only runs on your Mac with your three switches.","Walled off",HubColor.slate,nil) { EmptyView() }
+    hubAccountRow("store","bag.fill",HubColor.amber,"Store","Visits first. Sales would need a Stripe login, added as its own switch.","Coming next",HubColor.amber,nil) { EmptyView() }
+    hubAccountRow("socials","megaphone.fill",HubColor.violet,"X, TikTok, Facebook","She prepares posts. You click Post.","Coming later",HubColor.slate,nil) { EmptyView() }
    }
    .padding(.horizontal,32).padding(.bottom,30)
   }
   .scrollIndicators(.hidden)
  }
 
- func hubAccountRow(_ icon: String,_ tint: Color,_ name: String,_ detail: String,_ status: String,_ statusTint: Color,_ button: String?,_ action: @escaping () -> Void) -> some View {
-  HStack(spacing:16) {
-   ZStack {
-    RoundedRectangle(cornerRadius:14,style:.continuous).fill(LinearGradient(colors:[tint,tint.opacity(0.55)],startPoint:.topLeading,endPoint:.bottomTrailing)).frame(width:46,height:46)
-    Image(systemName:icon).font(.system(size:19,weight:.semibold)).foregroundStyle(Color.white)
+ // Connect forms open right inside the row, so there is nothing to hunt for.
+ func hubAccountRow<Form: View>(_ key: String,_ icon: String,_ tint: Color,_ name: String,_ detail: String,_ status: String,_ statusTint: Color,_ button: String?,@ViewBuilder form: () -> Form) -> some View {
+  let open = hub.expanded == key
+  let formView = form()
+  return VStack(alignment:.leading,spacing:14) {
+   HStack(spacing:16) {
+    ZStack {
+     RoundedRectangle(cornerRadius:14,style:.continuous).fill(LinearGradient(colors:[tint,tint.opacity(0.55)],startPoint:.topLeading,endPoint:.bottomTrailing)).frame(width:46,height:46)
+     Image(systemName:icon).font(.system(size:19,weight:.semibold)).foregroundStyle(Color.white)
+    }
+    VStack(alignment:.leading,spacing:3) {
+     Text(name).font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     Text(detail).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).lineLimit(2)
+    }
+    Spacer()
+    hubPill(status.uppercased(),tint:statusTint)
+    if let button = button {
+     Button(open ? "Done" : button) { withAnimation(.spring(response:0.45,dampingFraction:0.86)) { hub.expanded = open ? "" : key } }
+      .buttonStyle(PillButtonStyle(tint:open ? Color.white.opacity(0.12) : Noir.crimson))
+    }
    }
-   VStack(alignment:.leading,spacing:3) {
-    Text(name).font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
-    Text(detail).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).lineLimit(2)
-   }
-   Spacer()
-   hubPill(status.uppercased(),tint:statusTint)
-   if let button = button {
-    Button(button) { action() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   if open {
+    Divider().overlay(Color.white.opacity(0.10))
+    formView
    }
   }
   .padding(16)
   .hubCard()
+ }
+
+ // The Google key: get one free (no card needed), paste it, and it goes into the Keychain.
+ @ViewBuilder var hubGoogleForm: some View {
+  if live.hasKey {
+   HStack {
+    Label("Key saved in your Mac's Keychain",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
+    Spacer()
+    Button("Remove key") { live.forgetKey() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  } else {
+   Text("1. Click Get a free key and sign in with Google. No card needed.\n2. Create an API key and copy it.\n3. Paste it below and press Save key. Never paste it into a chat.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.65))
+   HStack(spacing:10) {
+    Button("Get a free key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    SecureField("Paste your key here",text:$live.keyInput).noirField()
+    Button("Save key") { live.saveKey() }.buttonStyle(PillButtonStyle())
+   }
+  }
  }
 
  func hubSoon(_ section: HubSection,_ title: String,_ blurb: String,_ bullets: [String]) -> some View {

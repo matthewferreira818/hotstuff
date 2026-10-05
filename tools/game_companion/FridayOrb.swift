@@ -60,7 +60,21 @@ struct FridayOrb: View {
  }
  // How fast the light drifts inside the orb.
  private var flow: Double {
-  switch state { case .off: return 0.0; case .idle: return 0.6; case .listening: return 1.0; case .thinking: return 2.0; case .speaking: return 1.5 }
+  switch state { case .off: return 0.25; case .idle: return 0.9; case .listening: return 1.3; case .thinking: return 2.0; case .speaking: return 1.8 }
+ }
+ // How far the orb's edge wobbles (a fraction of its radius), and how fast. It never stops, even asleep, and swells with sound.
+ private var wobble: Double {
+  guard moves else { return 0 }
+  switch state {
+  case .off: return 0.010
+  case .idle: return 0.020
+  case .listening: return 0.030 + sound * 0.060
+  case .thinking: return 0.040
+  case .speaking: return 0.035 + sound * 0.075
+  }
+ }
+ private var wobbleSpeed: Double {
+  switch state { case .off: return 0.6; case .idle: return 0.9; case .listening: return 1.4; case .thinking: return 2.2; case .speaking: return 1.8 }
  }
  private var glow: Double {
   switch state { case .off: return 0.30; case .idle: return 0.60; case .listening: return 0.72; case .thinking: return 0.68; case .speaking: return 0.88 }
@@ -72,8 +86,8 @@ struct FridayOrb: View {
    aura(time)
    if appearance.look == .orb {
     sphere(time)
-     .scaleEffect(1 + (moves && state != .off ? sin(time * 1.3) * 0.012 : 0) + sound * 0.09)
-     .opacity(state == .off ? 0.62 : 1)
+     .scaleEffect(1 + (moves ? sin(time * 1.0) * (state == .off ? 0.012 : 0.016) : 0) + sound * 0.10)
+     .opacity(state == .off ? 0.72 : 1)
    } else {
     bubble(time)
      .scaleEffect(1 + sound * 0.08)
@@ -129,22 +143,22 @@ struct FridayOrb: View {
  // The sphere: warm body, drifting light, liquid streaks, a pulsing core, a soft inner shade (crimson, never black) and a glass rim.
  private func sphere(_ time: Double) -> some View {
   ZStack {
-   Circle().fill(RadialGradient(colors:[Color(red:0.95,green:0.64,blue:0.66),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.36,y:0.30),startRadius:0,endRadius:size * 0.80))
+   Circle().fill(RadialGradient(colors:[Color(red:0.80,green:0.46,blue:0.52),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.36,y:0.30),startRadius:0,endRadius:size * 0.80))
    ForEach(0..<5,id:\.self) { i in blob(i,time) }
    ForEach(0..<2,id:\.self) { i in streak(i,time) }
-   Circle().fill(RadialGradient(colors:[Color.white.opacity(0.50 + sound * 0.35),Noir.crimsonLight.opacity(0)],center:.center,startRadius:0,endRadius:size * (0.17 + sound * 0.11)))
+   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.84,blue:0.86).opacity(0.22 + sound * 0.28),Noir.crimsonLight.opacity(0)],center:.center,startRadius:0,endRadius:size * (0.17 + sound * 0.12)))
     .blendMode(.plusLighter)
    Circle().fill(RadialGradient(colors:[Noir.crimsonDeep.opacity(0),Noir.crimsonDeep.opacity(0.50)],center:.center,startRadius:size * 0.30,endRadius:size * 0.50))
    highlight
   }
   .frame(width:size,height:size)
-  .clipShape(Circle())
+  .clipShape(FridayBlob(phase:time * wobbleSpeed,amount:wobble))
   .overlay(rim(time))
   .drawingGroup()
  }
 
  private func rim(_ time: Double) -> some View {
-  Circle().strokeBorder(AngularGradient(colors:[Color.white.opacity(0.70),Noir.crimsonLight.opacity(0.12),Color.white.opacity(0.06),Noir.crimsonLight.opacity(0.55),Color.white.opacity(0.70)],center:.center,angle:.degrees(time * 16)),lineWidth:1.5)
+  FridayBlob(phase:time * wobbleSpeed,amount:wobble).stroke(AngularGradient(colors:[Color.white.opacity(0.36),Noir.crimsonLight.opacity(0.10),Color.white.opacity(0.04),Noir.crimsonLight.opacity(0.40),Color.white.opacity(0.36)],center:.center,angle:.degrees(time * 16)),lineWidth:1.3)
  }
 
  // Five blurred patches of light wandering inside the sphere. Louder sound lets them roam further.
@@ -158,14 +172,14 @@ struct FridayOrb: View {
    .blur(radius:size * 0.14)
    .offset(x:cos(angle) * reach * 1.5,y:sin(angle * 1.31) * reach * 1.3)
    .blendMode(.plusLighter)
-   .opacity(i == 3 ? 0.55 : 0.72)
+   .opacity(i == 3 ? 0.36 : 0.46)
  }
 
  // Two soft bright streaks that turn slowly through the sphere, like light moving in liquid.
  private func streak(_ i: Int,_ time: Double) -> some View {
   let turn = time * flow * (0.35 + 0.2 * Double(i)) * 57.2958 + Double(i) * 70
   return Ellipse()
-   .fill(LinearGradient(colors:[Noir.crimsonLight.opacity(0),Color.white.opacity(0.34),Noir.crimsonLight.opacity(0)],startPoint:.leading,endPoint:.trailing))
+   .fill(LinearGradient(colors:[Noir.crimsonLight.opacity(0),Color.white.opacity(0.15),Noir.crimsonLight.opacity(0)],startPoint:.leading,endPoint:.trailing))
    .frame(width:size * 1.15,height:size * 0.26)
    .rotationEffect(.degrees(turn))
    .blur(radius:size * 0.045)
@@ -174,7 +188,7 @@ struct FridayOrb: View {
 
  private var highlight: some View {
   Ellipse()
-   .fill(LinearGradient(colors:[Color.white.opacity(0.50),Color.white.opacity(0)],startPoint:.top,endPoint:.bottom))
+   .fill(LinearGradient(colors:[Color.white.opacity(0.24),Color.white.opacity(0)],startPoint:.top,endPoint:.bottom))
    .frame(width:size * 0.44,height:size * 0.20)
    .blur(radius:size * 0.03)
    .offset(x:-size * 0.13,y:-size * 0.29)
@@ -210,6 +224,30 @@ struct FridayOrb: View {
     .offset(y:moves ? (state == .speaking ? -sound * size * 0.05 : sin(time * 1.2) * size * 0.012) : 0)
   }
   .frame(width:size * 0.9,height:size * 0.9)
+ }
+}
+
+// The orb's edge: a circle whose outline slowly wobbles, the way an assistant's voice orb breathes and swells. `amount` is how far it
+// moves as a fraction of the radius; the biggest bulge still stays inside the orb's frame.
+struct FridayBlob: Shape {
+ var phase: Double
+ var amount: Double
+
+ func path(in rect: CGRect) -> Path {
+  let centre = CGPoint(x:rect.midX,y:rect.midY)
+  let radius = Double(min(rect.width,rect.height)) / 2
+  let base = radius * (1 - 1.3 * amount)
+  let steps = 96
+  var path = Path()
+  for i in 0...steps {
+   let angle = Double(i) / Double(steps) * 2 * Double.pi
+   let wobble = sin(angle * 3 + phase * 1.1) * 0.55 + sin(angle * 5 - phase * 0.8) * 0.30 + sin(angle * 2 + phase * 0.6) * 0.45
+   let r = base * (1 + amount * wobble)
+   let point = CGPoint(x:centre.x + CGFloat(cos(angle) * r),y:centre.y + CGFloat(sin(angle) * r))
+   if i == 0 { path.move(to:point) } else { path.addLine(to:point) }
+  }
+  path.closeSubpath()
+  return path
  }
 }
 

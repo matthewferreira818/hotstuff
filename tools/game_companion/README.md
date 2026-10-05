@@ -438,3 +438,12 @@ the crimson is softer and dustier everywhere (`Noir` in `FridayOrb.swift`: rosew
 and quieter; the Friday page is bigger orb, a small centred "LIVE" line, softer captions, and fewer, calmer round buttons (the
 settings gear was removed from the stage; Settings stays on the left rail, Command-comma); the filled button is a soft crimson
 gradient. The orb, the corner popup and Friday's cursor pick up the new colours automatically. Not seen on the Mac yet.
+
+## Orb: dimmer light, breathing and a wobbling edge (2026-10-05)
+
+After the first look at the calmer palette ("a little bright", "motion like GPT", "react to voice"): the white core, highlight, streaks
+and drifting lights are about half as bright, and the body is a softer rose. The orb now breathes in every state (even asleep) and
+its outline slowly wobbles like a voice assistant's orb (`FridayBlob` in `FridayOrb.swift`): barely while asleep, more when idle,
+and swelling with the sound level while she listens (your voice) or speaks (hers), faster while she thinks. The light inside drifts
+even when asleep. Reduce Motion still freezes it. It can only react to a voice while Friday is live, because that is the only time
+the mic is open. Not seen on the Mac yet.

@@ -17,7 +17,20 @@ This folder holds the upgraded `Companion.swift` so it can travel through git.
    your character sheet". The instructions now also tell it that it can't take actions,
    so it answers from the notes or says it can't tell.
 
-Nothing else changed: same AI, same memory settings, same voice, same privacy.
+3. **Fast mode** (2026-10-05, after the first live test): the old "Quicker follow-ups"
+   button is now "Fast (AI stays loaded)". Picking it loads the AI right away and keeps
+   it loaded for 10 minutes after each reply, with no 2-thread cap. Save memory still
+   unloads after every reply, which is why every reply started slow. Matthew plays on a
+   console and watches his Twitch on the Mac, so the Mac has room for it.
+4. **Short / Detailed replies:** Detailed (the default) allows 2–4 sentences with
+   specifics, up to 160 tokens. Short is the old one-liner. The context window is 2048
+   for both, so switching never forces an AI reload.
+5. **Voice list shows quality** (Premium / Enhanced / Basic). Download Premium voices in
+   System Settings → Accessibility → Spoken Content → Manage Voices, then restart the app.
+6. **Status shows "Taking a picture…" then "Thinking locally…"**, so it's clear which
+   part is slow. The capture itself is fast; the AI is the slow part.
+
+Same AI and same privacy as before.
 This copy was not compiled before it was pushed, because the cloud machine has no Mac
 SDK. The first rebuild on the Mac is the compile check.
 

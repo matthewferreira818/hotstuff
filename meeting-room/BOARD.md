@@ -1,17 +1,19 @@
 # Meeting Room board
 
-_Last updated: 2026-10-05 by Claude and GPT_
+_Last updated: 2026-10-05 by Claude_
 
 ## On the table
 - [Claude] Twitch clips: say "clip it", it makes the Twitch clip, downloads it, and cuts a tight highlight (wide and tall versions) into Movies > Game Companion Clips. Built and pushed; it compiles on the Mac and the loudness maths is tested, but the video export and the Twitch download have not been run yet. Status: waiting
 - [Matthew] Rebuild the app, sign out of Twitch in Settings and sign in again (one new permission is needed to download clips), then say "clip it" while live. Status: waiting
 - [Claude] After the first clip test works: swap the older Apple calls in ClipEditor.swift (asset reader, video composition) for the newer ones Apple recommends; GPT compile-checks the swap. Not urgent: the old ones still work. Status: waiting
 - [GPT] Apply the approved page fixes in meeting-room/notes/claude-fixes-for-gpt.md on the branch gpt/claims-fixes-2026-10-05 (not master). Claude reviews and merges. Status: assigned
+- [GPT] Compile-check master (fa723af) on the Mac: the new orb, corner popup, movable rail and Stream page. Command is in the thread (issue 15). Report errors by file and line; don't edit the files. Status: assigned
+- [Claude] New this round: Friday's orb rewritten (aura, glass sphere, sparks, look bar), a Siri-style corner popup when Friday is live and the window is out of sight, drag-to-reorder rail icons, and a Stream page for Twitch (live status, title and category with presets, markers, clips, go-live checklist). Parsed and the Twitch reader tested here; none of it compiled or seen on the Mac yet. Status: waiting
 - [Claude] Meeting Room messages: thread (issue 15) that Matthew, Claude and GPT can all post to, a posting box in the app, a phone push when a message is for Matthew, and a daily check by Claude. Built and tested here; the app part has not been compiled on the Mac. Status: waiting
 - [Matthew] The Moncton group ad was submitted by Chrome Claude on 2026-10-05 and is waiting on the group's admins (not live, so no link yet). Next: have Chrome Claude delete the stale Aug 19 pending post and leave the new one pending; no more posts in that group until the admins respond. Status: waiting
 - [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 7". Status: waiting
 - [Matthew] Answer four quick things so the sales ledger can be made true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting
-- [Matthew] After rebuilding: check Friday's new orb on Home and on the Friday page (does it flow into the background, does it react to your voice?) and try the appearance menu under it (Red orb, Emoji faces, Robot, Fire). Send me a screenshot if anything looks off. Status: waiting
+- [Matthew] After rebuilding: check Friday's new orb on Home and on the Friday page (does it flow into the background, does it react to your voice?), the look bar under it, the corner popup (start Friday, then minimize the window or click into your game), drag a rail icon to a new spot, and open the new Stream page (sign out of Twitch and in again first, once, for the new permission). Send me a screenshot if anything looks off. Status: waiting
 - [Matthew] Optional: make the GitHub key for posting from the app (Meeting Room page or Accounts, GitHub). Status: waiting
 - [Matthew] Optional: connect Stripe in the hub (Accounts, Stripe) with a read-only key, so orders and revenue show on the Store page. Status: waiting
 
@@ -20,6 +22,7 @@ _Last updated: 2026-10-05 by Claude and GPT_
 - [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild?
 
 ## Decisions
+- 2026-10-05: Matthew asked for movable tabs, a corner popup that also reacts to his voice, and a Twitch stream manager tab. Built by Claude (see On the table). The Stream page can change the public channel title and category, but only when Matthew presses Update; it can't start a stream (Twitch doesn't allow it). The Twitch sign-in gains one permission (channel:manage:broadcast), so he signs out and in once.
 - 2026-10-05: Public claims that stopped being true came down: "posts 3x daily" for X on /links, "going through Google's verification" on /setup, the "120 products" counts, and the Practice Desk page's $1 fee, superseded experiment and $1,000 footer. The false "3x a day" proof lines were scrubbed from the unused outreach drafts.
 - 2026-10-05: The "first paying client by Aug 31" goal was missed (zero clients). CLAUDE.md now says so. The research on what to do next is saved in the workflow output; the plan step and council review were cut off by the usage limit.
 - 2026-10-05: Claude reviewed and merged GPT's new Friday orb (FridayOrb.swift only; GPT type-checked all 17 files on the Mac with zero errors). The halo now fades to clear instead of a blurred circle cut off by its frame, which was the likely cause of the hard edge on Home. It adds an appearance menu (Red orb, Emoji faces, Robot, Fire) saved on the Mac, and respects Reduce Motion. Not yet seen on screen; local mode's loudness is still approximate (GPT's note). GPT also runs an hourly board and thread check.

@@ -355,3 +355,14 @@ public repo. "Remember between sessions" off means nothing is written to disk an
 the feed back. Copy last 20 / Copy all put plain text on the clipboard for pasting into a chat with Claude or GPT; Clear deletes it.
 Live mode only: the local (Ollama) mode isn't logged yet. The format, tidy-up, repeat guard, 500-message cap and copy text are in
 `checks/DataChecks.swift` and pass; the page and the hooks have not been compiled or run on the Mac.
+
+## Friday's job: stream manager (2026-10-05)
+
+Settings now has **Friday's job**: Game buddy or Stream manager (Stream manager is the default). Pick it while she is asleep; it
+applies the next time she starts. As **Stream manager** she is briefed as a calm, quick producer: she runs the Stream page by voice
+(live status, viewers, title, category, presets, markers; the clip tool still needs its own switch), only states stream facts that a
+tool just returned, and says "I'm not sure" about game facts instead of guessing (unless the wiki lookup is on). Choosing that job
+counts as switching the voice tools on, so the separate Stream switch is only needed for Game buddy. Reason for the change:
+Google's free live model is weaker at knowing things than at relaying what a tool returns, and Twitch's own answers are the
+reliable part. It does not make the model smarter; the model name is still in Settings ("Live model"). She still speaks only when
+Matthew talks to her.

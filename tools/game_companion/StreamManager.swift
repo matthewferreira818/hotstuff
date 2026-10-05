@@ -467,7 +467,7 @@ extension CompanionInterfaceView {
    hubCheck(live.hasKey,"Friday has her Google key","Add it in Settings.")
    hubCheck(c.sharing,"A game window is chosen for Friday","Press Choose window on the Game page.")
    hubCheck(clips.voiceClips,"\"Clip it\" by voice is on","Tick it in Settings before starting Friday.")
-   hubCheck(clips.voiceStream,"Friday can run this page by voice","Tick it in Settings before starting Friday.")
+   hubCheck(clips.voiceStream || live.role == 1,"Friday can run this page by voice","Set her job to Stream manager in Settings before starting her.")
    hubCheck(stream.live != nil,"You're live on Twitch","Start streaming in OBS or Streamlabs.")
   }
   .padding(18).frame(maxWidth:.infinity,minHeight:300,alignment:.topLeading).hubCard()

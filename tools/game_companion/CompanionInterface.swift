@@ -299,6 +299,7 @@ struct CompanionInterfaceView: View {
  @ViewBuilder var googleSettings: some View {
   if live.hasKey { HStack { Text("Google key saved in Keychain"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
   else { HStack { SecureField("Google API key",text:$live.keyInput); Button("Save key") { live.saveKey() }.disabled(DesignPreview.enabled); Button("Get a key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }.disabled(DesignPreview.enabled) } }
+  Picker("Friday's job",selection:$live.role) { Text("Game buddy").tag(0); Text("Stream manager").tag(1) }.pickerStyle(.segmented).disabled(live.running)
   Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)
   Toggle("Pop up in a corner when the window is out of sight while Friday is live",isOn:$corner.enabled)
   Picker("Corner",selection:$corner.position) { Text("Top right").tag(0); Text("Top left").tag(1); Text("Bottom right").tag(2); Text("Bottom left").tag(3) }.pickerStyle(.segmented).disabled(!corner.enabled)

@@ -65,6 +65,7 @@ import AppKit
     if !StreamData.rows(found).isEmpty { exists = true; break }
    }
    tw.lastClipURL = "https://clips.twitch.tv/\(id)"
+   ClipLedger.add(id)
    return (id,exists ? "Made." : "Twitch accepted it but it isn't showing yet.")
   } catch {
    return (nil,"Couldn't make the clip: \(error.localizedDescription)")

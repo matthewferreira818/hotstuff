@@ -2,7 +2,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -184,6 +184,32 @@ import Foundation
   let path = VodPlan.clipPath(editor:"7",broadcaster:"7",vod:"123",offset:308,duration:30,title:"Boss down & out")
   precondition(path == "/videos/clips?editor_id=7&broadcaster_id=7&vod_id=123&vod_offset=308&duration=30.0&title=Boss%20down%20%26%20out" && VodPlan.clipPath(editor:"1",broadcaster:"1",vod:"2",offset:30,duration:30,title:"  ").hasSuffix("title=Moment"))
   precondition(VodPlan.explain(code:404,message:nil).contains("expired") && VodPlan.explain(code:401,message:nil).contains("sign in again") && VodPlan.explain(code:400,message:"AutoMod").contains("AutoMod"))
+  // Clip autopilot: viewer clips are picked (recent, enough views, not handled, best first, capped), live clips are capped and spaced,
+  // the hype detector fires once per burst and not on normal talking, and the TikTok caption has only true words.
+  let nowDate = Date(timeIntervalSince1970:3_000_000_000)
+  func vclip(_ id: String,_ views: Int,_ ageDays: Double) -> ClipRow { ClipRow(id:id,title:"t",url:"u",views:views,seconds:30,created:nowDate.addingTimeInterval(-ageDays * 86_400)) }
+  let picked = AutopilotPlan.pickViewerClips([vclip("a",10,1),vclip("b",50,2),vclip("c",2,1),vclip("d",99,9),vclip("e",30,1),vclip("f",30,0.5)],handled:["e"],now:nowDate)
+  precondition(picked.map { $0.id } == ["b","f"])
+  precondition(AutopilotPlan.pickViewerClips([vclip("a",10,1)],handled:["a"],now:nowDate).isEmpty)
+  precondition(AutopilotPlan.appendHandled(["x","y"],"x") == ["y","x"] && AutopilotPlan.appendHandled(Array(repeating:"k",count:1),"z",limit:1) == ["z"])
+  precondition(AutopilotPlan.canClipLive(count:0,lastClip:nil,now:nowDate) && !AutopilotPlan.canClipLive(count:3,lastClip:nil,now:nowDate) && !AutopilotPlan.canClipLive(count:1,lastClip:nowDate.addingTimeInterval(-100),now:nowDate) && AutopilotPlan.canClipLive(count:1,lastClip:nowDate.addingTimeInterval(-400),now:nowDate))
+  var hype = HypeDetector()
+  var quietFired = false
+  for _ in 0..<300 { if hype.feed(level:0.12,dt:0.2) { quietFired = true } }
+  precondition(!quietFired)
+  var burstFires = 0
+  for _ in 0..<10 { if hype.feed(level:0.9,dt:0.2) { burstFires += 1 } }
+  precondition(burstFires == 1)
+  for _ in 0..<12 { _ = hype.feed(level:0.1,dt:0.2) }
+  var secondBurst = 0
+  for _ in 0..<10 { if hype.feed(level:0.9,dt:0.2) { secondBurst += 1 } }
+  precondition(secondBurst == 1)
+  var blip = HypeDetector()
+  var blipFired = false
+  for i in 0..<20 { if blip.feed(level:i == 5 ? 0.9 : 0.1,dt:0.2) { blipFired = true } }
+  precondition(!blipFired)
+  precondition(TikTokPack.caption(title:"Boss down at one heart",game:"Minecraft Dungeons") == "Boss down at one heart 🔥\n\n#minecraft #minecraftdungeons #gaming #twitch #fyp\n")
+  precondition(TikTokPack.caption(title:"Moment 2 at 1:05",game:"Just Chatting").hasPrefix("Clutch moment 🔥") && TikTokPack.hashtags(game:"Just Chatting") == ["#gaming","#twitch","#fyp"] && TikTokPack.cleanTitle("  a   b  ") == "a b")
   print("All data checks passed.")
  }
 }

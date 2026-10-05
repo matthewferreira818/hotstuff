@@ -279,6 +279,7 @@ extension CompanionInterfaceView {
      }
      hubStreamClips
      hubStreamVods
+     hubStreamAutopilot
     }
     if !stream.message.isEmpty {
      Text(stream.message).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.75)).textSelection(.enabled)

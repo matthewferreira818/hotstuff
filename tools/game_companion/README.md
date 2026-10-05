@@ -501,3 +501,21 @@ or asks. Needs the account to be the channel's owner or an Editor; uses the perm
 once if clipping was set up earlier). Twitch deletes old streams after a while (it varies), and a stream needs "store past broadcasts"
 switched on in Twitch. The clock reading, clip plan, marker reading and error words are in `checks/DataChecks.swift` and pass; the
 card and the calls have not been run on the Mac or against a real Twitch account.
+
+## Clip autopilot (2026-10-05)
+
+Matthew asked for Friday to clip his streams and post the clips without being asked: "all 3" sources, to the Minecraft TikTok, dubbed.
+Built so far (`ClipAutopilot.swift`, rules and tests in `AutopilotData.swift`; a card on the Stream page, **off until he switches it
+on**, runs only while the app is open): (1) after a stream ends (three clean "offline" checks, then 90 seconds for the stream's
+recording to appear) every moment he marked becomes a clip, up to 8; (2) while he streams and Friday is running, a jump in the
+loudness of his own voice (held 0.8 s, well above his normal level) makes a live clip, at most 3 a stream and 5 minutes apart;
+(3) every 6 hours the 2 best recent viewer clips (at least 3 views, last 7 days, not already handled) are downloaded and cut. Every
+action is in the card's log and the Friday feed. After EVERY finished clip, whoever asked for it, `tiktok-caption.txt` is saved next to
+it (the clip's title and hashtags for the game, no claims). Clips are public on Twitch the moment they exist.
+
+NOT built yet, and why: **posting to TikTok.** TikTok does not let an unreviewed app publish publicly; at most it takes a draft into the
+account's TikTok inbox (how the HotsTuff store account's drafts already work), and the existing hookup is the store account, not the
+Minecraft one, so the Minecraft account has to be authorised with our TikTok developer app first (a test user while the app is unreviewed)
+and the app needs its keys, which Matthew pastes himself. **Dubbing**: a short voice-over line (his clip's title in a Mac voice, mixed
+over the start with the game sound turned down) is doable with Apple's speech and video tools and is the next step; translating his own
+speech into another language is not possible with what is built.

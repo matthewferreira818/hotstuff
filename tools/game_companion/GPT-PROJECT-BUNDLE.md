@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit 6086089. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit fed10a4. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -80,6 +80,8 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `AudioRoute.swift`: Tells headphones from speakers (CoreAudio) so the mic can pause while Friday talks on speakers.
 - `VodData.swift`: Clips from past streams (VODs): reading Twitch's answers, clock times, the clip plan and error words. No Mac frameworks; tested.
 - `VodClips.swift`: Clips from past streams: the Stream page card, the clip-my-marked-moments button and Friday's voice tools for it.
+- `AutopilotData.swift`: Clip autopilot rules: which viewer clips to take, live-clip caps, the hype detector and the TikTok caption. No Mac frameworks; tested.
+- `ClipAutopilot.swift`: Clip autopilot: clips from markers, exciting live moments and viewers' best clips, with caps, a log and a TikTok caption for each.
 - `HandsData.swift`: The rules and maths for Friday's hands and her all-screens view: where things land, what she may type, press and click, what needs an Allow. No Mac frameworks; tested.
 - `ScreenSnap.swift`: One picture of every screen side by side, for Friday to see.
 - `FridayHands.swift`: Friday's hands: her gliding cursor, scrolling, clicking, typing and keys, with an Allow box for anything that could send or buy. Off by default.
@@ -1535,6 +1537,8 @@ enum TwitchTokens {
  @Published var lastClipURL = ""
  @Published var busy = false
  var lastClip = Date.distantPast
+ // Called with the folder and title after a clip has been downloaded and cut (the autopilot saves a TikTok caption there).
+ var onTidied: ((URL,String) -> Void)?
  var loginTask: Task<Void,Never>?
  var inFlight: Task<String,Never>?
  // clips:edit makes the clip. The two manage-clips permissions let the app download it (whichever fits the account).
@@ -1663,6 +1667,7 @@ enum TwitchTokens {
     return say("Twitch didn't make the clip: \(reason). It only works while \(login) is live and has clips on.")
    }
    lastClip = Date()
+   ClipLedger.add(clipID)
    // The clip can take several seconds to appear on Twitch; check before claiming success.
    var exists = false
    for _ in 0..<6 {
@@ -1732,6 +1737,7 @@ enum TwitchTokens {
    editStatus = "Cutting the highlight…"
    let files = try await ClipEditor.tidy(original:original,folder:folder,maxLength:Double(highlightSeconds))
    lastFolder = folder
+   onTidied?(folder,title)
    editStatus = "Done: a \(Int(files.cut.length.rounded()))-second highlight, wide and tall, saved in Movies > Game Companion Clips > \(folder.lastPathComponent). \(files.note)".trimmingCharacters(in:.whitespaces)
    NSWorkspace.shared.activateFileViewerSelecting([files.vertical ?? files.landscape ?? original])
   } catch {
@@ -1944,6 +1950,7 @@ struct CompanionInterfaceView: View {
  @StateObject var chat = ChatHub()
  @StateObject var hands = FridayHands()
  @StateObject var vods = VodHub()
+ @StateObject var autopilot = ClipAutopilot()
  @StateObject var corner = FridayCornerController()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
@@ -1958,10 +1965,10 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; vods.attach(clips,stream:stream); live.vods = vods; live.meeting = meeting; hands.attach(live); chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; vods.attach(clips,stream:stream); autopilot.attach(clips:clips,stream:stream,vods:vods,live:live,feed:feed); live.vods = vods; live.meeting = meeting; hands.attach(live); chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
-  .onDisappear { stopAll() }
+  .onDisappear { stopAll(); autopilot.pause() }
   .onChange(of:conversation.page) { _,page in
    c.handsFree = false; c.stopMic(); c.cancelResponse(); c.automatic = false; c.history.removeAll(); c.reply = ""; c.input = ""; c.unloadModel()
    if page == 2 { conversation.stopInitiative(); live.clearSession() }
@@ -4635,6 +4642,7 @@ extension CompanionInterfaceView {
      }
      hubStreamClips
      hubStreamVods
+     hubStreamAutopilot
     }
     if !stream.message.isEmpty {
      Text(stream.message).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.75)).textSelection(.enabled)
@@ -5617,6 +5625,7 @@ import AppKit
     if !StreamData.rows(found).isEmpty { exists = true; break }
    }
    tw.lastClipURL = "https://clips.twitch.tv/\(id)"
+   ClipLedger.add(id)
    return (id,exists ? "Made." : "Twitch accepted it but it isn't showing yet.")
   } catch {
    return (nil,"Couldn't make the clip: \(error.localizedDescription)")
@@ -5756,6 +5765,327 @@ extension CompanionInterfaceView {
     }
     if !vods.status.isEmpty { Text(vods.status).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.75)).textSelection(.enabled) }
    }
+  }
+  .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+ }
+}
+```
+
+## FILE: AutopilotData.swift
+
+```swift
+import Foundation
+
+// Clip autopilot: the pure rules, with no Mac frameworks so they can be tested anywhere. Matthew's choice (2026-10-05): Friday may pick
+// moments to clip without being asked, from three sources: the moments he marked (after each stream), exciting moments she notices
+// live, and his viewers' best clips. Clips are public on Twitch the moment they exist, so every source has a hard cap.
+
+enum AutopilotPlan {
+ static let liveCapPerStream = 3          // live "exciting moment" clips in one stream
+ static let liveGapSeconds = 300.0        // at least this long between two live clips
+ static let viewerClipsPerRun = 2         // viewers' clips picked per run (one run every 6 hours at most)
+ static let minViewerViews = 3            // a viewer clip needs at least this many views to count
+ static let viewerWindowDays = 7.0
+ static let ledgerLimit = 500
+
+ // Which viewer clips to pick: recent, enough views, not already handled, best first, at most `limit`.
+ static func pickViewerClips(_ clips: [ClipRow],handled: Set<String>,now: Date,limit: Int = viewerClipsPerRun,minViews: Int = minViewerViews) -> [ClipRow] {
+  let cutoff = now.addingTimeInterval(-viewerWindowDays * 86_400)
+  return Array(clips
+   .filter { !handled.contains($0.id) && $0.views >= minViews && ($0.created ?? .distantPast) >= cutoff }
+   .sorted { $0.views != $1.views ? $0.views > $1.views : ($0.created ?? .distantPast) > ($1.created ?? .distantPast) }
+   .prefix(limit))
+ }
+
+ // Keeps a list of handled ids from growing forever: newest `limit` kept, no repeats.
+ static func appendHandled(_ ids: [String],_ id: String,limit: Int = ledgerLimit) -> [String] {
+  var next = ids.filter { $0 != id }
+  next.append(id)
+  return next.count > limit ? Array(next.suffix(limit)) : next
+ }
+
+ // A live clip may be made when autopilot has room left in this stream and the last one was long enough ago.
+ static func canClipLive(count: Int,lastClip: Date?,now: Date) -> Bool {
+  if count >= liveCapPerStream { return false }
+  if let last = lastClip, now.timeIntervalSince(last) < liveGapSeconds { return false }
+  return true
+ }
+}
+
+// Notices an exciting moment from the sound of Matthew's own voice: a clear jump above how loud he normally is, held for a
+// moment. Feed it the mic level (0 to 1) about every 0.2 seconds. It says true once per burst and then waits for him to calm down.
+struct HypeDetector {
+ var baseline = 0.06
+ private var above = 0.0
+ private var calm = 0.0
+ private var armed = true
+ static let holdSeconds = 0.8
+ static let calmSeconds = 2.0
+ static let floor = 0.45          // never fire below this level, however quiet the room is
+ static let jump = 2.8            // and at least this many times his normal level
+
+ mutating func feed(level raw: Double,dt: Double) -> Bool {
+  let level = min(1,max(0,raw.isFinite ? raw : 0))
+  let threshold = max(Self.floor,baseline * Self.jump)
+  if level < threshold {
+   // normal talking: learn how loud that is (slowly, so a burst doesn't raise it)
+   baseline += (min(level,0.35) - baseline) * min(1,dt / 20)
+   baseline = max(0.02,baseline)
+   above = 0
+   calm += dt
+   if calm >= Self.calmSeconds { armed = true }
+   return false
+  }
+  calm = 0
+  above += dt
+  if armed && above >= Self.holdSeconds {
+   armed = false
+   return true
+  }
+  return false
+ }
+}
+
+// The caption saved next to each finished clip, ready to paste into TikTok. Only words that are true: the clip's own title and
+// hashtags about the game it is from. No claims, no "link in bio".
+enum TikTokPack {
+ static func hashtags(game: String) -> [String] {
+  let lower = game.lowercased()
+  var tags: [String] = []
+  if lower.contains("minecraft") { tags.append("#minecraft") }
+  if lower.contains("dungeons") { tags.append("#minecraftdungeons") }
+  return tags + ["#gaming","#twitch","#fyp"]
+ }
+
+ static func cleanTitle(_ raw: String) -> String {
+  let words = raw.split(whereSeparator: { $0.isWhitespace }).joined(separator:" ")
+  return String(words.prefix(90))
+ }
+
+ static func caption(title raw: String,game: String) -> String {
+  let title = cleanTitle(raw)
+  let head = title.isEmpty || title.lowercased().hasPrefix("moment") ? "Clutch moment" : title
+  return head + " 🔥\n\n" + hashtags(game:game).joined(separator:" ") + "\n"
+ }
+}
+```
+
+## FILE: ClipAutopilot.swift
+
+```swift
+import SwiftUI
+import AppKit
+
+// Clip autopilot (Matthew's choice, 2026-10-05): while the app is open and he has switched it on, Friday makes clips without being asked,
+// from three sources: (1) after a stream ends, every moment he marked (VodClips.swift); (2) exciting moments she notices live from the
+// sound of his own voice, at most 3 a stream and 5 minutes apart; (3) his viewers' best clips from the last week, 2 each run, one run
+// every 6 hours. Clips are public on Twitch the moment they exist, so every source is capped and every action is written to the log
+// below and to the Friday feed. Each finished clip gets a TikTok caption saved next to it (tiktok-caption.txt). Rules and tests:
+// AutopilotData.swift. It is off until he switches it on, and it stops when the window closes.
+
+// The clips the app has already made or handled, so the viewers' source never re-picks one.
+enum ClipLedger {
+ private static let key = "autopilot.handled"
+ static var ids: [String] { UserDefaults.standard.stringArray(forKey:key) ?? [] }
+ static func add(_ id: String) { UserDefaults.standard.set(AutopilotPlan.appendHandled(ids,id),forKey:key) }
+}
+
+@MainActor final class ClipAutopilot: ObservableObject {
+ @Published var enabled = UserDefaults.standard.object(forKey:"autopilot.on") as? Bool ?? false {
+  didSet {
+   UserDefaults.standard.set(enabled,forKey:"autopilot.on")
+   if enabled { begin(); note("Autopilot is on") } else { pause(); note("Autopilot is off") }
+  }
+ }
+ @Published var fromMarkers = UserDefaults.standard.object(forKey:"autopilot.markers") as? Bool ?? true { didSet { UserDefaults.standard.set(fromMarkers,forKey:"autopilot.markers") } }
+ @Published var fromLive = UserDefaults.standard.object(forKey:"autopilot.live") as? Bool ?? true { didSet { UserDefaults.standard.set(fromLive,forKey:"autopilot.live") } }
+ @Published var fromViewers = UserDefaults.standard.object(forKey:"autopilot.viewers") as? Bool ?? true { didSet { UserDefaults.standard.set(fromViewers,forKey:"autopilot.viewers") } }
+ @Published var log: [String] = []
+ @Published var working = false
+
+ private var clips: TwitchClips?
+ private var stream: StreamHub?
+ private var vods: VodHub?
+ private var live: LiveBuddy?
+ private var feed: FridayFeed?
+ private var loop: Task<Void,Never>?
+ private var hype = HypeDetector()
+ private var liveCount = 0
+ private var lastLiveClip: Date?
+ private var wasLive = false
+ private var offlineChecks = 0
+ private var endedAt: Date?
+ private var streamStart: Date?
+ private var lastSlow = Date.distantPast
+ private var lastViewerRun = Date.distantPast
+ private var handledVods = Set(UserDefaults.standard.stringArray(forKey:"autopilot.vods") ?? [])
+
+ func attach(clips tw: TwitchClips,stream hub: StreamHub,vods list: VodHub,live buddy: LiveBuddy,feed log: FridayFeed) {
+  guard clips == nil else { return }
+  clips = tw; stream = hub; vods = list; live = buddy; feed = log
+  tw.onTidied = { [weak self] folder,title in self?.writePack(folder:folder,title:title) }
+  if enabled { begin() }
+ }
+
+ private func note(_ text: String) {
+  let stamp = Date().formatted(date:.omitted,time:.shortened)
+  log.insert("\(stamp) · \(text)",at:0)
+  if log.count > 12 { log.removeLast(log.count - 12) }
+  feed?.add("action","Autopilot: \(text)")
+ }
+
+ func begin() {
+  guard loop == nil else { return }
+  loop = Task { [weak self] in
+   while !Task.isCancelled {
+    guard let self = self, self.enabled else { return }
+    await self.tick()
+    try? await Task.sleep(nanoseconds:250_000_000)
+   }
+  }
+ }
+
+ // Stops the loop without changing the switch (used when the window closes).
+ func pause() {
+  loop?.cancel()
+  loop = nil
+ }
+
+ private func tick() async {
+  guard let tw = clips, tw.signedIn, let hub = stream else { return }
+  let now = Date()
+  // Fast: his voice while he streams and Friday is listening.
+  if fromLive, let buddy = live, buddy.running, hub.liveNow {
+   let level = buddy.micLevel * max(0,1 - now.timeIntervalSince(buddy.micLevelAt) * 5)
+   if hype.feed(level:level,dt:0.25), AutopilotPlan.canClipLive(count:liveCount,lastClip:lastLiveClip,now:now), !tw.busy {
+    liveCount += 1
+    lastLiveClip = now
+    note("Exciting moment (\(liveCount) of \(AutopilotPlan.liveCapPerStream) this stream), clipping it")
+    Task { [weak self] in
+     let result = await tw.clipNow(title:"")
+     self?.note(String(result.prefix(140)))
+    }
+   }
+  }
+  // Slow: every 20 seconds, watch for the stream starting and ending, and the viewers' clips.
+  if now.timeIntervalSince(lastSlow) >= 20 {
+   lastSlow = now
+   await slow(now)
+  }
+ }
+
+ private func slow(_ now: Date) async {
+  guard let hub = stream else { return }
+  await hub.refresh()
+  let freshCheck = Date().timeIntervalSince(hub.lastRefresh) < 90
+  if hub.liveNow {
+   offlineChecks = 0
+   if !wasLive {
+    wasLive = true
+    streamStart = now
+    liveCount = 0
+    lastLiveClip = nil
+    hype = HypeDetector()
+    endedAt = nil
+    note("Stream started")
+   }
+  } else if wasLive && freshCheck {
+   // Only a successful check that says offline counts, and it has to say so three times (about a minute), so a network blip
+   // can't look like the end of a stream.
+   offlineChecks += 1
+   if offlineChecks >= 3 {
+    wasLive = false
+    endedAt = now
+    note("Stream ended")
+   }
+  }
+  if let ended = endedAt, now.timeIntervalSince(ended) >= 90 {
+   endedAt = nil
+   if fromMarkers { await runMarkers() }
+  }
+  if fromViewers && now.timeIntervalSince(lastViewerRun) >= 6 * 3600 {
+   lastViewerRun = now
+   await runViewers()
+  }
+ }
+
+ // MARK: the three sources
+
+ private func runMarkers() async {
+  guard let list = vods else { return }
+  await list.load()
+  guard let vod = list.vods.first else { note("No past stream found to clip"); return }
+  guard !handledVods.contains(vod.id) else { note("Already clipped “\(vod.title)”"); return }
+  handledVods.insert(vod.id)
+  UserDefaults.standard.set(Array(handledVods).suffix(60).map { $0 },forKey:"autopilot.vods")
+  working = true
+  defer { working = false }
+  let summary = await list.clipMarked(vod)
+  note("Marked moments in “\(vod.title)”: \(summary)")
+ }
+
+ func runViewers() async {
+  guard let tw = clips, let hub = stream, tw.signedIn else { return }
+  if hub.channel == nil { await hub.refresh(force:true) }
+  guard let channel = hub.channel?.id else { note("Couldn't check viewers' clips: channel not loaded"); return }
+  working = true
+  defer { working = false }
+  let since = ISO8601DateFormatter().string(from:Date().addingTimeInterval(-AutopilotPlan.viewerWindowDays * 86_400))
+  do {
+   let (code,json) = try await tw.call("/clips?broadcaster_id=\(channel)&started_at=\(since)&first=40")
+   guard code == 200 else { note("Couldn't check viewers' clips (Twitch answered \(code))"); return }
+   let picks = AutopilotPlan.pickViewerClips(StreamData.parseClips(json),handled:Set(ClipLedger.ids),now:Date())
+   if picks.isEmpty { note("No new viewer clips worth taking"); return }
+   for clip in picks {
+    ClipLedger.add(clip.id)
+    note("Viewer clip: \(clip.title) (\(clip.views) view\(clip.views == 1 ? "" : "s"))")
+    if tw.autoEdit { await tw.tidyClip(clipID:clip.id,broadcasterID:channel,title:clip.title) }
+   }
+  } catch {
+   note("Couldn't check viewers' clips: \(error.localizedDescription)")
+  }
+ }
+
+ // MARK: the TikTok caption
+
+ // Called after every finished clip, whoever asked for it.
+ func writePack(folder: URL,title: String) {
+  let text = TikTokPack.caption(title:title,game:stream?.channel?.gameName ?? "")
+  try? text.write(to:folder.appendingPathComponent("tiktok-caption.txt"),atomically:true,encoding:.utf8)
+  note("Ready for TikTok: \(folder.lastPathComponent)")
+ }
+}
+
+extension CompanionInterfaceView {
+ var hubStreamAutopilot: some View {
+  VStack(alignment:.leading,spacing:12) {
+   HStack(spacing:10) {
+    Text("Clip autopilot").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    hubPill(autopilot.enabled ? "ON" : "OFF",tint:autopilot.enabled ? HubColor.green : HubColor.slate)
+    if autopilot.working { ProgressView().controlSize(.small) }
+    Spacer()
+    Toggle("",isOn:$autopilot.enabled).labelsHidden().toggleStyle(.switch)
+   }
+   Text("While this app is open, Friday makes clips without being asked. Clips are public on Twitch the moment they're made. Each finished clip gets a TikTok caption saved next to it.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+   Toggle("After a stream: clip every moment I marked (up to \(VodPlan.maxPerBatch))",isOn:$autopilot.fromMarkers).font(.system(size:13,design:.rounded))
+   Toggle("While I stream: clip exciting moments from the sound of my voice (up to \(AutopilotPlan.liveCapPerStream) a stream, 5 minutes apart)",isOn:$autopilot.fromLive).font(.system(size:13,design:.rounded))
+   Toggle("Every 6 hours: take my viewers' best clips from the last week (up to \(AutopilotPlan.viewerClipsPerRun) a time)",isOn:$autopilot.fromViewers).font(.system(size:13,design:.rounded))
+   HStack(spacing:10) {
+    Button { Task { await autopilot.runViewers() } } label: { Label("Check viewers' clips now",systemImage:"person.2.fill") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))).disabled(autopilot.working || !clips.signedIn)
+    Button {
+     try? FileManager.default.createDirectory(at:TwitchClips.clipsRoot,withIntermediateDirectories:true)
+     NSWorkspace.shared.open(TwitchClips.clipsRoot)
+    } label: { Label("Open the clips folder",systemImage:"folder") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+   if !autopilot.log.isEmpty {
+    VStack(alignment:.leading,spacing:4) {
+     ForEach(Array(autopilot.log.enumerated()),id:\.offset) { _,line in
+      Text(line).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(2).textSelection(.enabled)
+     }
+    }
+   }
+   Text("The live source only hears your voice while Friday is running and you're live, and it can misjudge: a loud laugh isn't always a highlight. Turn a source off if it makes clips you don't want.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
   }
   .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
  }
@@ -7910,7 +8240,7 @@ TMP=$(mktemp -d)
 
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,FridayHands,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,FridayHands,Hub}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -8051,7 +8381,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -8233,6 +8563,32 @@ import Foundation
   let path = VodPlan.clipPath(editor:"7",broadcaster:"7",vod:"123",offset:308,duration:30,title:"Boss down & out")
   precondition(path == "/videos/clips?editor_id=7&broadcaster_id=7&vod_id=123&vod_offset=308&duration=30.0&title=Boss%20down%20%26%20out" && VodPlan.clipPath(editor:"1",broadcaster:"1",vod:"2",offset:30,duration:30,title:"  ").hasSuffix("title=Moment"))
   precondition(VodPlan.explain(code:404,message:nil).contains("expired") && VodPlan.explain(code:401,message:nil).contains("sign in again") && VodPlan.explain(code:400,message:"AutoMod").contains("AutoMod"))
+  // Clip autopilot: viewer clips are picked (recent, enough views, not handled, best first, capped), live clips are capped and spaced,
+  // the hype detector fires once per burst and not on normal talking, and the TikTok caption has only true words.
+  let nowDate = Date(timeIntervalSince1970:3_000_000_000)
+  func vclip(_ id: String,_ views: Int,_ ageDays: Double) -> ClipRow { ClipRow(id:id,title:"t",url:"u",views:views,seconds:30,created:nowDate.addingTimeInterval(-ageDays * 86_400)) }
+  let picked = AutopilotPlan.pickViewerClips([vclip("a",10,1),vclip("b",50,2),vclip("c",2,1),vclip("d",99,9),vclip("e",30,1),vclip("f",30,0.5)],handled:["e"],now:nowDate)
+  precondition(picked.map { $0.id } == ["b","f"])
+  precondition(AutopilotPlan.pickViewerClips([vclip("a",10,1)],handled:["a"],now:nowDate).isEmpty)
+  precondition(AutopilotPlan.appendHandled(["x","y"],"x") == ["y","x"] && AutopilotPlan.appendHandled(Array(repeating:"k",count:1),"z",limit:1) == ["z"])
+  precondition(AutopilotPlan.canClipLive(count:0,lastClip:nil,now:nowDate) && !AutopilotPlan.canClipLive(count:3,lastClip:nil,now:nowDate) && !AutopilotPlan.canClipLive(count:1,lastClip:nowDate.addingTimeInterval(-100),now:nowDate) && AutopilotPlan.canClipLive(count:1,lastClip:nowDate.addingTimeInterval(-400),now:nowDate))
+  var hype = HypeDetector()
+  var quietFired = false
+  for _ in 0..<300 { if hype.feed(level:0.12,dt:0.2) { quietFired = true } }
+  precondition(!quietFired)
+  var burstFires = 0
+  for _ in 0..<10 { if hype.feed(level:0.9,dt:0.2) { burstFires += 1 } }
+  precondition(burstFires == 1)
+  for _ in 0..<12 { _ = hype.feed(level:0.1,dt:0.2) }
+  var secondBurst = 0
+  for _ in 0..<10 { if hype.feed(level:0.9,dt:0.2) { secondBurst += 1 } }
+  precondition(secondBurst == 1)
+  var blip = HypeDetector()
+  var blipFired = false
+  for i in 0..<20 { if blip.feed(level:i == 5 ? 0.9 : 0.1,dt:0.2) { blipFired = true } }
+  precondition(!blipFired)
+  precondition(TikTokPack.caption(title:"Boss down at one heart",game:"Minecraft Dungeons") == "Boss down at one heart 🔥\n\n#minecraft #minecraftdungeons #gaming #twitch #fyp\n")
+  precondition(TikTokPack.caption(title:"Moment 2 at 1:05",game:"Just Chatting").hasPrefix("Clutch moment 🔥") && TikTokPack.hashtags(game:"Just Chatting") == ["#gaming","#twitch","#fyp"] && TikTokPack.cleanTitle("  a   b  ") == "a b")
   print("All data checks passed.")
  }
 }
@@ -8744,6 +9100,24 @@ or asks. Needs the account to be the channel's owner or an Editor; uses the perm
 once if clipping was set up earlier). Twitch deletes old streams after a while (it varies), and a stream needs "store past broadcasts"
 switched on in Twitch. The clock reading, clip plan, marker reading and error words are in `checks/DataChecks.swift` and pass; the
 card and the calls have not been run on the Mac or against a real Twitch account.
+
+## Clip autopilot (2026-10-05)
+
+Matthew asked for Friday to clip his streams and post the clips without being asked: "all 3" sources, to the Minecraft TikTok, dubbed.
+Built so far (`ClipAutopilot.swift`, rules and tests in `AutopilotData.swift`; a card on the Stream page, **off until he switches it
+on**, runs only while the app is open): (1) after a stream ends (three clean "offline" checks, then 90 seconds for the stream's
+recording to appear) every moment he marked becomes a clip, up to 8; (2) while he streams and Friday is running, a jump in the
+loudness of his own voice (held 0.8 s, well above his normal level) makes a live clip, at most 3 a stream and 5 minutes apart;
+(3) every 6 hours the 2 best recent viewer clips (at least 3 views, last 7 days, not already handled) are downloaded and cut. Every
+action is in the card's log and the Friday feed. After EVERY finished clip, whoever asked for it, `tiktok-caption.txt` is saved next to
+it (the clip's title and hashtags for the game, no claims). Clips are public on Twitch the moment they exist.
+
+NOT built yet, and why: **posting to TikTok.** TikTok does not let an unreviewed app publish publicly; at most it takes a draft into the
+account's TikTok inbox (how the HotsTuff store account's drafts already work), and the existing hookup is the store account, not the
+Minecraft one, so the Minecraft account has to be authorised with our TikTok developer app first (a test user while the app is unreviewed)
+and the app needs its keys, which Matthew pastes himself. **Dubbing**: a short voice-over line (his clip's title in a Mac voice, mixed
+over the start with the game sound turned down) is doable with Apple's speech and video tools and is the next step; translating his own
+speech into another language is not possible with what is built.
 ```
 
 ## FILE: meeting-room/README.md
@@ -8824,6 +9198,7 @@ _Last updated: 2026-10-05 by Claude and GPT_
 - [Claude] Friday hearing herself on speakers: new Sound output setting (Auto / Headphones / Speakers) with CoreAudio detection, and the mic pauses while she talks on speakers (new file AudioRoute.swift). GPT: please compile-check at your next room check. Matthew: rebuild and tell me if she still cuts herself off. Status: waiting
 - [Claude] Friday's hands (her own cursor, scrolling the shared window, no clicking) and a relay to the room (tell_the_team, team_messages). New file FridayHands.swift. GPT: compile-check at your next room check. Matthew: rebuild, switch it on in Settings, allow Accessibility when macOS asks, and try "Friday, scroll down". Status: waiting
 - [Claude] Friday sees all screens (Matthew's choice) and her hands now click, type and press keys on his word, with an Allow box only for send/buy, a gliding cursor with a trail, and an off-limits list (banking, Moomoo, passwords, logins, System Settings, terminals). New: HandsData.swift, ScreenSnap.swift; FridayHands.swift rewritten; Live.swift tools. GPT: compile-check at your next room check. Matthew: rebuild, switch hands on in Settings, allow Accessibility, try "Friday, click the search box and type hello". Status: waiting
+- [Claude] Clips from past streams (VODs): Stream page card (list, clip my marked moments, or a time), plus Friday voice tools clip_past_moment and clip_marked_moments. New VodData.swift (tested) and VodClips.swift. GPT: compile-check at your next room check. Matthew: rebuild, drop markers while you stream (Mark it, or tell Friday "mark that"), then try Clip my marked moments on the Stream page. Status: waiting
 - [Claude] Meeting Room messages: thread (issue 15) that Matthew, Claude and GPT can all post to, a posting box in the app, a phone push when a message is for Matthew, and a daily check by Claude. Built and tested here; the app part has not been compiled on the Mac. Status: waiting
 - [Matthew] The Moncton group ad was submitted by Chrome Claude on 2026-10-05 and is waiting on the group's admins (not live, so no link yet). Next: have Chrome Claude delete the stale Aug 19 pending post and leave the new one pending; no more posts in that group until the admins respond. Status: waiting
 - [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 7". Status: waiting

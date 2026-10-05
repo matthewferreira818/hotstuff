@@ -64,6 +64,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
 @MainActor final class HubModel: ObservableObject {
  @Published var section: HubSection = .home
  @Published var query = ""
+ // Which card or button the pointer is over, so it can lift a little. Empty means none.
+ @Published var hovered = ""
 }
 
 @MainActor final class StockHub: ObservableObject {
@@ -97,14 +99,28 @@ struct PillButtonStyle: ButtonStyle {
    .padding(.vertical,11)
    .background(Capsule().fill(tint))
    .opacity(configuration.isPressed ? 0.85 : 1)
-   .scaleEffect(configuration.isPressed ? 0.97 : 1)
+   .scaleEffect(configuration.isPressed ? 0.96 : 1)
+   .animation(.spring(response:0.28,dampingFraction:0.62),value:configuration.isPressed)
  }
 }
 
 extension View {
+ // Frosted glass: the background gradient shows through, softened.
  func hubCard(radius: CGFloat = 22) -> some View {
-  self.background(RoundedRectangle(cornerRadius:radius,style:.continuous).fill(Color.white.opacity(0.05)))
-   .overlay(RoundedRectangle(cornerRadius:radius,style:.continuous).stroke(Color.white.opacity(0.08),lineWidth:1))
+  self.background(.ultraThinMaterial,in:RoundedRectangle(cornerRadius:radius,style:.continuous))
+   .overlay(RoundedRectangle(cornerRadius:radius,style:.continuous).stroke(Color.white.opacity(0.10),lineWidth:1))
+ }
+
+ // Lifts a little under the pointer, with a soft shadow and a springy settle, the way Apple's controls do.
+ @MainActor func hubHover(_ id: String,_ hub: HubModel,lift: CGFloat = 1.025) -> some View {
+  let over = hub.hovered == id
+  return self
+   .scaleEffect(over ? lift : 1)
+   .shadow(color:Color.black.opacity(over ? 0.35 : 0),radius:over ? 18 : 0,x:0,y:over ? 8 : 0)
+   .animation(.spring(response:0.32,dampingFraction:0.72),value:hub.hovered)
+   .onHover { inside in
+    if inside { hub.hovered = id } else if hub.hovered == id { hub.hovered = "" }
+   }
  }
 }
 
@@ -117,7 +133,10 @@ extension CompanionInterfaceView {
    hubRail
    VStack(spacing:0) {
     hubTopBar
-    hubContent.frame(maxWidth:.infinity,maxHeight:.infinity)
+    hubContent
+     .frame(maxWidth:.infinity,maxHeight:.infinity)
+     .id(hub.section)
+     .transition(.opacity.combined(with:.scale(scale:0.985)))
    }
   }
  }
@@ -135,26 +154,44 @@ extension CompanionInterfaceView {
      Image(systemName:"slider.horizontal.3").font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(0.7)).frame(width:48,height:40)
      Text("Settings").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
     }
-   }.buttonStyle(.plain)
+   }
+   .buttonStyle(.plain)
+   .keyboardShortcut(",",modifiers:.command)
+   .hubHover("rail-settings",hub,lift:1.06)
   }
-  .padding(.vertical,22)
+  .padding(.top,46).padding(.bottom,22)
   .frame(width:88)
-  .background(Color.black.opacity(0.35))
-  .overlay(alignment:.trailing) { Rectangle().fill(Color.white.opacity(0.06)).frame(width:1) }
+  .background(.ultraThinMaterial)
+  .overlay(alignment:.trailing) { Rectangle().fill(Color.white.opacity(0.08)).frame(width:1) }
  }
 
  func hubRailButton(_ section: HubSection) -> some View {
   let selected = hub.section == section
-  let fill: AnyShapeStyle = selected ? AnyShapeStyle(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing)) : AnyShapeStyle(Color.white.opacity(0.06))
-  return Button { hub.section = section } label: {
+  return Button { hubSelect(section) } label: {
    VStack(spacing:5) {
     ZStack {
-     RoundedRectangle(cornerRadius:15,style:.continuous).fill(fill).frame(width:48,height:48)
+     RoundedRectangle(cornerRadius:15,style:.continuous).fill(Color.white.opacity(0.06)).frame(width:48,height:48)
+     if selected {
+      RoundedRectangle(cornerRadius:15,style:.continuous)
+       .fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing))
+       .frame(width:48,height:48)
+       .matchedGeometryEffect(id:"railSelection",in:railNamespace)
+     }
      Image(systemName:section.icon).font(.system(size:19,weight:.semibold)).foregroundStyle(Color.white.opacity(selected ? 1 : 0.7))
     }
     Text(section.title).font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(selected ? 0.95 : 0.5))
    }
-  }.buttonStyle(.plain)
+  }
+  .buttonStyle(.plain)
+  .keyboardShortcut(KeyEquivalent(Character("\(section.rawValue + 1)")),modifiers:.command)
+  .hubHover("rail-\(section.rawValue)",hub,lift:1.06)
+ }
+
+ // Moves to a page with a spring and a soft tap on the trackpad.
+ func hubSelect(_ section: HubSection) {
+  guard hub.section != section else { return }
+  NSHapticFeedbackManager.defaultPerformer.perform(.alignment,performanceTime:.default)
+  withAnimation(.spring(response:0.5,dampingFraction:0.86)) { hub.section = section }
  }
 
  var hubTopBar: some View {
@@ -179,8 +216,8 @@ extension CompanionInterfaceView {
    }
    .padding(.horizontal,16).padding(.vertical,11)
    .frame(width:300)
-   .background(Capsule().fill(Color.white.opacity(0.07)))
-   .overlay(Capsule().stroke(Color.white.opacity(0.10),lineWidth:1))
+   .background(.ultraThinMaterial,in:Capsule())
+   .overlay(Capsule().stroke(Color.white.opacity(0.12),lineWidth:1))
    Text("M").font(.system(size:14,weight:.bold,design:.rounded)).foregroundStyle(Color.white)
     .frame(width:36,height:36)
     .background(Circle().fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimsonDeep],startPoint:.topLeading,endPoint:.bottomTrailing)))
@@ -191,7 +228,14 @@ extension CompanionInterfaceView {
  @ViewBuilder var hubContent: some View {
   switch hub.section {
   case .home: hubHome
-  case .friday: HStack { Spacer(minLength:0); voiceScreen.frame(width:560); Spacer(minLength:0) }
+  case .friday:
+   GeometryReader { geo in
+    HStack {
+     Spacer(minLength:0)
+     fridayStage(orb:min(max(geo.size.height * 0.30,170),300)).frame(width:min(max(geo.size.width * 0.55,520),760))
+     Spacer(minLength:0)
+    }
+   }
   case .stocks: hubStocks
   case .store: hubSoon(.store,"Store","Visits, sales and what's selling at findhotstuff.com.",["Visits from your public counters","Sales need a Stripe login, which would be its own switch","Order alerts keep reaching your phone the way they do now"])
   case .ecs: hubSoon(.ecs,"East Coast Social","Your daily feed and your clients in one place.",["The daily feed streak you can verify on the site","Your client list and sample weeks","Posting stays prepared by her and clicked by you"])
@@ -232,7 +276,7 @@ extension CompanionInterfaceView {
    VStack(alignment:.leading,spacing:12) {
     Text("Friday is ready when you are").font(.system(size:26,weight:.bold,design:.rounded)).foregroundStyle(Color.white)
     Text("Talk to her, show her your game, or ask how any venture is doing.").font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.7))
-    Button { hub.section = .friday } label: { Label("Talk to Friday",systemImage:"waveform") }.buttonStyle(PillButtonStyle()).padding(.top,4)
+    Button { hubSelect(.friday) } label: { Label("Talk to Friday",systemImage:"waveform") }.buttonStyle(PillButtonStyle()).padding(.top,4)
    }
    Spacer()
    TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
@@ -250,7 +294,7 @@ extension CompanionInterfaceView {
  }
 
  func hubTile(_ section: HubSection,_ subtitle: String) -> some View {
-  Button { hub.section = section } label: {
+  Button { hubSelect(section) } label: {
    VStack(alignment:.leading,spacing:12) {
     ZStack {
      RoundedRectangle(cornerRadius:16,style:.continuous)
@@ -267,6 +311,7 @@ extension CompanionInterfaceView {
    .hubCard(radius:24)
   }
   .buttonStyle(.plain)
+  .hubHover("tile-\(section.rawValue)",hub)
  }
 
  var hubStockHeadline: String {
@@ -400,7 +445,7 @@ extension CompanionInterfaceView {
      hubStat("Google key",live.hasKey ? "Saved" : "Missing",live.hasKey ? "In your Mac's Keychain" : "Add it in Settings",tint:live.hasKey ? HubColor.green : Noir.crimsonLight)
     }
     HStack(spacing:12) {
-     Button { hub.section = .friday } label: { Label("Open Friday",systemImage:"waveform") }.buttonStyle(PillButtonStyle())
+     Button { hubSelect(.friday) } label: { Label("Open Friday",systemImage:"waveform") }.buttonStyle(PillButtonStyle())
      Button { c.choose() } label: { Label("Choose window",systemImage:"rectangle.on.rectangle") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
      Button { c.showPanel = true } label: { Label("Settings",systemImage:"slider.horizontal.3") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
     }
@@ -499,7 +544,7 @@ extension CompanionInterfaceView {
   let text = hub.query.trimmingCharacters(in:.whitespacesAndNewlines)
   guard !text.isEmpty else { return }
   hub.query = ""
-  hub.section = .friday
+  hubSelect(.friday)
   c.showKeyboard = true
   if c.tab == 0 {
    live.typed = text

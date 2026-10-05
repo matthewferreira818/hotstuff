@@ -171,3 +171,12 @@ practice snapshots (live.json on the stock-live and stock-live-momentum branches
 files. Read-only: nothing in the hub can place an order, post or spend. Store and ECS are placeholders for now; Accounts shows
 what is connected. The old tabbed settings are still in the Settings panel (rail, bottom).
 
+## Lighter look, full screen, Apple-style feel (2026-10-05)
+
+Background is now a soft charcoal-and-plum gradient with slow drifting crimson and violet glows (`NoirBackground`), so the edges are
+no longer black; it holds still when macOS "Reduce motion" is on. The window is resizable with a hidden title bar, so the green
+button gives full screen, and Friday's orb and column scale with the window. Interactions: frosted-glass cards and sidebar
+(`.ultraThinMaterial`), a selection highlight that slides between sidebar icons (`matchedGeometryEffect`), spring page changes,
+cards that lift under the pointer, springy button presses, a soft trackpad tap when changing page, and shortcuts: Cmd+1 to Cmd+7
+for the pages and Cmd+, for Settings. Hover state lives on `HubModel` (not `@State`, which the command-line build can't expand).
+

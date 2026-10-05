@@ -8,6 +8,7 @@ struct CompanionInterfaceView: View {
  @StateObject var live = LiveBuddy()
  @StateObject var clips = TwitchClips()
  @StateObject var hub = HubModel()
+ @Namespace var railNamespace
  @StateObject var stocks = StockHub()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
@@ -15,7 +16,7 @@ struct CompanionInterfaceView: View {
  @Environment(\.accessibilityReduceMotion) var reduceMotion
  var body: some View {
   hubShell
-  .frame(width:1060,height:740)
+  .frame(minWidth:960,idealWidth:1100,maxWidth:.infinity,minHeight:660,idealHeight:760,maxHeight:.infinity)
   .background(NoirBackground())
   .preferredColorScheme(.dark)
   .tint(Noir.crimson)
@@ -39,11 +40,11 @@ struct CompanionInterfaceView: View {
  }
 
  // The main screen: Friday's orb in the middle, a few round buttons underneath, everything else behind Settings.
- var voiceScreen: some View {
+ func fridayStage(orb: CGFloat) -> some View {
   VStack(spacing:0) {
    modePill
    Spacer(minLength:0)
-   orbSection
+   orbSection(orb)
    captions
    Spacer(minLength:0)
    if c.showKeyboard { composer.padding(.bottom,12) }
@@ -70,11 +71,11 @@ struct CompanionInterfaceView: View {
  }
 
  // Friday in the middle: a crimson orb that shows what she is doing right now.
- var orbSection: some View {
+ func orbSection(_ orb: CGFloat) -> some View {
   TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
    let state = orbState(at:timeline.date)
    VStack(spacing:4) {
-    FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:200,animated:!reduceMotion)
+    FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:orb,animated:!reduceMotion)
     Text("Friday").font(.system(size:26,weight:.light,design:.rounded)).tracking(8).foregroundStyle(Color.white.opacity(0.92))
     Text(DesignPreview.enabled ? "Review draft · connections disabled" : stateLabel(state)).font(.system(size:11,weight:.medium,design:.rounded)).tracking(2).textCase(.uppercase).foregroundStyle(state == .off ? Color.white.opacity(0.4) : Noir.crimsonLight)
    }

@@ -443,7 +443,8 @@ struct LegacyContentView: View {
  }
 }
 @main struct CompanionApp: App {
- var body: some Scene { WindowGroup { ContentView() }.windowResizability(.contentSize) }
+ // Resizable (so the green button gives full screen), with the title bar hidden so the content runs to the top edge.
+ var body: some Scene { WindowGroup { ContentView() }.windowStyle(.hiddenTitleBar).windowResizability(.contentMinSize).defaultSize(width:1100,height:760) }
 }
 
 

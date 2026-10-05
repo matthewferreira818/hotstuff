@@ -98,13 +98,28 @@ struct FridayOrb: View {
  }
 }
 
+// A soft charcoal-and-plum gradient with slow drifting glows, so the edges are never black.
 struct NoirBackground: View {
+ @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
  var body: some View {
-  ZStack {
-   LinearGradient(colors:[Noir.ink,Noir.smoke],startPoint:.top,endPoint:.bottom)
-   RadialGradient(colors:[Noir.crimson.opacity(0.20),Color.clear],center:.center,startRadius:10,endRadius:430)
+  TimelineView(.animation(minimumInterval:1.0/20.0,paused:reduceMotion)) { timeline in
+   let t = reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate
+   GeometryReader { geo in
+    let reach = max(geo.size.width,geo.size.height)
+    ZStack {
+     LinearGradient(colors:[Color(red:0.15,green:0.10,blue:0.16),Color(red:0.08,green:0.07,blue:0.13)],startPoint:.topLeading,endPoint:.bottomTrailing)
+     glow(Noir.crimson.opacity(0.30),x:0.16 + 0.05 * sin(t * 0.11),y:0.10 + 0.05 * cos(t * 0.09),radius:reach * 0.75)
+     glow(Color(red:0.38,green:0.22,blue:0.66).opacity(0.26),x:0.86 + 0.05 * cos(t * 0.08),y:0.90 + 0.04 * sin(t * 0.10),radius:reach * 0.70)
+     glow(Noir.crimsonDeep.opacity(0.38),x:0.55 + 0.06 * sin(t * 0.07),y:0.50 + 0.06 * cos(t * 0.06),radius:reach * 0.55)
+    }
+   }
   }
   .ignoresSafeArea()
+ }
+
+ private func glow(_ color: Color,x: Double,y: Double,radius: CGFloat) -> some View {
+  RadialGradient(colors:[color,Color.clear],center:UnitPoint(x:x,y:y),startRadius:0,endRadius:radius)
  }
 }
 
@@ -132,8 +147,9 @@ struct OrbButtonStyle: ButtonStyle {
    .frame(width:diameter,height:diameter)
    .background(Circle().fill(filled ? Noir.crimson : Color.white.opacity(0.08)))
    .overlay(Circle().stroke(filled ? Noir.crimsonLight.opacity(0.5) : Color.white.opacity(0.12),lineWidth:1))
-   .scaleEffect(configuration.isPressed ? 0.94 : 1)
+   .scaleEffect(configuration.isPressed ? 0.92 : 1)
    .opacity(configuration.isPressed ? 0.85 : 1)
+   .animation(.spring(response:0.28,dampingFraction:0.6),value:configuration.isPressed)
  }
 }
 

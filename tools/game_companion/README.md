@@ -39,6 +39,9 @@ This folder holds the upgraded `Companion.swift` so it can travel through git.
    - Session resumption reconnects when Google ends the connection, about every 10 minutes.
    - The "I'm wearing headphones" box: when it's unticked, the mic pauses while the buddy talks
      so it can't hear itself.
+   - Google Search grounding: a toggle, on by default, adds `tools: [{googleSearch: {}}]` so it
+     looks up facts about new games instead of guessing. It runs on Google's side. Google's pricing
+     page (2026-10-05) lists it as supported on the free tier for the 3.8 Live models.
    - Privacy differs from the Local tab: frames and mic audio go to Google while it's on, and
      Google's free tier may use them to improve its products.
 

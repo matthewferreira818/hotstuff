@@ -368,6 +368,7 @@ struct ContentView: View {
    Toggle("I'm wearing headphones",isOn:$live.headphones)
   }
   HStack { Text("Live model"); TextField("Model",text:$live.liveModel).disabled(live.running) }
+  Toggle("Let it search Google for game facts (items, bosses, quests)",isOn:$live.search).disabled(live.running)
   HStack {
    Button(live.running ? "Stop live buddy" : "Start live buddy") {
     if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:c.gameNotes) }

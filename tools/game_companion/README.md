@@ -190,3 +190,24 @@ other software running as the same user could read the key without a prompt, whi
 bank password. If macOS refuses the open access, it falls back to a normal save. The Security calls used are deprecated by
 Apple but still present; they could not be run on the Linux cloud machine, so the first Mac run is the real test.
 
+## Store, ECS and Systems pages (2026-10-05)
+
+Real data, free, read-only, no logins. `VentureData.swift` was compiled and run against the live sources.
+- **Store**: unique visitors today, 7 days and 30 days from GoatCounter's public counters (`TOTAL.json`), plus the `ref-<tag>`
+  channel counters the traffic report already uses. Day precision. Orders and revenue need Stripe, which is not connected.
+- **ECS**: the site's own feed files (`automation/feed/stats.json` and `index.json`). The streak claims "in a row" only when
+  every day from the first post to the last has a post and the last post is today or yesterday (the honesty rule in CLAUDE.md);
+  otherwise it shows the plain count. It offers the safe wording to copy, and the three newest cards.
+- **Systems**: GitHub's public workflow runs for the repo (one request, anonymous, 60 per hour allowed), latest run of each
+  automation, failures flagged red and shown as a banner on Home. First run showed "Refresh trending products" failing.
+Refresh is every 9+ minutes in the background, or on demand. Accounts page lists these as read-only public sources.
+
+## Launchpad (2026-10-05)
+
+A "master folder": one page of one-click links (Porkbun, Cloudflare, GitHub, Stripe, CJ Dropshipping, Moomoo, GoatCounter, Twitch,
+X, TikTok, Facebook, Pinterest, Google Business, the live store and ECS pages) that open in Matthew's browser, where he is already
+logged in. No logins pass through the app. It also holds "Your agents": buttons that open the Claude chats where the stock,
+website and build work lives (the app can only open them; chats can't see each other). Home gets a plain-words "Today at a glance"
+card made from the data already on screen (no AI, no quota). The sidebar now scrolls on short windows, since it has nine pages.
+The Porkbun link goes to its domain-management page; if Porkbun has moved that page it may land on a login screen instead.
+

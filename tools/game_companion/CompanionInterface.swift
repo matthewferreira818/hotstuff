@@ -8,25 +8,24 @@ struct CompanionInterfaceView: View {
  @StateObject var live = LiveBuddy()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
+ @Environment(\.accessibilityReduceMotion) private var reduceMotion
  var body: some View {
-  VStack(alignment:.leading,spacing:18) {
-   HStack(spacing:12) {
-    Image(systemName:"sparkles.rectangle.stack.fill").font(.system(size:28)).foregroundStyle(.cyan)
-    VStack(alignment:.leading,spacing:3) { Text("Game Companion").font(.title2.bold()); Text(DesignPreview.enabled ? "Review draft · connections disabled" : "Play. Think. Explore together.").font(.caption).foregroundStyle(.secondary) }
-    Spacer()
-    Label(live.running ? "Live" : c.busy ? "Thinking" : "Ready",systemImage:live.running ? "circle.fill" : "circle").font(.caption).foregroundStyle(live.running ? .green : .secondary)
-    Button("Stop all",systemImage:"stop.fill") { stopAll() }.buttonStyle(.borderedProminent).tint(.red)
-   }
-   Picker("View",selection:$conversation.page) { Text("Game").tag(0); Text("Conversation").tag(1); Text("Memory & topics").tag(2) }.pickerStyle(.segmented)
+  VStack(alignment:.leading,spacing:14) {
+   header
+   Picker("View",selection:$conversation.page) { Text("Game").tag(0); Text("Conversation").tag(1); Text("Memory & topics").tag(2) }.pickerStyle(.segmented).labelsHidden()
    ScrollView {
     VStack(alignment:.leading,spacing:16) {
      if conversation.page == 0 { gamePage }
      else if conversation.page == 1 { conversationPage }
      else { memoryPage }
     }.frame(maxWidth:.infinity,alignment:.leading)
-   }
+   }.scrollIndicators(.hidden)
    HStack { Image(systemName:"lock.shield"); Text(conversation.memoryEnabled ? "Reviewed notes saved locally · chats and images not saved" : "Memory off · chats and images not saved by this app"); Spacer() }.font(.caption).foregroundStyle(.secondary)
-  }.padding(22).frame(width:740,height:700)
+  }.padding(.horizontal,26).padding(.vertical,18).frame(width:760,height:800)
+  .background(NoirBackground())
+  .preferredColorScheme(.dark)
+  .tint(Noir.crimson)
+  .groupBoxStyle(NoirCard())
   .onAppear { c.conversation = conversation; live.conversation = conversation }
   .onDisappear { stopAll() }
   .onChange(of:conversation.page) { _,page in
@@ -44,6 +43,49 @@ struct CompanionInterfaceView: View {
    Button("Cancel",role:.cancel) {}
    Button("Delete",role:.destructive) { stopAll(); conversation.deleteAll() }
   } message: { Text("This removes the reviewed notes and topic queue from this Mac. Copies already sent to Google cannot be recalled by this app.") }
+ }
+
+ // Friday in the middle: a crimson orb that shows what she is doing right now.
+ var header: some View {
+  TimelineView(.animation(minimumInterval:1.0/30.0)) { timeline in
+   let state = orbState(at:timeline.date)
+   VStack(spacing:0) {
+    FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,size:140,animated:!reduceMotion)
+    Text("Friday").font(.system(size:28,weight:.light,design:.rounded)).tracking(7).foregroundStyle(Color.white.opacity(0.92))
+    Text(DesignPreview.enabled ? "Review draft · connections disabled" : stateLabel(state)).font(.system(size:11,weight:.medium,design:.rounded)).tracking(2).textCase(.uppercase).foregroundStyle(state == .off ? Color.white.opacity(0.4) : Noir.crimsonLight).padding(.top,6)
+   }
+   .frame(maxWidth:.infinity)
+  }
+  .overlay(alignment:.topTrailing) {
+   Button { stopAll() } label: { Label("Stop all",systemImage:"stop.fill").font(.caption.weight(.semibold)) }.buttonStyle(.borderedProminent).controlSize(.small).tint(Noir.crimson)
+  }
+ }
+ // Google Live: asleep until started, then listening while you talk, thinking just after, speaking while her audio plays.
+ // On this Mac: the same, from the local engine.
+ func orbState(at now: Date) -> OrbState {
+  if c.tab == 0 {
+   guard live.running else { return .off }
+   guard live.ready else { return .thinking }
+   if now < live.speakingUntil { return .speaking }
+   if live.status.hasPrefix("Looking up") { return .thinking }
+   let since = now.timeIntervalSince(live.lastVoice)
+   if since < 1.2 { return .listening }
+   if since < 6 { return .thinking }
+   return .idle
+  }
+  if c.speaker.isSpeaking { return .speaking }
+  if c.listening { return .listening }
+  if c.busy { return .thinking }
+  return .idle
+ }
+ func stateLabel(_ state: OrbState) -> String {
+  switch state {
+  case .off: return "Asleep"
+  case .idle: return c.tab == 0 ? "Watching" : "Ready"
+  case .listening: return "Listening"
+  case .thinking: return "Thinking"
+  case .speaking: return "Speaking"
+  }
  }
  func stopAll() { conversation.stopInitiative(); live.clearSession(); c.stop() }
  @ViewBuilder var engineChoice: some View {

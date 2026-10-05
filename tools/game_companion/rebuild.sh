@@ -10,7 +10,7 @@ MACOS=$(sw_vers -productVersion | cut -d. -f1)
 TMP=$(mktemp -d)
 
 echo "Building Game Companion (takes a minute)…"
-xcrun swiftc -O -parse-as-library -target "arm64-apple-macos$MACOS.0" "$DIR/Companion.swift" "$DIR/Live.swift" "$DIR/Wiki.swift" "$DIR/Conversation.swift" "$DIR/CompanionConversation.swift" "$DIR/CompanionInterface.swift" -o "$TMP/$EXE"
+xcrun swiftc -O -parse-as-library -target "arm64-apple-macos$MACOS.0" "$DIR/Companion.swift" "$DIR/Live.swift" "$DIR/Wiki.swift" "$DIR/Conversation.swift" "$DIR/CompanionConversation.swift" "$DIR/CompanionInterface.swift" "$DIR/FridayOrb.swift" -o "$TMP/$EXE"
 
 pkill -x "$EXE" 2>/dev/null || true
 # The backup is a zip, not a second .app: a second copy with the same app ID confused macOS,
@@ -18,7 +18,7 @@ pkill -x "$EXE" 2>/dev/null || true
 rm -rf "$PROJECT/outputs/GameCompanion-backup.app" "$PROJECT/outputs/GameCompanion-backup.zip"
 ditto -c -k --keepParent "$APP" "$PROJECT/outputs/GameCompanion-backup.zip"
 cp "$TMP/$EXE" "$APP/Contents/MacOS/$EXE"
-cp "$DIR/Companion.swift" "$DIR/Live.swift" "$DIR/Wiki.swift" "$DIR/Conversation.swift" "$DIR/CompanionConversation.swift" "$DIR/CompanionInterface.swift" "$PROJECT/outputs/"
+cp "$DIR/Companion.swift" "$DIR/Live.swift" "$DIR/Wiki.swift" "$DIR/Conversation.swift" "$DIR/CompanionConversation.swift" "$DIR/CompanionInterface.swift" "$DIR/FridayOrb.swift" "$PROJECT/outputs/"
 
 # Sign with the stable "GameCompanion Signing" certificate when it exists, so macOS keeps the
 # Screen Recording permission and the Keychain approval across rebuilds. An ad hoc signature

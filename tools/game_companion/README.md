@@ -120,3 +120,12 @@ enchantment or effect, and tell it to ask for the name when the on-screen text i
 in that test: Twitch was a small player inside a big Safari window, so the game was only about half the picture.
 Tip: use Twitch's Theatre mode or a bigger window before choosing it.
 
+## Noir look, with Friday as the orb (2026-10-05)
+
+`FridayOrb.swift` holds the palette (near-black, one crimson accent), the orb, the dark glass cards and the background.
+The main screen now has the crimson orb in the middle with the name "Friday" under it. The orb breathes when idle, ripples
+outward while she listens or speaks, and swirls faster while she thinks. The state comes from the live engine
+(`running`, `speakingUntil`, `lastVoice`) or the local one (`listening`, `busy`, `speaker.isSpeaking`). It respects the
+macOS "Reduce motion" setting. Nothing about what is sent or saved changed. The buddy is also told its name is Friday.
+SwiftUI can't be compiled on the Linux cloud machine, so the first Mac rebuild is the real check.
+

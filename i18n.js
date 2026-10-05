@@ -11,14 +11,14 @@
 
 (function () {
   const FR = {
-    "announce": "🚚 <b>Livraison gratuite</b><span class=\"announce-detail\"> sur chaque commande</span><span class=\"announce-extra\"> · 🔒 Paiement sécurisé Stripe</span> · ↩️ Garantie 30 jours ou argent remis",
+    "announce": "🚚 <b>Livraison gratuite</b><span class=\"announce-detail\"> sur les produits tendance</span><span class=\"announce-extra\"> · 🔒 Paiement sécurisé Stripe</span> · ↩️ Garantie 30 jours ou argent remis",
     "nav-trending": "Tendances",
     "nav-how": "Comment ça marche",
     "nav-merch": "Merch <span class=\"nav-new\">Nouveau</span>",
     "nav-shipping": "Livraison",
     "nav-automation": "Automatisation",
     "nav-shop": "Magasinez les tendances",
-    "eyebrow-main": "Réapprovisionné chaque jour",
+    "eyebrow-main": "Renouvelé tous les 3 jours",
     "eyebrow-products": "produits en ligne",
     "hero-title": "Bienvenue chez <span class=\"brand-accent\">HotsTuff!</span><br>Des produits tendance que les gens aiment vraiment.",
     "hero-sub": "HotsTuff récupère la liste des produits tendance de son fournisseur, CJ Dropshipping, et fait tourner une nouvelle sélection d'environ 200 produits tous les trois jours. Pas de catalogue figé et pas de stock qui dort sur une tablette : la sélection change selon un calendrier.",
@@ -26,7 +26,7 @@
     "hero-cta-how": "Comment ça fonctionne",
     "hero-cta-automation": "✨ Automatisation pour votre entreprise",
     "trust-1": "<b>Paiement sécurisé</b><small>Transactions traitées par Stripe</small>",
-    "trust-2": "<b>Livraison suivie gratuite</b><small>Sur chaque commande — 24 pays</small>",
+    "trust-2": "<b>Livraison suivie gratuite</b><small>Sur les produits tendance — 24 pays</small>",
     "trust-3": "<b>Garantie 30 jours</b><small>Remboursement complet ou remplacement gratuit</small>",
     "trust-4": "<b>Un vrai humain au soutien</b><small>Réponse en 1 à 2 jours ouvrables</small>",
     "trending-title": "Tendances de la semaine",

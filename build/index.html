@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>How this store runs itself — the build behind East Coast Social</title>
-<meta name="description" content="A working case study: a solo, non-technical founder in Memramcook NB built an automation engine that refreshes a roughly 200-product storefront, publishes a branded post every single day, and runs on $0/month. Live proof, honest numbers.">
+<meta name="description" content="A working case study: a solo, non-technical founder in Memramcook NB built an automation engine that refreshes a roughly 200-product storefront, publishes a branded post every single day, and runs on free tools apart from the domain names. Live proof, honest numbers.">
 <meta property="og:title" content="How this store runs itself — the build">
 <meta property="og:description" content="An automation engine that has published every single day since Aug 7, hands-free. Here's exactly what it does, what it runs on, and what it cost.">
 <meta property="og:type" content="article">
@@ -107,14 +107,14 @@
 <main class="wrap">
 
   <p>This page is the honest version of what that means: what the system actually does,
-     what it runs on, what it cost, and what I did versus what the machine did. Every
-     number here is checkable on the live sites — that's the point of publishing it.</p>
+     what it runs on, what it cost, and what I did versus what the machine did. Most
+     numbers here can be checked on the live sites. File and job counts are as of October 5, 2026.</p>
 
   <ul class="facts">
     <li><b id="fact-days">—</b><span>days in a row published</span></li>
     <li><b>~200</b><span>products kept live &amp; rotating</span></li>
-    <li><b>13</b><span>scheduled jobs running unattended</span></li>
-    <li><b>$0</b><span>per month to operate</span></li>
+    <li><b>10</b><span>scheduled workflows (as of October 5, 2026)</span></li>
+    <li><b>Free</b><span>tools, apart from the domain names</span></li>
   </ul>
 
   <h2>The problem I was actually solving</h2>
@@ -152,10 +152,10 @@
   <h2>What it runs on</h2>
   <p>GitHub Actions for scheduling, GitHub Pages for hosting, a Cloudflare Worker with
      KV storage for payments and leads, Python for the engines, Stripe for money,
-     GoatCounter for privacy-friendly analytics. Roughly 6,500 lines of Python across
-     28 modules and 13 scheduled workflows.</p>
-  <p><b>Operating cost: $0/month.</b> Every piece sits inside a free tier on purpose —
-     a pre-revenue business shouldn't have a burn rate.</p>
+     GoatCounter for privacy-friendly analytics. About 5,750 lines of Python across
+     23 modules and 10 scheduled workflows, as of October 5, 2026.</p>
+  <p><b>Runs on free tools, apart from the domain names.</b> Every piece of software sits inside a free tier on purpose —
+     a pre-revenue business shouldn't have a burn rate. Each order also carries supplier and payment-processing costs, which come out of that sale.</p>
 
   <div class="callout">
     <h3>The part I'm actually proud of: it can't lie</h3>
@@ -173,7 +173,7 @@
 
   <h2>What I did, and what the machine did</h2>
   <p>Worth being precise, because it's the interesting part. I did not hand-write those
-     6,500 lines. I designed the system, made every product and business decision, tested
+     5,750 lines. I designed the system, made every product and business decision, tested
      it, broke it, found the failures — the wallpaper, a stale claim on a slide, a
      scheduler that silently skipped three jobs in one morning — and decided how each one
      should be fixed. The code was written in partnership with an AI assistant, working

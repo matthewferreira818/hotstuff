@@ -23,6 +23,8 @@ import Darwin
  @Published var selectedVoice = "" { didSet { if !selectedVoice.isEmpty { UserDefaults.standard.set(selectedVoice,forKey:"companion.voice") } } }
  @Published var speechRate: Float = 0.5 { didSet { UserDefaults.standard.set(speechRate,forKey:"companion.rate") } }
  @Published var pauseSeconds: Double = 0.8
+ // Which tab is showing. Lives here because a command-line build of SwiftUI can't use @State (its macro plugin ships only with Xcode).
+ @Published var tab = 0
  // What the player tells the companion about their game. Saved as a preference, like the voice.
  @Published var gameNotes = "" { didSet { UserDefaults.standard.set(gameNotes,forKey:"companion.notes") } }
  let voices = AVSpeechSynthesisVoice.speechVoices().filter { $0.language.hasPrefix("en") }.sorted { a,b in a.quality.rawValue == b.quality.rawValue ? a.name < b.name : a.quality.rawValue > b.quality.rawValue }
@@ -340,18 +342,17 @@ import Darwin
 struct ContentView: View {
  @StateObject var c = Companion()
  @StateObject var live = LiveBuddy()
- @State var mode = 0
  var body: some View {
   VStack(alignment:.leading,spacing:16) {
    Text("Game Companion").font(.largeTitle.bold())
-   Picker("Brain",selection:$mode) {
+   Picker("Brain",selection:$c.tab) {
     Text("Live buddy (Google, free)").tag(0)
     Text("Local (on this Mac)").tag(1)
    }.pickerStyle(.segmented)
    HStack { Button("Choose game window") { c.choose() }; Button("Stop sharing") { c.stopScreen(); live.stop() }.disabled(!c.sharing); Text(c.sharing ? (c.screenVerified ? "Screen access verified" : "Window selected · access untested") : "Screen off") }
    HStack { Button("Test screen access (no AI)") { c.testScreenAccess() }.disabled(!c.sharing || c.busy); Button("Screen permission settings") { NSWorkspace.shared.open(URL(string:"x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!) } }
    HStack { Text("Game notes"); TextField("Game, build, what you want help with",text:$c.gameNotes) }
-   if mode == 0 { liveControls } else { localControls }
+   if c.tab == 0 { liveControls } else { localControls }
   }.padding(24).frame(width:650).onDisappear { live.stop(); c.stop() }
  }
  // Split out so each half type-checks quickly.

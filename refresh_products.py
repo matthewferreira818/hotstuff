@@ -26,6 +26,12 @@ HISTORY_FILE = HERE / "rotation-history.json"
 AUTH_URL = "https://developers.cjdropshipping.com/api2.0/v1/authentication/getAccessToken"
 PRODUCT_LIST_URL = "https://developers.cjdropshipping.com/api2.0/v1/product/listV2"
 
+# Products Matthew has pulled by hand. A supplier title that reads as nonsense stays out of the pool for good,
+# so the 3-day refresh can't bring it back. Add the CJ id (the "id" in products.json) and a short reason.
+EXCLUDED_IDS = {
+    "CJQC1043907": "garbled supplier title ('Sewage Hard'), pulled 2026-10-05",
+}
+
 DISPLAY_COUNT = 200  # products shown on the site each cycle. Raised from
                      # 120 on 2026-08-28: subgroup navigation only earns
                      # its keep with enough depth for a subgroup to hold
@@ -1087,6 +1093,11 @@ def main():
 
     if not pool:
         raise SystemExit("CJ returned no trending products — leaving products.json untouched.")
+
+    before = len(pool)
+    pool = [p for p in pool if product_id(p) not in EXCLUDED_IDS]
+    if len(pool) < before:
+        print(f"Skipped {before - len(pool)} hand-pulled product(s) (EXCLUDED_IDS).")
 
     history = load_history()
     prev_ids = set(history[0]) if history else set()

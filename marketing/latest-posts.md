@@ -1,6 +1,6 @@
 # HotsTuff — This Cycle's Posts (auto-generated)
 
-_Generated 2026-10-05 from the current lineup (200 products). Replace `[LINK]` with the tagged link for wherever you post, so GoatCounter can attribute the traffic:_ **https://findhotstuff.com/?ref=x** _(X)_, **https://findhotstuff.com/?ref=fb** _(Facebook)_, **https://findhotstuff.com/?ref=tt** _(TikTok)_
+_Generated 2026-10-05 from the current lineup (199 products). Replace `[LINK]` with the tagged link for wherever you post, so GoatCounter can attribute the traffic:_ **https://findhotstuff.com/?ref=x** _(X)_, **https://findhotstuff.com/?ref=fb** _(Facebook)_, **https://findhotstuff.com/?ref=tt** _(TikTok)_
 
 > Tone: upbeat + clean on Twitter/Facebook, fun + casual on TikTok. Post these over the next ~3 days (until the catalog rotates and this file updates). Stagger times, reply to comments. Shipping is ~1–3 weeks — never promise faster.
 
@@ -16,10 +16,6 @@ Winter Warm Women's Dress — just $27.99 at HotsTuff 🔥
 > Instant cozy upgrade 🏠
 LED sensor light bar — just $24.99 at HotsTuff 🔥
 [LINK] #cozyhome #homefinds
-
-> This week's must-have 🚗
-Waxing Polishing Sewage Hard — just $15.99 at HotsTuff 🔥
-[LINK] #trending #tiktokmademebuyit
 
 > A gift that actually lands 💍
 Heart Shaped Cross Pendant — just $31.99 at HotsTuff 🔥
@@ -842,17 +838,6 @@ Grab one before it rotates out 👇
 [LINK]
 ```
 
-**Waxing Polishing Sewage Hard — $15.99**
-
-```
-🚗 Waxing Polishing Sewage Hard — $15.99
-
-Fresh in this week and moving fast.
-
-Grab one before it rotates out 👇
-[LINK]
-```
-
 **Heart Shaped Cross Pendant — $31.99**
 
 ```
@@ -875,6 +860,17 @@ Grab one before it rotates out 👇
 [LINK]
 ```
 
+**Baby shoes toddler — $13.99**
+
+```
+🍼 Baby shoes toddler — $13.99
+
+One of this week's trending finds — here before it rotates out.
+
+Grab one before it rotates out 👇
+[LINK]
+```
+
 
 ---
 
@@ -890,11 +886,6 @@ Grab one before it rotates out 👇
 🎬 Concept: Lights-on → lights-off reveal. The transformation is the hook.
 📝 Caption: turning my room into a whole vibe for $24.99 🌙 #tiktokmademebuyit #cozy
 
-**Waxing Polishing Sewage Hard — $15.99**
-
-🎬 Concept: Show the product doing its one cool thing in the first 2 seconds.
-📝 Caption: ok i actually need this 👀 $15.99 #tiktokmademebuyit #trending
-
 **Heart Shaped Cross Pendant — $31.99**
 
 🎬 Concept: Daylight → close-up reveal of the sparkle/glow. The reveal IS the video.
@@ -904,6 +895,11 @@ Grab one before it rotates out 👇
 
 🎬 Concept: Put it down, cut to your pet already loving it. Cute wins.
 📝 Caption: she claimed it in 4 seconds fr 🐾 $11.99 #petsoftiktok #tiktokmademebuyit
+
+**Baby shoes toddler — $13.99**
+
+🎬 Concept: Show the product doing its one cool thing in the first 2 seconds.
+📝 Caption: ok i actually need this 👀 $13.99 #tiktokmademebuyit #trending
 
 
 ---

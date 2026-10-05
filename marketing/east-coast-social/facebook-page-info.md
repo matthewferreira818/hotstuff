@@ -14,8 +14,8 @@ this folder. Regenerate with `python make_fb_branding.py`.
   > branded posts in your voice — your logo, your colours, your specials —
   > written, designed, and published automatically, with a human keeping watch.
   >
-  > I built it for my own store first: findhotstuff.com posts three times a
-  > day, every day, hands-free. Now I set up the same engine for shops around
+  > I built it for my own store first: findhotstuff.com's feed has published a
+  > new post every day since August 4, hands-free. Now I set up the same engine for shops around
   > Sackville, Memramcook, and the greater Moncton area.
   >
   > Starter — free setup, $79/mo: one platform, one branded post daily.
@@ -39,7 +39,7 @@ this folder. Regenerate with `python make_fb_branding.py`.
 > a posting engine tuned to your business publishes a designed, on-brand post
 > every single day — and you never touch it.
 >
-> Proof? My own store, findhotstuff.com, has posted 3x a day for weeks
+> Proof? My own store, findhotstuff.com, has published a new post to its feed every day since August 4,
 > without me lifting a finger. Every product card and image on that feed was
 > written, designed, and published automatically.
 >

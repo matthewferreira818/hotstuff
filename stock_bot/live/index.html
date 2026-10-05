@@ -212,7 +212,7 @@ tr:last-child td { border-bottom: 0; }
       <a href="#council" data-page="council"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="5.5" r="2"/><circle cx="11" cy="5.5" r="2"/><path d="M1.5 13c.5-2.5 2-3.5 3.5-3.5S8 10.5 8.5 13M7.5 13c.5-2.5 2-3.5 3.5-3.5s3 1 3.5 3.5"/></svg>Council</a>
       <a href="#research" data-page="research"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14V2M2 14h12"/><path d="M5 11V8M8 11V5M11 11V7"/></svg>Research</a>
     </nav>
-    <div class="side-foot">Fake money, real prices. Started with $1,000.</div>
+    <div class="side-foot">Fake money, real prices. Started with $1,000; paycheque deposits are added on top.</div>
   </aside>
 
   <section class="main">
@@ -279,7 +279,7 @@ tr:last-child td { border-bottom: 0; }
     <!-- Trades -->
     <div class="page" id="p-trades" hidden>
       <h2>Trades</h2>
-      <p class="lede">Every practice trade, with the $1 fee and slippage already counted.</p>
+      <p class="lede">Every practice trade, with the $1.99 fee and slippage already counted.</p>
       <div class="table-wrap" id="tr-table"></div>
     </div>
 
@@ -498,7 +498,7 @@ async function loadExperiment() {
 
 async function loadExperiment2() {
   try {
-    const x = await getJSON("../research/experiments/EXP-0002.json"), R = x.results;
+    const x = await getJSON("../research/experiments/EXP-0002-moomoo-fees.json"), R = x.results;
     $("r-exp2-note").innerHTML = `<b>${x.passed ? "Passed" : "Did not pass"}</b> (conditions set before the run): ` +
       x.checks.map(c => `${c.met ? "✓" : "✗"} ${esc(c.name)} (${esc(c.numbers)})`).join(" · ");
     $("r-exp2").innerHTML = `<table><thead><tr><th>Strategy</th><th class="r">P/L</th><th class="r">Worst drop</th><th class="r">Risk-adjusted (Sharpe)</th><th class="r">Fees</th></tr></thead><tbody>${x.order.map(k => {

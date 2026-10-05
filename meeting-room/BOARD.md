@@ -6,6 +6,8 @@ _Last updated: 2026-10-05 by Claude_
 - [Claude] Twitch clips: say "clip it", it makes the Twitch clip, downloads it, and cuts a tight highlight (wide and tall versions) into Movies > Game Companion Clips. Built and pushed; it compiles on the Mac and the loudness maths is tested, but the video export and the Twitch download have not been run yet. Status: waiting
 - [Matthew] Rebuild the app, sign out of Twitch in Settings and sign in again (one new permission is needed to download clips), then say "clip it" while live. Status: waiting
 - [Claude] After the first clip test works: swap the older Apple calls in ClipEditor.swift (asset reader, video composition) for the newer ones Apple recommends; GPT compile-checks the swap. Not urgent: the old ones still work. Status: waiting
+- [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 4". Status: waiting
+- [Matthew] Answer four quick things so the sales ledger can be made true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting
 - [Matthew] Optional: connect Stripe in the hub (Accounts, Stripe) with a read-only key, so orders and revenue show on the Store page. Status: waiting
 
 ## Questions
@@ -13,6 +15,8 @@ _Last updated: 2026-10-05 by Claude_
 - [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild?
 
 ## Decisions
+- 2026-10-05: Public claims that stopped being true came down: "posts 3x daily" for X on /links, "going through Google's verification" on /setup, the "120 products" counts, and the Practice Desk page's $1 fee, superseded experiment and $1,000 footer. The false "3x a day" proof lines were scrubbed from the unused outreach drafts.
+- 2026-10-05: The "first paying client by Aug 31" goal was missed (zero clients). CLAUDE.md now says so. The research on what to do next is saved in the workflow output; the plan step and council review were cut off by the usage limit.
 - 2026-10-05: Real-money trading stays walled off from the hub and from every other chat. Practice money only.
 - 2026-10-05: Two AIs never edit the same file at once. While the Twitch work is open, Claude owns Clips, Live, Hub and CompanionInterface; GPT sends notes only.
 - 2026-10-05: The garbled "Sewage Hard" product was pulled from the store and blocked from future refreshes.

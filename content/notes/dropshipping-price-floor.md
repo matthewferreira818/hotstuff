@@ -99,8 +99,8 @@ back around), and then raised to the floor if the floor is higher. If even
 the top of the ladder can't clear the floor — an unusually expensive item —
 the code breaks the ladder and rounds up rather than list at a loss.
 
-It's about fifteen lines. It runs on every catalogue rebuild, on 120
-products, with nobody watching. That's the actual point: the guarantee isn't
+It's about fifteen lines. It runs on every catalogue rebuild, on about
+200 products, with nobody watching. That's the actual point: the guarantee isn't
 that I'm careful, it's that a losing price can't be written to the file.
 
 ## If you take one thing

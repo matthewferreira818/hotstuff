@@ -25,7 +25,7 @@ than discovering something was papered over.
 - **East Coast Social (ECS)** — findhotstuff.com/automation (EN + /fr).
   Done-for-you daily social posting for local NB businesses: free setup,
   free sample week, **$79/mo CAD, no contracts**. Standing goal: **first
-  paying client by Aug 31, 2026**. The store is the proof: "built on our
+  paying client by Aug 31, 2026** — MISSED: zero clients as of 2026-10-05, and no replacement date is set (the 09-26 council wants one documented paying customer in October). The store is the proof: "built on our
   own store first" — its daily-posting streak is the sales pitch.
 
 ## Non-negotiables (the brand IS these rules)
@@ -63,8 +63,8 @@ Frugal until client #1: paid items are SHELVED (Anthropic API key for the
 name polisher, X API credits, hoodie sample). Don't pitch paid anything in
 briefs until Matthew says the first invoice cleared. Everything currently
 running costs $0/month. Free unlocks still open: Meta/Facebook auto-post
-hookup, TikTok app review, Zoho mail. GBP: fields done 08-19, verification video
-filmed 08-26 but NOT yet submitted through Google's flow.
+hookup, TikTok app review, Zoho mail. GBP: fields done 08-19; the 08-26 verification video
+can't be used (Google needs a live recording made inside its own tool) and nothing is submitted as of 10-05.
 
 ## Stock bot (as of 2026-09-27)
 
@@ -110,8 +110,8 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   it before you stop, one owner per item. The repo is public, so nothing private on it. Rules: `meeting-room/README.md`.
 
 - `marketing/east-coast-social/call-kit.md` — prospect ledger + call log.
-- `.claude/council/DECISIONS.md` — council verdicts. Standing: design
-  freeze on both sites until Aug 31 (photo block exempt); one-time
+- `.claude/council/DECISIONS.md` — council verdicts. Standing: the
+  design freeze on both sites ended 2026-08-28; one-time
   downsell offers exist but are GATED (2026-08-14 entry has the gates).
 - `marketing/east-coast-social/weekly-rhythm.md` — the daily/weekly ritual.
 - `marketing/east-coast-social/leblanc-yes-runbook.md` — live-deal playbook.

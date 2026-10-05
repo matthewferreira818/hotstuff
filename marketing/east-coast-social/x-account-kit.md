@@ -34,8 +34,8 @@ quietly until the keys below are added.
 1. "Every post on this account is written, designed, and published by an
    automation engine I run. No scheduling apps, no VA, no 11pm panic posts.
    I build the same engine for local NB businesses. ➜ findhotstuff.com/automation"
-2. "Proof it works: my own store @ [HotsTuff handle] has posted 3× a day for
-   weeks without a human touching it. Your bakery/salon/garage page could run
+2. "Proof it works: my own store @ [HotsTuff handle] has published a new post to its feed every
+   day since August 4 without a human touching it. Your bakery/salon/garage page could run
    the same way. Free setup · $79/mo · cancel anytime."
 3. "Sackville · Memramcook · greater Moncton — if your business page has been
    quiet since spring, that's exactly who I built this for. DM me or scan the

@@ -58,7 +58,7 @@ shows which channel each visit came from. This runs in the cloud, independent of
 is on. (The cron `0 9 */3 * *` fires on days 1, 4, 7 … 28, 31 of each month,
 so the interval around a month boundary is a little shorter than 3 days.)
 
-The site shows **120 products** each cycle (`DISPLAY_COUNT`), selected from a
+The site shows **200 products** each cycle (`DISPLAY_COUNT`), selected from a
 pool of the top **800** trending items (`POOL_SIZE`, fetched in pages of
 `PAGE_SIZE`). `MAX_REPEATS` is **4**: up to four items carry over each cycle,
 and only ones a customer actually clicked Buy on (tracked as GoatCounter

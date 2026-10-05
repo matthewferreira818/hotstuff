@@ -5,19 +5,17 @@ import Security
 // settings. The login tokens are secrets, so they live in the macOS Keychain, never in files or chat.
 enum TwitchTokens {
  static let service = "GameCompanion.TwitchTokens"
+ // "Signed in?" never asks for a password. Reading the tokens can, so that happens once per run (see Keychain.swift).
+ static var isSaved: Bool { Keychain.exists(service) }
  static func load() -> [String:String]? {
-  let query: [String:Any] = [kSecClass as String:kSecClassGenericPassword, kSecAttrService as String:service, kSecReturnData as String:true, kSecMatchLimit as String:kSecMatchLimitOne]
-  var item: CFTypeRef?
-  guard SecItemCopyMatching(query as CFDictionary,&item) == errSecSuccess, let data = item as? Data else { return nil }
+  guard let data = Keychain.read(service) else { return nil }
   return (try? JSONSerialization.jsonObject(with:data)) as? [String:String]
  }
  static func save(_ tokens: [String:String]) -> Bool {
-  delete()
   guard let data = try? JSONSerialization.data(withJSONObject:tokens) else { return false }
-  let add: [String:Any] = [kSecClass as String:kSecClassGenericPassword, kSecAttrService as String:service, kSecValueData as String:data]
-  return SecItemAdd(add as CFDictionary,nil) == errSecSuccess
+  return Keychain.write(service,data)
  }
- static func delete() { SecItemDelete([kSecClass as String:kSecClassGenericPassword, kSecAttrService as String:service] as CFDictionary) }
+ static func delete() { Keychain.remove(service) }
 }
 
 // Makes Twitch clips of Matthew's stream from a separate "clip" Twitch account (or his own; whichever
@@ -32,7 +30,7 @@ enum TwitchTokens {
  @Published var channel = UserDefaults.standard.string(forKey:"twitch.channel") ?? "" { didSet { UserDefaults.standard.set(channel,forKey:"twitch.channel") } }
  // Off until Matthew ticks it: lets the live buddy make a clip when he says "clip that".
  @Published var voiceClips = UserDefaults.standard.object(forKey:"twitch.voice") as? Bool ?? false { didSet { UserDefaults.standard.set(voiceClips,forKey:"twitch.voice") } }
- @Published var signedIn = TwitchTokens.load() != nil
+ @Published var signedIn = TwitchTokens.isSaved
  @Published var status = ""
  @Published var userCode = ""
  @Published var lastClipURL = ""

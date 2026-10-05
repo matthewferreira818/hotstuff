@@ -6,18 +6,14 @@ import Security
 // The Google key lives in the macOS Keychain, never in the app's files or settings.
 enum GeminiKey {
  static let service = "GameCompanion.GeminiKey"
+ // "Is a key saved?" never asks for a password. Reading the key itself can, so that happens once per run (see Keychain.swift).
+ static var isSaved: Bool { Keychain.exists(service) }
  static func load() -> String? {
-  let query: [String:Any] = [kSecClass as String:kSecClassGenericPassword, kSecAttrService as String:service, kSecReturnData as String:true, kSecMatchLimit as String:kSecMatchLimitOne]
-  var item: CFTypeRef?
-  guard SecItemCopyMatching(query as CFDictionary,&item) == errSecSuccess, let data = item as? Data else { return nil }
+  guard let data = Keychain.read(service) else { return nil }
   return String(data:data,encoding:.utf8)
  }
- static func save(_ key: String) -> Bool {
-  delete()
-  let add: [String:Any] = [kSecClass as String:kSecClassGenericPassword, kSecAttrService as String:service, kSecValueData as String:Data(key.utf8)]
-  return SecItemAdd(add as CFDictionary,nil) == errSecSuccess
- }
- static func delete() { SecItemDelete([kSecClass as String:kSecClassGenericPassword, kSecAttrService as String:service] as CFDictionary) }
+ static func save(_ key: String) -> Bool { Keychain.write(service,Data(key.utf8)) }
+ static func delete() { Keychain.remove(service) }
 }
 
 // Live buddy: streams the chosen window (one picture a second) and the microphone to Google's
@@ -30,7 +26,7 @@ enum GeminiKey {
  @Published var said = ""
  @Published var typed = ""
  @Published var keyInput = ""
- @Published var hasKey = GeminiKey.load() != nil
+ @Published var hasKey = GeminiKey.isSaved
  @Published var headphones = true
  @Published var voice = UserDefaults.standard.string(forKey:"live.voice") ?? "Puck" { didSet { UserDefaults.standard.set(voice,forKey:"live.voice") } }
  @Published var liveModel = UserDefaults.standard.string(forKey:"live.model") ?? "gemini-3.8-live" { didSet { UserDefaults.standard.set(liveModel,forKey:"live.model") } }

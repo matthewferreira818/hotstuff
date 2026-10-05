@@ -11,7 +11,7 @@ TMP=$(mktemp -d)
 
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Conversation,CompanionConversation,CompanionInterface,FridayOrb,StockData,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,StockData,Hub}.swift)
 xcrun swiftc -O -parse-as-library -target "arm64-apple-macos$MACOS.0" "${SOURCES[@]}" -o "$TMP/$EXE"
 
 pkill -x "$EXE" 2>/dev/null || true

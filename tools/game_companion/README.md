@@ -180,3 +180,13 @@ button gives full screen, and Friday's orb and column scale with the window. Int
 cards that lift under the pointer, springy button presses, a soft trackpad tap when changing page, and shortcuts: Cmd+1 to Cmd+7
 for the pages and Cmd+, for Settings. Hover state lives on `HubModel` (not `@State`, which the command-line build can't expand).
 
+## Fewer password boxes (2026-10-05)
+
+The Keychain password box came back at every launch and after every rebuild. Causes: the app read the secret itself just to
+see whether it was saved (once for the Google key, once for Twitch), and rebuilt apps are not trusted by older Keychain items.
+`Keychain.swift` now (1) answers "is it saved?" from the item's label only, (2) reads the secret only when needed, once per run,
+and (3) saves items with "allow all applications" access, re-saving old items after their next successful read. The tradeoff:
+other software running as the same user could read the key without a prompt, which is fine for a free API key and not for a
+bank password. If macOS refuses the open access, it falls back to a normal save. The Security calls used are deprecated by
+Apple but still present; they could not be run on the Linux cloud machine, so the first Mac run is the real test.
+

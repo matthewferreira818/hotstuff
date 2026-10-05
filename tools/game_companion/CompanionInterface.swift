@@ -141,8 +141,13 @@ struct CompanionInterfaceView: View {
   TextField("Live model",text:$live.liveModel).disabled(live.running)
   Toggle("Look up game facts using the wiki",isOn:$live.wiki).disabled(live.running)
   Toggle("Use Google Search for game facts",isOn:$live.search).disabled(live.running)
-  Picker("Screen usage",selection:$live.lowUsage) { Text("Low").tag(true); Text("Frequent").tag(false) }.pickerStyle(.segmented)
-  Text("Low usage checks the screen mostly while you talk, with occasional quiet glances. Microphone audio still uses cloud allowance.").font(.caption).foregroundStyle(.secondary)
+  Picker("Screen usage",selection:$live.lowUsage) { Text("Low").tag(true); Text("Steady").tag(false) }.pickerStyle(.segmented)
+  if live.lowUsage {
+   Text("Low checks the screen mostly while you talk, with occasional quiet glances. Microphone audio still uses cloud allowance.").font(.caption).foregroundStyle(.secondary)
+  } else {
+   HStack { Text("Picture every"); Slider(value:$live.frameGap,in:1...5,step:1); Text("\(Int(live.frameGap)) s").monospacedDigit() }
+   Text("Steady sends a picture on a timer, whether you talk or not. Shorter gaps use the free allowance faster. Google allows at most one picture per second.").font(.caption).foregroundStyle(.secondary)
+  }
   Toggle("I'm wearing headphones",isOn:$live.headphones)
  }
  @ViewBuilder var localSettings: some View {

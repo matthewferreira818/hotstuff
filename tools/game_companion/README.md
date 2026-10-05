@@ -109,6 +109,9 @@ shows a small preview of the last picture it sent to Google ("What the buddy saw
 in memory only and cleared on Stop. The instructions also tell the buddy the pictures are live captures,
 not files from his storage. The cause of the stale picture is not known yet; the preview should show it.
 
+**Steady mode (2026-10-05):** the old "Frequent" option is now "Steady", with a slider for the gap between pictures (1-5 seconds,
+saved, default 2 as Matthew asked). It sends on a timer whether he talks or not. Google allows at most 1 picture per second.
+
 ## Item lookups are now required (2026-10-05)
 
 The buddy described items wrongly (it only looked things up when it felt unsure, and Gemini does not know this

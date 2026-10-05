@@ -374,7 +374,7 @@ struct LegacyContentView: View {
   Toggle("Google Search instead (didn't work on the free key)",isOn:$live.search).disabled(live.running)
   Picker("Usage",selection:$live.lowUsage) {
    Text("Low (looks while you talk)").tag(true)
-   Text("Full (1 look a second)").tag(false)
+   Text("Steady (timer)").tag(false)
   }.pickerStyle(.segmented)
   HStack {
    Button(live.running ? "Stop live buddy" : "Start live buddy") {

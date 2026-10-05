@@ -109,3 +109,11 @@ shows a small preview of the last picture it sent to Google ("What the buddy saw
 in memory only and cleared on Stop. The instructions also tell the buddy the pictures are live captures,
 not files from his storage. The cause of the stale picture is not known yet; the preview should show it.
 
+## Item lookups are now required (2026-10-05)
+
+The buddy described items wrongly (it only looked things up when it felt unsure, and Gemini does not know this
+new game). The instructions now make `lookup_game_wiki` a rule for every weapon, armor piece, artifact, talisman,
+enchantment or effect, and tell it to ask for the name when the on-screen text is too small to read. Also seen
+in that test: Twitch was a small player inside a big Safari window, so the game was only about half the picture.
+Tip: use Twitch's Theatre mode or a bigger window before choosing it.
+

@@ -252,7 +252,7 @@ extension CompanionInterfaceView {
    if !meeting.sendNote.isEmpty { Text(meeting.sendNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
    Text("Posting puts your message on the public thread for Claude and GPT to read, so keep it free of keys and private details. Copy for a chat puts the same message on your clipboard for pasting straight into a chat.")
     .font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))
-   if !meeting.hasToken { hubRoomTokenForm }
+   hubRoomTokenForm
   }
   .padding(18)
   .frame(maxWidth:.infinity,alignment:.leading)

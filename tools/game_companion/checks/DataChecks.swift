@@ -101,7 +101,7 @@ import Foundation
   for i in 0..<12 { many = FeedFormat.appending(many,who:"you",text:"m\(i)",now:t1.addingTimeInterval(Double(i) * 60),keep:10) }
   precondition(many.count == 10 && many.first?.text == "m2" && many.last?.text == "m11")
   precondition(FeedFormat.clean(String(repeating:"x",count:2000)).count == FeedFormat.maxLength)
-  precondition(FeedFormat.actionLabel("set_stream_title") == "Title" && FeedFormat.actionLabel("zzz") == "Action")
+  precondition(FeedFormat.actionLabel("set_stream_title") == "Title" && FeedFormat.actionLabel("scroll_page") == "Scroll" && FeedFormat.actionLabel("point_at") == "Pointer" && FeedFormat.actionLabel("zzz") == "Action")
   // The chat helper's rules: nothing posts right after starting, gaps and the hourly cap hold, the longest-waiting message goes
   // first, and bad text (empty, too long, starting with / or .) is never sent.
   let c0 = Date(timeIntervalSince1970:2_000_000)

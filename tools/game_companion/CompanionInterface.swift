@@ -16,6 +16,7 @@ struct CompanionInterfaceView: View {
  @StateObject var stream = StreamHub()
  @StateObject var feed = FridayFeed()
  @StateObject var chat = ChatHub()
+ @StateObject var hands = FridayHands()
  @StateObject var corner = FridayCornerController()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
@@ -30,7 +31,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; live.meeting = meeting; hands.attach(live); chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
@@ -314,6 +315,9 @@ struct CompanionInterfaceView: View {
    HStack { Text("Picture every"); Slider(value:$live.frameGap,in:1...5,step:1); Text("\(Int(live.frameGap)) s").monospacedDigit() }
    Text("Steady sends a picture on a timer, whether you talk or not. Shorter gaps use the free allowance faster. Google allows at most one picture per second.").font(.caption).foregroundStyle(.secondary)
   }
+  Toggle("Let Friday scroll and point in the window she's watching",isOn:$hands.enabled)
+  if hands.enabled && !hands.hasAccess { HStack { Text("Pointing works. For scrolling, macOS must allow this app (Privacy & Security, Accessibility).").font(.caption).foregroundStyle(.secondary); Button("Open Settings") { hands.openSettings() } } }
+  Text("She gets her own cursor and can scroll the page. She can't click, type or press keys. Off every time the app opens, only works while she's live, and she leaves the page alone if you move the mouse.").font(.caption).foregroundStyle(.secondary)
   Picker("Sound output",selection:$live.output) { Text("Auto").tag(0); Text("Headphones").tag(1); Text("Speakers").tag(2) }.pickerStyle(.segmented)
   Text("On speakers the mic pauses while Friday talks, so she can't hear herself (you can't interrupt her then). On headphones the mic stays open so you can. Auto picks by what your Mac is playing through; if she still hears herself, choose Speakers.").font(.caption).foregroundStyle(.secondary)
   clipSettings

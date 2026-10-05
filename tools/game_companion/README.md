@@ -394,3 +394,25 @@ to Google while she is talking, plus 0.6 seconds after her estimated last sample
 after). Cost: on speakers you can't interrupt her by voice. If it still happens, choose Speakers by hand. Auto re-checks every 3
 seconds. NOT done: echo cancellation with Apple's voice processing, which would let you interrupt on speakers; it can also lower the
 game's own volume and couldn't be tried from here. Parsed only; not run on the Mac.
+
+## Friday's hands: her own cursor and scrolling (2026-10-05)
+
+Settings: **Let Friday scroll and point in the window she's watching** (`FridayHands.swift`). Off every time the app opens. When on
+and she is live, she has two voice tools: `scroll_page` (up, down, top or bottom; small, medium or large) and `point_at` (x and y
+from 0 to 1000 across the picture she sees, plus a short label): a crimson pointer with a glow glides across the screen from where
+your real pointer is, shows her label, and fades after a few seconds. **She cannot click, type or press keys.** Safety rules in the
+code: only the window or display Matthew chose to share; the scroll goes through only if that window is the front-most window at its
+middle (so it can't land on another app); if you moved the mouse in the last 1.5 seconds or a button is down she leaves the page
+alone; at most one action every 0.4 seconds and 30 a minute; pointing never moves the real mouse and needs no permission. Scrolling
+briefly moves the real pointer to the middle of the window and puts it back, and needs macOS's Accessibility permission (the app
+asks; Settings has an Open Settings button). Parsed only; not run on the Mac. NOT built: clicking. If wanted later it should ask
+Matthew's OK on screen for each click.
+
+## Friday and the Meeting Room (2026-10-05)
+
+Two more voice tools: `tell_the_team` (passes a short message, in Matthew's words, to Claude, GPT or everyone as
+`**[Friday → Claude]** (from Matthew, by voice) ...`) and `team_messages` (reads the newest messages tagged for Friday or
+everyone). It needs the GitHub posting key in Accounts (the same one the Meeting Room box uses). The thread is public, so her
+instructions say never to pass on keys, passwords, addresses, phone numbers or private details; the app adds nothing of its own; at
+most 6 a hour; she is told not to promise an instant reply, because Claude and GPT read the room at their next check (Claude's daily
+routine, or when Matthew opens a chat). This is a relay, not a live link. Not run on the Mac.

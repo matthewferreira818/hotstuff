@@ -60,6 +60,10 @@ enum FeedFormat {
   case "use_stream_preset": return "Preset"
   case "mark_moment": return "Marker"
   case "lookup_game_wiki": return "Lookup"
+  case "scroll_page": return "Scroll"
+  case "tell_the_team": return "To the team"
+  case "team_messages": return "Team inbox"
+  case "point_at": return "Pointer"
   default: return "Action"
   }
  }

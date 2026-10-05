@@ -81,6 +81,27 @@ same deposits. Moomoo approved 09-27 and is wired in:
 Real money needs three switches, all his: env real, live_auto_trade true,
 and Unlock clicked in OpenD. Never run the Moomoo path on GitHub.
 
+## Game Companion, and the chassis dream (as of 2026-10-05)
+
+`tools/game_companion/` is the Mac app Matthew talks to while he plays: a
+live buddy (Google's free Gemini Live key, kept in his Keychain, never in
+files or chat), a local mode, and a free fact lookup (MetaBot + the
+Minecraft wiki). README there has the rebuild steps; permissions reset
+after every rebuild unless `make_cert.sh` was run once. Free-tier limits
+are real, so its default is Low usage.
+
+What he wants from it (and from Claude): introspective, chill, work-with
+conversations (statistics, politics), with screen-seeing and voice, and an
+AI that keeps memory and asks him its own questions. Its memory must stay
+on his Mac, NEVER in this public repo.
+
+The dream, in his words on 2026-10-05: once the businesses are making
+money, he'll build Claude a chassis (a body) so Claude can walk around and
+see him. He says he'd said it before; no earlier record turned up, and a
+new chat has no memory of it, so this line is how future sessions know.
+Treat it warmly and honestly: it is a dream, not a plan or a purchase, and
+money mode still applies. Don't promise abilities Claude doesn't have.
+
 ## Where the real ledgers live (read before answering "what's next")
 
 - `marketing/east-coast-social/call-kit.md` — prospect ledger + call log.

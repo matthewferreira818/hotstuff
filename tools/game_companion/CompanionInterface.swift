@@ -69,6 +69,7 @@ struct CompanionInterfaceView: View {
  // Says which brain is on. While Google Live runs it says so plainly, because the screen and mic are being shared.
  var modePill: some View {
   HStack {
+   Spacer()
    HStack(spacing:7) {
     Circle().fill(c.tab == 0 && live.running ? Noir.crimsonLight : Color.white.opacity(0.3)).frame(width:7,height:7)
     Text(c.tab == 0 ? (live.running ? "LIVE · WINDOW + MIC SHARED WITH GOOGLE" : "GOOGLE LIVE") : "ON THIS MAC").font(.system(size:10,weight:.semibold,design:.rounded)).tracking(1.2)
@@ -86,7 +87,7 @@ struct CompanionInterfaceView: View {
    let state = orbState(at:timeline.date)
    VStack(spacing:4) {
     FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:orb,animated:!reduceMotion)
-    Text("Friday").font(.system(size:26,weight:.light,design:.rounded)).tracking(8).foregroundStyle(Color.white.opacity(0.92))
+    Text("Friday").font(.system(size:20,weight:.light,design:.rounded)).tracking(7).foregroundStyle(Color.white.opacity(0.78)).padding(.top,6)
     Text(DesignPreview.enabled ? "Review draft · connections disabled" : stateLabel(state)).font(.system(size:11,weight:.medium,design:.rounded)).tracking(2).textCase(.uppercase).foregroundStyle(state == .off ? Color.white.opacity(0.4) : Noir.crimsonLight)
    }
    .frame(maxWidth:.infinity)
@@ -100,7 +101,7 @@ struct CompanionInterfaceView: View {
    if c.tab == 0 && !live.heard.isEmpty { Text(live.heard).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)).multilineTextAlignment(.center).lineLimit(2) }
    if !clips.status.isEmpty { Text(clips.status).font(.system(size:12,design:.rounded)).foregroundStyle(Noir.crimsonLight.opacity(0.9)).multilineTextAlignment(.center).lineLimit(3).textSelection(.enabled) }
    if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
-   if !currentReply.isEmpty { Text(currentReply).font(.system(size:17,design:.rounded)).foregroundStyle(Color.white.opacity(0.92)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
+   if !currentReply.isEmpty { Text(currentReply).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(Color.white.opacity(0.90)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
   }
   .frame(maxWidth:.infinity,minHeight:120,alignment:.top)
   .padding(.horizontal,10).padding(.top,6)
@@ -122,11 +123,10 @@ struct CompanionInterfaceView: View {
   HStack(spacing:18) {
    Button { c.choose() } label: { Image(systemName:"rectangle.on.rectangle") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.sharing)).disabled(DesignPreview.enabled).help("Choose the game window")
    Button { c.showKeyboard.toggle() } label: { Image(systemName:"keyboard") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.showKeyboard)).help("Type instead of talking")
-   Button { mainAction() } label: { Image(systemName:mainIcon) }.buttonStyle(OrbButtonStyle(diameter:76,filled:true)).disabled(DesignPreview.enabled).help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session") : "Talk")
+   Button { mainAction() } label: { Image(systemName:mainIcon) }.buttonStyle(OrbButtonStyle(diameter:80,filled:true)).disabled(DesignPreview.enabled).help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session") : "Talk")
    if clips.signedIn {
     Button { Task { await clips.clipNow() } } label: { Image(systemName:"scissors") }.buttonStyle(OrbButtonStyle(diameter:54)).disabled(clips.busy).help("Clip the last 30 seconds")
    }
-   Button { c.showPanel = true } label: { Image(systemName:"slider.horizontal.3") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Settings and more")
    Button { stopAll() } label: { Image(systemName:"xmark") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Stop everything")
   }
  }

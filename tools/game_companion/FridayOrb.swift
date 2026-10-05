@@ -2,11 +2,12 @@ import SwiftUI
 
 // Noir look for Game Companion: near-black background, one crimson accent, and Friday as the orb in the middle.
 enum Noir {
- static let crimson = Color(red:0.88,green:0.08,blue:0.24)
- static let crimsonLight = Color(red:1.0,green:0.30,blue:0.40)
- static let crimsonDeep = Color(red:0.50,green:0.03,blue:0.12)
- static let ink = Color(red:0.02,green:0.02,blue:0.03)
- static let smoke = Color(red:0.07,green:0.02,blue:0.04)
+ // A mellow crimson (softer and dustier than the first version): rosewood, not neon.
+ static let crimson = Color(red:0.74,green:0.21,blue:0.31)
+ static let crimsonLight = Color(red:0.91,green:0.48,blue:0.55)
+ static let crimsonDeep = Color(red:0.37,green:0.10,blue:0.17)
+ static let ink = Color(red:0.04,green:0.03,blue:0.05)
+ static let smoke = Color(red:0.07,green:0.04,blue:0.06)
 }
 
 enum OrbState { case off, idle, listening, thinking, speaking }
@@ -99,7 +100,7 @@ struct FridayOrb: View {
  private func aura(_ time: Double) -> some View {
   let breath = 0.5 + 0.5 * sin(time * 0.9)
   let strength = glow * (0.85 + 0.15 * breath) + sound * 0.30
-  let violet = Color(red:0.55,green:0.26,blue:0.90)
+  let violet = Color(red:0.50,green:0.30,blue:0.72)
   return ZStack {
    Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(min(0.75,0.62 * strength)),Noir.crimson.opacity(0.22 * strength),Noir.crimson.opacity(0)],center:.center,startRadius:size * 0.28,endRadius:size * 1.12))
     .frame(width:size * 2.3,height:size * 2.3)
@@ -128,7 +129,7 @@ struct FridayOrb: View {
  // The sphere: warm body, drifting light, liquid streaks, a pulsing core, a soft inner shade (crimson, never black) and a glass rim.
  private func sphere(_ time: Double) -> some View {
   ZStack {
-   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.52,blue:0.54),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.36,y:0.30),startRadius:0,endRadius:size * 0.80))
+   Circle().fill(RadialGradient(colors:[Color(red:0.95,green:0.64,blue:0.66),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.36,y:0.30),startRadius:0,endRadius:size * 0.80))
    ForEach(0..<5,id:\.self) { i in blob(i,time) }
    ForEach(0..<2,id:\.self) { i in streak(i,time) }
    Circle().fill(RadialGradient(colors:[Color.white.opacity(0.50 + sound * 0.35),Noir.crimsonLight.opacity(0)],center:.center,startRadius:0,endRadius:size * (0.17 + sound * 0.11)))
@@ -150,7 +151,7 @@ struct FridayOrb: View {
  private func blob(_ i: Int,_ time: Double) -> some View {
   let angle = time * flow * (0.55 + 0.17 * Double(i)) + Double(i) * 1.9
   let reach = size * (0.15 + 0.05 * Double(i % 2)) * (1 + sound * 0.9)
-  let palette: [Color] = [Noir.crimsonLight,Color(red:1.0,green:0.62,blue:0.52),Color(red:1.0,green:0.34,blue:0.60),Noir.crimson,Color(red:0.78,green:0.16,blue:0.48)]
+  let palette: [Color] = [Noir.crimsonLight,Color(red:0.95,green:0.67,blue:0.58),Color(red:0.86,green:0.42,blue:0.62),Noir.crimson,Color(red:0.66,green:0.25,blue:0.46)]
   return Circle()
    .fill(palette[i])
    .frame(width:size * 0.60,height:size * 0.60)
@@ -247,7 +248,7 @@ struct FridayLookDock: View {
  @ViewBuilder private func glyph(_ look: FridayLook) -> some View {
   switch look {
   case .orb:
-   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.62,blue:0.62),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.30),startRadius:0,endRadius:14)).frame(width:18,height:18)
+   Circle().fill(RadialGradient(colors:[Color(red:0.95,green:0.67,blue:0.68),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.30),startRadius:0,endRadius:14)).frame(width:18,height:18)
   case .faces: Text("😊").font(.system(size:17))
   case .robot: Text("🤖").font(.system(size:17))
   case .fire: Text("🔥").font(.system(size:17))
@@ -265,10 +266,10 @@ struct NoirBackground: View {
    GeometryReader { geo in
     let reach = max(geo.size.width,geo.size.height)
     ZStack {
-     LinearGradient(colors:[Color(red:0.15,green:0.10,blue:0.16),Color(red:0.08,green:0.07,blue:0.13)],startPoint:.topLeading,endPoint:.bottomTrailing)
-     glow(Noir.crimson.opacity(0.30),x:0.16 + 0.05 * sin(t * 0.11),y:0.10 + 0.05 * cos(t * 0.09),radius:reach * 0.75)
-     glow(Color(red:0.38,green:0.22,blue:0.66).opacity(0.26),x:0.86 + 0.05 * cos(t * 0.08),y:0.90 + 0.04 * sin(t * 0.10),radius:reach * 0.70)
-     glow(Noir.crimsonDeep.opacity(0.38),x:0.55 + 0.06 * sin(t * 0.07),y:0.50 + 0.06 * cos(t * 0.06),radius:reach * 0.55)
+     LinearGradient(colors:[Color(red:0.11,green:0.08,blue:0.11),Color(red:0.06,green:0.05,blue:0.09)],startPoint:.topLeading,endPoint:.bottomTrailing)
+     glow(Noir.crimson.opacity(0.16),x:0.16 + 0.05 * sin(t * 0.11),y:0.10 + 0.05 * cos(t * 0.09),radius:reach * 0.75)
+     glow(Color(red:0.38,green:0.24,blue:0.60).opacity(0.12),x:0.86 + 0.05 * cos(t * 0.08),y:0.90 + 0.04 * sin(t * 0.10),radius:reach * 0.70)
+     glow(Noir.crimsonDeep.opacity(0.22),x:0.55 + 0.06 * sin(t * 0.07),y:0.50 + 0.06 * cos(t * 0.06),radius:reach * 0.55)
     }
    }
   }
@@ -302,8 +303,9 @@ struct OrbButtonStyle: ButtonStyle {
    .font(.system(size:diameter * 0.36,weight:.semibold))
    .foregroundStyle(Color.white.opacity(filled ? 1 : 0.88))
    .frame(width:diameter,height:diameter)
-   .background(Circle().fill(filled ? Noir.crimson : Color.white.opacity(0.08)))
-   .overlay(Circle().stroke(filled ? Noir.crimsonLight.opacity(0.5) : Color.white.opacity(0.12),lineWidth:1))
+   .background(Circle().fill(filled ? AnyShapeStyle(LinearGradient(colors:[Noir.crimsonLight.opacity(0.85),Noir.crimson],startPoint:.top,endPoint:.bottom)) : AnyShapeStyle(Color.white.opacity(0.07))))
+   .overlay(Circle().stroke(filled ? Color.white.opacity(0.22) : Color.white.opacity(0.10),lineWidth:1))
+   .shadow(color:filled ? Noir.crimson.opacity(0.35) : Color.clear,radius:16,y:4)
    .scaleEffect(configuration.isPressed ? 0.92 : 1)
    .opacity(configuration.isPressed ? 0.85 : 1)
    .animation(.spring(response:0.28,dampingFraction:0.6),value:configuration.isPressed)

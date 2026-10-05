@@ -502,7 +502,7 @@ extension CompanionInterfaceView {
    GeometryReader { geo in
     HStack {
      Spacer(minLength:0)
-     fridayStage(orb:min(max(geo.size.height * 0.30,170),300)).frame(width:min(max(geo.size.width * 0.55,520),760))
+     fridayStage(orb:min(max(geo.size.height * 0.36,190),360)).frame(width:min(max(geo.size.width * 0.55,520),760))
      Spacer(minLength:0)
     }
    }

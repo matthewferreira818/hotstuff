@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit aae07d2. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit 5ba203d. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -1921,6 +1921,7 @@ struct CompanionInterfaceView: View {
  // Says which brain is on. While Google Live runs it says so plainly, because the screen and mic are being shared.
  var modePill: some View {
   HStack {
+   Spacer()
    HStack(spacing:7) {
     Circle().fill(c.tab == 0 && live.running ? Noir.crimsonLight : Color.white.opacity(0.3)).frame(width:7,height:7)
     Text(c.tab == 0 ? (live.running ? "LIVE · WINDOW + MIC SHARED WITH GOOGLE" : "GOOGLE LIVE") : "ON THIS MAC").font(.system(size:10,weight:.semibold,design:.rounded)).tracking(1.2)
@@ -1938,7 +1939,7 @@ struct CompanionInterfaceView: View {
    let state = orbState(at:timeline.date)
    VStack(spacing:4) {
     FridayOrb(state:state,t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:orb,animated:!reduceMotion)
-    Text("Friday").font(.system(size:26,weight:.light,design:.rounded)).tracking(8).foregroundStyle(Color.white.opacity(0.92))
+    Text("Friday").font(.system(size:20,weight:.light,design:.rounded)).tracking(7).foregroundStyle(Color.white.opacity(0.78)).padding(.top,6)
     Text(DesignPreview.enabled ? "Review draft · connections disabled" : stateLabel(state)).font(.system(size:11,weight:.medium,design:.rounded)).tracking(2).textCase(.uppercase).foregroundStyle(state == .off ? Color.white.opacity(0.4) : Noir.crimsonLight)
    }
    .frame(maxWidth:.infinity)
@@ -1952,7 +1953,7 @@ struct CompanionInterfaceView: View {
    if c.tab == 0 && !live.heard.isEmpty { Text(live.heard).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)).multilineTextAlignment(.center).lineLimit(2) }
    if !clips.status.isEmpty { Text(clips.status).font(.system(size:12,design:.rounded)).foregroundStyle(Noir.crimsonLight.opacity(0.9)).multilineTextAlignment(.center).lineLimit(3).textSelection(.enabled) }
    if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
-   if !currentReply.isEmpty { Text(currentReply).font(.system(size:17,design:.rounded)).foregroundStyle(Color.white.opacity(0.92)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
+   if !currentReply.isEmpty { Text(currentReply).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(Color.white.opacity(0.90)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
   }
   .frame(maxWidth:.infinity,minHeight:120,alignment:.top)
   .padding(.horizontal,10).padding(.top,6)
@@ -1974,11 +1975,10 @@ struct CompanionInterfaceView: View {
   HStack(spacing:18) {
    Button { c.choose() } label: { Image(systemName:"rectangle.on.rectangle") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.sharing)).disabled(DesignPreview.enabled).help("Choose the game window")
    Button { c.showKeyboard.toggle() } label: { Image(systemName:"keyboard") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.showKeyboard)).help("Type instead of talking")
-   Button { mainAction() } label: { Image(systemName:mainIcon) }.buttonStyle(OrbButtonStyle(diameter:76,filled:true)).disabled(DesignPreview.enabled).help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session") : "Talk")
+   Button { mainAction() } label: { Image(systemName:mainIcon) }.buttonStyle(OrbButtonStyle(diameter:80,filled:true)).disabled(DesignPreview.enabled).help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session") : "Talk")
    if clips.signedIn {
     Button { Task { await clips.clipNow() } } label: { Image(systemName:"scissors") }.buttonStyle(OrbButtonStyle(diameter:54)).disabled(clips.busy).help("Clip the last 30 seconds")
    }
-   Button { c.showPanel = true } label: { Image(systemName:"slider.horizontal.3") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Settings and more")
    Button { stopAll() } label: { Image(systemName:"xmark") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Stop everything")
   }
  }
@@ -2234,11 +2234,12 @@ import SwiftUI
 
 // Noir look for Game Companion: near-black background, one crimson accent, and Friday as the orb in the middle.
 enum Noir {
- static let crimson = Color(red:0.88,green:0.08,blue:0.24)
- static let crimsonLight = Color(red:1.0,green:0.30,blue:0.40)
- static let crimsonDeep = Color(red:0.50,green:0.03,blue:0.12)
- static let ink = Color(red:0.02,green:0.02,blue:0.03)
- static let smoke = Color(red:0.07,green:0.02,blue:0.04)
+ // A mellow crimson (softer and dustier than the first version): rosewood, not neon.
+ static let crimson = Color(red:0.74,green:0.21,blue:0.31)
+ static let crimsonLight = Color(red:0.91,green:0.48,blue:0.55)
+ static let crimsonDeep = Color(red:0.37,green:0.10,blue:0.17)
+ static let ink = Color(red:0.04,green:0.03,blue:0.05)
+ static let smoke = Color(red:0.07,green:0.04,blue:0.06)
 }
 
 enum OrbState { case off, idle, listening, thinking, speaking }
@@ -2331,7 +2332,7 @@ struct FridayOrb: View {
  private func aura(_ time: Double) -> some View {
   let breath = 0.5 + 0.5 * sin(time * 0.9)
   let strength = glow * (0.85 + 0.15 * breath) + sound * 0.30
-  let violet = Color(red:0.55,green:0.26,blue:0.90)
+  let violet = Color(red:0.50,green:0.30,blue:0.72)
   return ZStack {
    Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(min(0.75,0.62 * strength)),Noir.crimson.opacity(0.22 * strength),Noir.crimson.opacity(0)],center:.center,startRadius:size * 0.28,endRadius:size * 1.12))
     .frame(width:size * 2.3,height:size * 2.3)
@@ -2360,7 +2361,7 @@ struct FridayOrb: View {
  // The sphere: warm body, drifting light, liquid streaks, a pulsing core, a soft inner shade (crimson, never black) and a glass rim.
  private func sphere(_ time: Double) -> some View {
   ZStack {
-   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.52,blue:0.54),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.36,y:0.30),startRadius:0,endRadius:size * 0.80))
+   Circle().fill(RadialGradient(colors:[Color(red:0.95,green:0.64,blue:0.66),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.36,y:0.30),startRadius:0,endRadius:size * 0.80))
    ForEach(0..<5,id:\.self) { i in blob(i,time) }
    ForEach(0..<2,id:\.self) { i in streak(i,time) }
    Circle().fill(RadialGradient(colors:[Color.white.opacity(0.50 + sound * 0.35),Noir.crimsonLight.opacity(0)],center:.center,startRadius:0,endRadius:size * (0.17 + sound * 0.11)))
@@ -2382,7 +2383,7 @@ struct FridayOrb: View {
  private func blob(_ i: Int,_ time: Double) -> some View {
   let angle = time * flow * (0.55 + 0.17 * Double(i)) + Double(i) * 1.9
   let reach = size * (0.15 + 0.05 * Double(i % 2)) * (1 + sound * 0.9)
-  let palette: [Color] = [Noir.crimsonLight,Color(red:1.0,green:0.62,blue:0.52),Color(red:1.0,green:0.34,blue:0.60),Noir.crimson,Color(red:0.78,green:0.16,blue:0.48)]
+  let palette: [Color] = [Noir.crimsonLight,Color(red:0.95,green:0.67,blue:0.58),Color(red:0.86,green:0.42,blue:0.62),Noir.crimson,Color(red:0.66,green:0.25,blue:0.46)]
   return Circle()
    .fill(palette[i])
    .frame(width:size * 0.60,height:size * 0.60)
@@ -2479,7 +2480,7 @@ struct FridayLookDock: View {
  @ViewBuilder private func glyph(_ look: FridayLook) -> some View {
   switch look {
   case .orb:
-   Circle().fill(RadialGradient(colors:[Color(red:1.0,green:0.62,blue:0.62),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.30),startRadius:0,endRadius:14)).frame(width:18,height:18)
+   Circle().fill(RadialGradient(colors:[Color(red:0.95,green:0.67,blue:0.68),Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.30),startRadius:0,endRadius:14)).frame(width:18,height:18)
   case .faces: Text("😊").font(.system(size:17))
   case .robot: Text("🤖").font(.system(size:17))
   case .fire: Text("🔥").font(.system(size:17))
@@ -2497,10 +2498,10 @@ struct NoirBackground: View {
    GeometryReader { geo in
     let reach = max(geo.size.width,geo.size.height)
     ZStack {
-     LinearGradient(colors:[Color(red:0.15,green:0.10,blue:0.16),Color(red:0.08,green:0.07,blue:0.13)],startPoint:.topLeading,endPoint:.bottomTrailing)
-     glow(Noir.crimson.opacity(0.30),x:0.16 + 0.05 * sin(t * 0.11),y:0.10 + 0.05 * cos(t * 0.09),radius:reach * 0.75)
-     glow(Color(red:0.38,green:0.22,blue:0.66).opacity(0.26),x:0.86 + 0.05 * cos(t * 0.08),y:0.90 + 0.04 * sin(t * 0.10),radius:reach * 0.70)
-     glow(Noir.crimsonDeep.opacity(0.38),x:0.55 + 0.06 * sin(t * 0.07),y:0.50 + 0.06 * cos(t * 0.06),radius:reach * 0.55)
+     LinearGradient(colors:[Color(red:0.11,green:0.08,blue:0.11),Color(red:0.06,green:0.05,blue:0.09)],startPoint:.topLeading,endPoint:.bottomTrailing)
+     glow(Noir.crimson.opacity(0.16),x:0.16 + 0.05 * sin(t * 0.11),y:0.10 + 0.05 * cos(t * 0.09),radius:reach * 0.75)
+     glow(Color(red:0.38,green:0.24,blue:0.60).opacity(0.12),x:0.86 + 0.05 * cos(t * 0.08),y:0.90 + 0.04 * sin(t * 0.10),radius:reach * 0.70)
+     glow(Noir.crimsonDeep.opacity(0.22),x:0.55 + 0.06 * sin(t * 0.07),y:0.50 + 0.06 * cos(t * 0.06),radius:reach * 0.55)
     }
    }
   }
@@ -2534,8 +2535,9 @@ struct OrbButtonStyle: ButtonStyle {
    .font(.system(size:diameter * 0.36,weight:.semibold))
    .foregroundStyle(Color.white.opacity(filled ? 1 : 0.88))
    .frame(width:diameter,height:diameter)
-   .background(Circle().fill(filled ? Noir.crimson : Color.white.opacity(0.08)))
-   .overlay(Circle().stroke(filled ? Noir.crimsonLight.opacity(0.5) : Color.white.opacity(0.12),lineWidth:1))
+   .background(Circle().fill(filled ? AnyShapeStyle(LinearGradient(colors:[Noir.crimsonLight.opacity(0.85),Noir.crimson],startPoint:.top,endPoint:.bottom)) : AnyShapeStyle(Color.white.opacity(0.07))))
+   .overlay(Circle().stroke(filled ? Color.white.opacity(0.22) : Color.white.opacity(0.10),lineWidth:1))
+   .shadow(color:filled ? Noir.crimson.opacity(0.35) : Color.clear,radius:16,y:4)
    .scaleEffect(configuration.isPressed ? 0.92 : 1)
    .opacity(configuration.isPressed ? 0.85 : 1)
    .animation(.spring(response:0.28,dampingFraction:0.6),value:configuration.isPressed)
@@ -6025,7 +6027,7 @@ extension CompanionInterfaceView {
    GeometryReader { geo in
     HStack {
      Spacer(minLength:0)
-     fridayStage(orb:min(max(geo.size.height * 0.30,170),300)).frame(width:min(max(geo.size.width * 0.55,520),760))
+     fridayStage(orb:min(max(geo.size.height * 0.36,190),360)).frame(width:min(max(geo.size.width * 0.55,520),760))
      Spacer(minLength:0)
     }
    }
@@ -7586,6 +7588,14 @@ secret and a private file does not (FileVault still encrypts the disk), and othe
 either one, since the previous "allow all applications" setting already allowed that. Nothing is in the repo, the settings or
 chat. CLAUDE.md was updated to match. To go back to the Keychain, ask Claude. The file read/write rules are in
 `checks/DataChecks.swift` and pass; the migration has not been run on the Mac.
+
+## A calmer look, in the style of a voice assistant (2026-10-05)
+
+Matthew asked for a more mellow crimson and "that type of UI" (a voice-assistant screen, like ChatGPT's voice mode). Changes:
+the crimson is softer and dustier everywhere (`Noir` in `FridayOrb.swift`: rosewood instead of neon red); the background is darker
+and quieter; the Friday page is bigger orb, a small centred "LIVE" line, softer captions, and fewer, calmer round buttons (the
+settings gear was removed from the stage; Settings stays on the left rail, Command-comma); the filled button is a soft crimson
+gradient. The orb, the corner popup and Friday's cursor pick up the new colours automatically. Not seen on the Mac yet.
 ```
 
 ## FILE: meeting-room/README.md

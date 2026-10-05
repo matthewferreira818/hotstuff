@@ -430,3 +430,11 @@ secret and a private file does not (FileVault still encrypts the disk), and othe
 either one, since the previous "allow all applications" setting already allowed that. Nothing is in the repo, the settings or
 chat. CLAUDE.md was updated to match. To go back to the Keychain, ask Claude. The file read/write rules are in
 `checks/DataChecks.swift` and pass; the migration has not been run on the Mac.
+
+## A calmer look, in the style of a voice assistant (2026-10-05)
+
+Matthew asked for a more mellow crimson and "that type of UI" (a voice-assistant screen, like ChatGPT's voice mode). Changes:
+the crimson is softer and dustier everywhere (`Noir` in `FridayOrb.swift`: rosewood instead of neon red); the background is darker
+and quieter; the Friday page is bigger orb, a small centred "LIVE" line, softer captions, and fewer, calmer round buttons (the
+settings gear was removed from the stage; Settings stays on the left rail, Command-comma); the filled button is a soft crimson
+gradient. The orb, the corner popup and Friday's cursor pick up the new colours automatically. Not seen on the Mac yet.

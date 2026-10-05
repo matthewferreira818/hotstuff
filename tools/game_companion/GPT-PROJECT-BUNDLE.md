@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit 258b7d7. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit aae07d2. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -55,7 +55,8 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 
 - `Companion.swift`: The app's entry point and the local (Ollama) conversation engine; the old UI kept for rollback.
 - `Live.swift`: Friday's live voice and screen session with Google Gemini over a WebSocket, plus the Google key.
-- `Keychain.swift`: Saves the app's logins in the Mac Keychain so the password box stops coming back.
+- `SecretFile.swift`: Saves each login or key as a private file (owner-only) on the Mac. No Mac frameworks; tested.
+- `Keychain.swift`: Where the app's secrets are read and saved: private files, with a one-time copy out of the old Keychain.
 - `Wiki.swift`: Free game-fact lookup (MetaBot, then the Minecraft wiki) that Friday calls as a tool.
 - `Clips.swift`: Twitch clips: separate clip-account sign-in, the clip button and the 'clip that' voice command.
 - `Conversation.swift`: Opt-in memory, stored on the Mac only, never in Git.
@@ -459,9 +460,9 @@ struct LegacyContentView: View {
  // Split out so each half type-checks quickly.
  @ViewBuilder var liveControls: some View {
   if live.hasKey {
-   HStack { Text("Google key saved in Keychain ✓"); Button("Remove key") { live.forgetKey() } }
+   HStack { Text("Google key saved on this Mac ✓"); Button("Remove key") { live.forgetKey() } }
   } else {
-   Text("First time: get a free key from Google (no card needed), paste it here and click Save key. It goes into your Mac's Keychain, not into any file.").font(.caption).foregroundStyle(.secondary)
+   Text("First time: get a free key from Google (no card needed), paste it here and click Save key. It is saved privately on this Mac (a file only your account can read), never in Git.").font(.caption).foregroundStyle(.secondary)
    HStack { Button("Get a free key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }; SecureField("Paste key here",text:$live.keyInput); Button("Save key") { live.saveKey() } }
   }
   HStack {
@@ -578,7 +579,7 @@ import AVFoundation
 import ScreenCaptureKit
 import Security
 
-// The Google key lives in the macOS Keychain, never in the app's files or settings.
+// The Google key is saved privately on this Mac (see Keychain.swift), never in Git, chat or the app's settings.
 enum GeminiKey {
  static let service = "GameCompanion.GeminiKey"
  // "Is a key saved?" never asks for a password. Reading the key itself can, so that happens once per run (see Keychain.swift).
@@ -692,9 +693,9 @@ enum GeminiKey {
   keyInput = ""
   guard !key.isEmpty else { return }
   hasKey = GeminiKey.save(key)
-  status = hasKey ? "Key saved in your Mac's Keychain." : "Couldn't save the key. Try again."
+  status = hasKey ? "Key saved privately on this Mac." : "Couldn't save the key. Try again."
  }
- func forgetKey() { stop(); GeminiKey.delete(); hasKey = false; status = "Key removed from the Keychain." }
+ func forgetKey() { stop(); GeminiKey.delete(); hasKey = false; status = "Key removed from this Mac." }
 
  func start(filter: SCContentFilter?, notes: String) {
   guard !running else { return }
@@ -1095,102 +1096,144 @@ enum GeminiKey {
 }
 ```
 
+## FILE: SecretFile.swift
+
+```swift
+import Foundation
+
+// Where the app keeps its logins and keys: one small private file per secret in
+// ~/Library/Application Support/GameCompanion/secrets (folder readable only by this Mac account, files too).
+// No Mac frameworks here, so it can be tested anywhere. See Keychain.swift for how it is used and why the Keychain was dropped.
+enum SecretFile {
+ static func folder() -> URL {
+  FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/secrets",isDirectory:true)
+ }
+
+ // Letters, digits, dot, dash and underscore only, so a service name can never point outside the folder.
+ static func fileName(_ service: String) -> String {
+  let safe = service.map { $0.isLetter || $0.isNumber || $0 == "." || $0 == "-" || $0 == "_" ? String($0) : "_" }.joined()
+  return (safe.isEmpty ? "_" : safe) + ".secret"
+ }
+
+ static func url(_ service: String,in directory: URL) -> URL { directory.appendingPathComponent(fileName(service)) }
+
+ static func exists(_ service: String,in directory: URL = folder()) -> Bool {
+  FileManager.default.fileExists(atPath:url(service,in:directory).path)
+ }
+
+ static func read(_ service: String,in directory: URL = folder()) -> Data? {
+  guard let data = try? Data(contentsOf:url(service,in:directory)), !data.isEmpty else { return nil }
+  return data
+ }
+
+ @discardableResult
+ static func write(_ service: String,_ data: Data,in directory: URL = folder()) -> Bool {
+  guard !data.isEmpty else { return false }
+  let manager = FileManager.default
+  do {
+   try manager.createDirectory(at:directory,withIntermediateDirectories:true,attributes:[.posixPermissions:0o700])
+   try manager.setAttributes([.posixPermissions:0o700],ofItemAtPath:directory.path)
+   let target = url(service,in:directory)
+   try data.write(to:target,options:.atomic)
+   try manager.setAttributes([.posixPermissions:0o600],ofItemAtPath:target.path)
+   return true
+  } catch {
+   return false
+  }
+ }
+
+ static func remove(_ service: String,in directory: URL = folder()) {
+  try? FileManager.default.removeItem(at:url(service,in:directory))
+ }
+}
+```
+
 ## FILE: Keychain.swift
 
 ```swift
 import Foundation
 import Security
 
-// One place for the app's Keychain secrets (the Google key and the Twitch login).
-// It fixes the "enter your password" box that came back after every rebuild:
-//  1. Asking "is it saved?" reads only the item's label, which never asks for a password. (The app used to read the
-//     secret itself at every launch, once per item.)
-//  2. The secret is read only when it is needed, once per run, and kept in memory after that.
-//  3. Items are saved so any application running as the player may read them without asking, which is the Keychain's
-//     "Allow all applications to access this item" setting. Old items are re-saved that way after the next successful read.
-// The secret stays in the login Keychain, encrypted and locked with the Mac login. The tradeoff: other software running
-// as the same user could read it without a prompt. That is fine for a free API key; it would not be for a bank password.
+// One place for the app's secrets (the Google key, the Twitch login, the GitHub posting key, the Stripe read-only key).
+//
+// They used to live in the macOS Keychain, and macOS asked for the Mac password again after every rebuild, even after
+// "Always Allow": the old Keychain ties its permission to the exact build of the app, and a self-made certificate can't make
+// that stable. So they now live in small private files (see SecretFile.swift): a folder only this Mac account can open.
+// What this changes, honestly: the Keychain encrypts each secret; a private file does not (FileVault, which encrypts the
+// whole disk, still does). Other software running as the same user could read either one, because the earlier "allow all
+// applications" setting already let it. Nothing is in the repo, in settings or in chat. The keys are free or revocable.
+//
+// Old Keychain items are copied into files once at start (migrateLegacy), which is the last time macOS can ask for the
+// password; each old item is deleted after it is copied.
 enum Keychain {
  nonisolated(unsafe) private static var cache: [String:Data] = [:]
+ private static let migratedKey = "secrets.migrated.v1"
 
  private static func base(_ service: String) -> [String:Any] {
   [kSecClass as String:kSecClassGenericPassword,kSecAttrService as String:service]
  }
- private static func openFlag(_ service: String) -> String { "keychain.open.\(service)" }
 
- // True if an item is saved. Reads only its label, so macOS never asks for a password.
- static func exists(_ service: String) -> Bool {
-  if cache[service] != nil { return true }
+ private static var migrated: Bool { UserDefaults.standard.bool(forKey:migratedKey) }
+
+ // Reads only the old item's label, which never asks for a password.
+ private static func legacyExists(_ service: String) -> Bool {
   var query = base(service)
   query[kSecReturnAttributes as String] = true
   query[kSecMatchLimit as String] = kSecMatchLimitOne
   return SecItemCopyMatching(query as CFDictionary,nil) == errSecSuccess
  }
 
- // Reads the secret. This is the call that can ask for a password, so it happens once per run.
- static func read(_ service: String) -> Data? {
-  if let hit = cache[service] { return hit }
+ // This is the call that can ask for the password (old items only).
+ private static func legacyRead(_ service: String) -> Data? {
   var query = base(service)
   query[kSecReturnData as String] = true
   query[kSecMatchLimit as String] = kSecMatchLimitOne
   var item: CFTypeRef?
-  guard SecItemCopyMatching(query as CFDictionary,&item) == errSecSuccess, let data = item as? Data else { return nil }
-  cache[service] = data
-  // One time only: an item made by an older build still asks. Re-save it so no application is asked again.
-  if !UserDefaults.standard.bool(forKey:openFlag(service)) {
-   let result = store(service,data)
-   if result.saved { UserDefaults.standard.set(result.open,forKey:openFlag(service)) }
+  guard SecItemCopyMatching(query as CFDictionary,&item) == errSecSuccess else { return nil }
+  return item as? Data
+ }
+
+ private static func legacyRemove(_ service: String) { SecItemDelete(base(service) as CFDictionary) }
+
+ // Copies each old Keychain item into a private file, once. Runs at start; any password box macOS shows now is the last one.
+ static func migrateLegacy(_ services: [String]) {
+  guard !migrated else { return }
+  for service in services where !SecretFile.exists(service) && legacyExists(service) {
+   if let data = legacyRead(service), SecretFile.write(service,data) {
+    cache[service] = data
+    legacyRemove(service)
+   }
   }
+  UserDefaults.standard.set(true,forKey:migratedKey)
+ }
+
+ // True if a secret is saved. Never asks for a password.
+ static func exists(_ service: String) -> Bool {
+  if cache[service] != nil || SecretFile.exists(service) { return true }
+  return !migrated && legacyExists(service)
+ }
+
+ // The saved secret, or nil. Kept in memory after the first read.
+ static func read(_ service: String) -> Data? {
+  if let hit = cache[service] { return hit }
+  if let data = SecretFile.read(service) { cache[service] = data; return data }
+  guard !migrated, let data = legacyRead(service) else { return nil }
+  if SecretFile.write(service,data) { legacyRemove(service) }
+  cache[service] = data
   return data
  }
 
  @discardableResult
  static func write(_ service: String,_ data: Data) -> Bool {
-  let result = store(service,data)
-  if result.saved {
-   cache[service] = data
-   UserDefaults.standard.set(result.open,forKey:openFlag(service))
-  }
-  return result.saved
+  guard SecretFile.write(service,data) else { return false }
+  cache[service] = data
+  return true
  }
 
  static func remove(_ service: String) {
-  SecItemDelete(base(service) as CFDictionary)
+  SecretFile.remove(service)
   cache[service] = nil
-  UserDefaults.standard.removeObject(forKey:openFlag(service))
- }
-
- // Saves with "any application may use this" access. If that can't be set up, it falls back to a normal save, so the
- // secret is never lost over this.
- private static func store(_ service: String,_ data: Data) -> (saved: Bool,open: Bool) {
-  SecItemDelete(base(service) as CFDictionary)
-  var add = base(service)
-  add[kSecValueData as String] = data
-  if let access = anyAppAccess(service) {
-   add[kSecAttrAccess as String] = access
-   if SecItemAdd(add as CFDictionary,nil) == errSecSuccess { return (true,true) }
-   add[kSecAttrAccess as String] = nil
-   SecItemDelete(base(service) as CFDictionary)
-  }
-  return (SecItemAdd(add as CFDictionary,nil) == errSecSuccess,false)
- }
-
- // An access object whose every rule says "any application may use this without asking". Returns nil if macOS refuses.
- private static func anyAppAccess(_ label: String) -> SecAccess? {
-  var created: SecAccess?
-  guard SecAccessCreate(label as CFString,nil,&created) == errSecSuccess, let access = created else { return nil }
-  var listed: CFArray?
-  guard SecAccessCopyACLList(access,&listed) == errSecSuccess, let rules = listed as? [AnyObject] else { return nil }
-  for rule in rules {
-   let acl = unsafeBitCast(rule,to:SecACL.self)
-   var apps: CFArray?
-   var description: CFString?
-   var selector = SecKeychainPromptSelector()
-   guard SecACLCopyContents(acl,&apps,&description,&selector) == errSecSuccess else { return nil }
-   // A nil application list means any application; an empty prompt selector means never ask for a passphrase.
-   guard SecACLSetContents(acl,nil,description ?? (label as CFString),SecKeychainPromptSelector(rawValue:0)) == errSecSuccess else { return nil }
-  }
-  return access
+  if legacyExists(service) { legacyRemove(service) }
  }
 }
 ```
@@ -1376,7 +1419,7 @@ import Cocoa
 import Security
 
 // Twitch login for the clip account. The Client ID is public (it only names the app), so it lives in
-// settings. The login tokens are secrets, so they live in the macOS Keychain, never in files or chat.
+// settings. The login tokens are secrets, so they are saved privately on this Mac (see Keychain.swift), never in Git or chat.
 enum TwitchTokens {
  static let service = "GameCompanion.TwitchTokens"
  // "Signed in?" never asks for a password. Reading the tokens can, so that happens once per run (see Keychain.swift).
@@ -1451,7 +1494,7 @@ enum TwitchTokens {
      if let access = reply["access_token"] as? String {
       let saved = TwitchTokens.save(["access":access,"refresh":reply["refresh_token"] as? String ?? ""])
       signedIn = saved; userCode = ""
-      status = saved ? "Signed in. Tokens are in your Mac's Keychain." : "Signed in, but the Keychain wouldn't save the login. Try again."
+      status = saved ? "Signed in. The login is saved privately on this Mac." : "Signed in, but this Mac wouldn't save the login. Try again."
       return
      }
      // "authorization_pending" just means he hasn't clicked Authorize yet.
@@ -1467,7 +1510,7 @@ enum TwitchTokens {
   }
  }
 
- func signOut() { loginTask?.cancel(); TwitchTokens.delete(); signedIn = false; userCode = ""; status = "Signed out. Login removed from the Keychain." }
+ func signOut() { loginTask?.cancel(); TwitchTokens.delete(); signedIn = false; userCode = ""; status = "Signed out. Login removed from this Mac." }
 
  // POSTs form fields and returns Twitch's JSON, whatever the status code (errors carry a "message").
  func form(_ url: String,_ fields: [String:String]) async throws -> [String:Any] {
@@ -1840,7 +1883,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; live.meeting = meeting; hands.attach(live); chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; live.meeting = meeting; hands.attach(live); chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
@@ -2029,7 +2072,7 @@ struct CompanionInterfaceView: View {
    HStack { VStack(alignment:.leading,spacing:5) { Label("Game window",systemImage:"rectangle.on.rectangle").font(.headline); Text(c.sharing ? (c.screenVerified ? "Access verified" : "Selected · not yet tested") : "No window shared").font(.caption).foregroundStyle(.secondary) }; Spacer(); Button("Choose window") { c.choose() }.disabled(DesignPreview.enabled); Button("Stop sharing") { live.stop(); c.stopScreen() }.disabled(!c.sharing) }
   }
   if c.tab == 0 {
-   HStack { Button(live.running ? "Stop live session" : "Start live session",systemImage:live.running ? "stop.circle" : "play.circle") { if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:conversation.page == 0 ? c.gameNotes : "") } }.buttonStyle(.borderedProminent).disabled(DesignPreview.enabled || !live.hasKey || !c.sharing); Text(live.hasKey ? "Google key saved in Keychain" : "Add your key in Settings").font(.caption).foregroundStyle(.secondary) }
+   HStack { Button(live.running ? "Stop live session" : "Start live session",systemImage:live.running ? "stop.circle" : "play.circle") { if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:conversation.page == 0 ? c.gameNotes : "") } }.buttonStyle(.borderedProminent).disabled(DesignPreview.enabled || !live.hasKey || !c.sharing); Text(live.hasKey ? "Google key saved on this Mac" : "Add your key in Settings").font(.caption).foregroundStyle(.secondary) }
   } else {
    HStack { Button(c.listening ? "Stop microphone" : "Listen",systemImage:"mic") { c.mic() }.disabled(DesignPreview.enabled || c.busy || !c.voiceReady); Text(c.voiceReady ? "Local voice available" : "Local speech unavailable").font(.caption).foregroundStyle(.secondary) }
   }
@@ -2108,7 +2151,7 @@ struct CompanionInterfaceView: View {
   Button("Delete all saved memory and topics",role:.destructive) { conversation.deleteConfirmation = true }.disabled(conversation.notes.isEmpty && conversation.proposals.isEmpty && !FileManager.default.fileExists(atPath:conversation.fileURL.path))
  }
  @ViewBuilder var googleSettings: some View {
-  if live.hasKey { HStack { Text("Google key saved in Keychain"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
+  if live.hasKey { HStack { Text("Google key saved on this Mac"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
   else { HStack { SecureField("Google API key",text:$live.keyInput); Button("Save key") { live.saveKey() }.disabled(DesignPreview.enabled); Button("Get a key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }.disabled(DesignPreview.enabled) } }
   Picker("Friday's job",selection:$live.role) { Text("Game buddy").tag(0); Text("Stream manager").tag(1) }.pickerStyle(.segmented).disabled(live.running)
   Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)
@@ -3500,7 +3543,7 @@ import Cocoa
   return String(data:data,encoding:.utf8)
  }
 
- // Posts to the thread as Matthew. Needs the GitHub key limited to Issues on one repo (saved in the Keychain).
+ // Posts to the thread as Matthew. Needs the GitHub key limited to Issues on one repo (saved privately on this Mac).
  func send() async {
   guard !sending else { return }
   let words = draft.trimmingCharacters(in:.whitespacesAndNewlines)
@@ -3554,7 +3597,7 @@ import Cocoa
  func saveToken() {
   if let problem = MeetingData.tokenProblem(tokenInput) { tokenNote = problem; return }
   let key = tokenInput.trimmingCharacters(in:.whitespacesAndNewlines)
-  guard Keychain.write(MeetingHub.tokenService,Data(key.utf8)) else { tokenNote = "Couldn't save the key to your Keychain."; return }
+  guard Keychain.write(MeetingHub.tokenService,Data(key.utf8)) else { tokenNote = "Couldn't save the key on this Mac."; return }
   tokenInput = ""
   hasToken = true
   tokenNote = "Saved. You can post from here now."
@@ -3771,7 +3814,7 @@ extension CompanionInterfaceView {
  @ViewBuilder var hubRoomTokenForm: some View {
   if meeting.hasToken {
    HStack(spacing:10) {
-    Label("Posting key saved in your Mac's Keychain",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
+    Label("Posting key saved privately on this Mac",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
     Spacer()
     Button("Remove key") { meeting.forgetToken() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
@@ -5664,7 +5707,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
  }
 }
 
-// Sales from Stripe, read-only. The restricted key lives in the Keychain; it is read at most once per run, on a refresh.
+// Sales from Stripe, read-only. The restricted key is saved privately on this Mac (see Keychain.swift); it is read at most once per run, on a refresh.
 @MainActor final class SalesHub: ObservableObject {
  static let service = "stripe-readonly"
  @Published var hasKey = Keychain.exists(SalesHub.service)
@@ -5677,7 +5720,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
  func save() {
   if let problem = StripeData.keyProblem(keyInput) { message = problem; return }
   let key = keyInput.trimmingCharacters(in:.whitespacesAndNewlines)
-  guard Keychain.write(SalesHub.service,Data(key.utf8)) else { message = "Couldn't save the key to your Keychain."; return }
+  guard Keychain.write(SalesHub.service,Data(key.utf8)) else { message = "Couldn't save the key on this Mac."; return }
   keyInput = ""
   hasKey = true
   message = ""
@@ -6506,7 +6549,7 @@ extension CompanionInterfaceView {
     LazyVGrid(columns:[GridItem(.adaptive(minimum:200),spacing:14)],spacing:14) {
      hubStat("Game window",c.sharing ? "Shared" : "None chosen",c.sharing ? "Friday can see it" : "Choose one to start",tint:c.sharing ? HubColor.green : Color.white)
      hubStat("Friday",live.running ? "Live" : "Asleep",live.running ? "Window and mic are shared with Google" : "Nothing is being sent",tint:live.running ? Noir.crimsonLight : Color.white)
-     hubStat("Google key",live.hasKey ? "Saved" : "Missing",live.hasKey ? "In your Mac's Keychain" : "Add it in Settings",tint:live.hasKey ? HubColor.green : Noir.crimsonLight)
+     hubStat("Google key",live.hasKey ? "Saved" : "Missing",live.hasKey ? "Saved privately on this Mac" : "Add it in Settings",tint:live.hasKey ? HubColor.green : Noir.crimsonLight)
     }
     HStack(spacing:12) {
      Button { hubSelect(.friday) } label: { Label("Open Friday",systemImage:"waveform") }.buttonStyle(PillButtonStyle())
@@ -6550,7 +6593,7 @@ extension CompanionInterfaceView {
  var hubAccounts: some View {
   ScrollView {
    VStack(alignment:.leading,spacing:12) {
-    Text("Logins live in your Mac's Keychain. You paste them into the app yourself, never into chat.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).padding(.bottom,4)
+    Text("Logins are saved privately on this Mac. You paste them into the app yourself, never into chat.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).padding(.bottom,4)
     hubAccountRow("google","waveform",Noir.crimson,"Google Gemini","Friday's voice and eyes.",live.hasKey ? "Connected" : "Not connected",live.hasKey ? HubColor.green : Noir.crimsonLight,live.hasKey ? "Manage" : "Connect") { hubGoogleForm }
     hubAccountRow("twitch","scissors",HubColor.violet,"Twitch","Makes clips when you ask and runs the Stream page.",clips.signedIn ? "Connected" : "Not connected",clips.signedIn ? HubColor.green : Noir.crimsonLight,clips.signedIn ? "Manage" : "Connect") { clipSettings }
     hubAccountRow("stocks","chart.line.uptrend.xyaxis",HubColor.green,"Stock bot snapshot","Reads the public practice snapshot. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
@@ -6716,7 +6759,7 @@ extension CompanionInterfaceView {
  @ViewBuilder var hubStripeForm: some View {
   if sales.hasKey {
    HStack(spacing:10) {
-    Label("Read-only key saved in your Mac's Keychain",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
+    Label("Read-only key saved privately on this Mac",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
     Spacer()
     Button("Refresh now") { Task { await sales.refresh(force:true) } }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))).disabled(sales.loading)
     Button("Remove key") { sales.forget() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
@@ -6733,11 +6776,11 @@ extension CompanionInterfaceView {
   }
  }
 
- // The Google key: get one free (no card needed), paste it, and it goes into the Keychain.
+ // The Google key: get one free (no card needed), paste it, and it is saved privately on this Mac.
  @ViewBuilder var hubGoogleForm: some View {
   if live.hasKey {
    HStack {
-    Label("Key saved in your Mac's Keychain",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
+    Label("Key saved privately on this Mac",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
     Spacer()
     Button("Remove key") { live.forgetKey() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
@@ -6825,7 +6868,7 @@ TMP=$(mktemp -d)
 
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,FridayHands,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,FridayHands,Hub}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -6966,7 +7009,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -7091,6 +7134,18 @@ import Foundation
   precondition(ChatPlan.outcome(code:401,json:[:]).note.contains("sign in again") && !ChatPlan.outcome(code:429,json:[:]).sent)
   let chatBody = try! JSONSerialization.jsonObject(with:ChatPlan.sendBody(broadcaster:"1",sender:"2",message:"hi")!) as! [String:String]
   precondition(chatBody == ["broadcaster_id":"1","sender_id":"2","message":"hi"])
+  // Secrets in private files: saved and read back, owner-only permissions, odd names can't escape the folder, empty is refused.
+  let vault = FileManager.default.temporaryDirectory.appendingPathComponent("SecretFileCheck-\(UUID().uuidString)")
+  precondition(SecretFile.write("GameCompanion.Test",Data("abc".utf8),in:vault) && SecretFile.read("GameCompanion.Test",in:vault) == Data("abc".utf8))
+  let secretAttrs = try! FileManager.default.attributesOfItem(atPath:SecretFile.url("GameCompanion.Test",in:vault).path)
+  let folderAttrs = try! FileManager.default.attributesOfItem(atPath:vault.path)
+  precondition((secretAttrs[.posixPermissions] as? NSNumber)?.intValue == 0o600 && (folderAttrs[.posixPermissions] as? NSNumber)?.intValue == 0o700)
+  precondition(SecretFile.write("GameCompanion.Test",Data("def".utf8),in:vault) && SecretFile.read("GameCompanion.Test",in:vault) == Data("def".utf8))
+  precondition(SecretFile.fileName("../../etc/passwd") == ".._.._etc_passwd.secret" && !SecretFile.fileName("a/b").contains("/"))
+  precondition(!SecretFile.write("empty",Data(),in:vault) && !SecretFile.exists("empty",in:vault))
+  SecretFile.remove("GameCompanion.Test",in:vault)
+  precondition(!SecretFile.exists("GameCompanion.Test",in:vault) && SecretFile.read("GameCompanion.Test",in:vault) == nil)
+  try? FileManager.default.removeItem(at:vault)
   print("All data checks passed.")
  }
 }
@@ -7517,6 +7572,20 @@ everyone). It needs the GitHub posting key in Accounts (the same one the Meeting
 instructions say never to pass on keys, passwords, addresses, phone numbers or private details; the app adds nothing of its own; at
 most 6 a hour; she is told not to promise an instant reply, because Claude and GPT read the room at their next check (Claude's daily
 routine, or when Matthew opens a chat). This is a relay, not a live link. Not run on the Mac.
+
+## Keys now live in private files, not the Keychain (2026-10-05)
+
+Matthew's report: macOS kept asking for the Mac password at launch (screenshot: "Game Companion wants to access key
+GameCompanion.GitHubIssuesToken"), and "Always Allow" didn't stick. Cause: the old file-based Keychain ties permission to the
+exact build of the app, which changes at every rebuild, and a self-made certificate can't make that stable. Fix: the Google key,
+the Twitch login, the GitHub posting key and the Stripe read-only key are now saved as private files in
+`~/Library/Application Support/GameCompanion/secrets` (folder 700, files 600; `SecretFile.swift`, tested), and `Keychain.swift` reads
+and writes those. On the first launch after this change, each old Keychain item is copied into a file once and then deleted
+(`Keychain.migrateLegacy`); that is the last password box macOS can show. What this changes, honestly: the Keychain encrypts each
+secret and a private file does not (FileVault still encrypts the disk), and other software running as the same user could read
+either one, since the previous "allow all applications" setting already allowed that. Nothing is in the repo, the settings or
+chat. CLAUDE.md was updated to match. To go back to the Keychain, ask Claude. The file read/write rules are in
+`checks/DataChecks.swift` and pass; the migration has not been run on the Mac.
 ```
 
 ## FILE: meeting-room/README.md
@@ -7595,6 +7664,7 @@ _Last updated: 2026-10-05 by Claude and GPT_
 - [GPT] Add frequency-claim detection to tools/claims_check.py ("3x a day", "posts three times daily", "every hour"), with tests, on a branch. The eight page fixes in claude-fixes-for-gpt.md are already done (see Decisions), so skip those. Status: assigned
 - [Claude] New this round: Friday's orb rewritten (aura, glass sphere, sparks, look bar), a Siri-style corner popup when Friday is live and the window is out of sight, drag-to-reorder rail icons, and a Stream page for Twitch (live status, title and category with presets, markers, clips, go-live checklist), and Friday's new job setting (Game buddy or Stream manager, default Stream manager) so she runs it by voice: am I live, change title or category, use a preset, mark a moment. Matthew's private chat with Friday now lives in the Meeting Room as its own channel, saved on his Mac only. A chat helper on the Stream page posts his saved links and reminders (store, Prime sub, follow) in his Twitch chat while he is live; off until he starts it. Not yet: answering !commands and deleting spam or banning. The Twitch reader and the chat and feed rules are tested here, and GPT compile-checked all of it on the Mac with zero errors (master 2dc0cfb). Not yet seen on screen or tried against live Twitch: waiting on Matthew connecting Twitch and sending screenshots. Status: waiting
 - [Claude] Friday hearing herself on speakers: new Sound output setting (Auto / Headphones / Speakers) with CoreAudio detection, and the mic pauses while she talks on speakers (new file AudioRoute.swift). GPT: please compile-check at your next room check. Matthew: rebuild and tell me if she still cuts herself off. Status: waiting
+- [Claude] Friday's hands (her own cursor, scrolling the shared window, no clicking) and a relay to the room (tell_the_team, team_messages). New file FridayHands.swift. GPT: compile-check at your next room check. Matthew: rebuild, switch it on in Settings, allow Accessibility when macOS asks, and try "Friday, scroll down". Status: waiting
 - [Claude] Meeting Room messages: thread (issue 15) that Matthew, Claude and GPT can all post to, a posting box in the app, a phone push when a message is for Matthew, and a daily check by Claude. Built and tested here; the app part has not been compiled on the Mac. Status: waiting
 - [Matthew] The Moncton group ad was submitted by Chrome Claude on 2026-10-05 and is waiting on the group's admins (not live, so no link yet). Next: have Chrome Claude delete the stale Aug 19 pending post and leave the new one pending; no more posts in that group until the admins respond. Status: waiting
 - [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 7". Status: waiting

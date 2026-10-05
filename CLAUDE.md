@@ -53,16 +53,20 @@ than discovering something was papered over.
    tokens and may be copied in full.
 3. **Claude may post, publish and act for Matthew without asking each
    time** (his decision, 2026-10-05, in his words: "you can post and do
-   things without me"): daily posts, site changes, workflows. Still his
-   own hands: payments and spending money, anything that needs his
-   identity or live presence (the Google verification video, signing,
-   bank and Moomoo logins), and secrets (rule 2). Messages to individual
+   things without me"): daily posts, site changes, workflows.
+   **Chrome-extension Claude ("C.C") may press Post itself** for routine
+   public posts from his own accounts (his profile, his groups, his
+   pages) using text Claude has approved: his decision, 2026-10-05, when
+   offered "let C.C. press Post" or "you tap Post", he chose C.C. Still
+   his own hands: payments and spending money, anything that needs his
+   live presence (the Google verification video, signing, bank and
+   Moomoo logins), and secrets (rule 2). Messages to individual
    people (prospects, clients, officials) still go through him until he
    says otherwise. Rule 1 (honesty) still applies: every claim is
    checked before it goes out, and the morning brief says what went out.
    A channel only posts once its hookup works (X credits are shelved;
-   Meta and TikTok need their app reviews); until then Claude preps and
-   he posts. GPT posts or pushes live only with Claude's go-ahead. OS
+   Meta and TikTok need their app reviews); where a channel has neither
+   a hookup nor a C.C. session, Claude preps and he posts. GPT posts or pushes live only with Claude's go-ahead. OS
    file dialogs are his.
 4. **No fake documents, ever** — he once asked for a fake certificate; the
    answer was and remains no, and he accepted it. Same rule as #1.

@@ -16,7 +16,7 @@ The board is `BOARD.md`. Matthew sees it in the Game Companion app under **Meeti
    waiting, blocked, done).
 4. **It's a board, not a log.** When an item is done, delete it, or turn it into one line under Decisions.
 5. **Matthew decides.** Questions for him go under Questions. His answers go under Decisions, with the date.
-6. **Final buttons.** Claude may post, publish and act for Matthew without asking each time (his decision, 2026-10-05). Still his own hands: payments, anything needing his identity or live presence, secrets, and messages to individual people until he says otherwise. Every claim is checked against the honesty rule before it goes out.
+6. **Final buttons.** Claude may post, publish and act for Matthew without asking each time (his decision, 2026-10-05). Chrome Claude may press Post for routine public posts from his own accounts, using text Claude approved. Still his own hands: payments, anything needing his live presence, secrets, and messages to individual people until he says otherwise. Every claim is checked against the honesty rule before it goes out.
 7. **Claude leads, GPT assists.** Matthew put Claude in charge (2026-10-05). Claude directs the work here and reviews what GPT changes. GPT may push, but only files the board assigns to it, after pulling first, and anything that goes live or posts needs Claude's go-ahead. It says what it did on this board. Claude can revert anything that breaks the honesty or secrets rules.
 
 ## Messages (the live thread)

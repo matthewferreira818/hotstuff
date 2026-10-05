@@ -37,7 +37,10 @@ SDK. The first rebuild on the Mac is the compile check.
 ## Install the upgrade
 
 1. `cd ~/hotstuff && git pull`
-2. Paste this into Codex, in the Game Companion chat:
+2. Easiest: run `zsh ~/hotstuff/tools/game_companion/rebuild.sh`. It compiles first, keeps
+   the old app as `outputs/GameCompanion-backup.app`, swaps in the new program, and re-signs
+   it with the app's existing identity.
+   Or paste this into Codex, in the Game Companion chat:
 
    > Copy ~/hotstuff/tools/game_companion/Companion.swift over outputs/Companion.swift
    > in this project. Rebuild and re-sign GameCompanion.app exactly the way you built

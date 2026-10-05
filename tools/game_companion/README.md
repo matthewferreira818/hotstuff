@@ -42,6 +42,9 @@ This folder holds the upgraded `Companion.swift` so it can travel through git.
    - Google Search grounding: a toggle, on by default, adds `tools: [{googleSearch: {}}]` so it
      looks up facts about new games instead of guessing. It runs on Google's side. Google's pricing
      page (2026-10-05) lists it as supported on the free tier for the 3.8 Live models.
+     **In practice the free key was refused:** "You exceeded your current quota" with Search on,
+     and it worked fine with Search off. So the toggle now defaults to off. If a session fails on
+     quota while Search is on, the app turns Search off and reconnects by itself.
    - Privacy differs from the Local tab: frames and mic audio go to Google while it's on, and
      Google's free tier may use them to improve its products.
 

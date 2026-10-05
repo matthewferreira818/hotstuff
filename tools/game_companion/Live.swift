@@ -35,7 +35,7 @@ enum GeminiKey {
  @Published var voice = UserDefaults.standard.string(forKey:"live.voice") ?? "Puck" { didSet { UserDefaults.standard.set(voice,forKey:"live.voice") } }
  @Published var liveModel = UserDefaults.standard.string(forKey:"live.model") ?? "gemini-3.8-live" { didSet { UserDefaults.standard.set(liveModel,forKey:"live.model") } }
  // Google Search runs on Google's side; the app never has to answer a tool call for it.
- @Published var search = UserDefaults.standard.object(forKey:"live.search") as? Bool ?? true { didSet { UserDefaults.standard.set(search,forKey:"live.search") } }
+ @Published var search = UserDefaults.standard.object(forKey:"live.search") as? Bool ?? false { didSet { UserDefaults.standard.set(search,forKey:"live.search") } }
  let voices = ["Puck","Charon","Kore","Fenrir","Aoede","Leda","Orus","Zephyr"]
 
  var socket: URLSessionWebSocketTask?
@@ -169,6 +169,14 @@ enum GeminiKey {
   frameTimer?.invalidate(); frameTimer = nil
   urlSession?.invalidateAndCancel(); urlSession = nil
   guard running && !stopping else { return }
+  // First live test (2026-10-05): with Search on, the free key got "You exceeded your current quota",
+  // and without Search it worked. Drop Search and carry on instead of ending the session.
+  if search && reason.lowercased().contains("quota"), let key = GeminiKey.load() {
+   search = false; resumeHandle = nil
+   connect(key:key)
+   status = "Google Search isn't in your free quota, so it's switched off. Reconnecting…"
+   return
+  }
   // Google ends every connection after about 10 minutes; resume the same conversation.
   if resumeHandle != nil && Date().timeIntervalSince(lastConnect) > 30, let key = GeminiKey.load() { connect(key:key); return }
   stop()

@@ -30,8 +30,6 @@ enum TwitchTokens {
  @Published var channel = UserDefaults.standard.string(forKey:"twitch.channel") ?? "" { didSet { UserDefaults.standard.set(channel,forKey:"twitch.channel") } }
  // Off until Matthew ticks it: lets the live buddy make a clip when he says "clip that".
  @Published var voiceClips = UserDefaults.standard.object(forKey:"twitch.voice") as? Bool ?? false { didSet { UserDefaults.standard.set(voiceClips,forKey:"twitch.voice") } }
- // Off until Matthew ticks it: lets the live buddy answer "am I live", change the stream title or category, use a preset and mark a moment.
- @Published var voiceStream = UserDefaults.standard.object(forKey:"twitch.voiceStream") as? Bool ?? false { didSet { UserDefaults.standard.set(voiceStream,forKey:"twitch.voiceStream") } }
  // After each clip: download it, cut the highlight and make a wide and a tall version on this Mac (see ClipEditor.swift).
  @Published var autoEdit = UserDefaults.standard.object(forKey:"twitch.autoEdit") as? Bool ?? true { didSet { UserDefaults.standard.set(autoEdit,forKey:"twitch.autoEdit") } }
  @Published var highlightSeconds = UserDefaults.standard.object(forKey:"twitch.highlight") as? Int ?? 25 { didSet { UserDefaults.standard.set(highlightSeconds,forKey:"twitch.highlight") } }

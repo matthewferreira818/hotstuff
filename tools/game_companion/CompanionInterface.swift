@@ -301,7 +301,6 @@ struct CompanionInterfaceView: View {
  @ViewBuilder var googleSettings: some View {
   if live.hasKey { HStack { Text("Google key saved on this Mac"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
   else { HStack { SecureField("Google API key",text:$live.keyInput); Button("Save key") { live.saveKey() }.disabled(DesignPreview.enabled); Button("Get a key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }.disabled(DesignPreview.enabled) } }
-  Picker("Friday's job",selection:$live.role) { Text("Game buddy").tag(0); Text("Stream manager").tag(1) }.pickerStyle(.segmented).disabled(live.running)
   Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)
   Toggle("Pop up in a corner when the window is out of sight while Friday is live",isOn:$corner.enabled)
   Picker("Corner",selection:$corner.position) { Text("Top right").tag(0); Text("Top left").tag(1); Text("Bottom right").tag(2); Text("Bottom left").tag(3) }.pickerStyle(.segmented).disabled(!corner.enabled)
@@ -335,7 +334,6 @@ struct CompanionInterfaceView: View {
     Button("Sign out of Twitch") { clips.signOut() }
    }
    Toggle("Let the buddy clip when I say \"clip it\" (set before starting it)",isOn:$clips.voiceClips).disabled(live.running)
-   Toggle("Let the buddy run my Stream page by voice: viewers, title, category, markers (set before starting it)",isOn:$clips.voiceStream).disabled(live.running)
    Toggle("Clean up each clip: download it and cut the highlight",isOn:$clips.autoEdit)
    Picker("Highlight length",selection:$clips.highlightSeconds) { Text("15 s").tag(15); Text("25 s").tag(25); Text("40 s").tag(40) }.pickerStyle(.segmented).disabled(!clips.autoEdit)
    Button("Open the clips folder") {

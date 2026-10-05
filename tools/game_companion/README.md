@@ -479,3 +479,10 @@ he tells her**, with an Allow box only for anything that could send or buy.
   number; quit, force-quit and Trash shortcuts. The lists match the app name, window title and button label, so they can miss a
   page that doesn't say what it is; the Allow box is the hard backstop. Parsed and the rules tested; the hands themselves,
   the box and the all-screens picture have not been run on the Mac.
+
+## One Friday, no job setting (2026-10-05)
+
+Matthew: "she doesn't need a Job, she can do both, no setting." The Friday's job picker (Game buddy / Stream manager) and the separate
+"run my Stream page by voice" switch are gone. There is one Friday: a friendly gaming buddy and also the stream manager. Her Twitch
+voice tools (am I live, title, category, presets, markers) are available whenever Twitch is connected, and still act only on his
+voice; "clip it" by voice keeps its own switch. Her instructions say to state stream facts only when a tool just returned them.

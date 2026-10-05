@@ -96,7 +96,7 @@ I'm going through Google's verification for my own business right now, so
 everything on this page is a process I'm walking through myself, not
 something I read about. I build automated systems for a living — my own store
 at findhotstuff.com runs itself and has published a new post to its feed
-every single day since August 4th. You can go check the counter.
+every single day since August 7th. You can go check the counter.
 
 **I'm new at selling this.** That's why the price is what it is, and why you
 don't pay until it's done.
@@ -136,7 +136,7 @@ Matthew Ferreira · Memramcook, New Brunswick
 
 **Three things on this page are claims, and here's the state of each:**
 
-1. *"published a new post to its feed every single day since August 4th"* —
+1. *"published a new post to its feed every single day since August 7th"* —
    **true today** (29 days, verifiable at findhotstuff.com/automation). Note
    it says **feed**, not "my Facebook page." Your ECS Facebook page was quiet
    Jul 29–Aug 19 and that wording would be a lie. Don't let anyone "tighten"

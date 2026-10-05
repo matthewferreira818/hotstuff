@@ -13,7 +13,7 @@ today's heat check 🔥 jewelry + beauty and more — all under one link #tiktok
 ## 🗼 Agent post (agent/) — caption
 
 ```
-what if your business posted every day without you touching it? 😴 my own store's feed has published a new post every day since August 4 — automatically. now building the same thing for local shops #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton
+what if your business posted every day without you touching it? 😴 my own store's feed has published a new post every day since August 7 — automatically. now building the same thing for local shops #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton
 ```
 
 > 🎵 Add a trending sound to each in-app. Product post: upbeat. Agent post: something calm/lofi reads as 'systems humming'.

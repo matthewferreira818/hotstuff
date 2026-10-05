@@ -164,7 +164,7 @@ AGENT_STORIES = [
         "receipts": "what the engine ran",
         "cta": ("this is the service", "not just my store"),
         "caption": ("what if your business posted every day without you touching it? \U0001F634 "
-                    "my own store's feed has published a new post every day since August 4 — "
+                    "my own store's feed has published a new post every day since August 7 — "
                     "automatically. now building the same thing for local shops #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
     },
     {
@@ -174,7 +174,7 @@ AGENT_STORIES = [
         "receipts": "the difference",
         "cta": ("keep your page alive", "without touching it"),
         "caption": ("most local business pages went quiet months ago \U0001F4A4 my own store's "
-                    "feed hasn't missed a day since August 4 — because nobody has to remember. building it for "
+                    "feed hasn't missed a day since August 7 — because nobody has to remember. building it for "
                     "local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick"),
     },
     {

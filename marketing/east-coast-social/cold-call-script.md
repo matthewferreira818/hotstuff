@@ -42,7 +42,7 @@ Stop. Let them say okay. That pause is what separates you from a robocall.
 > once and then never touch it."**
 
 > **"My own store's feed has published a new post every single day since
-> August 4th. You can go look at it right now — findhotstuff.com/automation.
+> August 7th. You can go look at it right now — findhotstuff.com/automation.
 > That's the whole sales pitch, honestly: go look."**
 
 > ⚠️ **Check the page before you dial.** The counter line at the top says

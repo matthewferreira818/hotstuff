@@ -2,7 +2,7 @@
 
 Pages checked by C.C on 2026-09-26: four SEND, two SKIP, plus LeBlanc
 Restaurant's email found. **You press Send on every one.** Emails go from
-**ceohotstuff@yahoo.com**. The streak line says "since August 4", so it
+**ceohotstuff@yahoo.com**. The streak line says "since August 7", so it
 stays true on whatever day you send (the feed is at 54 days today).
 
 After sending, log each one in `prospects.md` (date + "email sent" / "DM sent").
@@ -96,7 +96,7 @@ asked for email.
 > the look once.
 >
 > Free setup, free first week, then $79/month, cancel anytime. My own
-> store's feed has published a new post every day since August 4:
+> store's feed has published a new post every day since August 7:
 > findhotstuff.com/automation
 >
 > Want me to make a sample week for you first? Just reply.

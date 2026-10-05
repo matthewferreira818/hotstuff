@@ -1,11 +1,11 @@
-title: A posting engine that has run 54 days without me — and the twelve characters that stop it lying
+title: A posting engine that has run 51 days without me — and the twelve characters that stop it lying
 description: The architecture of a daily automated posting pipeline on GitHub Actions, why the scheduler runs hours late, and the one condition that makes the streak claim retract itself the day it stops being true.
 date: 2026-09-26
 draft: true
 ---
 
 My store's companion page publishes a new post every day. As I write this
-it has done so **54 days running, since August 4th, 2026** — you can check
+it has done so **51 days running, since August 7th, 2026** — you can check
 the live count and the dated feed at
 [findhotstuff.com/automation](https://findhotstuff.com/automation).
 
@@ -59,7 +59,7 @@ fires first win so the rest no-op.
 ## The part I actually want to tell you about
 
 Here is the problem. The page says the feed has published every single day
-since August 4th. That is true today. The day a run genuinely fails, it
+since August 7th. That is true today. The day a run genuinely fails, it
 becomes false — and it becomes false *silently*, on a live page, in front
 of the exact people I am asking to trust me.
 

@@ -32,7 +32,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 |---|---|---|
 | Carlos Barber Shop (22 Lansdowne St) | barber | 📞 CALLED 08-04 — voicemail left (touch 1). Call back once in a few days; if no answer, walk-in prospect. ⚠️ IG @carlos.barbershop is a DIFFERENT shop (Dominican Republic), do not DM |
 | Steel Clippers Barbershop (80 Main St) | barber | ✅ active (posted Jul 28, checked 07-29) — one-person shop (Tammy), walk-in only |
-| 150 Bridge Salon | salon | 🎯 DM SENT 07-29, no reply. Still quiet: last post Apr 14 (C.C 09-26). Follow-up DM with sample link prepped (send sheet 09-26). fb.com/150bridgesalon |
+| 150 Bridge Salon | salon | 🎯 DM SENT 07-29, no reply. Still quiet: last post Apr 14 (C.C 09-26). Follow-up DM with sample link prepped (send sheet 09-26). fb.com/150bridgesalon · C.C check 10-05: page now has NO Message button (messaging off). Rest; no other route to message it. Walk-in or phone only. |
 | Looking Good Hair Design | salon | ❌ NOT local — fb match is Maroochydore, Australia; no NB page found (07-29). Drop. |
 | A Touch of Class Hair & Tanning | salon | ❌ no NB page found (07-29). Drop or verify by phone book. |
 | Summit Hair Studio | salon | ❌ no NB page found (07-29). Drop or verify by phone book. |
@@ -75,7 +75,7 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Kelly's Bake Shop | Cap-Pele | bakery | 🎯 DM SENT 08-03 (extension-assisted, dead feed) |
 | A & M Auto Repair | Dieppe | auto repair shop | no social seen in search; reviews call it 'the most honest garage' |
 | Blue Olive | Dieppe | Mediterranean (Tunisian/Lebanese) restaurant | no social seen in search |
-| Boulangerie Tony | Dieppe | bakery/café | FB page (facebook.com/Boulangerie.Tony) and Instagram (@boulangerie.tony) both exist |
+| Boulangerie Tony | Dieppe | bakery/café | FB page (facebook.com/Boulangerie.Tony) and Instagram (@boulangerie.tony) both exist · ✅ ACTIVE (posted 2 days before 10-05, C.C check). Skip; re-check in a month. |
 | CAVOK Brewing Co. | Dieppe | craft brewery/brewpub | 🔥 HOT LEAD: 08-04 owner call + samples-offer text · 08-06 bump sent (samples MADE — 7-card week in repo, Runway 11 name-drop). Bump READ 08-06 8:57am, no reply (normal). 08-07 called ahead — Serge not in; walk-in NOT attempted (4 touches already, no reply). STATUS: warm but not pulling. NEXT: only when we learn a day he's actually in — one clean visit with the printed pack. No more texts/calls until he moves. Pack keeps indefinitely. |
 | Cremerie Bennic Dairy Bar | Dieppe | ice cream / dairy bar | no social seen in search |
 | Flying Boats Brewing | Dieppe | craft brewery | no social seen in search |
@@ -88,10 +88,10 @@ _71 small-biz + 70 medium-biz candidates from directory/web sweeps (memramcook.c
 | Rossano's Italian Grill | Dieppe | Italian restaurant | no social seen in search |
 | Sugar Roll Japanese Cuisine | Dieppe | Japanese/sushi restaurant | no social seen in search |
 | The Madras Cafe | Dieppe | South Indian restaurant | no social seen in search |
-| High Tide Homestead and Cattle | Dorchester | farm/meat sales | FB page exists (linked in directory) |
+| High Tide Homestead and Cattle | Dorchester | farm/meat sales | FB page exists (linked in directory) · ⏳ C.C check 10-05: last post Jun 17 2023, messaging on, identity unconfirmed (page lists no location; only page by that name). First message waits for Matthew's go. |
 | Maplehurst Manor B&B | Dorchester | bed and breakfast | has own website (maplehurstmanor.com); no social noted |
-| Peep and Keep Ecotique | Dorchester | eco boutique/gift shop | FB page exists (linked in directory) |
-| Village Square Takeout | Dorchester | takeout restaurant | FB page exists (linked in directory) |
+| Peep and Keep Ecotique | Dorchester | eco boutique/gift shop | FB page exists (linked in directory) · ⏳ C.C check 10-05: last post Nov 29 2025; a Jun 2025 post says the collection moved to the Keillor House Museum, so it may be winding down. HOLD unless confirmed still trading. |
+| Village Square Takeout | Dorchester | takeout restaurant | FB page exists (linked in directory) · ✅ ACTIVE (daily specials, C.C check 10-05). Skip; re-check in a month. |
 | Willow Farm | Dorchester | farm/produce | has own website (willowfarmnb.ca); no social noted |
 | The Thirsty Whippet Pub | Dorchester (Tantramar) | pub |  |
 | Ocean View Park Restaurant | Grand-Barachois | restaurant (Canadian cuisine, Route 133) |  |

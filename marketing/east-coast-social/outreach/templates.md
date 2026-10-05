@@ -11,11 +11,11 @@ French version:
 > Matthew Ferreira · East Coast Social · {ADDRESS} · (506) 889-9737 · findhotstuff.com/automation
 > Pas intéressé? Répondez simplement « non merci » et je ne vous écrirai plus.
 
-Fill `[Business]` with the real name and `[month]` with the month of the page's real last post (C.C reads it). If the page has
+Fill `[Business]` with the real name and `[month year]` with the month and year of the page's real last post (C.C reads it; always give the year, so an old post isn't mistaken for this year's). If the page has
 posted within the last month, do not send.
 
 ## 1. First message, English (no sample made yet)
-> Hi! I'm Matthew, a local from Memramcook. I noticed [Business] hasn't posted on its page since [month].
+> Hi! I'm Matthew, a local from Memramcook. I noticed [Business] hasn't posted on its page since [month year].
 >
 > I run East Coast Social. My own store's feed has published a new post every day since August 7, and you can see it at
 > findhotstuff.com/automation. I'd do the same for your page: you approve the look once, and I take care of the daily posts, the way I do on my own store's feed.
@@ -26,7 +26,7 @@ posted within the last month, do not send.
 > {FOOTER}
 
 ## 2. First message, French
-> Bonjour! Je m'appelle Matthew, je suis de Memramcook. J'ai remarqué que [Business] n'a rien publié sur sa page depuis [mois].
+> Bonjour! Je m'appelle Matthew, je suis de Memramcook. J'ai remarqué que [Business] n'a rien publié sur sa page depuis [mois année].
 >
 > J'offre East Coast Social. Le fil de mon propre magasin publie une nouvelle publication chaque jour depuis le 7 août
 > (findhotstuff.com/automation). Je ferais la même chose pour votre page : vous approuvez le style une fois, et je m'occupe des

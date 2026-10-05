@@ -368,7 +368,12 @@ struct ContentView: View {
    Toggle("I'm wearing headphones",isOn:$live.headphones)
   }
   HStack { Text("Live model"); TextField("Model",text:$live.liveModel).disabled(live.running) }
-  Toggle("Let it search Google for game facts (items, bosses, quests)",isOn:$live.search).disabled(live.running)
+  Toggle("Look up game facts for free (MetaBot and the Minecraft wiki)",isOn:$live.wiki).disabled(live.running)
+  Toggle("Google Search instead (didn't work on the free key)",isOn:$live.search).disabled(live.running)
+  Picker("Usage",selection:$live.lowUsage) {
+   Text("Low (looks while you talk)").tag(true)
+   Text("Full (1 look a second)").tag(false)
+  }.pickerStyle(.segmented)
   HStack {
    Button(live.running ? "Stop live buddy" : "Start live buddy") {
     if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:c.gameNotes) }
@@ -380,7 +385,7 @@ struct ContentView: View {
   Text(live.status).font(.callout).foregroundStyle(.secondary)
   if !live.heard.isEmpty { Text("You: \(live.heard)").font(.callout) }
   ScrollView { Text(live.said.isEmpty ? "What your buddy says appears here." : live.said).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled) }.frame(minHeight:100)
-  Text("While it's on, Live buddy sends one picture a second of the chosen window, plus your microphone, to Google. Google's free tier may use that data to improve its products. Nothing is saved on this Mac. Use headphones, or untick the box so it doesn't hear itself.").font(.caption).foregroundStyle(.secondary)
+  Text("While it's on, Live buddy sends pictures of the chosen window (mostly while you talk, in Low usage) plus your microphone to Google. Google's free tier may use that data to improve its products. When it looks something up, only the name it's looking up goes to MetaBot or the Minecraft wiki. Nothing is saved on this Mac. Use headphones, or untick the box so it doesn't hear itself.").font(.caption).foregroundStyle(.secondary)
  }
  @ViewBuilder var localControls: some View {
   Toggle("Hands-free conversation (use headphones)",isOn:$c.handsFree).disabled(!c.voiceReady)

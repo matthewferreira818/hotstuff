@@ -48,9 +48,28 @@ This folder holds the upgraded `Companion.swift` so it can travel through git.
    - Privacy differs from the Local tab: frames and mic audio go to Google while it's on, and
      Google's free tier may use them to improve its products.
 
+8. **Free game-fact lookup** (2026-10-05, `Wiki.swift`): replaces Google Search, which the free key
+   refused ("exceeded your current quota"). The buddy gets a `lookup_game_wiki(query)` tool through
+   Live API function calling. The app answers it by trying MetaBot first (exact tier numbers from the
+   game files, by page name for enchantments, effects, weapons, talismans, artifacts and armor) and then
+   the Minecraft wiki's "Dungeons II:" pages (bosses, mobs, quests). Only the name being looked up leaves
+   the Mac. Search and Lookup can't both be on. Lookups take about 0.6-1.7 seconds. `Wiki.swift` was
+   compiled and run on Linux against both live sites; gear, enchantments, effects, bosses and a miss all
+   returned sensible text. NOT yet verified: that `gemini-3.8-live` accepts the tool declaration, since
+   the Google docs page for it showed only the Python shape. If Google refuses it, the grey status
+   line shows the reason; untick the lookup switch to run without it.
+9. **Low usage mode** (default on): the free key has a daily allowance, so pictures go out about once a
+   second only while Matthew is talking (the mic hears speech, or Google reports a transcript), plus one
+   glance every 15 seconds when it's quiet. That's roughly 85% fewer pictures than Full. The pictures
+   stay 1024 x 576 so on-screen text stays readable. Audio still streams the whole time. Which exact
+   Google limit was hit (per minute or per day) is not known yet; aistudio.google.com/rate-limit shows it.
+10. Typing a question while the buddy is off now says "Click Start live buddy first" instead of nothing.
+
 The Local tab keeps the same AI and the same privacy as before.
-This copy was syntax-checked with `swiftc -parse` on Linux but not compiled, because the
-cloud machine has no Mac SDK. The first rebuild on the Mac is the full compile check.
+`Companion.swift` and `Live.swift` were syntax-checked with `swiftc -parse` on Linux but not compiled,
+because the cloud machine has no Mac SDK; the new JSON message shapes were type-checked in a small
+Foundation-only harness. `Wiki.swift` was fully compiled and run. The first rebuild on the Mac is the
+full compile check.
 
 ## Install the upgrade
 

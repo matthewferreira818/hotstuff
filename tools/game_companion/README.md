@@ -56,7 +56,7 @@ cloud machine has no Mac SDK. The first rebuild on the Mac is the full compile c
 
 1. `cd ~/hotstuff && git pull`
 2. Easiest: run `zsh ~/hotstuff/tools/game_companion/rebuild.sh`. It compiles first, keeps
-   the old app as `outputs/GameCompanion-backup.app`, swaps in the new program, and re-signs
+   the old app as `outputs/GameCompanion-backup.zip`, swaps in the new program, and re-signs
    it with the app's existing identity.
    Or paste this into Codex, in the Game Companion chat:
 

@@ -102,3 +102,10 @@ certificate, which `rebuild.sh` uses automatically when it exists:
 3. Rebuild. If macOS asks to let codesign use the key, enter the Mac password and choose Always Allow.
 4. Redo the screen permission and the Keychain "Always Allow" one last time.
 
+## What the buddy last saw (2026-10-05)
+
+First live test: the buddy described a screenshot Matthew had taken earlier, not his screen. The app now
+shows a small preview of the last picture it sent to Google ("What the buddy saw last", with a count), kept
+in memory only and cleared on Stop. The instructions also tell the buddy the pictures are live captures,
+not files from his storage. The cause of the stale picture is not known yet; the preview should show it.
+

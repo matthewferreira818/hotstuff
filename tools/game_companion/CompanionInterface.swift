@@ -75,6 +75,12 @@ struct CompanionInterfaceView: View {
   GroupBox {
    VStack(alignment:.leading,spacing:10) {
     Text(c.tab == 0 ? live.status : c.status).font(.caption).foregroundStyle(.secondary)
+    if c.tab == 0, let seen = live.lastSeen {
+     HStack(spacing:10) {
+      Image(nsImage:seen).resizable().scaledToFit().frame(height:68).clipShape(RoundedRectangle(cornerRadius:6))
+      Text("What the buddy saw last · \(live.picturesSent) pictures sent. This preview stays in memory only.").font(.caption).foregroundStyle(.secondary)
+     }
+    }
     if c.tab == 0 && !live.heard.isEmpty { Text("You: \(live.heard)").font(.callout).foregroundStyle(.secondary) }
     Text(currentReply.isEmpty ? "Your companion's reply will appear here." : currentReply).font(.body).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.leading).frame(minHeight:90,alignment:.topLeading)
    }

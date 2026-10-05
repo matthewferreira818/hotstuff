@@ -39,6 +39,7 @@ FILES = [
     ("FridayFeed.swift", "The Feed page and its store: what Matthew and Friday said, saved on this Mac only."),
     ("ChatData.swift", "The chat helper's rules and Twitch reply reading (no Mac frameworks). Tested."),
     ("ChatHelper.swift", "The chat helper: posts Matthew's saved links and reminders in his Twitch chat while he is live."),
+    ("AudioRoute.swift", "Tells headphones from speakers (CoreAudio) so the mic can pause while Friday talks on speakers."),
     ("Hub.swift", "The hub: sidebar sections, Home, Stock, Store, ECS, Systems, Launchpad, Game and Accounts pages."),
     ("rebuild.sh", "Builds the app with swiftc (no Xcode), signs it and installs it."),
     ("make_cert.sh", "One-time: makes the self-signed signing certificate so permissions and Keychain trust stick."),

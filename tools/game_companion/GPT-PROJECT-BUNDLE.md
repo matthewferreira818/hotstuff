@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit 9e37d08. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit b6d8397. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -76,6 +76,7 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `FridayFeed.swift`: The Feed page and its store: what Matthew and Friday said, saved on this Mac only.
 - `ChatData.swift`: The chat helper's rules and Twitch reply reading (no Mac frameworks). Tested.
 - `ChatHelper.swift`: The chat helper: posts Matthew's saved links and reminders in his Twitch chat while he is live.
+- `AudioRoute.swift`: Tells headphones from speakers (CoreAudio) so the mic can pause while Friday talks on speakers.
 - `Hub.swift`: The hub: sidebar sections, Home, Stock, Store, ECS, Systems, Launchpad, Game and Accounts pages.
 - `rebuild.sh`: Builds the app with swiftc (no Xcode), signs it and installs it.
 - `make_cert.sh`: One-time: makes the self-signed signing certificate so permissions and Keychain trust stick.
@@ -600,7 +601,13 @@ enum GeminiKey {
  @Published var typed = ""
  @Published var keyInput = ""
  @Published var hasKey = GeminiKey.isSaved
- @Published var headphones = true
+ // Where the sound goes: 0 Auto (the app checks), 1 headphones, 2 speakers. On speakers the mic pauses while Friday talks, so she
+ // can't hear herself (the cause of her cutting off and writing down her own words).
+ @Published var output = UserDefaults.standard.object(forKey:"live.output") as? Int ?? 0 { didSet { UserDefaults.standard.set(output,forKey:"live.output") } }
+ // Kept for the older window: ticking it picks headphones, unticking picks speakers.
+ var headphones: Bool { get { headphonesNow() } set { output = newValue ? 1 : 2 } }
+ private var routeCheckedAt = Date.distantPast
+ private var routeHeadphones = false
  @Published var voice = LiveBuddy.initialVoice() { didSet { UserDefaults.standard.set(voice,forKey:"live.voice") } }
  // Friday's job: 0 game buddy (talks about the game), 1 stream manager (runs the Stream page by voice and keeps to stream facts from Twitch).
  @Published var role = UserDefaults.standard.object(forKey:"live.role") as? Int ?? 1 { didSet { UserDefaults.standard.set(role,forKey:"live.role") } }
@@ -985,10 +992,22 @@ enum GeminiKey {
   do { try engine.start(); player.play() } catch { status = "Sound couldn't start: \(error.localizedDescription)" }
  }
 
+ // Auto checks what the Mac is playing through at most every 3 seconds, so plugging in headphones is noticed.
+ func headphonesNow() -> Bool {
+  switch output {
+  case 1: return true
+  case 2: return false
+  default:
+   if Date().timeIntervalSince(routeCheckedAt) > 3 { routeCheckedAt = Date(); routeHeadphones = AudioRoute.headphonesInUse() }
+   return routeHeadphones
+  }
+ }
+
  func sendAudio(_ data: Data, loud: Bool, level: Double) {
   guard ready else { return }
-  // On speakers the mic would hear the buddy and it would answer itself, so stay quiet while it talks.
-  if !headphones && Date() < speakingUntil { return }
+  // On speakers the mic would hear the buddy and it would answer itself, so stay quiet while it talks and for a moment after
+  // (the speaker and the room keep sounding a little after the last sample is played).
+  if !headphonesNow() && Date() < speakingUntil.addingTimeInterval(0.6) { return }
   micLevel = level; micLevelAt = Date()
   if loud {
    // The player just started talking: grab a picture now, so the answer matches what they're asking about.
@@ -2073,7 +2092,8 @@ struct CompanionInterfaceView: View {
    HStack { Text("Picture every"); Slider(value:$live.frameGap,in:1...5,step:1); Text("\(Int(live.frameGap)) s").monospacedDigit() }
    Text("Steady sends a picture on a timer, whether you talk or not. Shorter gaps use the free allowance faster. Google allows at most one picture per second.").font(.caption).foregroundStyle(.secondary)
   }
-  Toggle("I'm wearing headphones",isOn:$live.headphones)
+  Picker("Sound output",selection:$live.output) { Text("Auto").tag(0); Text("Headphones").tag(1); Text("Speakers").tag(2) }.pickerStyle(.segmented)
+  Text("On speakers the mic pauses while Friday talks, so she can't hear herself (you can't interrupt her then). On headphones the mic stays open so you can. Auto picks by what your Mac is playing through; if she still hears herself, choose Speakers.").font(.caption).foregroundStyle(.secondary)
   clipSettings
  }
  // Twitch clips: a separate Twitch account makes clips of the stream when asked (see Clips.swift and the README).
@@ -5078,6 +5098,40 @@ extension CompanionInterfaceView {
 }
 ```
 
+## FILE: AudioRoute.swift
+
+```swift
+import CoreAudio
+import Foundation
+
+// Is the Mac playing through headphones, or through speakers? On speakers the microphone hears Friday's own voice, so the app
+// pauses the mic while she talks (see LiveBuddy.sendAudio). On headphones it can stay open, so Matthew can interrupt her.
+// When this can't tell, it answers "speakers": pausing the mic only costs the chance to interrupt, while a wrong
+// "headphones" makes her hear herself and cut off.
+enum AudioRoute {
+ // Built-in output with the headphone jack in use, or Bluetooth (AirPods and similar). Anything else counts as speakers,
+ // including HDMI/monitor speakers, AirPlay and USB (a USB headset can be set by hand in Settings).
+ static func headphonesInUse() -> Bool {
+  var device = AudioObjectID(kAudioObjectUnknown)
+  var size = UInt32(MemoryLayout<AudioObjectID>.size)
+  var address = AudioObjectPropertyAddress(mSelector:kAudioHardwarePropertyDefaultOutputDevice,mScope:kAudioObjectPropertyScopeGlobal,mElement:kAudioObjectPropertyElementMain)
+  guard AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject),&address,0,nil,&size,&device) == noErr, device != AudioObjectID(kAudioObjectUnknown) else { return false }
+  var transport: UInt32 = 0
+  size = UInt32(MemoryLayout<UInt32>.size)
+  address = AudioObjectPropertyAddress(mSelector:kAudioDevicePropertyTransportType,mScope:kAudioObjectPropertyScopeGlobal,mElement:kAudioObjectPropertyElementMain)
+  guard AudioObjectGetPropertyData(device,&address,0,nil,&size,&transport) == noErr else { return false }
+  if transport == kAudioDeviceTransportTypeBluetooth || transport == kAudioDeviceTransportTypeBluetoothLE { return true }
+  guard transport == kAudioDeviceTransportTypeBuiltIn else { return false }
+  // The built-in output says which port is in use: 'hdpn' is the headphone jack, 'ispk' the internal speakers.
+  var source: UInt32 = 0
+  size = UInt32(MemoryLayout<UInt32>.size)
+  address = AudioObjectPropertyAddress(mSelector:kAudioDevicePropertyDataSource,mScope:kAudioObjectPropertyScopeOutput,mElement:kAudioObjectPropertyElementMain)
+  guard AudioObjectGetPropertyData(device,&address,0,nil,&size,&source) == noErr else { return false }
+  return source == 0x6864_706E
+ }
+}
+```
+
 ## FILE: Hub.swift
 
 ```swift
@@ -6428,7 +6482,7 @@ TMP=$(mktemp -d)
 
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,FeedData,FridayFeed,ChatData,ChatHelper,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,Hub}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -7086,6 +7140,18 @@ the reply reading are in `checks/DataChecks.swift` and pass; the posting itself 
 message says Prime members get one free channel sub a month; Twitch's own pages could not be re-read from this build machine, so
 Matthew should check that wording against what Twitch offers today. NOT built yet: answering viewers' commands like `!store` (needs
 reading chat), and deleting spam or banning (needs the moderator permissions and a clear rule about who gets timed out).
+
+## Friday hearing herself on speakers (2026-10-05)
+
+Matthew's report: the mic was "really sensitive": on speakers Friday heard her own voice, cut herself off and wrote her own words
+into what she "heard". Cause: the old "I'm wearing headphones" box defaulted to ticked, which keeps the mic open while she talks.
+Fix: Settings now has **Sound output: Auto / Headphones / Speakers** (default Auto). `AudioRoute.swift` asks CoreAudio what the Mac
+is playing through (built-in output with the headphone jack in use, or Bluetooth, counts as headphones; everything else, including
+HDMI/monitor speakers, AirPlay and USB, counts as speakers; when it can't tell it says speakers). On speakers the mic is not sent
+to Google while she is talking, plus 0.6 seconds after her estimated last sample (the speaker and room keep sounding a little
+after). Cost: on speakers you can't interrupt her by voice. If it still happens, choose Speakers by hand. Auto re-checks every 3
+seconds. NOT done: echo cancellation with Apple's voice processing, which would let you interrupt on speakers; it can also lower the
+game's own volume and couldn't be tried from here. Parsed only; not run on the Mac.
 ```
 
 ## FILE: meeting-room/README.md
@@ -7155,18 +7221,19 @@ scheduled tasks, twice a day. Nobody can watch it live, so replies are not insta
 ```markdown
 # Meeting Room board
 
-_Last updated: 2026-10-05 by Claude_
+_Last updated: 2026-10-05 by Claude and GPT_
 
 ## On the table
 - [Claude] Twitch clips: say "clip it", it makes the Twitch clip, downloads it, and cuts a tight highlight (wide and tall versions) into Movies > Game Companion Clips. Built and pushed; it compiles on the Mac and the loudness maths is tested, but the video export and the Twitch download have not been run yet. Status: waiting
 - [Matthew] Rebuild the app, sign out of Twitch in Settings and sign in again (one new permission is needed to download clips), then say "clip it" while live. Status: waiting
 - [Claude] After the first clip test works: swap the older Apple calls in ClipEditor.swift (asset reader, video composition) for the newer ones Apple recommends; GPT compile-checks the swap. Not urgent: the old ones still work. Status: waiting
 - [GPT] Add frequency-claim detection to tools/claims_check.py ("3x a day", "posts three times daily", "every hour"), with tests, on a branch. The eight page fixes in claude-fixes-for-gpt.md are already done (see Decisions), so skip those. Status: assigned
-- [GPT] Compile-check master (now 92b3eeb; includes Friday's voice tools for the Stream page) on the Mac: the new orb, corner popup, movable rail and Stream page. Command is in the thread (issue 15). Report errors by file and line; don't edit the files. Status: assigned
-- [Claude] New this round: Friday's orb rewritten (aura, glass sphere, sparks, look bar), a Siri-style corner popup when Friday is live and the window is out of sight, drag-to-reorder rail icons, and a Stream page for Twitch (live status, title and category with presets, markers, clips, go-live checklist), and Friday's new job setting (Game buddy or Stream manager, default Stream manager) so she runs it by voice: am I live, change title or category, use a preset, mark a moment. Matthew's private chat with Friday now lives in the Meeting Room as its own channel, saved on his Mac only. Parsed and the Twitch reader tested here; none of it compiled or seen on the Mac yet. Status: waiting
+- [Claude] New this round: Friday's orb rewritten (aura, glass sphere, sparks, look bar), a Siri-style corner popup when Friday is live and the window is out of sight, drag-to-reorder rail icons, and a Stream page for Twitch (live status, title and category with presets, markers, clips, go-live checklist), and Friday's new job setting (Game buddy or Stream manager, default Stream manager) so she runs it by voice: am I live, change title or category, use a preset, mark a moment. Matthew's private chat with Friday now lives in the Meeting Room as its own channel, saved on his Mac only. A chat helper on the Stream page posts his saved links and reminders (store, Prime sub, follow) in his Twitch chat while he is live; off until he starts it. Not yet: answering !commands and deleting spam or banning. The Twitch reader and the chat and feed rules are tested here, and GPT compile-checked all of it on the Mac with zero errors (master 2dc0cfb). Not yet seen on screen or tried against live Twitch: waiting on Matthew connecting Twitch and sending screenshots. Status: waiting
 - [Claude] Meeting Room messages: thread (issue 15) that Matthew, Claude and GPT can all post to, a posting box in the app, a phone push when a message is for Matthew, and a daily check by Claude. Built and tested here; the app part has not been compiled on the Mac. Status: waiting
 - [Matthew] The Moncton group ad was submitted by Chrome Claude on 2026-10-05 and is waiting on the group's admins (not live, so no link yet). Next: have Chrome Claude delete the stale Aug 19 pending post and leave the new one pending; no more posts in that group until the admins respond. Status: waiting
 - [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 7". Status: waiting
+- [Matthew] Read outreach batch 1 (marketing/east-coast-social/outreach/batch-2026-10-06.md, five Facebook messages, nothing sent) and say go. Then paste Chrome Claude the session prompt from outreach/cc-session-prompt.md with your footer filled in (your mailing address stays out of the public repo). Status: waiting
+- [Claude] Run the outreach twice a week (Tuesday and Friday): update the ledger from Chrome Claude's sent log, handle replies and any "no thanks", prepare the next batch of up to 5, claims-checked, and ping Matthew. First batch is ready and waiting for his go. Status: building
 - [Matthew] Answer four quick things so the sales ledger can be made true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting
 - [Matthew] After rebuilding: check Friday's new orb on Home and on the Friday page (does it flow into the background, does it react to your voice?), the look bar under it, the corner popup (start Friday, then minimize the window or click into your game), drag a rail icon to a new spot, and open the new Stream page (sign out of Twitch and in again first, once, for the new permission). Send me a screenshot if anything looks off. Status: waiting
 - [Matthew] Optional: make the GitHub key for posting from the app (Meeting Room page or Accounts, GitHub). Status: waiting
@@ -7177,6 +7244,8 @@ _Last updated: 2026-10-05 by Claude_
 - [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild?
 
 ## Decisions
+- 2026-10-05: Matthew lifted the rule on messages to individual prospects: Claude writes cold emails and messages and Chrome Claude sends them from his own accounts, once or twice a week, up to 5 a batch. Matthew answered: Facebook page messages first, check the format with a business advisor as we go, his home address and phone in the footer (address kept out of this public repo). Rules, templates and batch 1 are in marketing/east-coast-social/outreach/. The checker caught that the old drafts said it posts to a client's page "automatically", which isn't live yet; the new templates don't say that. Batch 1 waits for his go. Guardrails: claims-checked, sender name and mailing address, a working unsubscribe, a record of where each address came from, "no" means never again, replies and any price talk go to Matthew. CLAUDE.md rule 3 updated. Claude is not a lawyer; a business advisor should look at the format.
+- 2026-10-05: GPT’s hourly room check read master 2dc0cfb and compile-checked all 24 Swift app files on the Mac, including the new orb, corner popup, rail, Stream page, Friday feed and chat helper: zero errors, 16 existing Apple deprecation warnings (Companion, Live, Keychain and ClipEditor). The expanded data checks printed “All data checks passed.” Checks used a temporary copy; no source edits, installation, app launch, sign-in or public action. The UI and live Twitch behaviour still need Matthew’s test. The new frequency-checker assignment is queued for review; it was not started by this hourly check.
 - 2026-10-05: Matthew asked Claude to update the site itself under his standing permission (CLAUDE.md rule 3). Claude applied the eight approved honesty fixes from claude-fixes-for-gpt.md straight to master: "Refreshed every 3 days" instead of "Restocked daily"; free shipping now says "on trending products" (logo merch ships at the print partner's price); the ECS page no longer says "without a human touching it" or "never the same card twice", and notes that sample posts are examples from earlier lineups; the build page now says free tools apart from the domain names (not $0/month), 10 scheduled workflows and about 5,750 lines of Python in 23 modules as of October 5, 2026, and "most numbers can be checked". English and French. The offline checker finds no problem in the new wording.
 - 2026-10-05: Matthew asked for movable tabs, a corner popup that also reacts to his voice, and a Twitch stream manager tab. Built by Claude (see On the table). The Stream page can change the public channel title and category, but only when Matthew presses Update; it can't start a stream (Twitch doesn't allow it). The Twitch sign-in gains one permission (channel:manage:broadcast), so he signs out and in once.
 - 2026-10-05: Public claims that stopped being true came down: "posts 3x daily" for X on /links, "going through Google's verification" on /setup, the "120 products" counts, and the Practice Desk page's $1 fee, superseded experiment and $1,000 footer. The false "3x a day" proof lines were scrubbed from the unused outreach drafts.

@@ -382,3 +382,15 @@ the reply reading are in `checks/DataChecks.swift` and pass; the posting itself 
 message says Prime members get one free channel sub a month; Twitch's own pages could not be re-read from this build machine, so
 Matthew should check that wording against what Twitch offers today. NOT built yet: answering viewers' commands like `!store` (needs
 reading chat), and deleting spam or banning (needs the moderator permissions and a clear rule about who gets timed out).
+
+## Friday hearing herself on speakers (2026-10-05)
+
+Matthew's report: the mic was "really sensitive": on speakers Friday heard her own voice, cut herself off and wrote her own words
+into what she "heard". Cause: the old "I'm wearing headphones" box defaulted to ticked, which keeps the mic open while she talks.
+Fix: Settings now has **Sound output: Auto / Headphones / Speakers** (default Auto). `AudioRoute.swift` asks CoreAudio what the Mac
+is playing through (built-in output with the headphone jack in use, or Bluetooth, counts as headphones; everything else, including
+HDMI/monitor speakers, AirPlay and USB, counts as speakers; when it can't tell it says speakers). On speakers the mic is not sent
+to Google while she is talking, plus 0.6 seconds after her estimated last sample (the speaker and room keep sounding a little
+after). Cost: on speakers you can't interrupt her by voice. If it still happens, choose Speakers by hand. Auto re-checks every 3
+seconds. NOT done: echo cancellation with Apple's voice processing, which would let you interrupt on speakers; it can also lower the
+game's own volume and couldn't be tried from here. Parsed only; not run on the Mac.

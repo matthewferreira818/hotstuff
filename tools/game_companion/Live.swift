@@ -27,7 +27,13 @@ enum GeminiKey {
  @Published var typed = ""
  @Published var keyInput = ""
  @Published var hasKey = GeminiKey.isSaved
- @Published var headphones = true
+ // Where the sound goes: 0 Auto (the app checks), 1 headphones, 2 speakers. On speakers the mic pauses while Friday talks, so she
+ // can't hear herself (the cause of her cutting off and writing down her own words).
+ @Published var output = UserDefaults.standard.object(forKey:"live.output") as? Int ?? 0 { didSet { UserDefaults.standard.set(output,forKey:"live.output") } }
+ // Kept for the older window: ticking it picks headphones, unticking picks speakers.
+ var headphones: Bool { get { headphonesNow() } set { output = newValue ? 1 : 2 } }
+ private var routeCheckedAt = Date.distantPast
+ private var routeHeadphones = false
  @Published var voice = LiveBuddy.initialVoice() { didSet { UserDefaults.standard.set(voice,forKey:"live.voice") } }
  // Friday's job: 0 game buddy (talks about the game), 1 stream manager (runs the Stream page by voice and keeps to stream facts from Twitch).
  @Published var role = UserDefaults.standard.object(forKey:"live.role") as? Int ?? 1 { didSet { UserDefaults.standard.set(role,forKey:"live.role") } }
@@ -412,10 +418,22 @@ enum GeminiKey {
   do { try engine.start(); player.play() } catch { status = "Sound couldn't start: \(error.localizedDescription)" }
  }
 
+ // Auto checks what the Mac is playing through at most every 3 seconds, so plugging in headphones is noticed.
+ func headphonesNow() -> Bool {
+  switch output {
+  case 1: return true
+  case 2: return false
+  default:
+   if Date().timeIntervalSince(routeCheckedAt) > 3 { routeCheckedAt = Date(); routeHeadphones = AudioRoute.headphonesInUse() }
+   return routeHeadphones
+  }
+ }
+
  func sendAudio(_ data: Data, loud: Bool, level: Double) {
   guard ready else { return }
-  // On speakers the mic would hear the buddy and it would answer itself, so stay quiet while it talks.
-  if !headphones && Date() < speakingUntil { return }
+  // On speakers the mic would hear the buddy and it would answer itself, so stay quiet while it talks and for a moment after
+  // (the speaker and the room keep sounding a little after the last sample is played).
+  if !headphonesNow() && Date() < speakingUntil.addingTimeInterval(0.6) { return }
   micLevel = level; micLevelAt = Date()
   if loud {
    // The player just started talking: grab a picture now, so the answer matches what they're asking about.

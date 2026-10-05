@@ -314,7 +314,8 @@ struct CompanionInterfaceView: View {
    HStack { Text("Picture every"); Slider(value:$live.frameGap,in:1...5,step:1); Text("\(Int(live.frameGap)) s").monospacedDigit() }
    Text("Steady sends a picture on a timer, whether you talk or not. Shorter gaps use the free allowance faster. Google allows at most one picture per second.").font(.caption).foregroundStyle(.secondary)
   }
-  Toggle("I'm wearing headphones",isOn:$live.headphones)
+  Picker("Sound output",selection:$live.output) { Text("Auto").tag(0); Text("Headphones").tag(1); Text("Speakers").tag(2) }.pickerStyle(.segmented)
+  Text("On speakers the mic pauses while Friday talks, so she can't hear herself (you can't interrupt her then). On headphones the mic stays open so you can. Auto picks by what your Mac is playing through; if she still hears herself, choose Speakers.").font(.caption).foregroundStyle(.secondary)
   clipSettings
  }
  // Twitch clips: a separate Twitch account makes clips of the stream when asked (see Clips.swift and the README).

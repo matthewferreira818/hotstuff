@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit 5c3526d. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit e2b2ef2. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -2248,6 +2248,15 @@ struct CatalogStats {
  func isStale(now: Date = Date()) -> Bool { (ageDays(now:now) ?? 0) > 5 }
 }
 
+// An open GitHub issue. The automations open one when something they depend on is out (for example "X credits depleted"),
+// which a green run alone would never show.
+struct OpenAlert: Identifiable {
+ var id: Int
+ var title: String
+ var since: Date?
+ var url: String
+}
+
 struct AutomationRun: Identifiable {
  var id: String { name }
  var name: String
@@ -2381,6 +2390,22 @@ enum VentureData {
   guard let products = await get("https://findhotstuff.com/products.json?nc=\(stamp)") else { return nil }
   let commits = await get("https://api.github.com/repos/matthewferreira818/hotstuff/commits?path=products.json&per_page=15",headers:["Accept":"application/vnd.github+json","User-Agent":"GameCompanion"])
   return parseCatalog(products:products,commits:commits)
+ }
+
+ // GitHub's open issues. The same list also holds pull requests, which are left out.
+ static func parseIssues(_ data: Data) -> [OpenAlert]? {
+  guard let rows = (try? JSONSerialization.jsonObject(with:data)) as? [[String:Any]] else { return nil }
+  let iso = ISO8601DateFormatter()
+  return rows.compactMap { row in
+   if row["pull_request"] != nil { return nil }
+   guard let number = row["number"] as? Int, let title = row["title"] as? String else { return nil }
+   return OpenAlert(id:number,title:title,since:iso.date(from:(row["created_at"] as? String) ?? ""),url:(row["html_url"] as? String) ?? "")
+  }
+ }
+
+ static func fetchAlerts() async -> [OpenAlert]? {
+  guard let data = await get("https://api.github.com/repos/matthewferreira818/hotstuff/issues?state=open&per_page=30",headers:["Accept":"application/vnd.github+json","User-Agent":"GameCompanion"]) else { return nil }
+  return parseIssues(data)
  }
 
  // GitHub's public workflow runs, newest first. Keeps the latest run of each automation.
@@ -2633,6 +2658,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var feed: FeedStats?
  @Published var runs: [AutomationRun]?
  @Published var catalog: CatalogStats?
+ @Published var issues: [OpenAlert]?
  @Published var loading = false
  @Published var failed = false
  var lastRefresh = Date.distantPast
@@ -2652,11 +2678,13 @@ enum HubSection: Int, CaseIterable, Identifiable {
   async let feedResult = VentureData.fetchFeed()
   async let runsResult = VentureData.fetchAutomations()
   async let catalogResult = VentureData.fetchCatalog()
-  let (a,b,c,d) = await (storeResult,feedResult,runsResult,catalogResult)
+  async let issuesResult = VentureData.fetchAlerts()
+  let (a,b,c,d,e) = await (storeResult,feedResult,runsResult,catalogResult,issuesResult)
   if let a = a { store = a }
   if let b = b { feed = b }
   if let c = c { runs = c }
   if let d = d { catalog = d }
+  if let e = e { issues = e }
   failed = (store == nil && feed == nil && runs == nil && catalog == nil)
   lastRefresh = Date()
  }
@@ -2757,7 +2785,7 @@ enum HubLaunch {
    HubLink(title:"Cloudflare",note:"The checkout worker and alerts.",icon:"cloud.fill",tint:HubColor.amber,url:"https://dash.cloudflare.com/"),
    HubLink(title:"GitHub repo",note:"The code. The site deploys from master.",icon:"chevron.left.forwardslash.chevron.right",tint:HubColor.slate,url:"https://github.com/matthewferreira818/hotstuff"),
    HubLink(title:"Your store",note:"findhotstuff.com",icon:"bag.fill",tint:HubColor.amber,url:"https://findhotstuff.com"),
-   HubLink(title:"ECS page",note:"findhotstuff.com/automation",icon:"megaphone.fill",tint:HubColor.violet,url:"https://findhotstuff.com/automation/")
+   HubLink(title:"ECS page",note:"Your automation page.",icon:"megaphone.fill",tint:HubColor.violet,url:"https://findhotstuff.com/automation/")
   ]),
   ("Money",[
    HubLink(title:"Stripe",note:"Store payments.",icon:"creditcard.fill",tint:HubColor.violet,url:"https://dashboard.stripe.com/"),
@@ -2768,7 +2796,7 @@ enum HubLaunch {
   ("Traffic and streaming",[
    HubLink(title:"GoatCounter",note:"Visitor counts.",icon:"chart.bar.fill",tint:HubColor.amber,url:"https://theycallmemattyb.goatcounter.com/"),
    HubLink(title:"Twitch dashboard",note:"Stream manager and clips.",icon:"play.rectangle.fill",tint:HubColor.violet,url:"https://dashboard.twitch.tv/"),
-   HubLink(title:"Your channel",note:"twitch.tv/theycallmemattyb",icon:"tv",tint:HubColor.violet,url:"https://www.twitch.tv/theycallmemattyb")
+   HubLink(title:"Your channel",note:"Your Twitch page.",icon:"tv",tint:HubColor.violet,url:"https://www.twitch.tv/theycallmemattyb")
   ]),
   ("Social",[
    HubLink(title:"X",note:"Posts.",icon:"message.fill",tint:HubColor.slate,url:"https://x.com/"),
@@ -2833,13 +2861,13 @@ extension CompanionInterfaceView {
  }
 
  var hubRail: some View {
-  VStack(spacing:14) {
+  VStack(spacing:10) {
    Circle()
-    .fill(RadialGradient(colors:[Noir.crimsonLight,Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.3),startRadius:1,endRadius:24))
-    .frame(width:34,height:34)
-    .padding(.bottom,8)
+    .fill(RadialGradient(colors:[Noir.crimsonLight,Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.3),startRadius:1,endRadius:22))
+    .frame(width:30,height:30)
+    .padding(.bottom,4)
    ScrollView(showsIndicators:false) {
-    VStack(spacing:10) {
+    VStack(spacing:5) {
      ForEach(HubSection.allCases) { section in hubRailButton(section) }
     }
     .padding(.vertical,2)
@@ -2847,7 +2875,7 @@ extension CompanionInterfaceView {
    Spacer(minLength:0)
    Button { c.showPanel = true } label: {
     VStack(spacing:5) {
-     Image(systemName:"slider.horizontal.3").font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(0.7)).frame(width:48,height:40)
+     Image(systemName:"slider.horizontal.3").font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(0.7)).frame(width:48,height:32)
      Text("Settings").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
     }
    }
@@ -2855,7 +2883,7 @@ extension CompanionInterfaceView {
    .keyboardShortcut(",",modifiers:.command)
    .hubHover("rail-settings",hub,lift:1.06)
   }
-  .padding(.top,46).padding(.bottom,22)
+  .padding(.top,40).padding(.bottom,16)
   .frame(width:88)
   .background(.ultraThinMaterial)
   .overlay(alignment:.trailing) { Rectangle().fill(Color.white.opacity(0.08)).frame(width:1) }
@@ -2864,16 +2892,16 @@ extension CompanionInterfaceView {
  func hubRailButton(_ section: HubSection) -> some View {
   let selected = hub.section == section
   return Button { hubSelect(section) } label: {
-   VStack(spacing:5) {
+   VStack(spacing:3) {
     ZStack {
-     RoundedRectangle(cornerRadius:15,style:.continuous).fill(Color.white.opacity(0.06)).frame(width:48,height:48)
+     RoundedRectangle(cornerRadius:14,style:.continuous).fill(Color.white.opacity(0.06)).frame(width:42,height:42)
      if selected {
-      RoundedRectangle(cornerRadius:15,style:.continuous)
+      RoundedRectangle(cornerRadius:14,style:.continuous)
        .fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing))
-       .frame(width:48,height:48)
+       .frame(width:42,height:42)
        .matchedGeometryEffect(id:"railSelection",in:railNamespace)
      }
-     Image(systemName:section.icon).font(.system(size:19,weight:.semibold)).foregroundStyle(Color.white.opacity(selected ? 1 : 0.7))
+     Image(systemName:section.icon).font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(selected ? 1 : 0.7))
     }
     Text(section.title).font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(selected ? 0.95 : 0.5))
    }
@@ -3035,8 +3063,9 @@ extension CompanionInterfaceView {
  var hubSystemsHeadline: String {
   guard let runs = ventures.runs else { return "Loading…" }
   let bad = ventures.alerts
-  if bad.isEmpty { return "All \(runs.count) automations OK" }
-  return "\(bad.count) need attention · \(bad[0])"
+  if !bad.isEmpty { return "\(bad.count) need attention · \(bad[0])" }
+  let open = ventures.issues?.count ?? 0
+  return open > 0 ? "All \(runs.count) ran · \(open) open alert\(open == 1 ? "" : "s")" : "All \(runs.count) automations OK"
  }
 
  // Shows on Home only when an automation's latest run failed.
@@ -3292,16 +3321,20 @@ extension CompanionInterfaceView {
    VStack(alignment:.leading,spacing:14) {
     HStack(spacing:10) {
      if let runs = ventures.runs {
-      if ventures.alerts.isEmpty { hubPill("ALL \(runs.count) AUTOMATIONS OK",tint:HubColor.green) }
+      if ventures.alerts.isEmpty { hubPill("ALL \(runs.count) RAN WITHOUT ERRORS",tint:HubColor.green) }
       else { hubPill("\(ventures.alerts.count) NEED ATTENTION",tint:Noir.crimsonLight) }
+     }
+     if let open = ventures.issues?.count, open > 0 {
+      hubPill("\(open) OPEN ALERT\(open == 1 ? "" : "S")",tint:HubColor.amber)
      }
      Spacer()
      hubRefreshButton()
     }
     hubCatalogCard
+    hubIssuesCard
     if let runs = ventures.runs {
      ForEach(runs) { run in hubRunRow(run) }
-     Text("Read from GitHub's public status of your repo. Each line is that automation's latest run. Nothing here can start, stop or change an automation.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+     Text("Read from GitHub's public status of your repo. Each line is that automation's latest run. A green tick means it ran without crashing, not that it posted: when something it needs is out (like X credits), it raises an alert above instead. Nothing here can start, stop or change an automation.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
     } else if ventures.failed {
      hubOffline("GitHub")
     } else {
@@ -3345,7 +3378,7 @@ extension CompanionInterfaceView {
     ForEach(HubLaunch.groups,id:\.name) { group in
      VStack(alignment:.leading,spacing:12) {
       Text(group.name).font(.system(size:18,weight:.semibold,design:.rounded)).foregroundStyle(Color.white.opacity(0.9))
-      LazyVGrid(columns:[GridItem(.adaptive(minimum:190),spacing:14)],spacing:14) {
+      LazyVGrid(columns:[GridItem(.adaptive(minimum:235),spacing:14)],spacing:14) {
        ForEach(group.links) { link in hubLinkTile(link) }
       }
      }
@@ -3381,7 +3414,7 @@ extension CompanionInterfaceView {
      Image(systemName:link.icon).font(.system(size:16,weight:.semibold)).foregroundStyle(Color.white)
     }
     VStack(alignment:.leading,spacing:2) {
-     Text(link.title).font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     Text(link.title).font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(Color.white).lineLimit(1).minimumScaleFactor(0.8)
      Text(link.note).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).lineLimit(2).multilineTextAlignment(.leading)
     }
     Spacer(minLength:0)
@@ -3412,8 +3445,9 @@ extension CompanionInterfaceView {
   }
   if let runs = ventures.runs {
    let bad = ventures.attention
-   lines.append(bad.isEmpty ? "Automations: all \(runs.count) look fine." : "Automations needing attention: \(bad.map { $0.name }.joined(separator:", ")).")
+   lines.append(bad.isEmpty ? "Automations: all \(runs.count) ran without errors." : "Automations needing attention: \(bad.map { $0.name }.joined(separator:", ")).")
   }
+  for issue in (ventures.issues ?? []).prefix(2) { lines.append("Open alert: \(issue.title) (raised \(hubAgo(issue.since))).") }
   return lines
  }
 
@@ -3512,6 +3546,31 @@ extension CompanionInterfaceView {
   }
   .padding(16)
   .hubCard()
+ }
+
+ // Alerts the automations raised on GitHub. A green run can still be doing nothing useful (X refusing posts), so these show here.
+ @ViewBuilder var hubIssuesCard: some View {
+  if let open = ventures.issues, !open.isEmpty {
+   VStack(alignment:.leading,spacing:12) {
+    Text("Alerts your automations raised").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    ForEach(open) { issue in
+     HStack(spacing:12) {
+      Image(systemName:"exclamationmark.circle.fill").font(.system(size:18)).foregroundStyle(HubColor.amber)
+      VStack(alignment:.leading,spacing:2) {
+       Text(issue.title).font(.system(size:13.5,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.9)).lineLimit(2)
+       Text("Raised \(hubAgo(issue.since)). Open until it's fixed or closed on GitHub.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+      }
+      Spacer()
+      if let url = URL(string:issue.url), !issue.url.isEmpty {
+       Button("Open") { NSWorkspace.shared.open(url) }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+      }
+     }
+    }
+   }
+   .padding(16)
+   .frame(maxWidth:.infinity,alignment:.leading)
+   .hubCard()
+  }
  }
 
  var hubCatalogStatus: (String,Color) {
@@ -4088,4 +4147,14 @@ The Porkbun link goes to its domain-management page; if Porkbun has moved that p
 It could not be compiled on the Linux cloud machine, so it was only found on the Mac. Every rebuild after the Keychain commit
 therefore failed before installing, and the old app stayed in place without anyone noticing. Fixed. `rebuild.sh` now hides the
 warnings and, if the compile fails, prints "BUILD FAILED. The app was NOT updated" with just the errors to paste.
+
+## Open alerts, and a more honest Systems page (2026-10-05)
+
+A green run only means the job didn't crash. The "Product spotlight 3x daily (X + Instagram)" job has shown green while X has
+refused every post since Sept 16 (credits depleted; the job opens a GitHub issue and carries on). The hub said "all 9 look fine".
+Now `VentureData.fetchAlerts()` reads GitHub's public open-issues list (pull requests filtered out): the Systems page has an
+"Alerts your automations raised" card, the pill says "ALL 9 RAN WITHOUT ERRORS" plus "1 OPEN ALERT", and Home's briefing lists
+them. Open alerts do not trigger the Home warning banner, so a known, parked item doesn't nag; failing runs and a stale catalog
+still do. Tested live: it found issue #14. Also: the sidebar is tighter so more of the nine pages fit without scrolling
+(Accounts is also Command-9), and Launchpad tiles are wider so names like "CJ Dropshipping" no longer break mid-word.
 ```

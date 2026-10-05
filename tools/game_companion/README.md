@@ -233,3 +233,13 @@ The Porkbun link goes to its domain-management page; if Porkbun has moved that p
 It could not be compiled on the Linux cloud machine, so it was only found on the Mac. Every rebuild after the Keychain commit
 therefore failed before installing, and the old app stayed in place without anyone noticing. Fixed. `rebuild.sh` now hides the
 warnings and, if the compile fails, prints "BUILD FAILED. The app was NOT updated" with just the errors to paste.
+
+## Open alerts, and a more honest Systems page (2026-10-05)
+
+A green run only means the job didn't crash. The "Product spotlight 3x daily (X + Instagram)" job has shown green while X has
+refused every post since Sept 16 (credits depleted; the job opens a GitHub issue and carries on). The hub said "all 9 look fine".
+Now `VentureData.fetchAlerts()` reads GitHub's public open-issues list (pull requests filtered out): the Systems page has an
+"Alerts your automations raised" card, the pill says "ALL 9 RAN WITHOUT ERRORS" plus "1 OPEN ALERT", and Home's briefing lists
+them. Open alerts do not trigger the Home warning banner, so a known, parked item doesn't nag; failing runs and a stale catalog
+still do. Tested live: it found issue #14. Also: the sidebar is tighter so more of the nine pages fit without scrolling
+(Accounts is also Command-9), and Launchpad tiles are wider so names like "CJ Dropshipping" no longer break mid-word.

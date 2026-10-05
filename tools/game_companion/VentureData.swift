@@ -55,6 +55,15 @@ struct CatalogStats {
  func isStale(now: Date = Date()) -> Bool { (ageDays(now:now) ?? 0) > 5 }
 }
 
+// An open GitHub issue. The automations open one when something they depend on is out (for example "X credits depleted"),
+// which a green run alone would never show.
+struct OpenAlert: Identifiable {
+ var id: Int
+ var title: String
+ var since: Date?
+ var url: String
+}
+
 struct AutomationRun: Identifiable {
  var id: String { name }
  var name: String
@@ -188,6 +197,22 @@ enum VentureData {
   guard let products = await get("https://findhotstuff.com/products.json?nc=\(stamp)") else { return nil }
   let commits = await get("https://api.github.com/repos/matthewferreira818/hotstuff/commits?path=products.json&per_page=15",headers:["Accept":"application/vnd.github+json","User-Agent":"GameCompanion"])
   return parseCatalog(products:products,commits:commits)
+ }
+
+ // GitHub's open issues. The same list also holds pull requests, which are left out.
+ static func parseIssues(_ data: Data) -> [OpenAlert]? {
+  guard let rows = (try? JSONSerialization.jsonObject(with:data)) as? [[String:Any]] else { return nil }
+  let iso = ISO8601DateFormatter()
+  return rows.compactMap { row in
+   if row["pull_request"] != nil { return nil }
+   guard let number = row["number"] as? Int, let title = row["title"] as? String else { return nil }
+   return OpenAlert(id:number,title:title,since:iso.date(from:(row["created_at"] as? String) ?? ""),url:(row["html_url"] as? String) ?? "")
+  }
+ }
+
+ static func fetchAlerts() async -> [OpenAlert]? {
+  guard let data = await get("https://api.github.com/repos/matthewferreira818/hotstuff/issues?state=open&per_page=30",headers:["Accept":"application/vnd.github+json","User-Agent":"GameCompanion"]) else { return nil }
+  return parseIssues(data)
  }
 
  // GitHub's public workflow runs, newest first. Keeps the latest run of each automation.

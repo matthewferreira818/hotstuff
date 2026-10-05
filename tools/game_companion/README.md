@@ -30,9 +30,21 @@ This folder holds the upgraded `Companion.swift` so it can travel through git.
 6. **Status shows "Taking a picture…" then "Thinking locally…"**, so it's clear which
    part is slow. The capture itself is fast; the AI is the slow part.
 
-Same AI and same privacy as before.
-This copy was not compiled before it was pushed, because the cloud machine has no Mac
-SDK. The first rebuild on the Mac is the compile check.
+7. **Live buddy (2026-10-05):** a new first tab, in `Live.swift`. It streams the chosen window
+   (one JPEG a second, 1024 × 576) and the mic (16 kHz PCM) to Google's Gemini Live API
+   (`gemini-3.8-live`, free tier) over a WebSocket. It plays the spoken replies (24 kHz PCM)
+   and shows both transcripts. Built from ai.google.dev/gemini-api/docs/live-api/get-started-websocket.
+   - The key is pasted by Matthew into the app and stored in the macOS Keychain, never in files.
+   - Context-window compression is on, because without it Google caps audio+video at 2 minutes.
+   - Session resumption reconnects when Google ends the connection, about every 10 minutes.
+   - The "I'm wearing headphones" box: when it's unticked, the mic pauses while the buddy talks
+     so it can't hear itself.
+   - Privacy differs from the Local tab: frames and mic audio go to Google while it's on, and
+     Google's free tier may use them to improve its products.
+
+The Local tab keeps the same AI and the same privacy as before.
+This copy was syntax-checked with `swiftc -parse` on Linux but not compiled, because the
+cloud machine has no Mac SDK. The first rebuild on the Mac is the full compile check.
 
 ## Install the upgrade
 

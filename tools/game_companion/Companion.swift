@@ -339,39 +339,73 @@ import Darwin
 }
 struct ContentView: View {
  @StateObject var c = Companion()
+ @StateObject var live = LiveBuddy()
+ @State var mode = 0
  var body: some View {
   VStack(alignment:.leading,spacing:16) {
    Text("Game Companion").font(.largeTitle.bold())
-   Text("Local gaming companion · reduced resource use").foregroundStyle(.secondary)
-   HStack { Button("Choose game window") { c.choose() }; Button("Stop sharing") { c.stopScreen() }.disabled(!c.sharing); Text(c.sharing ? (c.screenVerified ? "Screen access verified" : "Window selected · access untested") : "Screen off") }
+   Picker("Brain",selection:$mode) {
+    Text("Live buddy (Google, free)").tag(0)
+    Text("Local (on this Mac)").tag(1)
+   }.pickerStyle(.segmented)
+   HStack { Button("Choose game window") { c.choose() }; Button("Stop sharing") { c.stopScreen(); live.stop() }.disabled(!c.sharing); Text(c.sharing ? (c.screenVerified ? "Screen access verified" : "Window selected · access untested") : "Screen off") }
    HStack { Button("Test screen access (no AI)") { c.testScreenAccess() }.disabled(!c.sharing || c.busy); Button("Screen permission settings") { NSWorkspace.shared.open(URL(string:"x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!) } }
-   Toggle("Hands-free conversation (use headphones)",isOn:$c.handsFree).disabled(!c.voiceReady)
-   Toggle("Automatic comments (at most once a minute; uses more resources)",isOn:$c.automatic)
-   Picker("Reply mode",selection:$c.conserve) {
-    Text("Save memory").tag(true)
-    Text("Fast (AI stays loaded)").tag(false)
-   }.pickerStyle(.segmented)
-   Text(c.conserve ? "AI unloads after each reply, so every reply starts slow." : "AI stays loaded for 10 minutes after each reply. Much faster; uses about 3 GB of memory.").font(.caption).foregroundStyle(.secondary)
-   Picker("Replies",selection:$c.detailed) {
-    Text("Short").tag(false)
-    Text("Detailed").tag(true)
-   }.pickerStyle(.segmented)
-   HStack {
-    Picker("Voice",selection:$c.selectedVoice) { ForEach(c.voices,id:\.identifier) { voice in Text("\(voice.name) · \(voice.language) · \(voice.qualityName)").tag(voice.identifier) } }
-    Button("Preview voice") { c.previewVoice() }.disabled(c.busy)
-   }
-   HStack { Text("Voice speed"); Slider(value:$c.speechRate,in:0.35...0.6); Text(String(format:"%.2f",c.speechRate)).monospacedDigit() }
-   HStack { Text("Pause before sending"); Slider(value:$c.pauseSeconds,in:0.5...1.5,step:0.1); Text(String(format:"%.1fs",c.pauseSeconds)).monospacedDigit() }
-   Button("Free AI memory now") { c.cancelResponse(); c.unloadModel(); c.status = "Requested model unload. No model files deleted." }
-   Text(c.voiceReady ? "Local voice is ready." : "Voice input unavailable: setup is incomplete. You can type messages.").font(.caption).foregroundStyle(.secondary)
-   HStack { Text("Local vision model"); TextField("Model",text:$c.model) }
    HStack { Text("Game notes"); TextField("Game, build, what you want help with",text:$c.gameNotes) }
-   TextField("Talk or type a message…",text:$c.input).onSubmit { c.ask(c.input) }
-   HStack { Button(c.listening ? "Stop microphone" : "Listen") { c.mic() }.disabled(c.busy || !c.voiceReady); Button("Send") { c.ask(c.input) }.disabled(c.busy); Spacer(); Button("STOP ALL") { c.stop() }.tint(.red) }
-   Text(c.status).font(.callout).foregroundStyle(.secondary)
-   ScrollView { Text(c.reply.isEmpty ? "Your companion’s reply appears here." : c.reply).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled) }.frame(minHeight:100)
-   Text("No screen images, audio recordings, or chats are saved by this app. Spoken replies use system speech. Microphone controls activate only when local speech is available. Stop clears session text. macOS may retain memory in swap or diagnostics.").font(.caption).foregroundStyle(.secondary)
-  }.padding(24).frame(width:650).onDisappear { c.stop() }
+   if mode == 0 { liveControls } else { localControls }
+  }.padding(24).frame(width:650).onDisappear { live.stop(); c.stop() }
+ }
+ // Split out so each half type-checks quickly.
+ @ViewBuilder var liveControls: some View {
+  if live.hasKey {
+   HStack { Text("Google key saved in Keychain ✓"); Button("Remove key") { live.forgetKey() } }
+  } else {
+   Text("First time: get a free key from Google (no card needed), paste it here and click Save key. It goes into your Mac's Keychain, not into any file.").font(.caption).foregroundStyle(.secondary)
+   HStack { Button("Get a free key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }; SecureField("Paste key here",text:$live.keyInput); Button("Save key") { live.saveKey() } }
+  }
+  HStack {
+   Picker("Buddy voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { name in Text(name).tag(name) } }.disabled(live.running)
+   Toggle("I'm wearing headphones",isOn:$live.headphones)
+  }
+  HStack { Text("Live model"); TextField("Model",text:$live.liveModel).disabled(live.running) }
+  HStack {
+   Button(live.running ? "Stop live buddy" : "Start live buddy") {
+    if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:c.gameNotes) }
+   }.disabled(!live.hasKey)
+   Spacer()
+   Button("STOP ALL") { live.stop(); c.stop() }.tint(.red)
+  }
+  HStack { TextField("Or type a question…",text:$live.typed).onSubmit { live.sendTyped() }; Button("Send") { live.sendTyped() }.disabled(!live.running) }
+  Text(live.status).font(.callout).foregroundStyle(.secondary)
+  if !live.heard.isEmpty { Text("You: \(live.heard)").font(.callout) }
+  ScrollView { Text(live.said.isEmpty ? "What your buddy says appears here." : live.said).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled) }.frame(minHeight:100)
+  Text("While it's on, Live buddy sends one picture a second of the chosen window, plus your microphone, to Google. Google's free tier may use that data to improve its products. Nothing is saved on this Mac. Use headphones, or untick the box so it doesn't hear itself.").font(.caption).foregroundStyle(.secondary)
+ }
+ @ViewBuilder var localControls: some View {
+  Toggle("Hands-free conversation (use headphones)",isOn:$c.handsFree).disabled(!c.voiceReady)
+  Toggle("Automatic comments (at most once a minute; uses more resources)",isOn:$c.automatic)
+  Picker("Reply mode",selection:$c.conserve) {
+   Text("Save memory").tag(true)
+   Text("Fast (AI stays loaded)").tag(false)
+  }.pickerStyle(.segmented)
+  Text(c.conserve ? "AI unloads after each reply, so every reply starts slow." : "AI stays loaded for 10 minutes after each reply. Much faster; uses about 3 GB of memory.").font(.caption).foregroundStyle(.secondary)
+  Picker("Replies",selection:$c.detailed) {
+   Text("Short").tag(false)
+   Text("Detailed").tag(true)
+  }.pickerStyle(.segmented)
+  HStack {
+   Picker("Voice",selection:$c.selectedVoice) { ForEach(c.voices,id:\.identifier) { voice in Text("\(voice.name) · \(voice.language) · \(voice.qualityName)").tag(voice.identifier) } }
+   Button("Preview voice") { c.previewVoice() }.disabled(c.busy)
+  }
+  HStack { Text("Voice speed"); Slider(value:$c.speechRate,in:0.35...0.6); Text(String(format:"%.2f",c.speechRate)).monospacedDigit() }
+  HStack { Text("Pause before sending"); Slider(value:$c.pauseSeconds,in:0.5...1.5,step:0.1); Text(String(format:"%.1fs",c.pauseSeconds)).monospacedDigit() }
+  Button("Free AI memory now") { c.cancelResponse(); c.unloadModel(); c.status = "Requested model unload. No model files deleted." }
+  Text(c.voiceReady ? "Local voice is ready." : "Voice input unavailable: setup is incomplete. You can type messages.").font(.caption).foregroundStyle(.secondary)
+  HStack { Text("Local vision model"); TextField("Model",text:$c.model) }
+  TextField("Talk or type a message…",text:$c.input).onSubmit { c.ask(c.input) }
+  HStack { Button(c.listening ? "Stop microphone" : "Listen") { c.mic() }.disabled(c.busy || !c.voiceReady); Button("Send") { c.ask(c.input) }.disabled(c.busy); Spacer(); Button("STOP ALL") { live.stop(); c.stop() }.tint(.red) }
+  Text(c.status).font(.callout).foregroundStyle(.secondary)
+  ScrollView { Text(c.reply.isEmpty ? "Your companion’s reply appears here." : c.reply).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled) }.frame(minHeight:100)
+  Text("No screen images, audio recordings, or chats are saved by this app. Spoken replies use system speech. Microphone controls activate only when local speech is available. Stop clears session text. macOS may retain memory in swap or diagnostics.").font(.caption).foregroundStyle(.secondary)
  }
 }
 @main struct CompanionApp: App {

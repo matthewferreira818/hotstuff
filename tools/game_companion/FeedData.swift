@@ -61,6 +61,8 @@ enum FeedFormat {
   case "mark_moment": return "Marker"
   case "lookup_game_wiki": return "Lookup"
   case "scroll_page": return "Scroll"
+  case "clip_past_moment": return "Clip from stream"
+  case "clip_marked_moments": return "Marked clips"
   case "tell_the_team": return "To the team"
   case "team_messages": return "Team inbox"
   case "point_at": return "Pointer"

@@ -41,6 +41,8 @@ FILES = [
     ("ChatData.swift", "The chat helper's rules and Twitch reply reading (no Mac frameworks). Tested."),
     ("ChatHelper.swift", "The chat helper: posts Matthew's saved links and reminders in his Twitch chat while he is live."),
     ("AudioRoute.swift", "Tells headphones from speakers (CoreAudio) so the mic can pause while Friday talks on speakers."),
+    ("VodData.swift", "Clips from past streams (VODs): reading Twitch's answers, clock times, the clip plan and error words. No Mac frameworks; tested."),
+    ("VodClips.swift", "Clips from past streams: the Stream page card, the clip-my-marked-moments button and Friday's voice tools for it."),
     ("HandsData.swift", "The rules and maths for Friday's hands and her all-screens view: where things land, what she may type, press and click, what needs an Allow. No Mac frameworks; tested."),
     ("ScreenSnap.swift", "One picture of every screen side by side, for Friday to see."),
     ("FridayHands.swift", "Friday's hands: her gliding cursor, scrolling, clicking, typing and keys, with an Allow box for anything that could send or buy. Off by default."),

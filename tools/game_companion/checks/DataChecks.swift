@@ -2,7 +2,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -166,6 +166,24 @@ import Foundation
   precondition(HandsPlan.riskyWindow(title:"Checkout - Shop") && HandsPlan.riskyWindow(title:"Your cart") && !HandsPlan.riskyWindow(title:"Minecraft wiki") && !HandsPlan.riskyWindow(title:""))
   precondition(HandsPlan.looksLikeCardNumber("4242 4242 4242 4242") && HandsPlan.looksLikeCardNumber("4242-4242-4242-4242") && !HandsPlan.looksLikeCardNumber("call 5068899737 now") && !HandsPlan.looksLikeCardNumber("12345"))
   precondition(HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!) && HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+return")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+t")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("down")!))
+  // Clips from past streams: durations and clock times are read, the clip is kept inside the video and Twitch's limits, and
+  // markers become clips that end a few seconds after the moment.
+  precondition(VodPlan.parseDuration("3h12m5s") == 11525 && VodPlan.parseDuration("45m10s") == 2710 && VodPlan.parseDuration("30s") == 30 && VodPlan.parseDuration("") == nil && VodPlan.parseDuration("abc") == nil)
+  precondition(VodPlan.clock(3725) == "1:02:05" && VodPlan.clock(125) == "2:05" && VodPlan.clock(-5) == "0:00")
+  precondition(VodPlan.parseClock("1:12:30") == 4350 && VodPlan.parseClock("72:30") == 4350 && VodPlan.parseClock("45") == 45 && VodPlan.parseClock("1h12m") == 4320 && VodPlan.parseClock("12 minutes") == 720 && VodPlan.parseClock("2 hours 5 min") == 7500 && VodPlan.parseClock("nope") == nil && VodPlan.parseClock("1:xx") == nil && VodPlan.parseClock("") == nil)
+  let planned = VodPlan.plan(endAt:10,duration:30,vodSeconds:600)!
+  precondition(planned.offset == 30 && planned.duration == 30)
+  precondition(VodPlan.plan(endAt:9999,duration:30,vodSeconds:600)!.offset == 600 && VodPlan.plan(endAt:300,duration:200,vodSeconds:600)!.duration == 60 && VodPlan.plan(endAt:300,duration:1,vodSeconds:600)!.duration == 5)
+  precondition(VodPlan.plan(endAt:3,duration:30,vodSeconds:20) == nil && VodPlan.markerEnd(100,vodSeconds:600) == 108 && VodPlan.markerEnd(598,vodSeconds:600) == 600)
+  let vodsList = VodPlan.parseVideos(["data":[["id":"1","title":"Night run","created_at":"2026-10-05T20:00:00Z","duration":"1h2m3s","view_count":7,"url":"u"],["id":"2","title":"Mining","duration":"20m","url":"v"],["title":"no id"]]])
+  precondition(vodsList.count == 2 && vodsList[0].seconds == 3723 && vodsList[0].views == 7 && vodsList[1].seconds == 1200)
+  precondition(VodPlan.pickVod(vodsList,which:"latest")?.id == "1" && VodPlan.pickVod(vodsList,which:"")?.id == "1" && VodPlan.pickVod(vodsList,which:"2")?.id == "2" && VodPlan.pickVod(vodsList,which:"mining")?.id == "2" && VodPlan.pickVod(vodsList,which:"9") == nil)
+  let markerJSON: [String:Any] = ["data":[["user_id":"7","videos":[["video_id":"1","markers":[["id":"b","position_seconds":300,"description":"boss"],["id":"a","position_seconds":60,"description":""],["id":"x"]]]]]]]
+  let found = VodPlan.parseMarkers(markerJSON)
+  precondition(found.map { $0.seconds } == [60,300] && found[1].note == "boss" && VodPlan.parseMarkers([:]).isEmpty)
+  let path = VodPlan.clipPath(editor:"7",broadcaster:"7",vod:"123",offset:308,duration:30,title:"Boss down & out")
+  precondition(path == "/videos/clips?editor_id=7&broadcaster_id=7&vod_id=123&vod_offset=308&duration=30.0&title=Boss%20down%20%26%20out" && VodPlan.clipPath(editor:"1",broadcaster:"1",vod:"2",offset:30,duration:30,title:"  ").hasSuffix("title=Moment"))
+  precondition(VodPlan.explain(code:404,message:nil).contains("expired") && VodPlan.explain(code:401,message:nil).contains("sign in again") && VodPlan.explain(code:400,message:"AutoMod").contains("AutoMod"))
   print("All data checks passed.")
  }
 }

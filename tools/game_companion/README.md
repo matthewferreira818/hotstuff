@@ -486,3 +486,18 @@ Matthew: "she doesn't need a Job, she can do both, no setting." The Friday's job
 "run my Stream page by voice" switch are gone. There is one Friday: a friendly gaming buddy and also the stream manager. Her Twitch
 voice tools (am I live, title, category, presets, markers) are available whenever Twitch is connected, and still act only on his
 voice; "clip it" by voice keeps its own switch. Her instructions say to state stream facts only when a tool just returned them.
+
+## Clips from past streams (VODs) (2026-10-05)
+
+Matthew asked for clips made from his past Twitch streams, for the Minecraft side of the channel and growth and for more than that.
+Twitch has a "Create Clip From VOD" call (checked in its API reference), so the Stream page has a new card, **Clip from my past
+streams** (`VodClips.swift`, rules and tests in `VodData.swift`): Load my streams lists the last twelve (title, how long ago, length,
+views); **Clip my marked moments** reads the markers he dropped during that stream (the Mark it button, or "Friday, mark that") and
+makes one clip per marker, ending 8 seconds after it, at most 8 a run; or type the time the clip should end at (1:12:30, 45m), pick
+15, 30, 45 or 60 seconds, give it a title and press Make clip. After each clip the existing pipeline downloads it and cuts the highlight
+into Movies > Game Companion Clips. Friday has two voice tools when the clip switch is on: `clip_past_moment` ("clip last night's
+stream at one hour twelve") and `clip_marked_moments`. A clip is public on Twitch the moment it exists, so these only run when he taps
+or asks. Needs the account to be the channel's owner or an Editor; uses the permissions the clip sign-in already has (sign out and in
+once if clipping was set up earlier). Twitch deletes old streams after a while (it varies), and a stream needs "store past broadcasts"
+switched on in Twitch. The clock reading, clip plan, marker reading and error words are in `checks/DataChecks.swift` and pass; the
+card and the calls have not been run on the Mac or against a real Twitch account.

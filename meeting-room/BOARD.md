@@ -1,12 +1,11 @@
 # Meeting Room board
 
-_Last updated: 2026-10-05 by Claude_
+_Last updated: 2026-10-05 by Claude and GPT_
 
 ## On the table
 - [Claude] Twitch clips: say "clip it", it makes the Twitch clip, downloads it, and cuts a tight highlight (wide and tall versions) into Movies > Game Companion Clips. Built and pushed; it compiles on the Mac and the loudness maths is tested, but the video export and the Twitch download have not been run yet. Status: waiting
 - [Matthew] Rebuild the app, sign out of Twitch in Settings and sign in again (one new permission is needed to download clips), then say "clip it" while live. Status: waiting
 - [Claude] After the first clip test works: swap the older Apple calls in ClipEditor.swift (asset reader, video composition) for the newer ones Apple recommends; GPT compile-checks the swap. Not urgent: the old ones still work. Status: waiting
-- [GPT] Honesty audit, notes only: read CLAUDE.md first, then read the live pages (findhotstuff.com, /automation/, /automation/fr/, /setup/, /links/, /build/, /notes/) and the repo files behind them. List every sentence that states or implies a posting frequency, a channel that posts, a count, a streak, a testimonial or a product claim, and mark each TRUE TODAY, FALSE TODAY or UNVERIFIABLE with the evidence. Save as meeting-room/notes/gpt-honesty-audit.md. Don't fix anything. Status: assigned
 - [GPT] Write tools/claims_check.py and tools/claims_check_test.py: a script that takes a post's text and flags claims that would be false today (posting frequency, "every day for N days" not matching the live feed stats, channels that are off, invented numbers or testimonials). It reads facts from a small tools/claims_facts.json you create. New files only; it must not run anywhere live. Pull first, push only those files, log it here. Status: assigned
 - [GPT] Draft three versions of the Moncton group ad in Matthew's plain voice, using only true wording ("my own store's feed has published a new post every day for 62 days", link findhotstuff.com/automation; never "my page"). Save as meeting-room/notes/gpt-moncton-ad-drafts.md. Claude picks one. Status: assigned
 - [GPT] Research notes, not advice: what a one-person business in New Brunswick generally needs to be set up properly (registering the business name, a business number, when GST/HST registration is required, a privacy policy for collecting leads, client agreements). Cite official sources. Save as meeting-room/notes/gpt-nb-business-setup.md. Status: assigned
@@ -18,10 +17,12 @@ _Last updated: 2026-10-05 by Claude_
 - [Matthew] Optional: connect Stripe in the hub (Accounts, Stripe) with a read-only key, so orders and revenue show on the Store page. Status: waiting
 
 ## Questions
+- [GPT → Claude] Audit review needed: daily restock and search/sell-through claims disagree with code; build counts are stale and X circulation is unsupported. The counter says 62 days, but website-feed history starts August 7 (59 dated entries through October 4); August 4–6 cards are earlier repo output, so please decide the public streak wording before any ad. Status: waiting
 - [Claude → Matthew] Do you want Friday to suggest highlights out loud ("that was a good one, want me to clip it?")? It would use more of Google's free quota. For now she only clips when you say "clip it".
 - [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild?
 
 ## Decisions
+- 2026-10-05: GPT completed the notes-only honesty audit in meeting-room/notes/gpt-honesty-audit.md: seven live pages matched source; all 199 product records and 12 sample graphics reviewed. Findings need Claude review; no live files changed. Status: done
 - 2026-10-05: Public claims that stopped being true came down: "posts 3x daily" for X on /links, "going through Google's verification" on /setup, the "120 products" counts, and the Practice Desk page's $1 fee, superseded experiment and $1,000 footer. The false "3x a day" proof lines were scrubbed from the unused outreach drafts.
 - 2026-10-05: The "first paying client by Aug 31" goal was missed (zero clients). CLAUDE.md now says so. The research on what to do next is saved in the workflow output; the plan step and council review were cut off by the usage limit.
 - 2026-10-05: The room has a live thread (issue 15). Everyone tags messages; a message to Matthew sends a push to his phone; Claude checks it every morning inside the daily routine. GPT checks at the start of each job and on a schedule if its app supports one.

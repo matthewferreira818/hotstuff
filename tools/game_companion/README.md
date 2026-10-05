@@ -65,6 +65,23 @@ This folder holds the upgraded `Companion.swift` so it can travel through git.
    Google limit was hit (per minute or per day) is not known yet; aistudio.google.com/rate-limit shows it.
 10. Typing a question while the buddy is off now says "Click Start live buddy first" instead of nothing.
 
+11. **Twitch clips** (2026-10-05, `Clips.swift`): a Twitch account separate from the stream channel makes
+   clips of the stream. Button "Clip the last 30 seconds", or say "clip that" to the live buddy (a tick box,
+   off by default). Twitch's Create Clip grabs about the last 30 seconds of a channel that is live right now
+   and posts it to Twitch immediately, so it only runs when Matthew clicks or asks, never on a timer, and
+   not more than once every 30 seconds. The app then checks the clip really exists before saying so.
+   Sharing a clip to X/TikTok/Facebook stays his click.
+   - Sign-in is Twitch's Device Code flow: no secret in the app. The Client ID is public (settings);
+     the login tokens go in the Keychain (`GameCompanion.TwitchTokens`).
+   - **Setup, all his clicks:** (a) make the clip account at twitch.tv (turn on 2FA, needed for step b);
+     (b) with that account, dev.twitch.tv/console → Register Your Application: name anything, OAuth
+     Redirect URL `http://localhost`, Category Application Integration, **Client Type: Public**; copy the
+     Client ID; (c) in the app: type the stream channel name, paste the Client ID, click Sign in, approve
+     on the Twitch page that opens while logged in as the clip account.
+   - Honest limits: the clip is credited to the clip account but lives on his channel's clips page; the
+     channel must be live and have clips enabled; clips are public on Twitch. NOT compiled yet (no Swift
+     on the cloud machine); the first rebuild on the Mac is the check. Untested against live Twitch.
+
 The Local tab keeps the same AI and the same privacy as before.
 `Companion.swift` and `Live.swift` were syntax-checked with `swiftc -parse` on Linux but not compiled,
 because the cloud machine has no Mac SDK; the new JSON message shapes were type-checked in a small

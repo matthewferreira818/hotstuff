@@ -11,6 +11,7 @@ struct CompanionInterfaceView: View {
  @Namespace var railNamespace
  @StateObject var stocks = StockHub()
  @StateObject var ventures = VentureHub()
+ @StateObject var sales = SalesHub()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
  let refreshTick = Timer.publish(every:300,on:.main,in:.common).autoconnect()
@@ -23,8 +24,8 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; Task { await stocks.refresh(); await ventures.refresh(force:true) } }
-  .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh() } }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true) } }
+  .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh() } }
   .onDisappear { stopAll() }
   .onChange(of:conversation.page) { _,page in
    c.handsFree = false; c.stopMic(); c.cancelResponse(); c.automatic = false; c.history.removeAll(); c.reply = ""; c.input = ""; c.unloadModel()

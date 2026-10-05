@@ -211,3 +211,18 @@ website and build work lives (the app can only open them; chats can't see each o
 card made from the data already on screen (no AI, no quota). The sidebar now scrolls on short windows, since it has nine pages.
 The Porkbun link goes to its domain-management page; if Porkbun has moved that page it may land on a login screen instead.
 
+
+## Stripe sales and the catalog check (2026-10-05)
+
+- **Stripe (Accounts page, then Store)**: Matthew creates a *restricted* Stripe key with only Charges set to Read and pastes it
+  into the app, which saves it in the Mac's Keychain (service `stripe-readonly`). `StripeData.swift` only sends GET requests and
+  refuses a full secret key (`sk_`) or publishable key on purpose, so the app can never move money or change anything. It reads
+  the last 30 days of charges and keeps counts and amounts only: no names, emails or card details are read in. Fully refunded
+  orders aren't counted. The Store page then shows orders and revenue for today, 7 days and 30 days, and the latest three orders.
+  The charge-list parser was compiled and run on Linux against Stripe's documented response shape, not against a real Stripe
+  account, so the first real key is the true test. Wrong key, missing permission and no internet each show a plain message.
+- **Catalog freshness (Store, Systems, Home banner)**: reads findhotstuff.com/products.json (count and categories) and GitHub's
+  public commit list for the date of the last "Refresh: trending products" commit. More than 5 days old raises the Home banner.
+  This is the check that would have caught Sept 4 to Oct 5, when CJ switched its API access off and the refresh failed 30 runs
+  in a row without anyone noticing. Run live on 2026-10-05: 199 products, 18 categories, refreshed that morning.
+- Accounts page now also lists CJ Dropshipping (read-only freshness) and the Stripe connect form. The Stripe key is the third login.

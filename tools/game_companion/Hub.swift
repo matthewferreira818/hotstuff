@@ -85,10 +85,15 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var store: StoreStats?
  @Published var feed: FeedStats?
  @Published var runs: [AutomationRun]?
+ @Published var catalog: CatalogStats?
  @Published var loading = false
  @Published var failed = false
  var lastRefresh = Date.distantPast
  var attention: [AutomationRun] { (runs ?? []).filter { $0.isFailing } }
+ // Everything that needs a look: failing automations, plus a product list the 3-day refresh hasn't touched in over 5 days.
+ var alerts: [String] {
+  attention.map { $0.name } + ((catalog?.isStale() ?? false) ? ["Product catalog is \(catalog?.ageDays() ?? 0) days old"] : [])
+ }
 
  // Counters are day-precision, so the background refresh waits at least nine minutes. Refresh buttons force it.
  func refresh(force: Bool = false) async {
@@ -99,11 +104,54 @@ enum HubSection: Int, CaseIterable, Identifiable {
   async let storeResult = VentureData.fetchStore()
   async let feedResult = VentureData.fetchFeed()
   async let runsResult = VentureData.fetchAutomations()
-  let (a,b,c) = await (storeResult,feedResult,runsResult)
+  async let catalogResult = VentureData.fetchCatalog()
+  let (a,b,c,d) = await (storeResult,feedResult,runsResult,catalogResult)
   if let a = a { store = a }
   if let b = b { feed = b }
   if let c = c { runs = c }
-  failed = (store == nil && feed == nil && runs == nil)
+  if let d = d { catalog = d }
+  failed = (store == nil && feed == nil && runs == nil && catalog == nil)
+  lastRefresh = Date()
+ }
+}
+
+// Sales from Stripe, read-only. The restricted key lives in the Keychain; it is read at most once per run, on a refresh.
+@MainActor final class SalesHub: ObservableObject {
+ static let service = "stripe-readonly"
+ @Published var hasKey = Keychain.exists(SalesHub.service)
+ @Published var keyInput = ""
+ @Published var sales: StripeSales?
+ @Published var loading = false
+ @Published var message = ""
+ var lastRefresh = Date.distantPast
+
+ func save() {
+  if let problem = StripeData.keyProblem(keyInput) { message = problem; return }
+  let key = keyInput.trimmingCharacters(in:.whitespacesAndNewlines)
+  guard Keychain.write(SalesHub.service,Data(key.utf8)) else { message = "Couldn't save the key to your Keychain."; return }
+  keyInput = ""
+  hasKey = true
+  message = ""
+  Task { await refresh(force:true) }
+ }
+
+ func forget() {
+  Keychain.remove(SalesHub.service)
+  hasKey = false
+  sales = nil
+  message = ""
+ }
+
+ func refresh(force: Bool = false) async {
+  guard hasKey, !loading else { return }
+  if !force && Date().timeIntervalSince(lastRefresh) < 540 { return }
+  guard let data = Keychain.read(SalesHub.service), let key = String(data:data,encoding:.utf8) else { message = "Couldn't read the saved key. Remove it and save it again."; return }
+  loading = true
+  defer { loading = false }
+  switch await StripeData.fetch(key:key) {
+  case .ok(let result): sales = result; message = ""
+  case .failed(let text): message = text
+  }
   lastRefresh = Date()
  }
 }
@@ -429,6 +477,7 @@ extension CompanionInterfaceView {
 
  var hubStoreHeadline: String {
   guard let s = ventures.store else { return "Loading…" }
+  if let sold = sales.sales { return "\(s.week) visitors this week · \(sold.month.orders) order\(sold.month.orders == 1 ? "" : "s") in 30 days" }
   return "\(s.week) visitors this week · \(s.today) today"
  }
  var hubEcsHeadline: String {
@@ -438,19 +487,19 @@ extension CompanionInterfaceView {
  }
  var hubSystemsHeadline: String {
   guard let runs = ventures.runs else { return "Loading…" }
-  let bad = ventures.attention
+  let bad = ventures.alerts
   if bad.isEmpty { return "All \(runs.count) automations OK" }
-  return "\(bad.count) need attention · \(bad[0].name)"
+  return "\(bad.count) need attention · \(bad[0])"
  }
 
  // Shows on Home only when an automation's latest run failed.
  @ViewBuilder var hubAttentionBanner: some View {
-  let bad = ventures.attention
+  let bad = ventures.alerts
   if !bad.isEmpty {
    Button { hubSelect(.systems) } label: {
     HStack(spacing:12) {
      Image(systemName:"exclamationmark.triangle.fill").foregroundStyle(HubColor.amber)
-     Text("\(bad.count == 1 ? "1 automation needs" : "\(bad.count) automations need") attention: \(bad.map { $0.name }.joined(separator:", "))")
+     Text("\(bad.count == 1 ? "1 thing needs" : "\(bad.count) things need") attention: \(bad.joined(separator:", "))")
       .font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.9))
      Spacer()
      Text("Open").font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight)
@@ -467,8 +516,8 @@ extension CompanionInterfaceView {
   return c.sharing ? "Window chosen · ready" : "No window chosen yet"
  }
  var hubAccountsHeadline: String {
-  let connected = [live.hasKey,clips.signedIn].filter { $0 }.count
-  return "\(connected) of 2 logins connected"
+  let connected = [live.hasKey,clips.signedIn,sales.hasKey].filter { $0 }.count
+  return "\(connected) of 3 logins connected"
  }
 
  // MARK: stock bot
@@ -602,6 +651,7 @@ extension CompanionInterfaceView {
      Spacer()
      hubRefreshButton()
     }
+    hubSalesBlock
     if let s = ventures.store {
      LazyVGrid(columns:[GridItem(.adaptive(minimum:200),spacing:14)],spacing:14) {
       hubStat("Today",String(s.today),"unique visitors so far",tint:Color.white)
@@ -609,7 +659,8 @@ extension CompanionInterfaceView {
       hubStat("Last 30 days",String(s.month),"unique visitors",tint:Color.white)
      }
      hubChannels(s)
-     Text("Counts come from your site's public visitor counters, by day. Orders and revenue need a Stripe login, which isn't connected. Order alerts keep reaching your phone the way they do now.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+     hubCatalogCard
+     Text(sales.hasKey ? "Visits come from your site's public visitor counters, by day. Orders and revenue come from Stripe through a read-only key, and no customer names or emails are read. Order alerts keep reaching your phone the way they do now." : "Visits come from your site's public visitor counters, by day. Orders and revenue show up here once you connect Stripe on the Accounts page. Order alerts keep reaching your phone the way they do now.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
     } else if ventures.failed {
      hubOffline("the visitor counters")
     } else {
@@ -694,12 +745,13 @@ extension CompanionInterfaceView {
    VStack(alignment:.leading,spacing:14) {
     HStack(spacing:10) {
      if let runs = ventures.runs {
-      if ventures.attention.isEmpty { hubPill("ALL \(runs.count) AUTOMATIONS OK",tint:HubColor.green) }
-      else { hubPill("\(ventures.attention.count) NEED ATTENTION",tint:Noir.crimsonLight) }
+      if ventures.alerts.isEmpty { hubPill("ALL \(runs.count) AUTOMATIONS OK",tint:HubColor.green) }
+      else { hubPill("\(ventures.alerts.count) NEED ATTENTION",tint:Noir.crimsonLight) }
      }
      Spacer()
      hubRefreshButton()
     }
+    hubCatalogCard
     if let runs = ventures.runs {
      ForEach(runs) { run in hubRunRow(run) }
      Text("Read from GitHub's public status of your repo. Each line is that automation's latest run. Nothing here can start, stop or change an automation.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
@@ -807,6 +859,10 @@ extension CompanionInterfaceView {
    if let days = f.streakDays() { lines.append("ECS feed: a new post every day for \(days) days.") }
    else { lines.append("ECS feed: \(f.total) posts since \(f.since), but the streak isn't unbroken.") }
   }
+  if let sold = sales.sales { lines.append("Sales: \(sold.month.orders) order\(sold.month.orders == 1 ? "" : "s") in the last 30 days (\(hubRevenue(sold.month))), \(sold.today.orders) today.") }
+  if let cat = ventures.catalog {
+   lines.append(cat.isStale() ? "Catalog: \(cat.count) products, but the last refresh was \(cat.ageDays() ?? 0) days ago." : "Catalog: \(cat.count) products, refreshed \(hubAgo(cat.refreshed)).")
+  }
   if let runs = ventures.runs {
    let bad = ventures.attention
    lines.append(bad.isEmpty ? "Automations: all \(runs.count) look fine." : "Automations needing attention: \(bad.map { $0.name }.joined(separator:", ")).")
@@ -872,7 +928,8 @@ extension CompanionInterfaceView {
     hubAccountRow("counters","chart.bar.fill",HubColor.amber,"GoatCounter (store visits)","Reads your site's public visitor counters. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
     hubAccountRow("feed","megaphone.fill",HubColor.violet,"Your ECS feed","Reads the feed files findhotstuff.com already publishes. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
     hubAccountRow("github","gearshape.2.fill",HubColor.coral,"GitHub (automation status)","Reads the public status of your automations. No login needed.","Read-only",HubColor.green,nil) { EmptyView() }
-    hubAccountRow("stripe","bag.fill",HubColor.amber,"Stripe (sales)","Not connected. Sales would need a read-only Stripe key that you paste yourself.","Coming next",HubColor.amber,nil) { EmptyView() }
+    hubAccountRow("stripe","bag.fill",HubColor.amber,"Stripe (sales)","Orders and revenue, from a read-only key you paste yourself. It can't move money.",sales.hasKey ? "Connected" : "Not connected",sales.hasKey ? HubColor.green : Noir.crimsonLight,sales.hasKey ? "Manage" : "Connect") { hubStripeForm }
+    hubAccountRow("cj","shippingbox.fill",HubColor.coral,"CJ Dropshipping (supplier)","Reads how fresh your product list is from the public site. The supplier login itself stays in GitHub.",hubCatalogStatus.0,hubCatalogStatus.1,nil) { EmptyView() }
     hubAccountRow("socials","person.2.fill",HubColor.violet,"X, TikTok, Facebook","Not connected. She would prepare posts and you click Post. TikTok and Meta also need their own app reviews first.","Coming later",HubColor.slate,nil) { EmptyView() }
    }
    .padding(.horizontal,32).padding(.bottom,30)
@@ -908,6 +965,116 @@ extension CompanionInterfaceView {
   }
   .padding(16)
   .hubCard()
+ }
+
+ var hubCatalogStatus: (String,Color) {
+  guard let cat = ventures.catalog else { return ("Loading",HubColor.slate) }
+  return cat.isStale() ? ("Stale",Noir.crimsonLight) : ("Read-only",HubColor.green)
+ }
+
+ // The product list's age. This is the check that would have caught the month the CJ refresh was stuck.
+ @ViewBuilder var hubCatalogCard: some View {
+  if let cat = ventures.catalog {
+   let stale = cat.isStale()
+   HStack(spacing:14) {
+    Image(systemName:stale ? "exclamationmark.triangle.fill" : "shippingbox.fill").font(.system(size:22)).foregroundStyle(stale ? HubColor.amber : HubColor.green)
+    VStack(alignment:.leading,spacing:2) {
+     Text("Product list: \(cat.count) products in \(cat.categories) categories").font(.system(size:14.5,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     Text(cat.refreshed == nil ? "Couldn't read the date of the last refresh." : "Last refreshed \(hubAgo(cat.refreshed)). The refresh is meant to run every 3 days.\(stale ? " It is overdue. Last time, CJ had switched the API access off, and logging in to CJ and reactivating it fixed it." : "")")
+      .font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+    }
+    Spacer()
+    if stale, let url = URL(string:"https://github.com/matthewferreira818/hotstuff/actions/workflows/refresh-products.yml") {
+     Button("Open") { NSWorkspace.shared.open(url) }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    }
+   }
+   .padding(14)
+   .hubCard()
+  }
+ }
+
+ func hubCurrency(_ value: Double,_ code: String) -> String { value.formatted(.currency(code:code.uppercased())) }
+ func hubRevenue(_ period: StripePeriod) -> String {
+  if period.revenue.isEmpty { return "no sales yet" }
+  return period.revenue.sorted { $0.key < $1.key }.map { hubCurrency($0.value,$0.key) }.joined(separator:" + ")
+ }
+
+ // Orders and revenue from Stripe, or a prompt to connect it.
+ @ViewBuilder var hubSalesBlock: some View {
+  if sales.hasKey {
+   if let s = sales.sales {
+    HStack(spacing:10) {
+     hubPill(s.testMode ? "STRIPE · TEST MODE" : "STRIPE · READ-ONLY",tint:s.testMode ? HubColor.amber : HubColor.green)
+     if sales.loading { ProgressView().controlSize(.small) }
+     Spacer()
+     Button { Task { await sales.refresh(force:true) } } label: { Label("Refresh sales",systemImage:"arrow.clockwise") }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))).disabled(sales.loading)
+    }
+    LazyVGrid(columns:[GridItem(.adaptive(minimum:200),spacing:14)],spacing:14) {
+     hubStat("Orders today",String(s.today.orders),hubRevenue(s.today),tint:Color.white)
+     hubStat("Orders, 7 days",String(s.week.orders),hubRevenue(s.week),tint:Color.white)
+     hubStat("Orders, 30 days",String(s.month.orders),hubRevenue(s.month) + (s.capped ? " · first 500 only" : ""),tint:s.month.orders > 0 ? HubColor.green : Color.white)
+    }
+    if !s.latest.isEmpty {
+     VStack(alignment:.leading,spacing:10) {
+      Text("Latest orders").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+      ForEach(s.latest) { order in
+       HStack {
+        Text(hubCurrency(order.amount,order.currency)).font(.system(size:13.5,weight:.semibold,design:.rounded)).foregroundStyle(Color.white.opacity(0.9))
+        Spacer()
+        Text(hubAgo(order.time)).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+       }
+      }
+     }
+     .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+    }
+    if !sales.message.isEmpty {
+     Text("Couldn't refresh sales just now: \(sales.message)").font(.system(size:12,design:.rounded)).foregroundStyle(HubColor.amber)
+    }
+   } else if !sales.message.isEmpty {
+    VStack(alignment:.leading,spacing:10) {
+     Text("Sales didn't load").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     Text(sales.message).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.65))
+     Button("Open the Stripe settings") { hub.expanded = "stripe"; hubSelect(.accounts) }.buttonStyle(PillButtonStyle())
+    }
+    .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+   } else {
+    ProgressView().controlSize(.regular).frame(maxWidth:.infinity).padding(20)
+   }
+  } else {
+   HStack(spacing:14) {
+    Image(systemName:"bag.fill").font(.system(size:22)).foregroundStyle(HubColor.amber)
+    VStack(alignment:.leading,spacing:2) {
+     Text("See orders and revenue here").font(.system(size:14.5,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     Text("Connect Stripe with a read-only key. It takes about two minutes.").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+    }
+    Spacer()
+    Button("Connect Stripe") { hub.expanded = "stripe"; hubSelect(.accounts) }.buttonStyle(PillButtonStyle())
+   }
+   .padding(14)
+   .hubCard()
+  }
+ }
+
+ // The Stripe key: a restricted, read-only key. A full secret key is refused on purpose.
+ @ViewBuilder var hubStripeForm: some View {
+  if sales.hasKey {
+   HStack(spacing:10) {
+    Label("Read-only key saved in your Mac's Keychain",systemImage:"checkmark.seal.fill").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green)
+    Spacer()
+    Button("Refresh now") { Task { await sales.refresh(force:true) } }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))).disabled(sales.loading)
+    Button("Remove key") { sales.forget() }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+   if !sales.message.isEmpty { Text(sales.message).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
+  } else {
+   Text("1. Click Open Stripe keys and sign in.\n2. Press Create restricted key and name it Game Companion.\n3. Set Charges to Read. Leave everything else on None.\n4. Create it, copy the key (it starts with rk_live_), paste it below and press Save key. Never paste it into a chat.\nIf Stripe's screens look different, tell me what you see and I'll adjust these steps.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.65))
+   HStack(spacing:10) {
+    Button("Open Stripe keys") { NSWorkspace.shared.open(URL(string:"https://dashboard.stripe.com/apikeys")!) }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    SecureField("Paste your key here",text:$sales.keyInput).noirField()
+    Button("Save key") { sales.save() }.buttonStyle(PillButtonStyle())
+   }
+   if !sales.message.isEmpty { Text(sales.message).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
+  }
  }
 
  // The Google key: get one free (no card needed), paste it, and it goes into the Keychain.

@@ -45,6 +45,16 @@ struct FeedStats {
  }
 }
 
+// The store's product list as published on the site, and when the 3-day refresh last updated it.
+struct CatalogStats {
+ var count = 0
+ var categories = 0
+ var refreshed: Date?
+ // The refresh runs every 3 days. Five days with no refresh means it is not running.
+ func ageDays(now: Date = Date()) -> Int? { refreshed.map { Int(now.timeIntervalSince($0) / 86400.0) } }
+ func isStale(now: Date = Date()) -> Bool { (ageDays(now:now) ?? 0) > 5 }
+}
+
 struct AutomationRun: Identifiable {
  var id: String { name }
  var name: String
@@ -152,6 +162,32 @@ enum VentureData {
    result.cards = cards.prefix(3).map { FeedCard(date:($0["date"] as? String) ?? "",image:($0["image"] as? String) ?? "",message:($0["message"] as? String) ?? "") }
   }
   return result
+ }
+
+ // The live product list plus the date of the last "Refresh: trending products" commit (GitHub's public commit list).
+ static func parseCatalog(products: Data,commits: Data?) -> CatalogStats? {
+  guard let list = (try? JSONSerialization.jsonObject(with:products)) as? [[String:Any]], !list.isEmpty else { return nil }
+  var stats = CatalogStats()
+  stats.count = list.count
+  stats.categories = Set(list.compactMap { $0["category"] as? String }).count
+  if let commits = commits, let rows = (try? JSONSerialization.jsonObject(with:commits)) as? [[String:Any]] {
+   let iso = ISO8601DateFormatter()
+   for row in rows {
+    guard let commit = row["commit"] as? [String:Any], let message = commit["message"] as? String,
+          message.hasPrefix("Refresh: trending products"),
+          let committer = commit["committer"] as? [String:Any], let when = committer["date"] as? String else { continue }
+    stats.refreshed = iso.date(from:when)
+    break
+   }
+  }
+  return stats
+ }
+
+ static func fetchCatalog() async -> CatalogStats? {
+  let stamp = Int(Date().timeIntervalSince1970)
+  guard let products = await get("https://findhotstuff.com/products.json?nc=\(stamp)") else { return nil }
+  let commits = await get("https://api.github.com/repos/matthewferreira818/hotstuff/commits?path=products.json&per_page=15",headers:["Accept":"application/vnd.github+json","User-Agent":"GameCompanion"])
+  return parseCatalog(products:products,commits:commits)
  }
 
  // GitHub's public workflow runs, newest first. Keeps the latest run of each automation.

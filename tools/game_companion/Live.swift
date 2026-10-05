@@ -72,6 +72,8 @@ enum GeminiKey {
  var clipsOn: Bool { (clips?.voiceClips ?? false) && (clips?.signedIn ?? false) }
  // Set by the window; lets the buddy work the Stream page by voice when the player asks (see StreamManager.swift).
  var stream: StreamHub?
+ // Set by the window; every finished turn and every tool result is written to the Feed page (see FridayFeed.swift).
+ var feed: FridayFeed?
  var streamOn: Bool { (clips?.voiceStream ?? false) && (clips?.signedIn ?? false) && stream != nil }
  // When the player's own words last contained "clip it". Stops one sentence from starting a second clip.
  var lastClipPhrase = Date.distantPast
@@ -122,6 +124,7 @@ enum GeminiKey {
  }
 
  func stop() {
+  logTurn()
   stopping = true; running = false; ready = false; session += 1
   lastSeen = nil
   frameTimer?.invalidate(); frameTimer = nil
@@ -291,7 +294,14 @@ enum GeminiKey {
     if let inline = part["inlineData"] as? [String:Any], let encoded = inline["data"] as? String, let pcm = Data(base64Encoded:encoded) { play(pcm) }
    }
   }
-  if content["turnComplete"] as? Bool == true { heardFresh = true; saidFresh = true }
+  if content["turnComplete"] as? Bool == true { logTurn(); heardFresh = true; saidFresh = true }
+ }
+
+ // Writes what was just said to the Feed page. Words only count while they are fresh (not already logged), and the typed ones
+ // are logged when they are sent.
+ func logTurn() {
+  if !heardFresh { feed?.add("you",heard) }
+  if !saidFresh { feed?.add("friday",said) }
  }
 
  // "Clip it", "clip that" or "clip this" in the player's own words. This backs up the model's tool call, which it can skip
@@ -332,6 +342,7 @@ enum GeminiKey {
     } else { result = "The Stream tools are switched off. Tell the player to tick the Stream switch in Settings before starting Friday." }
    }
    else { result = "That tool doesn't exist. Tell the player you couldn't check." }
+   feed?.add("action",name == "lookup_game_wiki" ? "Looked up \(query)" : "\(FeedFormat.actionLabel(name)): \(result)")
    guard asker != nil, asker === socket else { return }
    let response: [String:Any] = ["result":result]
    let item: [String:Any] = ["id":id,"name":name,"response":response]
@@ -440,6 +451,7 @@ enum GeminiKey {
   guard running else { status = "Click Start live buddy first, then type your question."; return }
   guard ready else { status = "Still connecting to Google. Try again in a second."; return }
   typed = ""
+  feed?.add("you",text)
   heard = text; heardFresh = true
   send(["realtimeInput":["text":text]])
  }

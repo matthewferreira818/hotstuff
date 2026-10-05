@@ -2,7 +2,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -85,6 +85,23 @@ import Foundation
   precondition(StreamData.encoded("Just Chatting & more") == "Just%20Chatting%20%26%20more")
   precondition(StreamData.explain(code:401,message:nil,doing:"x").contains("sign in again") && StreamData.explain(code:404,message:nil,doing:"add a marker").contains("VODs"))
   precondition(StreamData.explain(code:400,message:"bad",doing:"x").contains("bad"))
+  // The Friday feed: blanks are skipped, whitespace is tidied, an immediate repeat counts once, the newest are kept, and the copy is plain text.
+  let t1 = Date(timeIntervalSince1970:1_000_000)
+  var feedLog = FeedFormat.appending([],who:"you",text:"  hello \n  there ",now:t1)
+  precondition(feedLog.count == 1 && feedLog[0].text == "hello there")
+  precondition(FeedFormat.appending(feedLog,who:"you",text:"   ",now:t1).count == 1)
+  precondition(FeedFormat.appending(feedLog,who:"you",text:"hello there",now:t1.addingTimeInterval(5)).count == 1)
+  precondition(FeedFormat.appending(feedLog,who:"you",text:"hello there",now:t1.addingTimeInterval(60)).count == 2)
+  feedLog = FeedFormat.appending(feedLog,who:"friday",text:"Hi Matthew!",now:t1.addingTimeInterval(2))
+  feedLog = FeedFormat.appending(feedLog,who:"action",text:"Clip: Clip made.",now:t1.addingTimeInterval(4))
+  let copy = FeedFormat.transcript(feedLog)
+  precondition(copy.contains("Matthew: hello there") && copy.contains("Friday: Hi Matthew!") && copy.contains("Action: Clip: Clip made.") && copy.components(separatedBy:"\n").count == 3)
+  precondition(FeedFormat.transcript(feedLog,last:1).contains("Action:") && !FeedFormat.transcript(feedLog,last:1).contains("Friday:"))
+  var many: [FeedEntry] = []
+  for i in 0..<12 { many = FeedFormat.appending(many,who:"you",text:"m\(i)",now:t1.addingTimeInterval(Double(i) * 60),keep:10) }
+  precondition(many.count == 10 && many.first?.text == "m2" && many.last?.text == "m11")
+  precondition(FeedFormat.clean(String(repeating:"x",count:2000)).count == FeedFormat.maxLength)
+  precondition(FeedFormat.actionLabel("set_stream_title") == "Title" && FeedFormat.actionLabel("zzz") == "Action")
   print("All data checks passed.")
  }
 }

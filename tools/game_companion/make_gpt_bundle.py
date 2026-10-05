@@ -35,6 +35,8 @@ FILES = [
     ("ClipEditor.swift", "Cuts the highlight and makes a wide and a tall (9:16) version with Apple's video tools."),
     ("StreamData.swift", "Reads Twitch's answers (live status, channel, clips, followers) and explains its errors in plain words. Tested."),
     ("StreamManager.swift", "The Stream page: live status, title and category editor with presets, markers, clips and a go-live checklist."),
+    ("FeedData.swift", "The Friday feed's data and plain-text format (no Mac frameworks). Tested."),
+    ("FridayFeed.swift", "The Feed page and its store: what Matthew and Friday said, saved on this Mac only."),
     ("Hub.swift", "The hub: sidebar sections, Home, Stock, Store, ECS, Systems, Launchpad, Game and Accounts pages."),
     ("rebuild.sh", "Builds the app with swiftc (no Xcode), signs it and installs it."),
     ("make_cert.sh", "One-time: makes the self-signed signing certificate so permissions and Keychain trust stick."),

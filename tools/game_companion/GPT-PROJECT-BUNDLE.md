@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit 0816ac0. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit 9d3f259. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -72,6 +72,8 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `ClipEditor.swift`: Cuts the highlight and makes a wide and a tall (9:16) version with Apple's video tools.
 - `StreamData.swift`: Reads Twitch's answers (live status, channel, clips, followers) and explains its errors in plain words. Tested.
 - `StreamManager.swift`: The Stream page: live status, title and category editor with presets, markers, clips and a go-live checklist.
+- `FeedData.swift`: The Friday feed's data and plain-text format (no Mac frameworks). Tested.
+- `FridayFeed.swift`: The Feed page and its store: what Matthew and Friday said, saved on this Mac only.
 - `Hub.swift`: The hub: sidebar sections, Home, Stock, Store, ECS, Systems, Launchpad, Game and Accounts pages.
 - `rebuild.sh`: Builds the app with swiftc (no Xcode), signs it and installs it.
 - `make_cert.sh`: One-time: makes the self-signed signing certificate so permissions and Keychain trust stick.
@@ -641,6 +643,8 @@ enum GeminiKey {
  var clipsOn: Bool { (clips?.voiceClips ?? false) && (clips?.signedIn ?? false) }
  // Set by the window; lets the buddy work the Stream page by voice when the player asks (see StreamManager.swift).
  var stream: StreamHub?
+ // Set by the window; every finished turn and every tool result is written to the Feed page (see FridayFeed.swift).
+ var feed: FridayFeed?
  var streamOn: Bool { (clips?.voiceStream ?? false) && (clips?.signedIn ?? false) && stream != nil }
  // When the player's own words last contained "clip it". Stops one sentence from starting a second clip.
  var lastClipPhrase = Date.distantPast
@@ -691,6 +695,7 @@ enum GeminiKey {
  }
 
  func stop() {
+  logTurn()
   stopping = true; running = false; ready = false; session += 1
   lastSeen = nil
   frameTimer?.invalidate(); frameTimer = nil
@@ -860,7 +865,14 @@ enum GeminiKey {
     if let inline = part["inlineData"] as? [String:Any], let encoded = inline["data"] as? String, let pcm = Data(base64Encoded:encoded) { play(pcm) }
    }
   }
-  if content["turnComplete"] as? Bool == true { heardFresh = true; saidFresh = true }
+  if content["turnComplete"] as? Bool == true { logTurn(); heardFresh = true; saidFresh = true }
+ }
+
+ // Writes what was just said to the Feed page. Words only count while they are fresh (not already logged), and the typed ones
+ // are logged when they are sent.
+ func logTurn() {
+  if !heardFresh { feed?.add("you",heard) }
+  if !saidFresh { feed?.add("friday",said) }
  }
 
  // "Clip it", "clip that" or "clip this" in the player's own words. This backs up the model's tool call, which it can skip
@@ -901,6 +913,7 @@ enum GeminiKey {
     } else { result = "The Stream tools are switched off. Tell the player to tick the Stream switch in Settings before starting Friday." }
    }
    else { result = "That tool doesn't exist. Tell the player you couldn't check." }
+   feed?.add("action",name == "lookup_game_wiki" ? "Looked up \(query)" : "\(FeedFormat.actionLabel(name)): \(result)")
    guard asker != nil, asker === socket else { return }
    let response: [String:Any] = ["result":result]
    let item: [String:Any] = ["id":id,"name":name,"response":response]
@@ -1009,6 +1022,7 @@ enum GeminiKey {
   guard running else { status = "Click Start live buddy first, then type your question."; return }
   guard ready else { status = "Still connecting to Google. Try again in a second."; return }
   typed = ""
+  feed?.add("you",text)
   heard = text; heardFresh = true
   send(["realtimeInput":["text":text]])
  }
@@ -1743,6 +1757,7 @@ struct CompanionInterfaceView: View {
  @StateObject var sales = SalesHub()
  @StateObject var meeting = MeetingHub()
  @StateObject var stream = StreamHub()
+ @StateObject var feed = FridayFeed()
  @StateObject var corner = FridayCornerController()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
@@ -1757,7 +1772,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
@@ -3370,6 +3385,8 @@ import Cocoa
 @MainActor final class MeetingHub: ObservableObject {
  static let tokenService = "GameCompanion.GitHubIssuesToken"
  static let targets = ["Claude","GPT","Everyone"]
+ // Which channel the Meeting Room page shows: 0 the team board and thread, 1 Friday's private feed.
+ @Published var channel = 0
  @Published var board: Board?
  @Published var messages: [RoomMessage] = []
  @Published var loading = false
@@ -3473,7 +3490,18 @@ import Cocoa
 }
 
 extension CompanionInterfaceView {
+ // The Meeting Room has two channels: the team board and thread (public, on GitHub) and Friday (private, this Mac only).
  var hubMeeting: some View {
+  VStack(spacing:0) {
+   Picker("Channel",selection:$meeting.channel) { Text("Team board").tag(0); Text("Friday · private").tag(1) }
+    .pickerStyle(.segmented).labelsHidden().frame(width:340)
+    .frame(maxWidth:.infinity,alignment:.leading)
+    .padding(.horizontal,32).padding(.bottom,12)
+   if meeting.channel == 0 { hubMeetingBoard } else { hubFeed }
+  }
+ }
+
+ var hubMeetingBoard: some View {
   ScrollView {
    VStack(alignment:.leading,spacing:18) {
     HStack(spacing:10) {
@@ -4514,6 +4542,234 @@ extension CompanionInterfaceView {
    }
   }
   .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+ }
+}
+```
+
+## FILE: FeedData.swift
+
+```swift
+import Foundation
+
+// The Friday feed: a record of what Matthew and Friday say to each other, and what she does for him (a clip, a title change).
+// This file is the part with no Mac frameworks, so it can be tested anywhere. The store and the page are in FridayFeed.swift.
+// The feed is a record for Matthew. Friday does not read it back, and it never leaves the Mac except when he presses Copy.
+
+struct FeedEntry: Codable, Identifiable, Equatable {
+ var id: String
+ var date: Date
+ var who: String      // "you", "friday" or "action"
+ var text: String
+}
+
+enum FeedFormat {
+ static let keepEntries = 500
+ static let maxLength = 1500
+
+ // One line of plain words: runs of spaces and line breaks become one space, and a very long message is cut.
+ static func clean(_ raw: String) -> String {
+  let words = raw.split(whereSeparator: { $0.isWhitespace }).joined(separator:" ")
+  return String(words.prefix(maxLength))
+ }
+
+ // Adds one message. Empty ones are skipped, the same message twice within 30 seconds counts once, and only the newest
+ // `keep` messages are kept.
+ static func appending(_ entries: [FeedEntry],who: String,text raw: String,now: Date = Date(),keep: Int = keepEntries) -> [FeedEntry] {
+  let text = clean(raw)
+  guard !text.isEmpty else { return entries }
+  if let last = entries.last, last.who == who, last.text == text, now.timeIntervalSince(last.date) < 30 { return entries }
+  var next = entries
+  next.append(FeedEntry(id:UUID().uuidString,date:now,who:who,text:text))
+  if next.count > keep { next.removeFirst(next.count - keep) }
+  return next
+ }
+
+ static func name(_ who: String) -> String {
+  switch who {
+  case "you": return "Matthew"
+  case "friday": return "Friday"
+  default: return "Action"
+  }
+ }
+
+ // Plain text for pasting into a chat with Claude or GPT: one line per message, oldest first.
+ static func transcript(_ entries: [FeedEntry],last count: Int? = nil) -> String {
+  let slice = count.map { Array(entries.suffix($0)) } ?? entries
+  let stamp = DateFormatter()
+  stamp.locale = Locale(identifier:"en_US_POSIX")
+  stamp.dateFormat = "yyyy-MM-dd HH:mm"
+  return slice.map { "[\(stamp.string(from:$0.date))] \(name($0.who)): \($0.text)" }.joined(separator:"\n")
+ }
+
+ // A short label for what a tool did, shown on the feed.
+ static func actionLabel(_ tool: String) -> String {
+  switch tool {
+  case "clip_that": return "Clip"
+  case "stream_status": return "Stream check"
+  case "set_stream_title": return "Title"
+  case "set_stream_category": return "Category"
+  case "use_stream_preset": return "Preset"
+  case "mark_moment": return "Marker"
+  case "lookup_game_wiki": return "Lookup"
+  default: return "Action"
+  }
+ }
+}
+```
+
+## FILE: FridayFeed.swift
+
+```swift
+import SwiftUI
+import AppKit
+
+// The Feed page: what Matthew and Friday said to each other, newest at the bottom, plus the things she did for him.
+// It lives on this Mac only (Application Support/GameCompanion/FridayFeed.json), never in Git. Turn "Remember" off and nothing is
+// written to disk (the file is deleted too); the feed then lasts only until the app closes. Friday does not read it back; it is a
+// record for Matthew, and Copy puts it on the clipboard so he can paste it into a chat with Claude or GPT when he wants them to see it.
+@MainActor final class FridayFeed: ObservableObject {
+ @Published var entries: [FeedEntry] = []
+ @Published var remember = UserDefaults.standard.object(forKey:"feed.remember") as? Bool ?? true {
+  didSet {
+   UserDefaults.standard.set(remember,forKey:"feed.remember")
+   if remember { persist() } else { try? FileManager.default.removeItem(at:fileURL) }
+  }
+ }
+ @Published var confirmClear = false
+ @Published var copied = ""
+ let fileURL: URL
+
+ init() {
+  fileURL = FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/FridayFeed.json")
+  if remember { load() }
+ }
+
+ func add(_ who: String,_ text: String) {
+  entries = FeedFormat.appending(entries,who:who,text:text)
+  persist()
+ }
+
+ func clear() {
+  entries = []
+  try? FileManager.default.removeItem(at:fileURL)
+ }
+
+ func copy(last count: Int?) {
+  let text = FeedFormat.transcript(entries,last:count)
+  guard !text.isEmpty else { copied = "Nothing to copy yet"; return }
+  let pasteboard = NSPasteboard.general
+  pasteboard.clearContents()
+  pasteboard.setString(text,forType:.string)
+  copied = count == nil ? "Copied everything" : "Copied the last \(min(count ?? 0,entries.count))"
+  Task {
+   try? await Task.sleep(nanoseconds:2_500_000_000)
+   copied = ""
+  }
+ }
+
+ private func load() {
+  let decoder = JSONDecoder()
+  decoder.dateDecodingStrategy = .iso8601
+  guard let data = try? Data(contentsOf:fileURL), let saved = try? decoder.decode([FeedEntry].self,from:data) else { return }
+  entries = Array(saved.suffix(FeedFormat.keepEntries))
+ }
+
+ private func persist() {
+  guard remember else { return }
+  let encoder = JSONEncoder()
+  encoder.dateEncodingStrategy = .iso8601
+  guard let data = try? encoder.encode(entries) else { return }
+  try? FileManager.default.createDirectory(at:fileURL.deletingLastPathComponent(),withIntermediateDirectories:true)
+  try? data.write(to:fileURL,options:.atomic)
+ }
+}
+
+extension CompanionInterfaceView {
+ var hubFeed: some View {
+  VStack(spacing:0) {
+   hubFeedHeader.padding(.horizontal,32).padding(.bottom,12)
+   if feed.entries.isEmpty {
+    VStack(spacing:8) {
+     Image(systemName:"text.bubble").font(.system(size:34)).foregroundStyle(Color.white.opacity(0.3))
+     Text("Nothing here yet").font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     Text("Start Friday and talk to her. What you both say, and what she does for you, lands here.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)).multilineTextAlignment(.center)
+    }
+    .frame(maxWidth:.infinity,maxHeight:.infinity).padding(40)
+   } else {
+    ScrollViewReader { proxy in
+     ScrollView {
+      LazyVStack(spacing:10) {
+       ForEach(Array(feed.entries.enumerated()),id:\.element.id) { index,entry in
+        hubFeedRow(entry,previous:index > 0 ? feed.entries[index - 1] : nil)
+       }
+      }
+      .padding(.horizontal,32).padding(.vertical,6)
+     }
+     .scrollIndicators(.hidden)
+     .onAppear { if let last = feed.entries.last { proxy.scrollTo(last.id,anchor:.bottom) } }
+     .onChange(of:feed.entries.count) { _,_ in
+      if let last = feed.entries.last { withAnimation(.easeOut(duration:0.25)) { proxy.scrollTo(last.id,anchor:.bottom) } }
+     }
+    }
+   }
+   Text("Saved on this Mac only, never on GitHub. Google still hears the audio while Friday is live, as always. Friday doesn't read this feed back; it's your record. Press Copy to paste it to Claude or GPT.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4)).padding(.horizontal,32).padding(.vertical,12)
+  }
+  .confirmationDialog("Clear the whole feed?",isPresented:$feed.confirmClear) {
+   Button("Clear it",role:.destructive) { feed.clear() }
+  } message: { Text("This deletes the saved copy on this Mac. It can't be undone.") }
+ }
+
+ var hubFeedHeader: some View {
+  HStack(spacing:10) {
+   hubPill("ON THIS MAC ONLY",tint:HubColor.sky)
+   Text("\(feed.entries.count) message\(feed.entries.count == 1 ? "" : "s")").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   if !feed.copied.isEmpty { Text(feed.copied).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(HubColor.green) }
+   Spacer()
+   Toggle("Remember between sessions",isOn:$feed.remember).toggleStyle(.switch).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.7))
+   Button { feed.copy(last:20) } label: { Label("Copy last 20",systemImage:"doc.on.doc") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   Button { feed.copy(last:nil) } label: { Label("Copy all",systemImage:"doc.on.doc.fill") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   Button { feed.confirmClear = true } label: { Label("Clear",systemImage:"trash") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    .disabled(feed.entries.isEmpty)
+  }
+ }
+
+ @ViewBuilder func hubFeedRow(_ entry: FeedEntry,previous: FeedEntry?) -> some View {
+  if previous == nil || !Calendar.current.isDate(previous?.date ?? entry.date,inSameDayAs:entry.date) {
+   Text(entry.date.formatted(date:.complete,time:.omitted)).font(.system(size:11,weight:.semibold,design:.rounded)).tracking(0.6).foregroundStyle(Color.white.opacity(0.4)).padding(.top,10)
+  }
+  switch entry.who {
+  case "you":
+   HStack {
+    Spacer(minLength:80)
+    VStack(alignment:.trailing,spacing:3) {
+     Text(entry.text).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white).textSelection(.enabled)
+      .padding(.horizontal,14).padding(.vertical,10)
+      .background(RoundedRectangle(cornerRadius:18,style:.continuous).fill(LinearGradient(colors:[Noir.crimsonLight.opacity(0.9),Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing)))
+     Text(entry.date,style:.time).font(.system(size:10.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.35))
+    }
+   }
+  case "friday":
+   HStack {
+    VStack(alignment:.leading,spacing:3) {
+     Text(entry.text).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.95)).textSelection(.enabled)
+      .padding(.horizontal,14).padding(.vertical,10)
+      .hubCard(radius:18)
+     Text("Friday · \(entry.date.formatted(date:.omitted,time:.shortened))").font(.system(size:10.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.35))
+    }
+    Spacer(minLength:80)
+   }
+  default:
+   HStack(spacing:8) {
+    Image(systemName:"bolt.fill").font(.system(size:10)).foregroundStyle(HubColor.violet)
+    Text(entry.text).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.75)).textSelection(.enabled)
+   }
+   .padding(.horizontal,12).padding(.vertical,7)
+   .background(Capsule().fill(HubColor.violet.opacity(0.16)))
+   .frame(maxWidth:.infinity)
+  }
  }
 }
 ```
@@ -5868,7 +6124,7 @@ TMP=$(mktemp -d)
 
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,FeedData,FridayFeed,Hub}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -6009,7 +6265,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -6092,6 +6348,23 @@ import Foundation
   precondition(StreamData.encoded("Just Chatting & more") == "Just%20Chatting%20%26%20more")
   precondition(StreamData.explain(code:401,message:nil,doing:"x").contains("sign in again") && StreamData.explain(code:404,message:nil,doing:"add a marker").contains("VODs"))
   precondition(StreamData.explain(code:400,message:"bad",doing:"x").contains("bad"))
+  // The Friday feed: blanks are skipped, whitespace is tidied, an immediate repeat counts once, the newest are kept, and the copy is plain text.
+  let t1 = Date(timeIntervalSince1970:1_000_000)
+  var feedLog = FeedFormat.appending([],who:"you",text:"  hello \n  there ",now:t1)
+  precondition(feedLog.count == 1 && feedLog[0].text == "hello there")
+  precondition(FeedFormat.appending(feedLog,who:"you",text:"   ",now:t1).count == 1)
+  precondition(FeedFormat.appending(feedLog,who:"you",text:"hello there",now:t1.addingTimeInterval(5)).count == 1)
+  precondition(FeedFormat.appending(feedLog,who:"you",text:"hello there",now:t1.addingTimeInterval(60)).count == 2)
+  feedLog = FeedFormat.appending(feedLog,who:"friday",text:"Hi Matthew!",now:t1.addingTimeInterval(2))
+  feedLog = FeedFormat.appending(feedLog,who:"action",text:"Clip: Clip made.",now:t1.addingTimeInterval(4))
+  let copy = FeedFormat.transcript(feedLog)
+  precondition(copy.contains("Matthew: hello there") && copy.contains("Friday: Hi Matthew!") && copy.contains("Action: Clip: Clip made.") && copy.components(separatedBy:"\n").count == 3)
+  precondition(FeedFormat.transcript(feedLog,last:1).contains("Action:") && !FeedFormat.transcript(feedLog,last:1).contains("Friday:"))
+  var many: [FeedEntry] = []
+  for i in 0..<12 { many = FeedFormat.appending(many,who:"you",text:"m\(i)",now:t1.addingTimeInterval(Double(i) * 60),keep:10) }
+  precondition(many.count == 10 && many.first?.text == "m2" && many.last?.text == "m11")
+  precondition(FeedFormat.clean(String(repeating:"x",count:2000)).count == FeedFormat.maxLength)
+  precondition(FeedFormat.actionLabel("set_stream_title") == "Title" && FeedFormat.actionLabel("zzz") == "Action")
   print("All data checks passed.")
  }
 }
@@ -6444,6 +6717,19 @@ ones she changes nothing and asks which. A title or category change touches only
 the Stream page alone. She can't start or stop the stream (Twitch doesn't allow it). Like the clip tool, these tools are not available
 while Google Search is switched on instead of the wiki lookup (Google doesn't allow both). The category choice rule and the
 title/category request bodies are in `checks/DataChecks.swift` and pass; the voice path itself has not been run.
+
+## The Friday feed, inside the Meeting Room (2026-10-05)
+
+The Meeting Room page now has two channels, picked at the top: **Team board** (the shared board and the GitHub thread, which are
+public) and **Friday · private**. The Friday channel is a chat-style feed of what Matthew and Friday said to each other (his words
+on the right, hers on the left) with small pills for what she did for him (a clip, a title change, a marker, a lookup). It is
+written by `LiveBuddy` when a turn finishes, when a typed message is sent, when a tool returns and when she is stopped; `FeedData.swift`
+holds the format and the tests, `FridayFeed.swift` the store and the page. It is saved only on the Mac
+(`~/Library/Application Support/GameCompanion/FridayFeed.json`, newest 500 messages), never in Git, because the Team board lives in a
+public repo. "Remember between sessions" off means nothing is written to disk and the saved file is deleted. Friday does not read
+the feed back. Copy last 20 / Copy all put plain text on the clipboard for pasting into a chat with Claude or GPT; Clear deletes it.
+Live mode only: the local (Ollama) mode isn't logged yet. The format, tidy-up, repeat guard, 500-message cap and copy text are in
+`checks/DataChecks.swift` and pass; the page and the hooks have not been compiled or run on the Mac.
 ```
 
 ## FILE: meeting-room/README.md
@@ -6520,8 +6806,8 @@ _Last updated: 2026-10-05 by Claude_
 - [Matthew] Rebuild the app, sign out of Twitch in Settings and sign in again (one new permission is needed to download clips), then say "clip it" while live. Status: waiting
 - [Claude] After the first clip test works: swap the older Apple calls in ClipEditor.swift (asset reader, video composition) for the newer ones Apple recommends; GPT compile-checks the swap. Not urgent: the old ones still work. Status: waiting
 - [GPT] Apply the approved page fixes in meeting-room/notes/claude-fixes-for-gpt.md on the branch gpt/claims-fixes-2026-10-05 (not master). Claude reviews and merges. Status: assigned
-- [GPT] Compile-check master (fa723af) on the Mac: the new orb, corner popup, movable rail and Stream page. Command is in the thread (issue 15). Report errors by file and line; don't edit the files. Status: assigned
-- [Claude] New this round: Friday's orb rewritten (aura, glass sphere, sparks, look bar), a Siri-style corner popup when Friday is live and the window is out of sight, drag-to-reorder rail icons, and a Stream page for Twitch (live status, title and category with presets, markers, clips, go-live checklist). Parsed and the Twitch reader tested here; none of it compiled or seen on the Mac yet. Status: waiting
+- [GPT] Compile-check master (now 92b3eeb; includes Friday's voice tools for the Stream page) on the Mac: the new orb, corner popup, movable rail and Stream page. Command is in the thread (issue 15). Report errors by file and line; don't edit the files. Status: assigned
+- [Claude] New this round: Friday's orb rewritten (aura, glass sphere, sparks, look bar), a Siri-style corner popup when Friday is live and the window is out of sight, drag-to-reorder rail icons, and a Stream page for Twitch (live status, title and category with presets, markers, clips, go-live checklist), and an opt-in switch that lets Friday run it by voice (am I live, change title or category, use a preset, mark a moment). Parsed and the Twitch reader tested here; none of it compiled or seen on the Mac yet. Status: waiting
 - [Claude] Meeting Room messages: thread (issue 15) that Matthew, Claude and GPT can all post to, a posting box in the app, a phone push when a message is for Matthew, and a daily check by Claude. Built and tested here; the app part has not been compiled on the Mac. Status: waiting
 - [Matthew] The Moncton group ad was submitted by Chrome Claude on 2026-10-05 and is waiting on the group's admins (not live, so no link yet). Next: have Chrome Claude delete the stale Aug 19 pending post and leave the new one pending; no more posts in that group until the admins respond. Status: waiting
 - [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 7". Status: waiting

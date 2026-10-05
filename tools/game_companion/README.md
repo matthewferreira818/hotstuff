@@ -342,3 +342,16 @@ ones she changes nothing and asks which. A title or category change touches only
 the Stream page alone. She can't start or stop the stream (Twitch doesn't allow it). Like the clip tool, these tools are not available
 while Google Search is switched on instead of the wiki lookup (Google doesn't allow both). The category choice rule and the
 title/category request bodies are in `checks/DataChecks.swift` and pass; the voice path itself has not been run.
+
+## The Friday feed, inside the Meeting Room (2026-10-05)
+
+The Meeting Room page now has two channels, picked at the top: **Team board** (the shared board and the GitHub thread, which are
+public) and **Friday · private**. The Friday channel is a chat-style feed of what Matthew and Friday said to each other (his words
+on the right, hers on the left) with small pills for what she did for him (a clip, a title change, a marker, a lookup). It is
+written by `LiveBuddy` when a turn finishes, when a typed message is sent, when a tool returns and when she is stopped; `FeedData.swift`
+holds the format and the tests, `FridayFeed.swift` the store and the page. It is saved only on the Mac
+(`~/Library/Application Support/GameCompanion/FridayFeed.json`, newest 500 messages), never in Git, because the Team board lives in a
+public repo. "Remember between sessions" off means nothing is written to disk and the saved file is deleted. Friday does not read
+the feed back. Copy last 20 / Copy all put plain text on the clipboard for pasting into a chat with Claude or GPT; Clear deletes it.
+Live mode only: the local (Ollama) mode isn't logged yet. The format, tidy-up, repeat guard, 500-message cap and copy text are in
+`checks/DataChecks.swift` and pass; the page and the hooks have not been compiled or run on the Mac.

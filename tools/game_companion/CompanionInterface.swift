@@ -14,6 +14,7 @@ struct CompanionInterfaceView: View {
  @StateObject var sales = SalesHub()
  @StateObject var meeting = MeetingHub()
  @StateObject var stream = StreamHub()
+ @StateObject var feed = FridayFeed()
  @StateObject var corner = FridayCornerController()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
@@ -28,7 +29,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }

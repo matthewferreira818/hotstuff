@@ -6,6 +6,8 @@ import Cocoa
 @MainActor final class MeetingHub: ObservableObject {
  static let tokenService = "GameCompanion.GitHubIssuesToken"
  static let targets = ["Claude","GPT","Everyone"]
+ // Which channel the Meeting Room page shows: 0 the team board and thread, 1 Friday's private feed.
+ @Published var channel = 0
  @Published var board: Board?
  @Published var messages: [RoomMessage] = []
  @Published var loading = false
@@ -109,7 +111,18 @@ import Cocoa
 }
 
 extension CompanionInterfaceView {
+ // The Meeting Room has two channels: the team board and thread (public, on GitHub) and Friday (private, this Mac only).
  var hubMeeting: some View {
+  VStack(spacing:0) {
+   Picker("Channel",selection:$meeting.channel) { Text("Team board").tag(0); Text("Friday · private").tag(1) }
+    .pickerStyle(.segmented).labelsHidden().frame(width:340)
+    .frame(maxWidth:.infinity,alignment:.leading)
+    .padding(.horizontal,32).padding(.bottom,12)
+   if meeting.channel == 0 { hubMeetingBoard } else { hubFeed }
+  }
+ }
+
+ var hubMeetingBoard: some View {
   ScrollView {
    VStack(alignment:.leading,spacing:18) {
     HStack(spacing:10) {

@@ -296,3 +296,11 @@ are refused because they can't be limited to one repo. That key can't touch code
 triggers `.github/workflows/room-ping.yml`, which sends a push to his phone through the same ntfy secret the other alerts use.
 The tag parser, trust filter, page-number reader and key rules are in `checks/DataChecks.swift` and pass. The page itself and
 the posting call have not been compiled or run on the Mac.
+
+## Refresh everything (2026-10-05)
+
+A **Refresh** button sits in the top bar of every page (Command-R). It reloads the stock snapshots, store and ECS numbers,
+automations, sales and the Meeting Room together, spins while it works, and shows "Updated 2 minutes ago". The Meeting Room's
+Messages card has its own Refresh too. A page left open also refreshes itself once a minute (stocks, Meeting Room, or the
+store/ECS/Systems numbers), and the Meeting Room uses the saved GitHub key for its reads when there is one, because GitHub allows
+far more reads with a key than without (60 an hour). Without a key the Meeting Room refreshes about every five minutes.

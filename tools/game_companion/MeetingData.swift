@@ -214,13 +214,9 @@ enum MeetingData {
  }
 
  // GitHub's contents API with the "raw" media type returns the file itself, a minute fresher than the raw file host.
- static func fetch() async -> Board? {
-  guard let target = URL(string:url) else { return nil }
-  var request = URLRequest(url:target)
-  request.cachePolicy = .reloadIgnoringLocalCacheData
-  request.timeoutInterval = 12
+ static func fetch(token: String? = nil) async -> Board? {
+  guard var request = api("/contents/meeting-room/BOARD.md?ref=master",token:token) else { return nil }
   request.setValue("application/vnd.github.raw+json",forHTTPHeaderField:"Accept")
-  request.setValue("GameCompanion",forHTTPHeaderField:"User-Agent")
   guard let (data,response) = try? await URLSession.shared.data(for:request),
         (response as? HTTPURLResponse)?.statusCode == 200,
         let text = String(data:data,encoding:.utf8), text.contains("##") else { return nil }

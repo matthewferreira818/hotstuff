@@ -16,6 +16,7 @@ struct CompanionInterfaceView: View {
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
  let refreshTick = Timer.publish(every:300,on:.main,in:.common).autoconnect()
+ let pageTick = Timer.publish(every:60,on:.main,in:.common).autoconnect()
  @Environment(\.accessibilityReduceMotion) var reduceMotion
  var body: some View {
   hubShell
@@ -26,6 +27,7 @@ struct CompanionInterfaceView: View {
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
   .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
   .onChange(of:conversation.page) { _,page in

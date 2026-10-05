@@ -27,12 +27,23 @@ import Cocoa
   if !force && Date().timeIntervalSince(lastRefresh) < minGap { return }
   loading = true
   defer { loading = false }
-  async let boardResult = MeetingData.fetch()
-  async let messageResult = MeetingData.fetchMessages(token:nil)
-  let (fresh,thread) = await (boardResult,messageResult)
+  // With the saved key GitHub allows far more reads, so the page can refresh every minute while it is open.
+  let token: String? = hasToken ? savedToken() : nil
+  async let boardResult = MeetingData.fetch(token:token)
+  async let messageResult = MeetingData.fetchMessages(token:token)
+  var (fresh,thread) = await (boardResult,messageResult)
+  if token != nil {
+   if fresh == nil { fresh = await MeetingData.fetch(token:nil) }
+   if thread == nil { thread = await MeetingData.fetchMessages(token:nil) }
+  }
   if let fresh = fresh { board = fresh; failed = false } else { failed = (board == nil) }
   if let thread = thread { messages = thread }
   lastRefresh = Date()
+ }
+
+ func savedToken() -> String? {
+  guard let data = Keychain.read(MeetingHub.tokenService) else { return nil }
+  return String(data:data,encoding:.utf8)
  }
 
  // Posts to the thread as Matthew. Needs the GitHub key limited to Issues on one repo (saved in the Keychain).
@@ -40,7 +51,7 @@ import Cocoa
   guard !sending else { return }
   let words = draft.trimmingCharacters(in:.whitespacesAndNewlines)
   guard !words.isEmpty else { return }
-  guard hasToken, let data = Keychain.read(MeetingHub.tokenService), let token = String(data:data,encoding:.utf8) else {
+  guard hasToken, let token = savedToken() else {
    sendNote = "Connect posting first: the box below has the steps."
    return
   }
@@ -203,6 +214,8 @@ extension CompanionInterfaceView {
     Text("Messages").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
     Text(String(meeting.messages.count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
     Spacer()
+    Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))).disabled(meeting.loading)
     Button { if let url = URL(string:MeetingData.threadPage) { NSWorkspace.shared.open(url) } } label: { Label("Open the thread",systemImage:"arrow.up.right.square") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }

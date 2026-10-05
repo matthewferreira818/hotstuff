@@ -84,6 +84,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var hovered = ""
  // Which account row on the Accounts page is open, showing its connect form. Empty means none.
  @Published var expanded = ""
+ // When the refresh-everything button last finished.
+ @Published var refreshedAt: Date?
 }
 
 // Store visits, the ECS feed and the automations' status. All public, all read-only (see VentureData.swift).
@@ -368,6 +370,17 @@ extension CompanionInterfaceView {
     .padding(.horizontal,12).padding(.vertical,8)
     .background(Capsule().fill(Noir.crimson.opacity(0.35)))
    }
+   Button { Task { await hubRefreshAll() } } label: {
+    HStack(spacing:6) {
+     if hubAnyLoading { ProgressView().controlSize(.small) } else { Image(systemName:"arrow.clockwise") }
+     Text(hubAnyLoading ? "Refreshing…" : (hub.refreshedAt.map { "Updated \(hubAgo($0))" } ?? "Refresh"))
+    }
+    .font(.system(size:12,weight:.medium,design:.rounded))
+   }
+   .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   .keyboardShortcut("r",modifiers:.command)
+   .disabled(hubAnyLoading)
+   .help("Refresh everything: stocks, store, sales, systems and the Meeting Room (Command-R)")
    HStack(spacing:8) {
     Image(systemName:"sparkles").foregroundStyle(Noir.crimsonLight)
     TextField("Ask Friday…",text:$hub.query).textFieldStyle(.plain).onSubmit { hubAskFromBar() }
@@ -381,6 +394,28 @@ extension CompanionInterfaceView {
     .background(Circle().fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimsonDeep],startPoint:.topLeading,endPoint:.bottomTrailing)))
   }
   .padding(.horizontal,32).padding(.top,26).padding(.bottom,12)
+ }
+
+ var hubAnyLoading: Bool { stocks.loading || ventures.loading || sales.loading || meeting.loading }
+
+ // Everything that goes stale: the stock snapshots, store and ECS numbers, automations, sales and the Meeting Room.
+ func hubRefreshAll() async {
+  async let stockRun: Void = stocks.refresh()
+  async let ventureRun: Void = ventures.refresh(force:true)
+  async let salesRun: Void = sales.refresh(force:true)
+  async let roomRun: Void = meeting.refresh(force:true)
+  _ = await (stockRun,ventureRun,salesRun,roomRun)
+  hub.refreshedAt = Date()
+ }
+
+ // Once a minute, refresh just the page that is on screen, so a page left open stays current.
+ func hubRefreshVisible() async {
+  switch hub.section {
+  case .stocks: await stocks.refresh()
+  case .meeting: await meeting.refresh(minGap:meeting.hasToken ? 55 : 290)
+  case .home,.store,.ecs,.systems: await ventures.refresh()
+  default: break
+  }
  }
 
  @ViewBuilder var hubContent: some View {

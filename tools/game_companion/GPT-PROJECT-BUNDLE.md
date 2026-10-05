@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-05 from commit 1c3d040. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-05 from commit f70b18a. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -1706,6 +1706,7 @@ struct CompanionInterfaceView: View {
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
  let refreshTick = Timer.publish(every:300,on:.main,in:.common).autoconnect()
+ let pageTick = Timer.publish(every:60,on:.main,in:.common).autoconnect()
  @Environment(\.accessibilityReduceMotion) var reduceMotion
  var body: some View {
   hubShell
@@ -1716,6 +1717,7 @@ struct CompanionInterfaceView: View {
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
   .onAppear { c.conversation = conversation; live.conversation = conversation; live.clips = clips; Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll() }
   .onChange(of:conversation.page) { _,page in
@@ -2930,13 +2932,9 @@ enum MeetingData {
  }
 
  // GitHub's contents API with the "raw" media type returns the file itself, a minute fresher than the raw file host.
- static func fetch() async -> Board? {
-  guard let target = URL(string:url) else { return nil }
-  var request = URLRequest(url:target)
-  request.cachePolicy = .reloadIgnoringLocalCacheData
-  request.timeoutInterval = 12
+ static func fetch(token: String? = nil) async -> Board? {
+  guard var request = api("/contents/meeting-room/BOARD.md?ref=master",token:token) else { return nil }
   request.setValue("application/vnd.github.raw+json",forHTTPHeaderField:"Accept")
-  request.setValue("GameCompanion",forHTTPHeaderField:"User-Agent")
   guard let (data,response) = try? await URLSession.shared.data(for:request),
         (response as? HTTPURLResponse)?.statusCode == 200,
         let text = String(data:data,encoding:.utf8), text.contains("##") else { return nil }
@@ -2977,12 +2975,23 @@ import Cocoa
   if !force && Date().timeIntervalSince(lastRefresh) < minGap { return }
   loading = true
   defer { loading = false }
-  async let boardResult = MeetingData.fetch()
-  async let messageResult = MeetingData.fetchMessages(token:nil)
-  let (fresh,thread) = await (boardResult,messageResult)
+  // With the saved key GitHub allows far more reads, so the page can refresh every minute while it is open.
+  let token: String? = hasToken ? savedToken() : nil
+  async let boardResult = MeetingData.fetch(token:token)
+  async let messageResult = MeetingData.fetchMessages(token:token)
+  var (fresh,thread) = await (boardResult,messageResult)
+  if token != nil {
+   if fresh == nil { fresh = await MeetingData.fetch(token:nil) }
+   if thread == nil { thread = await MeetingData.fetchMessages(token:nil) }
+  }
   if let fresh = fresh { board = fresh; failed = false } else { failed = (board == nil) }
   if let thread = thread { messages = thread }
   lastRefresh = Date()
+ }
+
+ func savedToken() -> String? {
+  guard let data = Keychain.read(MeetingHub.tokenService) else { return nil }
+  return String(data:data,encoding:.utf8)
  }
 
  // Posts to the thread as Matthew. Needs the GitHub key limited to Issues on one repo (saved in the Keychain).
@@ -2990,7 +2999,7 @@ import Cocoa
   guard !sending else { return }
   let words = draft.trimmingCharacters(in:.whitespacesAndNewlines)
   guard !words.isEmpty else { return }
-  guard hasToken, let data = Keychain.read(MeetingHub.tokenService), let token = String(data:data,encoding:.utf8) else {
+  guard hasToken, let token = savedToken() else {
    sendNote = "Connect posting first: the box below has the steps."
    return
   }
@@ -3153,6 +3162,8 @@ extension CompanionInterfaceView {
     Text("Messages").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
     Text(String(meeting.messages.count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
     Spacer()
+    Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))).disabled(meeting.loading)
     Button { if let url = URL(string:MeetingData.threadPage) { NSWorkspace.shared.open(url) } } label: { Label("Open the thread",systemImage:"arrow.up.right.square") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
@@ -3202,7 +3213,7 @@ extension CompanionInterfaceView {
    if !meeting.sendNote.isEmpty { Text(meeting.sendNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
    Text("Posting puts your message on the public thread for Claude and GPT to read, so keep it free of keys and private details. Copy for a chat puts the same message on your clipboard for pasting straight into a chat.")
     .font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))
-   if !meeting.hasToken { hubRoomTokenForm }
+   hubRoomTokenForm
   }
   .padding(18)
   .frame(maxWidth:.infinity,alignment:.leading)
@@ -3509,6 +3520,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var hovered = ""
  // Which account row on the Accounts page is open, showing its connect form. Empty means none.
  @Published var expanded = ""
+ // When the refresh-everything button last finished.
+ @Published var refreshedAt: Date?
 }
 
 // Store visits, the ECS feed and the automations' status. All public, all read-only (see VentureData.swift).
@@ -3793,6 +3806,17 @@ extension CompanionInterfaceView {
     .padding(.horizontal,12).padding(.vertical,8)
     .background(Capsule().fill(Noir.crimson.opacity(0.35)))
    }
+   Button { Task { await hubRefreshAll() } } label: {
+    HStack(spacing:6) {
+     if hubAnyLoading { ProgressView().controlSize(.small) } else { Image(systemName:"arrow.clockwise") }
+     Text(hubAnyLoading ? "Refreshing…" : (hub.refreshedAt.map { "Updated \(hubAgo($0))" } ?? "Refresh"))
+    }
+    .font(.system(size:12,weight:.medium,design:.rounded))
+   }
+   .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   .keyboardShortcut("r",modifiers:.command)
+   .disabled(hubAnyLoading)
+   .help("Refresh everything: stocks, store, sales, systems and the Meeting Room (Command-R)")
    HStack(spacing:8) {
     Image(systemName:"sparkles").foregroundStyle(Noir.crimsonLight)
     TextField("Ask Friday…",text:$hub.query).textFieldStyle(.plain).onSubmit { hubAskFromBar() }
@@ -3806,6 +3830,28 @@ extension CompanionInterfaceView {
     .background(Circle().fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimsonDeep],startPoint:.topLeading,endPoint:.bottomTrailing)))
   }
   .padding(.horizontal,32).padding(.top,26).padding(.bottom,12)
+ }
+
+ var hubAnyLoading: Bool { stocks.loading || ventures.loading || sales.loading || meeting.loading }
+
+ // Everything that goes stale: the stock snapshots, store and ECS numbers, automations, sales and the Meeting Room.
+ func hubRefreshAll() async {
+  async let stockRun: Void = stocks.refresh()
+  async let ventureRun: Void = ventures.refresh(force:true)
+  async let salesRun: Void = sales.refresh(force:true)
+  async let roomRun: Void = meeting.refresh(force:true)
+  _ = await (stockRun,ventureRun,salesRun,roomRun)
+  hub.refreshedAt = Date()
+ }
+
+ // Once a minute, refresh just the page that is on screen, so a page left open stays current.
+ func hubRefreshVisible() async {
+  switch hub.section {
+  case .stocks: await stocks.refresh()
+  case .meeting: await meeting.refresh(minGap:meeting.hasToken ? 55 : 290)
+  case .home,.store,.ecs,.systems: await ventures.refresh()
+  default: break
+  }
  }
 
  @ViewBuilder var hubContent: some View {
@@ -5154,6 +5200,14 @@ are refused because they can't be limited to one repo. That key can't touch code
 triggers `.github/workflows/room-ping.yml`, which sends a push to his phone through the same ntfy secret the other alerts use.
 The tag parser, trust filter, page-number reader and key rules are in `checks/DataChecks.swift` and pass. The page itself and
 the posting call have not been compiled or run on the Mac.
+
+## Refresh everything (2026-10-05)
+
+A **Refresh** button sits in the top bar of every page (Command-R). It reloads the stock snapshots, store and ECS numbers,
+automations, sales and the Meeting Room together, spins while it works, and shows "Updated 2 minutes ago". The Meeting Room's
+Messages card has its own Refresh too. A page left open also refreshes itself once a minute (stocks, Meeting Room, or the
+store/ECS/Systems numbers), and the Meeting Room uses the saved GitHub key for its reads when there is one, because GitHub allows
+far more reads with a key than without (60 an hour). Without a key the Meeting Room refreshes about every five minutes.
 ```
 
 ## FILE: meeting-room/README.md
@@ -5231,11 +5285,11 @@ _Last updated: 2026-10-05 by Claude_
 - [Claude] After the first clip test works: swap the older Apple calls in ClipEditor.swift (asset reader, video composition) for the newer ones Apple recommends; GPT compile-checks the swap. Not urgent: the old ones still work. Status: waiting
 - [GPT] Honesty audit, notes only: read CLAUDE.md first, then read the live pages (findhotstuff.com, /automation/, /automation/fr/, /setup/, /links/, /build/, /notes/) and the repo files behind them. List every sentence that states or implies a posting frequency, a channel that posts, a count, a streak, a testimonial or a product claim, and mark each TRUE TODAY, FALSE TODAY or UNVERIFIABLE with the evidence. Save as meeting-room/notes/gpt-honesty-audit.md. Don't fix anything. Status: assigned
 - [GPT] Write tools/claims_check.py and tools/claims_check_test.py: a script that takes a post's text and flags claims that would be false today (posting frequency, "every day for N days" not matching the live feed stats, channels that are off, invented numbers or testimonials). It reads facts from a small tools/claims_facts.json you create. New files only; it must not run anywhere live. Pull first, push only those files, log it here. Status: assigned
-- [GPT] Draft three versions of the Moncton group ad in Matthew's plain voice, using only true wording ("my own store's feed has published a new post every day for 62 days", link findhotstuff.com/automation; never "my page"). Save as meeting-room/notes/gpt-moncton-ad-drafts.md. Claude picks one. Status: assigned
+- [GPT] Draft three versions of the Moncton group ad in Matthew's plain voice, using only true wording ("my own store's feed has published a new post every day since August 7", link findhotstuff.com/automation; never "my page"). Save as meeting-room/notes/gpt-moncton-ad-drafts.md. Claude picks one. Status: assigned
 - [GPT] Research notes, not advice: what a one-person business in New Brunswick generally needs to be set up properly (registering the business name, a business number, when GST/HST registration is required, a privacy policy for collecting leads, client agreements). Cite official sources. Save as meeting-room/notes/gpt-nb-business-setup.md. Status: assigned
 - [Claude] Meeting Room messages: thread (issue 15) that Matthew, Claude and GPT can all post to, a posting box in the app, a phone push when a message is for Matthew, and a daily check by Claude. Built and tested here; the app part has not been compiled on the Mac. Status: waiting
 - [GPT] After pulling: compile-check again (new: MeetingData.swift and MeetingRoom.swift changed), run the data checks, then post the result in the thread as **[GPT → Claude]**. Also, if your app can run scheduled tasks, set one to read this board and the thread twice a day and reply in the thread. Status: assigned
-- [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 4". Status: waiting
+- [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 7". Status: waiting
 - [Matthew] Answer four quick things so the sales ledger can be made true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting
 - [Matthew] Optional: make the GitHub key for posting from the app (Meeting Room page or Accounts, GitHub). Status: waiting
 - [Matthew] Optional: connect Stripe in the hub (Accounts, Stripe) with a read-only key, so orders and revenue show on the Store page. Status: waiting

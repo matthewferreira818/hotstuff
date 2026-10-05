@@ -216,13 +216,30 @@ enum GeminiKey {
    declarations.append(["name":"chat_helper","description":"Turns the timed chat helper on or off. While on and while the player is live, it posts his saved links and reminders every so often. Call ONLY when the player clearly asks.","parameters":object(["on":["type":"BOOLEAN","description":"true to turn it on, false to pause it."]],required:["on"])])
    declarations.append(["name":"mark_moment","description":"Adds a bookmark (a Twitch stream marker) at this point of the live stream, so the player can find the moment later. Call ONLY when the player asks to mark or bookmark something. It is not a public clip.","parameters":object(["note":text("A few words about the moment, using only what the player said or you saw. May be empty.")])])
   }
+  // Tool descriptions for the room and the hands, built in small typed steps (one giant nested literal is slow to compile).
+  func field(_ type: String,_ about: String) -> [String:Any] { ["type":type,"description":about] }
+  func tool(_ name: String,_ about: String,_ properties: [String:Any],required: [String]) -> [String:Any] {
+   var shape: [String:Any] = ["type":"OBJECT","properties":properties]
+   if !required.isEmpty { shape["required"] = required }
+   return ["name":name,"description":about,"parameters":shape]
+  }
   if meeting != nil {
-   declarations.append(["name":"tell_the_team","description":"Passes a short message from the player to Claude or GPT on the shared Meeting Room board. Call ONLY when the player asks you to pass something on. The board is public: never include keys, passwords, addresses, phone numbers or private details.","parameters":["type":"OBJECT","properties":["message":["type":"STRING","description":"The message in the player's words, plain and short."] as [String:Any],"to":["type":"STRING","description":"Claude, GPT or Everyone. Leave out for Claude."] as [String:Any]] as [String:Any],"required":["message"]] as [String:Any]])
-   declarations.append(["name":"team_messages","description":"Reads the newest messages that Claude or GPT left for you (Friday) on the Meeting Room board. Call when the player asks if there is anything from the team.","parameters":["type":"OBJECT","properties":[String:Any]()] as [String:Any]])
+   var tell: [String:Any] = [:]
+   tell["message"] = field("STRING","The message in the player's words, plain and short.")
+   tell["to"] = field("STRING","Claude, GPT or Everyone. Leave out for Claude.")
+   declarations.append(tool("tell_the_team","Passes a short message from the player to Claude or GPT on the shared Meeting Room board. Call ONLY when the player asks you to pass something on. The board is public: never include keys, passwords, addresses, phone numbers or private details.",tell,required:["message"]))
+   declarations.append(tool("team_messages","Reads the newest messages that Claude or GPT left for you (Friday) on the Meeting Room board. Call when the player asks if there is anything from the team.",[:],required:[]))
   }
   if hands != nil {
-   declarations.append(["name":"scroll_page","description":"Scrolls the page in the window the player chose to share. Call ONLY when the player asks you to scroll, or when you need to read more of the page they asked about. You cannot click or type.","parameters":["type":"OBJECT","properties":["direction":["type":"STRING","description":"up, down, top or bottom."] as [String:Any],"amount":["type":"STRING","description":"small, medium or large. Leave out for medium. Ignored for top and bottom."] as [String:Any]] as [String:Any],"required":["direction"]] as [String:Any]])
-   declarations.append(["name":"point_at","description":"Shows your own cursor at a spot in the window you are watching, to point something out. It does not click. x and y run from 0 to 1000 across the picture you see: 0,0 is the top left, 1000,1000 the bottom right.","parameters":["type":"OBJECT","properties":["x":["type":"NUMBER","description":"0 to 1000, left to right."] as [String:Any],"y":["type":"NUMBER","description":"0 to 1000, top to bottom."] as [String:Any],"label":["type":"STRING","description":"Two or three words shown next to the cursor, for example 'the health bar'. May be empty."] as [String:Any]] as [String:Any],"required":["x","y"]] as [String:Any]])
+   var scroll: [String:Any] = [:]
+   scroll["direction"] = field("STRING","up, down, top or bottom.")
+   scroll["amount"] = field("STRING","small, medium or large. Leave out for medium. Ignored for top and bottom.")
+   declarations.append(tool("scroll_page","Scrolls the page in the window the player chose to share. Call ONLY when the player asks you to scroll, or when you need to read more of the page they asked about. You cannot click or type.",scroll,required:["direction"]))
+   var point: [String:Any] = [:]
+   point["x"] = field("NUMBER","0 to 1000, left to right.")
+   point["y"] = field("NUMBER","0 to 1000, top to bottom.")
+   point["label"] = field("STRING","Two or three words shown next to the cursor, for example 'the health bar'. May be empty.")
+   declarations.append(tool("point_at","Shows your own cursor at a spot in the window you are watching, to point something out. It does not click. x and y run from 0 to 1000 across the picture you see: 0,0 is the top left, 1000,1000 the bottom right.",point,required:["x","y"]))
   }
   if search { setup["tools"] = [["googleSearch":[String:Any]()]] }
   else if wiki {

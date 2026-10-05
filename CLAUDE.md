@@ -83,6 +83,7 @@ and Unlock clicked in OpenD. Never run the Moomoo path on GitHub.
 
 ## Game Companion, and the chassis dream (as of 2026-10-05)
 
+**"GC" = the Game Companion** (he also says "gaming companion"; the app is named Game Companion).
 `tools/game_companion/` is the Mac app Matthew talks to while he plays: a
 live buddy (Google's free Gemini Live key, kept in his Keychain, never in
 files or chat), a local mode, and a free fact lookup (MetaBot + the

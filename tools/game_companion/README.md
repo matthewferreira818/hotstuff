@@ -10,8 +10,12 @@ This folder holds the upgraded `Companion.swift` so it can travel through git.
    be read. Gemma 3 resizes every image to the same internal size, so this costs almost
    no extra model memory. JPEG quality went from 0.6 to 0.7.
 2. **Game notes box:** a new field under "Local vision model". Whatever you type there
-   is added to the AI's instructions, capped at 400 characters, and saved like the
+   goes in front of each question, capped at 400 characters, and is saved like the
    voice setting. It starts filled with the MCD2 soul build, so edit it any time.
+   Notes are placed next to the question rather than in the system prompt. In the first
+   test, the 4B model ignored notes in the system prompt and answered "Let me pull up
+   your character sheet". The instructions now also tell it that it can't take actions,
+   so it answers from the notes or says it can't tell.
 
 Nothing else changed: same AI, same memory settings, same voice, same privacy.
 This copy was not compiled before it was pushed, because the cloud machine has no Mac

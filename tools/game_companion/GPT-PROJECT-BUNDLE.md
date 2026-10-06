@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-06 from commit a245224. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-06 from commit 445e9a5. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -1207,6 +1207,7 @@ enum GeminiKey {
      let shot = try await ScreenSnap.captureAll()
      guard current == session else { return }
      picturesSent += 1
+     hands?.lookedAround()
      lastSeen = shot.preview
      send(["realtimeInput":["video":["data":shot.jpeg.base64EncodedString(),"mimeType":"image/jpeg"]]])
      return
@@ -1216,6 +1217,7 @@ enum GeminiKey {
     let image = try await SCScreenshotManager.captureImage(contentFilter:filter,configuration:config)
     guard current == session, let jpeg = NSBitmapImageRep(cgImage:image).representation(using:.jpeg,properties:[.compressionFactor:0.6]) else { return }
     picturesSent += 1
+    hands?.lookedAround()
     lastSeen = NSImage(cgImage:image,size:NSSize(width:240,height:135))
     send(["realtimeInput":["video":["data":jpeg.base64EncodedString(),"mimeType":"image/jpeg"]]])
    } catch {
@@ -2342,6 +2344,7 @@ struct CompanionInterfaceView: View {
   Picker("Friday sees",selection:$live.sees) { Text("All my screens").tag(0); Text("Just the window I pick").tag(1) }.pickerStyle(.segmented).disabled(live.running)
   Text("All my screens: while she is live, everything visible on every screen goes to Google, including private windows, messages and banking pages. Google's free tier may use it to improve its products. Pick Just the window to keep everything else private.").font(.caption).foregroundStyle(.secondary)
   Toggle("Let Friday use her hands: scroll, point, click and type",isOn:$hands.enabled)
+  Toggle("Keep her crimson cursor on screen while she's live (it pulses when she looks)",isOn:$hands.presence)
   if hands.enabled && !hands.hasAccess { HStack { Text("Pointing works. For clicking, typing and scrolling, macOS must allow this app (Privacy & Security, Accessibility).").font(.caption).foregroundStyle(.secondary); Button("Open Settings") { hands.openSettings() } } }
   Text("She gets her own cursor and does what you tell her: scroll, click, type, press keys. She must ask you out loud, and an Allow box appears, before anything that could send or buy (pressing Return, Send or Pay buttons, checkout pages). Banking and payment pages, Moomoo, password and login pages, System Settings, this app and terminals are off-limits. Off every time the app opens and only works while she's live.").font(.caption).foregroundStyle(.secondary)
   Picker("Sound output",selection:$live.output) { Text("Auto").tag(0); Text("Headphones").tag(1); Text("Speakers").tag(2) }.pickerStyle(.segmented)
@@ -7169,6 +7172,8 @@ import ScreenCaptureKit
  @Published var tilt = 0.0
  @Published var trail: [CGPoint] = []
  @Published var ringAt: Date?
+ // Resting: she is live and looking, not doing anything. Shown softer, but always there.
+ @Published var dim = false
  private var smoothTilt = 0.0
 
  private func bezier(_ a: CGPoint,_ b: CGPoint,_ c: CGPoint,_ d: CGPoint,_ t: Double) -> CGPoint {
@@ -7213,7 +7218,15 @@ import ScreenCaptureKit
   smoothTilt = 0
  }
 
- func pulse() { ringAt = Date() }
+ // The ring grows for 0.6 seconds, then goes away (which also lets the 60 fps timer in the view sleep again).
+ func pulse() {
+  let stamp = Date()
+  ringAt = stamp
+  Task { [weak self] in
+   try? await Task.sleep(nanoseconds:700_000_000)
+   if let self = self, self.ringAt == stamp { self.ringAt = nil }
+  }
+ }
 }
 
 struct FridayArrow: Shape {
@@ -7254,22 +7267,23 @@ struct FridayCursorView: View {
      }
     }
     ZStack(alignment:.topLeading) {
-     Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.55),Noir.crimson.opacity(0)],center:.center,startRadius:1,endRadius:34)).frame(width:68,height:68).offset(x:-34,y:-34)
+     Circle().fill(RadialGradient(colors:[Noir.crimson.opacity(0.65),Noir.crimson.opacity(0)],center:.center,startRadius:1,endRadius:44)).frame(width:88,height:88).offset(x:-44,y:-44)
      FridayArrow()
       .fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing))
       .overlay(FridayArrow().stroke(Color.white,lineWidth:1.6))
-      .frame(width:20,height:32)
+      .frame(width:26,height:41)
       .rotationEffect(.degrees(model.tilt),anchor:.topLeading)
-      .shadow(color:Noir.crimson.opacity(0.7),radius:8)
+      .shadow(color:Noir.crimson.opacity(0.8),radius:10)
      Text(model.label.isEmpty ? "Friday" : model.label)
       .font(.system(size:11.5,weight:.bold,design:.rounded)).foregroundStyle(Color.white)
       .padding(.horizontal,9).padding(.vertical,4)
       .background(Capsule().fill(Noir.crimson.opacity(0.92)))
       .overlay(Capsule().stroke(Color.white.opacity(0.5),lineWidth:1))
-      .offset(x:16,y:30)
+      .offset(x:18,y:38)
     }
     .offset(x:model.point.x,y:model.point.y)
-    .opacity(model.visible ? 1 : 0)
+    .opacity(model.visible ? (model.dim ? 0.62 : 1) : 0)
+    .animation(.easeInOut(duration:0.4),value:model.dim)
    }
   }
   .allowsHitTesting(false)
@@ -7319,7 +7333,7 @@ struct FridayCursorView: View {
   if panel == nil {
    let made = NSPanel(contentRect:NSRect(x:0,y:0,width:460,height:150),styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
    made.isFloatingPanel = true
-   made.level = NSWindow.Level(rawValue:NSWindow.Level.statusBar.rawValue + 2)
+   made.level = NSWindow.Level(rawValue:NSWindow.Level.screenSaver.rawValue + 1)   // above full-screen windows, so the Allow box can always be seen
    made.collectionBehavior = [.canJoinAllSpaces,.fullScreenAuxiliary,.stationary,.ignoresCycle]
    made.isOpaque = false
    made.backgroundColor = .clear
@@ -7382,7 +7396,52 @@ struct FridayApprovalView: View {
  private var busy = false
  private var cursorDesk: CGPoint?
 
- func attach(_ buddy: LiveBuddy) { if live == nil { live = buddy } }
+ // Her crimson cursor stays on screen the whole time she is live, resting softer between jobs, and pulses a ring each time she looks at
+ // the screens (Matthew, 2026-10-06: "make sure we can see the crimson cursor when she is looking around"). Switch: Settings.
+ @Published var presence = UserDefaults.standard.object(forKey:"hands.presence") as? Bool ?? true {
+  didSet { UserDefaults.standard.set(presence,forKey:"hands.presence"); refreshPresence() }
+ }
+ private var parkedDesk: CGPoint?
+ private var lastLook = Date.distantPast
+ private var presenceTask: Task<Void,Never>?
+ private var presenceOn: Bool { presence && (live?.running ?? false) }
+
+ func attach(_ buddy: LiveBuddy) {
+  guard live == nil else { return }
+  live = buddy
+  presenceTask = Task { [weak self] in
+   while !Task.isCancelled {
+    try? await Task.sleep(nanoseconds:1_000_000_000)
+    self?.refreshPresence()
+   }
+  }
+ }
+
+ // Once a second: while live, make sure her cursor is on screen (resting where she last was, or low on the right); when live ends, put it away.
+ private func refreshPresence() {
+  if presenceOn {
+   guard !busy, !cursor.visible, let area = deskUnion() else { return }
+   let spot = parkedDesk ?? CGPoint(x:area.minX + area.width * 0.82,y:area.minY + area.height * 0.66)
+   guard let target = screen(for:spot) else { return }
+   hideTask?.cancel()
+   ensurePanel(on:target)
+   cursor.label = "Friday"
+   cursor.point = local(spot,in:target)
+   cursor.trail = []
+   cursor.dim = true
+   cursorDesk = spot
+   withAnimation(.easeOut(duration:0.4)) { cursor.visible = true }
+  } else if cursor.visible && !busy && cursor.dim {
+   hideCursor(after:0)
+  }
+ }
+
+ // Called each time a picture of the screens is sent to her: a soft ring on her cursor, at most once every 5 seconds.
+ func lookedAround() {
+  guard presenceOn, !busy, cursor.visible, Date().timeIntervalSince(lastLook) > 5 else { return }
+  lastLook = Date()
+  cursor.pulse()
+ }
 
  func checkAccess() {
   // Accessibility is required, not just permission to post events: the password-field and button-name checks read it.
@@ -7542,7 +7601,7 @@ struct FridayApprovalView: View {
   if panel == nil {
    let made = NSPanel(contentRect:screen.frame,styleMask:[.borderless,.nonactivatingPanel],backing:.buffered,defer:false)
    made.isFloatingPanel = true
-   made.level = NSWindow.Level(rawValue:NSWindow.Level.statusBar.rawValue + 1)
+   made.level = .screenSaver   // above full-screen windows and games that run in a borderless window
    made.collectionBehavior = [.canJoinAllSpaces,.fullScreenAuxiliary,.stationary,.ignoresCycle]
    made.isOpaque = false
    made.backgroundColor = .clear
@@ -7561,6 +7620,7 @@ struct FridayApprovalView: View {
   guard let screen = screen(for:desk) else { return }
   hideTask?.cancel()
   ensurePanel(on:screen)
+  cursor.dim = false
   cursor.label = label
   let destination = local(desk,in:screen)
   if !cursor.visible || cursorDesk == nil {
@@ -7578,6 +7638,7 @@ struct FridayApprovalView: View {
   // Slow enough to watch: 0.7 seconds for a short hop, up to 1.4 for a long one.
   await cursor.glide(from:start,to:destination,duration:min(1.4,0.7 + distance / 1600))
   cursorDesk = desk
+  parkedDesk = desk
   try? await Task.sleep(nanoseconds:180_000_000)
  }
 
@@ -7586,6 +7647,8 @@ struct FridayApprovalView: View {
   hideTask = Task { [weak self] in
    try? await Task.sleep(nanoseconds:UInt64(seconds * 1_000_000_000))
    guard !Task.isCancelled, let self = self else { return }
+   // While she is live her cursor stays, resting a bit softer, so you can always see her.
+   if self.presenceOn { withAnimation(.easeInOut(duration:0.4)) { self.cursor.dim = true }; return }
    withAnimation(.easeIn(duration:0.5)) { self.cursor.visible = false }
    self.cursorDesk = nil
    try? await Task.sleep(nanoseconds:550_000_000)
@@ -10321,6 +10384,18 @@ Matthew: the hand button is there but "it isn't working very well with all the r
 - **Her brain:** she was already on Google's newest everyday live model, `gemini-3.8-live`. Settings now has a switch: **Standard** (that one) or **Thinks harder**
   (`gemini-3.8-live-extended-thinking`, thinking depth "low"): more background reasoning, slower, may use the free allowance sooner. It handles tool calls only in
   Google's "async" way and reports end-of-turn differently, so it is new and untried here; switch back to Standard if it errors.
+
+## Her crimson cursor stays visible (2026-10-06)
+
+Matthew: "make sure we can see the crimson cursor when she is looking around". It used to show for 1.6 to 3.5 seconds when she acted and then vanish, so
+while she looked around (scroll, read, scroll) it flickered off, and you never saw it while she was just watching.
+- While Friday is live, her cursor now stays on screen the whole time: resting a bit softer (62%) between jobs where she last was (or low on the right
+  of the main screen), full strength while she moves. It pulses a ring each time a picture of your screens is sent to her (at most once every 5 seconds).
+  It puts itself away when the live session ends. Switch: Settings, "Keep her crimson cursor on screen while she's live" (on by default).
+- It's bigger and glows more (26 x 41 points), and the overlay sits at the screen-saver window level so it shows above full-screen windows and
+  borderless-window games. The Allow box was raised the same way, so it can't hide behind a full-screen game. A game in true exclusive full screen can
+  still cover both; if that happens, use borderless or windowed mode.
+- Not run on the Mac yet.
 ```
 
 ## FILE: meeting-room/README.md

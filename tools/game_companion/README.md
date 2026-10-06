@@ -587,3 +587,6 @@ can't. I want her to be able to do anything I ask, especially something that eas
   open private pages. She is told never to invent results. The Google Search switch in Settings is a separate thing and still doesn't
   work on the free key (first live test 2026-10-05: quota).
 - Not run on the Mac yet. Rules and tests pass here (`checks/DataChecks.swift`); the layout changes are untested.
+- **Fix (same day):** on the Friday page the round buttons (start and stop live, keyboard, clip, stop everything) were pushed off the bottom of a
+  short window. They are now pinned at the bottom and always shown (smaller in a small window, 40 and 56 points instead of 54 and 80), and the
+  orb and what she says scroll above them if there's no room. The "LIVE · ALL SCREENS + MIC SHARED WITH GOOGLE" note wraps instead of overflowing.

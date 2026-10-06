@@ -508,9 +508,12 @@ extension CompanionInterfaceView {
   case .home: hubHome
   case .friday:
    GeometryReader { geo in
+    // In a small window the orb shrinks, the round buttons stay on screen (smaller) and the rest scrolls.
+    let tight = hub.compact || geo.size.height < 560
     HStack {
      Spacer(minLength:0)
-     fridayStage(orb:min(max(geo.size.height * 0.36,150),360)).frame(width:min(max(geo.size.width * 0.55,520),760,max(geo.size.width - 24,280)))
+     fridayStage(orb:tight ? min(max(geo.size.height * 0.26,80),200) : min(max(geo.size.height * 0.36,150),360),tight:tight)
+      .frame(width:min(max(geo.size.width * 0.55,520),760,max(geo.size.width - 24,280)),height:geo.size.height)
      Spacer(minLength:0)
     }
    }

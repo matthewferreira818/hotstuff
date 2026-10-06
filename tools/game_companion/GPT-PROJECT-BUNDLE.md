@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-06 from commit 2420aed. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-06 from commit 5906e15. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -2049,20 +2049,31 @@ struct CompanionInterfaceView: View {
  }
 
  // The main screen: Friday's orb in the middle, a few round buttons underneath, everything else behind Settings.
- func fridayStage(orb: CGFloat) -> some View {
+ // `tight` is for a small window: the round buttons (start and stop live, keyboard, clip, stop everything) are ALWAYS shown at the bottom, a bit
+ // smaller, and everything above them (the orb and what she says) scrolls if there isn't room.
+ func fridayStage(orb: CGFloat,tight: Bool = false) -> some View {
   VStack(spacing:0) {
-   modePill
-   Spacer(minLength:0)
-   orbSection(orb)
-   captions
-   Spacer(minLength:0)
-   if c.showKeyboard { composer.padding(.bottom,12) }
-   seesRow
-   controlBar
-   HStack(spacing:6) { Image(systemName:"lock.shield"); Text(conversation.memoryEnabled ? "Reviewed notes saved locally · chats and images not saved" : "Memory off · chats and images not saved by this app") }
-    .font(.system(size:10,design:.rounded)).foregroundStyle(Color.white.opacity(0.35)).padding(.top,14)
+   GeometryReader { box in
+    ScrollView(showsIndicators:false) {
+     VStack(spacing:0) {
+      modePill
+      Spacer(minLength:0)
+      orbSection(orb)
+      captions
+      Spacer(minLength:0)
+     }
+     .frame(minHeight:box.size.height)
+    }
+   }
+   if c.showKeyboard { composer.padding(.vertical,8) }
+   if !tight { seesRow }
+   controlBar(compact:tight)
+   if !tight {
+    HStack(spacing:6) { Image(systemName:"lock.shield"); Text(conversation.memoryEnabled ? "Reviewed notes saved locally · chats and images not saved" : "Memory off · chats and images not saved by this app") }
+     .font(.system(size:10,design:.rounded)).foregroundStyle(Color.white.opacity(0.35)).padding(.top,14)
+   }
   }
-  .padding(.horizontal,28).padding(.vertical,20)
+  .padding(.horizontal,tight ? 12 : 28).padding(.vertical,tight ? 10 : 20)
  }
 
  // Says which brain is on. While Google Live runs it says so plainly, because the screen and mic are being shared.
@@ -2071,7 +2082,7 @@ struct CompanionInterfaceView: View {
    Spacer()
    HStack(spacing:7) {
     Circle().fill(c.tab == 0 && live.running ? Noir.crimsonLight : Color.white.opacity(0.3)).frame(width:7,height:7)
-    Text(c.tab == 0 ? (live.running ? "LIVE · \(live.sees == 0 ? "ALL SCREENS" : "WINDOW") + MIC SHARED WITH GOOGLE" : "GOOGLE LIVE") : "ON THIS MAC").font(.system(size:10,weight:.semibold,design:.rounded)).tracking(1.2)
+    Text(c.tab == 0 ? (live.running ? "LIVE · \(live.sees == 0 ? "ALL SCREENS" : "WINDOW") + MIC SHARED WITH GOOGLE" : "GOOGLE LIVE") : "ON THIS MAC").font(.system(size:10,weight:.semibold,design:.rounded)).tracking(1.2).lineLimit(2).minimumScaleFactor(0.6).multilineTextAlignment(.center)
    }
    .foregroundStyle(Color.white.opacity(c.tab == 0 && live.running ? 0.85 : 0.5))
    .padding(.horizontal,12).padding(.vertical,7)
@@ -2102,7 +2113,7 @@ struct CompanionInterfaceView: View {
    if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
    if !currentReply.isEmpty { Text(currentReply).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(Color.white.opacity(0.90)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
   }
-  .frame(maxWidth:.infinity,minHeight:120,alignment:.top)
+  .frame(maxWidth:.infinity,minHeight:hub.compact ? 30 : 120,alignment:.top)
   .padding(.horizontal,10).padding(.top,6)
  }
 
@@ -2118,15 +2129,17 @@ struct CompanionInterfaceView: View {
   }
  }
 
- var controlBar: some View {
-  HStack(spacing:18) {
-   Button { c.choose() } label: { Image(systemName:"rectangle.on.rectangle") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.sharing)).disabled(DesignPreview.enabled).help("Choose the game window")
-   Button { c.showKeyboard.toggle() } label: { Image(systemName:"keyboard") }.buttonStyle(OrbButtonStyle(diameter:54,filled:c.showKeyboard)).help("Type instead of talking")
-   Button { mainAction() } label: { Image(systemName:mainIcon) }.buttonStyle(OrbButtonStyle(diameter:80,filled:true)).disabled(DesignPreview.enabled).help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session") : "Talk")
+ func controlBar(compact: Bool = false) -> some View {
+  let small: CGFloat = compact ? 40 : 54
+  let big: CGFloat = compact ? 56 : 80
+  return HStack(spacing:compact ? 10 : 18) {
+   Button { c.choose() } label: { Image(systemName:"rectangle.on.rectangle") }.buttonStyle(OrbButtonStyle(diameter:small,filled:c.sharing)).disabled(DesignPreview.enabled).help("Choose the game window")
+   Button { c.showKeyboard.toggle() } label: { Image(systemName:"keyboard") }.buttonStyle(OrbButtonStyle(diameter:small,filled:c.showKeyboard)).help("Type instead of talking")
+   Button { mainAction() } label: { Image(systemName:mainIcon) }.buttonStyle(OrbButtonStyle(diameter:big,filled:true)).disabled(DesignPreview.enabled).help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session") : "Talk")
    if clips.signedIn {
-    Button { Task { await clips.clipNow() } } label: { Image(systemName:"scissors") }.buttonStyle(OrbButtonStyle(diameter:54)).disabled(clips.busy).help("Clip the last 30 seconds")
+    Button { Task { await clips.clipNow() } } label: { Image(systemName:"scissors") }.buttonStyle(OrbButtonStyle(diameter:small)).disabled(clips.busy).help("Clip the last 30 seconds")
    }
-   Button { stopAll(); autopilot.enabled = false } label: { Image(systemName:"xmark") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Stop everything")
+   Button { stopAll(); autopilot.enabled = false } label: { Image(systemName:"xmark") }.buttonStyle(OrbButtonStyle(diameter:small)).help("Stop everything")
   }
  }
  var mainIcon: String {
@@ -8291,9 +8304,12 @@ extension CompanionInterfaceView {
   case .home: hubHome
   case .friday:
    GeometryReader { geo in
+    // In a small window the orb shrinks, the round buttons stay on screen (smaller) and the rest scrolls.
+    let tight = hub.compact || geo.size.height < 560
     HStack {
      Spacer(minLength:0)
-     fridayStage(orb:min(max(geo.size.height * 0.36,150),360)).frame(width:min(max(geo.size.width * 0.55,520),760,max(geo.size.width - 24,280)))
+     fridayStage(orb:tight ? min(max(geo.size.height * 0.26,80),200) : min(max(geo.size.height * 0.36,150),360),tight:tight)
+      .frame(width:min(max(geo.size.width * 0.55,520),760,max(geo.size.width - 24,280)),height:geo.size.height)
      Spacer(minLength:0)
     }
    }
@@ -10132,6 +10148,9 @@ can't. I want her to be able to do anything I ask, especially something that eas
   open private pages. She is told never to invent results. The Google Search switch in Settings is a separate thing and still doesn't
   work on the free key (first live test 2026-10-05: quota).
 - Not run on the Mac yet. Rules and tests pass here (`checks/DataChecks.swift`); the layout changes are untested.
+- **Fix (same day):** on the Friday page the round buttons (start and stop live, keyboard, clip, stop everything) were pushed off the bottom of a
+  short window. They are now pinned at the bottom and always shown (smaller in a small window, 40 and 56 points instead of 54 and 80), and the
+  orb and what she says scroll above them if there's no room. The "LIVE · ALL SCREENS + MIC SHARED WITH GOOGLE" note wraps instead of overflowing.
 ```
 
 ## FILE: meeting-room/README.md

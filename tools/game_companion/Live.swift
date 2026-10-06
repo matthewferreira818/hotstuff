@@ -200,6 +200,12 @@ enum GeminiKey {
    "inputAudioTranscription":[String:Any](),
    "outputAudioTranscription":[String:Any]()
   ]
+  // The "thinks harder" model reasons in the background before it answers; Google wants the depth set (low, medium or high; the plain model
+  // must NOT be given one). Checked against ai.google.dev/gemini-api/docs/live-api/capabilities on 2026-10-06. Not yet tried with Matthew's key.
+  if liveModel.contains("extended-thinking"), var generation = setup["generationConfig"] as? [String:Any] {
+   generation["thinkingConfig"] = ["thinkingLevel":"low"]
+   setup["generationConfig"] = generation
+  }
   var declarations: [[String:Any]] = []
   if clipsOn, vods != nil {
    func vodField(_ type: String,_ about: String) -> [String:Any] { ["type":type,"description":about] }
@@ -283,7 +289,7 @@ enum GeminiKey {
    click["double"] = field("BOOLEAN","true for a double click. Leave out for a single click.")
    declarations.append(tool("click_at","Clicks at a spot. Call ONLY when the player tells you to. Anything that could send or buy needs the player's yes first, out loud.",click,required:["x","y","what"]))
    var typed: [String:Any] = [:]
-   typed["text"] = field("STRING","The plain text to type, up to 300 characters. Typing goes into whatever has the keyboard, so click the field first.")
+   typed["text"] = field("STRING","The plain text to type, up to 600 characters. Typing goes into whatever has the keyboard, so click the field first.")
    declarations.append(tool("type_text","Types text, only when the player tells you to. Never passwords, keys or card numbers. A line break counts as pressing Return and needs the player's yes.",typed,required:["text"]))
    var keys: [String:Any] = [:]
    keys["keys"] = field("STRING","A key or combination such as enter, escape, tab, space, down, cmd+t or cmd+l. Return and Enter need the player's yes.")

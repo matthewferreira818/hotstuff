@@ -614,3 +614,20 @@ Matthew: she has trouble with all the screens ("I still need to select the one s
   I pick" mode). If she can't capture the screens the status line now says to re-grant Screen & System Audio Recording.
 - **VODs:** Twitch only saves every stream to the channel while "Store past broadcasts" is on in Twitch's own settings; the app can't switch it. The Stream
   page checklist now has a button that opens that Twitch page.
+
+## Hands with fewer false alarms, and a smarter-brain option (2026-10-06)
+
+Matthew: the hand button is there but "it isn't working very well with all the restrictions", and "can we upgrade her model too?"
+- **What I loosened** (the real safety stays: Allow box for send and buy, banking, Moomoo, password and login pages, System Settings, terminals, her own app, card numbers):
+  - Money-app brand names (Moomoo, Wealthsimple, Questrade, Interactive Brokers) block anywhere. Softer words (bank, sign in, password) now only block when
+    they're in an app's name or a SHORT page title (a real login or bank page has a short title); long article titles that mention a bank, or a wiki page called
+    "Terminal Velocity", are fine. Terminals, System Settings and her own app match on the app's name only. Web links use the strict version.
+  - "Needs Allow" no longer fires on ordinary clicks: Accept, Share, Apply, Upload, Allow, Approve and Remove are gone from the list (Send, Post, Pay, Buy, Order, Confirm,
+    Subscribe, Delete, Reply, Book, Register, Install and similar stay). Checkout-page detection is narrower ("Order of the Stick" and "Bag of Holding" don't trigger it).
+  - Return in a web browser's single-line box (address bar, search box) is harmless and no longer needs Allow; Return anywhere else still does.
+  - She no longer refuses when you touch the mouse or when two actions come close together: she waits up to 3 seconds for the mouse to be still, and
+    pauses 0.3 seconds between actions. The per-minute cap went from 30 to 60, and she can type 600 characters at a time (was 300).
+  - Whatever she did or refused, in her words, now shows as a small "Hands: ..." line on the Friday page, so a refusal is never a mystery.
+- **Her brain:** she was already on Google's newest everyday live model, `gemini-3.8-live`. Settings now has a switch: **Standard** (that one) or **Thinks harder**
+  (`gemini-3.8-live-extended-thinking`, thinking depth "low"): more background reasoning, slower, may use the free allowance sooner. It handles tool calls only in
+  Google's "async" way and reports end-of-turn differently, so it is new and untried here; switch back to Standard if it errors.

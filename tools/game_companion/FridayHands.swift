@@ -232,7 +232,7 @@ struct FridayApprovalView: View {
  @Published var enabled = UserDefaults.standard.bool(forKey:"hands.on") {
   didSet {
    UserDefaults.standard.set(enabled,forKey:"hands.on")
-   if enabled { checkAccess() } else { hideCursor(after:0) }
+   if enabled { checkAccess() } else { hideCursor(after:0); status = "" }
   }
  }
  @Published var hasAccess = AXIsProcessTrusted()
@@ -326,16 +326,41 @@ struct FridayApprovalView: View {
   return deskUnion()
  }
 
- private func usingMouse() -> Bool {
+ // True while he is holding a mouse button or has moved the real mouse in the last 0.6 seconds.
+ private func mouseBusy() -> Bool {
   if NSEvent.pressedMouseButtons != 0 { return true }
-  return CGEventSource.secondsSinceLastEventType(.combinedSessionState,eventType:.mouseMoved) < 1.5
+  return CGEventSource.secondsSinceLastEventType(.combinedSessionState,eventType:.mouseMoved) < 0.6
+ }
+
+ // Instead of refusing the moment he touches the mouse, she waits (up to 3 seconds) for his hand to be still, then goes ahead.
+ private func waitForMouse() async -> Bool {
+  for _ in 0..<15 {
+   if !mouseBusy() { return true }
+   try? await Task.sleep(nanoseconds:200_000_000)
+  }
+  return false
+ }
+
+ // A short pause between two actions, instead of refusing the second one for being too fast.
+ private func pace() async {
+  let wait = 0.3 - Date().timeIntervalSince(lastAction)
+  if wait > 0 { try? await Task.sleep(nanoseconds:UInt64(wait * 1_000_000_000)) }
+ }
+
+ // The role of the field that has the keyboard (for example AXTextField), or "" if macOS won't say.
+ private func focusedRole() -> String {
+  guard AXIsProcessTrusted() else { return "" }
+  var focused: CFTypeRef?
+  guard AXUIElementCopyAttributeValue(AXUIElementCreateSystemWide(),kAXFocusedUIElementAttribute as CFString,&focused) == .success, let field = focused else { return "" }
+  var role: CFTypeRef?
+  guard AXUIElementCopyAttributeValue(field as! AXUIElement,kAXRoleAttribute as CFString,&role) == .success else { return "" }
+  return (role as? String) ?? ""
  }
 
  private func rateProblem() -> String? {
   let now = Date()
-  if now.timeIntervalSince(lastAction) < 0.3 { return "Too fast. Give it a second." }
   recent = recent.filter { now.timeIntervalSince($0) < 60 }
-  if recent.count >= 30 { return "That's a lot of moves in a minute, so I'm pausing for a bit." }
+  if recent.count >= 60 { return "That's a lot of moves in a minute, so I'm pausing for a bit." }
   return nil
  }
 
@@ -501,7 +526,7 @@ struct FridayApprovalView: View {
  }
 
  // x and y are 0 to 1000 across the picture she sees. Give them (the middle of the page) and she scrolls exactly that page, on any screen.
- func scroll(direction: String,amount: String,x: Double?,y: Double?) async -> String {
+ private func scrollInner(direction: String,amount: String,x: Double?,y: Double?) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
@@ -519,7 +544,7 @@ struct FridayApprovalView: View {
    return "I won't scroll there: \(why)."
   }
   guard let spot = scrollSpot(in:found,preferred:aimed) else { return "Something is covering that window, so I didn't scroll." }
-  if usingMouse() { return "Matthew is using the mouse right now, so I left the page alone." }
+  guard await waitForMouse() else { return "Matthew kept moving the mouse for a few seconds, so I left the page alone. Tell me again when his hand is off it." }
   noteAction()
   let way = direction.lowercased()
   let size = amount.lowercased()
@@ -539,7 +564,7 @@ struct FridayApprovalView: View {
   // The glide takes a second or two: look again before touching anything.
   if let problem = stillAllowed() { hideCursor(after:0.4); return problem }
   guard let now = hitWindow(at:spot), sameWindow(now,found), refusal(for:now) == nil else { hideCursor(after:0.4); return "The window changed while my cursor was moving, so I didn't scroll." }
-  if usingMouse() { hideCursor(after:0.4); return "Matthew picked up the mouse, so I left the page alone." }
+  guard await waitForMouse() else { hideCursor(after:0.4); return "Matthew picked up the mouse, so I left the page alone." }
   let saved = CGEvent(source:nil)?.location ?? spot
   CGWarpMouseCursorPosition(spot)
   let each = Int32((total / Double(steps)).rounded())
@@ -557,7 +582,7 @@ struct FridayApprovalView: View {
   return "Scrolled \(words) in \(found.owner)."
  }
 
- func point(x: Double,y: Double,label: String) async -> String {
+ private func pointInner(x: Double,y: Double,label: String) async -> String {
   if let problem = gate(needsAccess:false) { return problem }
   busy = true
   defer { busy = false }
@@ -571,7 +596,7 @@ struct FridayApprovalView: View {
   return "Pointed there with my cursor."
  }
 
- func click(x: Double,y: Double,what: String,button: String,double: Bool) async -> String {
+ private func clickInner(x: Double,y: Double,what: String,button: String,double: Bool) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
@@ -583,6 +608,7 @@ struct FridayApprovalView: View {
   case .no(let problem): return problem
   case .ok(let found): first = found
   }
+  await pace()
   noteAction()
   let shownName = String((named.isEmpty ? (first.label.isEmpty ? "Friday" : first.label) : named).prefix(28))
   await moveCursor(to:spot,label:shownName)
@@ -631,7 +657,7 @@ struct FridayApprovalView: View {
  }
 
  // Types plain text into whatever has the keyboard. A line break (Return) needs his Allow, like any Return.
- func type(_ raw: String) async -> String {
+ private func typeInner(_ raw: String) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
@@ -639,8 +665,9 @@ struct FridayApprovalView: View {
   if HandsPlan.looksLikeCardNumber(text) { return "That has a long run of digits that could be a card number, so I won't type it. Matthew types those himself." }
   let checked = keyboardTarget()
   guard let front = checked.win else { return checked.problem ?? "I couldn't tell where to type, so I didn't." }
+  await pace()
   noteAction()
-  let needsReturn = text.contains("\n")
+  let needsReturn = text.contains("\n") && !HandsPlan.returnIsHarmless(owner:front.owner,focusedRole:focusedRole())
   if needsReturn || HandsPlan.riskyWindow(title:front.title) {
    let preview = String(text.prefix(70)).replacingOccurrences(of:"\n",with:" ⏎ ")
    let why = needsReturn ? "It includes a line break, which can send or submit." : "This window looks like a checkout or payment page."
@@ -681,7 +708,7 @@ struct FridayApprovalView: View {
  }
 
  // Presses a key or a combination such as cmd+t or escape. Return and Enter need his Allow.
- func press(_ spec: String) async -> String {
+ private func pressInner(_ spec: String) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
@@ -689,9 +716,11 @@ struct FridayApprovalView: View {
   if let why = HandsPlan.blockedCombo(press) { return "I won't press \(press.label): that's for \(why)." }
   let checked = keyboardTarget()
   guard let front = checked.win else { return checked.problem ?? "I couldn't tell where to press keys, so I didn't." }
+  await pace()
   noteAction()
-  if HandsPlan.needsAllow(press) || HandsPlan.riskyWindow(title:front.title) {
-   let why = HandsPlan.needsAllow(press) ? "Return can send or submit something." : "This window looks like a checkout or payment page."
+  let returnNeedsAllow = HandsPlan.needsAllow(press,owner:front.owner,focusedRole:focusedRole())
+  if returnNeedsAllow || HandsPlan.riskyWindow(title:front.title) {
+   let why = returnNeedsAllow ? "Return can send or submit something." : "This window looks like a checkout or payment page."
    if let refusal = await needAllow("Press \(press.label)? \(why)",detail:"in \(front.owner)\(front.title.isEmpty ? "" : " — \(String(front.title.prefix(60)))")") { return refusal }
    // Up to 25 seconds passed: the keyboard may be somewhere else now.
    if let problem = stillAllowed() { return problem }
@@ -703,6 +732,13 @@ struct FridayApprovalView: View {
   status = "Pressed \(press.label)."
   return "Pressed \(press.label) in \(front.owner)."
  }
+
+ // The five tools Friday calls. Whatever happened, in her words, is also kept in `status` and shown on the Friday page, so a refusal is never a mystery.
+ func scroll(direction: String,amount: String,x: Double?,y: Double?) async -> String { let r = await scrollInner(direction:direction,amount:amount,x:x,y:y); status = r; return r }
+ func point(x: Double,y: Double,label: String) async -> String { let r = await pointInner(x:x,y:y,label:label); status = r; return r }
+ func click(x: Double,y: Double,what: String,button: String,double: Bool) async -> String { let r = await clickInner(x:x,y:y,what:what,button:button,double:double); status = r; return r }
+ func type(_ raw: String) async -> String { let r = await typeInner(raw); status = r; return r }
+ func press(_ spec: String) async -> String { let r = await pressInner(spec); status = r; return r }
 
  // MARK: sending the actual events
 

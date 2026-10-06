@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-06 from commit 7feb30a. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-06 from commit a245224. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -785,6 +785,12 @@ enum GeminiKey {
    "inputAudioTranscription":[String:Any](),
    "outputAudioTranscription":[String:Any]()
   ]
+  // The "thinks harder" model reasons in the background before it answers; Google wants the depth set (low, medium or high; the plain model
+  // must NOT be given one). Checked against ai.google.dev/gemini-api/docs/live-api/capabilities on 2026-10-06. Not yet tried with Matthew's key.
+  if liveModel.contains("extended-thinking"), var generation = setup["generationConfig"] as? [String:Any] {
+   generation["thinkingConfig"] = ["thinkingLevel":"low"]
+   setup["generationConfig"] = generation
+  }
   var declarations: [[String:Any]] = []
   if clipsOn, vods != nil {
    func vodField(_ type: String,_ about: String) -> [String:Any] { ["type":type,"description":about] }
@@ -868,7 +874,7 @@ enum GeminiKey {
    click["double"] = field("BOOLEAN","true for a double click. Leave out for a single click.")
    declarations.append(tool("click_at","Clicks at a spot. Call ONLY when the player tells you to. Anything that could send or buy needs the player's yes first, out loud.",click,required:["x","y","what"]))
    var typed: [String:Any] = [:]
-   typed["text"] = field("STRING","The plain text to type, up to 300 characters. Typing goes into whatever has the keyboard, so click the field first.")
+   typed["text"] = field("STRING","The plain text to type, up to 600 characters. Typing goes into whatever has the keyboard, so click the field first.")
    declarations.append(tool("type_text","Types text, only when the player tells you to. Never passwords, keys or card numbers. A line break counts as pressing Return and needs the player's yes.",typed,required:["text"]))
    var keys: [String:Any] = [:]
    keys["keys"] = field("STRING","A key or combination such as enter, escape, tab, space, down, cmd+t or cmd+l. Return and Enter need the player's yes.")
@@ -2112,6 +2118,7 @@ struct CompanionInterfaceView: View {
    if c.tab == 0 && !live.heard.isEmpty { Text(live.heard).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)).multilineTextAlignment(.center).lineLimit(2) }
    if !clips.status.isEmpty { Text(clips.status).font(.system(size:12,design:.rounded)).foregroundStyle(Noir.crimsonLight.opacity(0.9)).multilineTextAlignment(.center).lineLimit(3).textSelection(.enabled) }
    if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
+   if hands.enabled && hands.hasAccess && !hands.status.isEmpty { Text("Hands: \(hands.status)").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45)).multilineTextAlignment(.center).lineLimit(3) }
    if hands.enabled && !hands.hasAccess { Button { hands.openSettings() } label: { Text("Her hands need macOS permission: tap to open Accessibility settings, switch Game Companion on, then restart Friday.").multilineTextAlignment(.center) }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
    if !currentReply.isEmpty { Text(currentReply).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(Color.white.opacity(0.90)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
   }
@@ -2320,7 +2327,9 @@ struct CompanionInterfaceView: View {
   Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)
   Toggle("Pop up in a corner when the window is out of sight while Friday is live",isOn:$corner.enabled)
   Picker("Corner",selection:$corner.position) { Text("Top right").tag(0); Text("Top left").tag(1); Text("Bottom right").tag(2); Text("Bottom left").tag(3) }.pickerStyle(.segmented).disabled(!corner.enabled)
-  TextField("Live model",text:$live.liveModel).disabled(live.running)
+  Picker("Her brain",selection:$live.liveModel) { Text("Standard · fast").tag("gemini-3.8-live"); Text("Thinks harder · slower").tag("gemini-3.8-live-extended-thinking") }.pickerStyle(.segmented).disabled(live.running)
+  Text("Standard is Google's newest everyday voice model and answers quickest. \"Thinks harder\" reasons in the background before it answers: smarter on tricky questions and multi-step jobs, but slower and it may use up the free allowance sooner. It's new and untested here; if she errors, switch back to Standard.").font(.caption).foregroundStyle(.secondary)
+  TextField("Model name (advanced)",text:$live.liveModel).disabled(live.running)
   Toggle("Look up game facts using the wiki",isOn:$live.wiki).disabled(live.running)
   Toggle("Use Google Search for game facts",isOn:$live.search).disabled(live.running)
   Picker("Screen usage",selection:$live.lowUsage) { Text("Low").tag(true); Text("Steady").tag(false) }.pickerStyle(.segmented)
@@ -5965,7 +5974,7 @@ enum WebPlan {
   if !host.contains(".") || numbersOnly || host.contains(":") || host.hasSuffix(".local") || host.hasSuffix(".internal") || host.hasSuffix(".localhost") {
    return .no("That points at a bare address or something on this Mac or the home network, so I didn't open it.")
   }
-  if let why = HandsPlan.blockedReason(owner:"",title:host + parts.path) { return .no("I won't open that: \(why).") }
+  if let why = HandsPlan.blockedReason(owner:"",title:host + parts.path,strict:true) { return .no("I won't open that: \(why).") }
   guard let url = parts.url else { return .no("I couldn't make sense of that link.") }
   return .ok(url)
  }
@@ -6910,7 +6919,7 @@ import Foundation
 // name and the window title, so it can miss a page whose title doesn't say what it is.
 
 enum HandsPlan {
- static let maxTyped = 300
+ static let maxTyped = 600
 
  // MARK: where things are (all in "desk" points: the top-left of the main screen is 0,0, y grows downward)
 
@@ -6996,15 +7005,22 @@ enum HandsPlan {
 
  // MARK: where she may not act
 
- // `words` match anywhere in the app name or window title; `exact` only match as a whole word, so "rbc" doesn't catch "Harbcraft".
- private static let offLimits: [(words: [String],exact: [String],why: String)] = [
-  (["moomoo","futu","wealthsimple","questrade","interactive brokers","brokerage"],[],"that's a trading or money app"),
-  (["bank","banking","scotiabank","cibc","desjardins","tangerine","paypal","stripe","porkbun"],["rbc","bmo","interac"],"that looks like a bank, payment or domain account"),
-  (["password","1password","bitwarden","lastpass","keychain","passkey","securityagent","loginwindow","universalaccessauthwarn","coreservicesuiagent","authenticate","touch id"],[],"that's a password or security prompt"),
-  (["sign in","log in","login","sign-in","log-in"],[],"that looks like a login page"),
-  (["system settings","system preferences","activity monitor"],[],"that's a system settings window"),
-  (["game companion"],[],"that's my own app, and she must not change her own switches"),
-  (["terminal","iterm","ghostty"],["warp","kitty"],"that's a command line, and a typed command could do real damage")
+// Where a word has to appear for a window to be off-limits. Brand names of money apps count anywhere. The softer words (bank, sign in,
+ // password, terminal...) only count in the app's own name, or in a SHORT page title: a real banking or login page has a short title like
+ // "Sign in - RBC", while a long article title that mentions a bank, or a wiki page about "Terminal Velocity", is fine to scroll and read.
+ enum Scope { case always, owner, short(Int) }
+
+ private static let offLimits: [(words: [String],exact: [String],scope: Scope,why: String)] = [
+  (["moomoo","futu","wealthsimple","questrade","interactive brokers"],[],.always,"that's a trading or money app"),
+  (["brokerage"],[],.short(70),"that's a trading or money app"),
+  (["scotiabank","cibc","desjardins","tangerine","paypal","stripe","porkbun"],["rbc","bmo","interac"],.short(70),"that looks like a bank, payment or domain account"),
+  (["bank","banking"],[],.short(45),"that looks like a bank, payment or domain account"),
+  (["1password","bitwarden","lastpass","keychain","securityagent","loginwindow","universalaccessauthwarn","coreservicesuiagent"],[],.owner,"that's a password or security prompt"),
+  (["password","passkey","authenticate","touch id"],[],.short(60),"that's a password or security prompt"),
+  (["sign in","log in","login","sign-in","log-in"],[],.short(40),"that looks like a login page"),
+  (["system settings","system preferences","activity monitor"],[],.owner,"that's a system settings window"),
+  (["game companion"],[],.owner,"that's my own app, and she must not change her own switches"),
+  (["terminal","iterm","ghostty"],["warp","kitty"],.owner,"that's a command line, and a typed command could do real damage")
  ]
 
  private static func hasWord(_ word: String,in text: String) -> Bool {
@@ -7012,19 +7028,26 @@ enum HandsPlan {
   return text.range(of:pattern,options:.regularExpression) != nil
  }
 
- // nil when the window is fine to act in. `owner` is the app's name, `title` the window's title.
- static func blockedReason(owner: String,title: String) -> String? {
-  let haystack = (owner + " | " + title).lowercased()
+ // nil when the window is fine to act in. `owner` is the app's name, `title` the window's title. `strict` is for web addresses, which have
+ // no app name and no short title: every word counts, however long the address.
+ static func blockedReason(owner: String,title: String,strict: Bool = false) -> String? {
+  let o = owner.lowercased()
+  let t = title.lowercased()
   for rule in offLimits {
-   if rule.words.contains(where: { haystack.contains($0) }) || rule.exact.contains(where: { hasWord($0,in:haystack) }) { return rule.why }
+   func hit(_ text: String) -> Bool { rule.words.contains(where:{ text.contains($0) }) || rule.exact.contains(where:{ hasWord($0,in:text) }) }
+   switch rule.scope {
+   case .always: if hit(o) || hit(t) { return rule.why }
+   case .owner: if hit(o) { return rule.why }
+   case .short(let limit): if hit(o) || ((strict || t.count <= limit) && hit(t)) { return rule.why }
+   }
   }
   return nil
  }
 
  // MARK: what could send or buy something (these need his Allow, and she is told to ask him out loud too)
 
- private static let riskyPattern = try! NSRegularExpression(pattern:"\\b(send|sends|sending|sent|submit|submits|submitting|post|posts|posting|publish|publishing|buy|buying|bought|pay|pays|paying|payment|payments|purchase|purchases|purchasing|checkout|check out|place order|order|orders|ordering|confirm|confirms|confirming|confirmation|subscribe|subscribing|subscription|donate|donating|donation|tip|tipping|transfer|transfers|transferring|withdraw|withdrawal|withdrawing|delete|deleting|remove|removing|reply|replying|tweet|tweeting|share|sharing|book|booking|reserve|reserving|reservation|apply|applying|upload|uploading|sign up|register|registration|accept|accepting|agree|agreeing|bid|bidding|invoice|trade|trading|sell|selling|sold|allow|approve|approving|authorize|authorise|install)\\b",options:[.caseInsensitive])
- private static let riskyWindowPattern = try! NSRegularExpression(pattern:"\\b(checkout|check out|pay|paying|payment|payments|billing|cart|bag|basket|order|orders|invoice|invoices|purchase|purchases|confirm|confirmation|subscription|subscriptions|donate|donation)\\b",options:[.caseInsensitive])
+ private static let riskyPattern = try! NSRegularExpression(pattern:"\\b(send|sends|sending|sent|submit|submits|submitting|post|posts|posting|publish|publishing|buy|buying|bought|pay|pays|paying|payment|payments|purchase|purchases|purchasing|checkout|check out|place order|order|orders|ordering|confirm|confirms|confirming|confirmation|subscribe|subscribing|subscription|donate|donating|donation|tip|tipping|transfer|transfers|transferring|withdraw|withdrawal|withdrawing|delete|deleting|reply|replying|tweet|tweeting|book|booking|reserve|reserving|reservation|sign up|register|registration|bid|bidding|invoice|trade|trading|sell|selling|sold|authorize|authorise|install)\\b",options:[.caseInsensitive])
+ private static let riskyWindowPattern = try! NSRegularExpression(pattern:"\\b(checkout|check out|payment|payments|billing|cart|basket|shopping bag|invoice|invoices|purchase|purchases|subscription|subscriptions|donate|donation)\\b",options:[.caseInsensitive])
 
  private static func matches(_ regex: NSRegularExpression,_ text: String) -> Bool {
   regex.firstMatch(in:text,options:[],range:NSRange(text.startIndex..<text.endIndex,in:text)) != nil
@@ -7042,8 +7065,17 @@ enum HandsPlan {
 
  static func looksLikeCardNumber(_ text: String) -> Bool { matches(cardPattern,text) }
 
- // Pressing Return or Enter is how most things get sent, so it always needs Allow.
- static func needsAllow(_ press: KeyPress) -> Bool { press.code == 36 }
+ // Pressing Return or Enter is how most things get sent, so it needs Allow, with one exception that was making her useless: a web browser's
+ // single-line box (the address bar, a search box), where Return just searches. `role` is the focused field's accessibility role.
+ static let browsers = ["safari","google chrome","arc","firefox","microsoft edge","brave browser","opera","vivaldi"]
+
+ static func returnIsHarmless(owner: String,focusedRole: String) -> Bool {
+  browsers.contains(owner.lowercased()) && focusedRole == "AXTextField"
+ }
+
+ static func needsAllow(_ press: KeyPress,owner: String = "",focusedRole: String = "") -> Bool {
+  press.code == 36 && !returnIsHarmless(owner:owner,focusedRole:focusedRole)
+ }
 }
 ```
 
@@ -7335,7 +7367,7 @@ struct FridayApprovalView: View {
  @Published var enabled = UserDefaults.standard.bool(forKey:"hands.on") {
   didSet {
    UserDefaults.standard.set(enabled,forKey:"hands.on")
-   if enabled { checkAccess() } else { hideCursor(after:0) }
+   if enabled { checkAccess() } else { hideCursor(after:0); status = "" }
   }
  }
  @Published var hasAccess = AXIsProcessTrusted()
@@ -7429,16 +7461,41 @@ struct FridayApprovalView: View {
   return deskUnion()
  }
 
- private func usingMouse() -> Bool {
+ // True while he is holding a mouse button or has moved the real mouse in the last 0.6 seconds.
+ private func mouseBusy() -> Bool {
   if NSEvent.pressedMouseButtons != 0 { return true }
-  return CGEventSource.secondsSinceLastEventType(.combinedSessionState,eventType:.mouseMoved) < 1.5
+  return CGEventSource.secondsSinceLastEventType(.combinedSessionState,eventType:.mouseMoved) < 0.6
+ }
+
+ // Instead of refusing the moment he touches the mouse, she waits (up to 3 seconds) for his hand to be still, then goes ahead.
+ private func waitForMouse() async -> Bool {
+  for _ in 0..<15 {
+   if !mouseBusy() { return true }
+   try? await Task.sleep(nanoseconds:200_000_000)
+  }
+  return false
+ }
+
+ // A short pause between two actions, instead of refusing the second one for being too fast.
+ private func pace() async {
+  let wait = 0.3 - Date().timeIntervalSince(lastAction)
+  if wait > 0 { try? await Task.sleep(nanoseconds:UInt64(wait * 1_000_000_000)) }
+ }
+
+ // The role of the field that has the keyboard (for example AXTextField), or "" if macOS won't say.
+ private func focusedRole() -> String {
+  guard AXIsProcessTrusted() else { return "" }
+  var focused: CFTypeRef?
+  guard AXUIElementCopyAttributeValue(AXUIElementCreateSystemWide(),kAXFocusedUIElementAttribute as CFString,&focused) == .success, let field = focused else { return "" }
+  var role: CFTypeRef?
+  guard AXUIElementCopyAttributeValue(field as! AXUIElement,kAXRoleAttribute as CFString,&role) == .success else { return "" }
+  return (role as? String) ?? ""
  }
 
  private func rateProblem() -> String? {
   let now = Date()
-  if now.timeIntervalSince(lastAction) < 0.3 { return "Too fast. Give it a second." }
   recent = recent.filter { now.timeIntervalSince($0) < 60 }
-  if recent.count >= 30 { return "That's a lot of moves in a minute, so I'm pausing for a bit." }
+  if recent.count >= 60 { return "That's a lot of moves in a minute, so I'm pausing for a bit." }
   return nil
  }
 
@@ -7604,7 +7661,7 @@ struct FridayApprovalView: View {
  }
 
  // x and y are 0 to 1000 across the picture she sees. Give them (the middle of the page) and she scrolls exactly that page, on any screen.
- func scroll(direction: String,amount: String,x: Double?,y: Double?) async -> String {
+ private func scrollInner(direction: String,amount: String,x: Double?,y: Double?) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
@@ -7622,7 +7679,7 @@ struct FridayApprovalView: View {
    return "I won't scroll there: \(why)."
   }
   guard let spot = scrollSpot(in:found,preferred:aimed) else { return "Something is covering that window, so I didn't scroll." }
-  if usingMouse() { return "Matthew is using the mouse right now, so I left the page alone." }
+  guard await waitForMouse() else { return "Matthew kept moving the mouse for a few seconds, so I left the page alone. Tell me again when his hand is off it." }
   noteAction()
   let way = direction.lowercased()
   let size = amount.lowercased()
@@ -7642,7 +7699,7 @@ struct FridayApprovalView: View {
   // The glide takes a second or two: look again before touching anything.
   if let problem = stillAllowed() { hideCursor(after:0.4); return problem }
   guard let now = hitWindow(at:spot), sameWindow(now,found), refusal(for:now) == nil else { hideCursor(after:0.4); return "The window changed while my cursor was moving, so I didn't scroll." }
-  if usingMouse() { hideCursor(after:0.4); return "Matthew picked up the mouse, so I left the page alone." }
+  guard await waitForMouse() else { hideCursor(after:0.4); return "Matthew picked up the mouse, so I left the page alone." }
   let saved = CGEvent(source:nil)?.location ?? spot
   CGWarpMouseCursorPosition(spot)
   let each = Int32((total / Double(steps)).rounded())
@@ -7660,7 +7717,7 @@ struct FridayApprovalView: View {
   return "Scrolled \(words) in \(found.owner)."
  }
 
- func point(x: Double,y: Double,label: String) async -> String {
+ private func pointInner(x: Double,y: Double,label: String) async -> String {
   if let problem = gate(needsAccess:false) { return problem }
   busy = true
   defer { busy = false }
@@ -7674,7 +7731,7 @@ struct FridayApprovalView: View {
   return "Pointed there with my cursor."
  }
 
- func click(x: Double,y: Double,what: String,button: String,double: Bool) async -> String {
+ private func clickInner(x: Double,y: Double,what: String,button: String,double: Bool) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
@@ -7686,6 +7743,7 @@ struct FridayApprovalView: View {
   case .no(let problem): return problem
   case .ok(let found): first = found
   }
+  await pace()
   noteAction()
   let shownName = String((named.isEmpty ? (first.label.isEmpty ? "Friday" : first.label) : named).prefix(28))
   await moveCursor(to:spot,label:shownName)
@@ -7734,7 +7792,7 @@ struct FridayApprovalView: View {
  }
 
  // Types plain text into whatever has the keyboard. A line break (Return) needs his Allow, like any Return.
- func type(_ raw: String) async -> String {
+ private func typeInner(_ raw: String) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
@@ -7742,8 +7800,9 @@ struct FridayApprovalView: View {
   if HandsPlan.looksLikeCardNumber(text) { return "That has a long run of digits that could be a card number, so I won't type it. Matthew types those himself." }
   let checked = keyboardTarget()
   guard let front = checked.win else { return checked.problem ?? "I couldn't tell where to type, so I didn't." }
+  await pace()
   noteAction()
-  let needsReturn = text.contains("\n")
+  let needsReturn = text.contains("\n") && !HandsPlan.returnIsHarmless(owner:front.owner,focusedRole:focusedRole())
   if needsReturn || HandsPlan.riskyWindow(title:front.title) {
    let preview = String(text.prefix(70)).replacingOccurrences(of:"\n",with:" ⏎ ")
    let why = needsReturn ? "It includes a line break, which can send or submit." : "This window looks like a checkout or payment page."
@@ -7784,7 +7843,7 @@ struct FridayApprovalView: View {
  }
 
  // Presses a key or a combination such as cmd+t or escape. Return and Enter need his Allow.
- func press(_ spec: String) async -> String {
+ private func pressInner(_ spec: String) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
@@ -7792,9 +7851,11 @@ struct FridayApprovalView: View {
   if let why = HandsPlan.blockedCombo(press) { return "I won't press \(press.label): that's for \(why)." }
   let checked = keyboardTarget()
   guard let front = checked.win else { return checked.problem ?? "I couldn't tell where to press keys, so I didn't." }
+  await pace()
   noteAction()
-  if HandsPlan.needsAllow(press) || HandsPlan.riskyWindow(title:front.title) {
-   let why = HandsPlan.needsAllow(press) ? "Return can send or submit something." : "This window looks like a checkout or payment page."
+  let returnNeedsAllow = HandsPlan.needsAllow(press,owner:front.owner,focusedRole:focusedRole())
+  if returnNeedsAllow || HandsPlan.riskyWindow(title:front.title) {
+   let why = returnNeedsAllow ? "Return can send or submit something." : "This window looks like a checkout or payment page."
    if let refusal = await needAllow("Press \(press.label)? \(why)",detail:"in \(front.owner)\(front.title.isEmpty ? "" : " — \(String(front.title.prefix(60)))")") { return refusal }
    // Up to 25 seconds passed: the keyboard may be somewhere else now.
    if let problem = stillAllowed() { return problem }
@@ -7806,6 +7867,13 @@ struct FridayApprovalView: View {
   status = "Pressed \(press.label)."
   return "Pressed \(press.label) in \(front.owner)."
  }
+
+ // The five tools Friday calls. Whatever happened, in her words, is also kept in `status` and shown on the Friday page, so a refusal is never a mystery.
+ func scroll(direction: String,amount: String,x: Double?,y: Double?) async -> String { let r = await scrollInner(direction:direction,amount:amount,x:x,y:y); status = r; return r }
+ func point(x: Double,y: Double,label: String) async -> String { let r = await pointInner(x:x,y:y,label:label); status = r; return r }
+ func click(x: Double,y: Double,what: String,button: String,double: Bool) async -> String { let r = await clickInner(x:x,y:y,what:what,button:button,double:double); status = r; return r }
+ func type(_ raw: String) async -> String { let r = await typeInner(raw); status = r; return r }
+ func press(_ spec: String) async -> String { let r = await pressInner(spec); status = r; return r }
 
  // MARK: sending the actual events
 
@@ -9499,7 +9567,7 @@ import Foundation
   let placed = HandsPlan.canvasRect(for:leftScreen,union:desk,scale:plan.scale,canvasHeight:plan.height)
   precondition(abs(placed.minX) < 0.01 && abs(placed.minY - (576 - 72 - 360)) < 0.01 && abs(placed.width - 576) < 0.01 && abs(placed.height - 360) < 0.01)
   precondition(HandsPlan.layout([CGRect(x:0,y:0,width:800,height:450)],maxWidth:1600,maxHeight:900)!.scale == 1 && HandsPlan.layout([],maxWidth:1,maxHeight:1) == nil)
-  precondition(HandsPlan.cleanTyped("hello\nthere") == "hello\nthere" && HandsPlan.cleanTyped("") == nil && HandsPlan.cleanTyped("a\u{07}b") == nil && HandsPlan.cleanTyped(String(repeating:"x",count:301)) == nil)
+  precondition(HandsPlan.cleanTyped("hello\nthere") == "hello\nthere" && HandsPlan.cleanTyped("") == nil && HandsPlan.cleanTyped("a\u{07}b") == nil && HandsPlan.cleanTyped(String(repeating:"x",count:601)) == nil)
   let combo = HandsPlan.parseKeys("Cmd + Shift + T")!
   precondition(combo.code == 17 && combo.modifiers == ["shift","cmd"] && combo.label == "⇧⌘T")
   precondition(HandsPlan.parseKeys("enter")!.code == 36 && HandsPlan.parseKeys("down")!.modifiers.isEmpty && HandsPlan.parseKeys("cmd+nonsense") == nil && HandsPlan.parseKeys("hyper+t") == nil && HandsPlan.parseKeys("") == nil)
@@ -9513,11 +9581,12 @@ import Foundation
   precondition(HandsPlan.looksLikeCardNumber("4242 4242 4242 4242") && HandsPlan.looksLikeCardNumber("4242-4242-4242-4242") && !HandsPlan.looksLikeCardNumber("call 5068899737 now") && !HandsPlan.looksLikeCardNumber("12345"))
   // Review fixes: word forms (Payment, Sending, Posting, Orders), short bank names as the last word, card numbers inside a sentence,
   // her own Allow button, and the macOS security prompts.
-  precondition(HandsPlan.riskyIntent("Payment") && HandsPlan.riskyIntent("Sending") && HandsPlan.riskyIntent("Posting") && HandsPlan.riskyIntent("Orders") && HandsPlan.riskyIntent("Allow button") && HandsPlan.riskyIntent("Subscription"))
+  precondition(HandsPlan.riskyIntent("Payment") && HandsPlan.riskyIntent("Sending") && HandsPlan.riskyIntent("Posting") && HandsPlan.riskyIntent("Orders") && HandsPlan.riskyIntent("Subscription"))
+  precondition(!HandsPlan.riskyIntent("Accept cookies") && !HandsPlan.riskyIntent("Share") && !HandsPlan.riskyIntent("Allow") && !HandsPlan.riskyIntent("Apply filter") && !HandsPlan.riskyIntent("Upload") && !HandsPlan.riskyIntent("Remove filter"))
   precondition(!HandsPlan.riskyIntent("Apple menu") && !HandsPlan.riskyIntent("Bookmarks") && !HandsPlan.riskyIntent("postal"))
-  precondition(HandsPlan.riskyWindow(title:"Shopping bag") && HandsPlan.riskyWindow(title:"Payments - Account") && HandsPlan.riskyWindow(title:"Pay now"))
+  precondition(HandsPlan.riskyWindow(title:"Shopping bag") && HandsPlan.riskyWindow(title:"Payments - Account") && !HandsPlan.riskyWindow(title:"Order of the Stick") && !HandsPlan.riskyWindow(title:"Bag of Holding - wiki"))
   precondition(HandsPlan.blockedReason(owner:"Safari",title:"Sign in to RBC") != nil && HandsPlan.blockedReason(owner:"Safari",title:"My accounts - BMO") != nil && HandsPlan.blockedReason(owner:"Safari",title:"Harbcraft wiki") == nil && HandsPlan.blockedReason(owner:"Safari",title:"Interac e-Transfer") != nil && HandsPlan.blockedReason(owner:"Safari",title:"Interactive map of Dungeons") == nil)
-  precondition(HandsPlan.blockedReason(owner:"SecurityAgent",title:"") != nil && HandsPlan.blockedReason(owner:"loginwindow",title:"") != nil && HandsPlan.blockedReason(owner:"UserNotificationCenter",title:"") == nil && HandsPlan.blockedReason(owner:"Warp",title:"") != nil && HandsPlan.blockedReason(owner:"Warframe",title:"") == nil)
+  precondition(HandsPlan.blockedReason(owner:"SecurityAgent",title:"") != nil && HandsPlan.blockedReason(owner:"loginwindow",title:"") != nil && HandsPlan.blockedReason(owner:"UserNotificationCenter",title:"") == nil && HandsPlan.blockedReason(owner:"Warp",title:"") != nil && HandsPlan.blockedReason(owner:"Safari",title:"Terminal Velocity - Minecraft wiki") == nil && HandsPlan.blockedReason(owner:"Warframe",title:"") == nil)
   precondition(HandsPlan.looksLikeCardNumber("my card is 4242 4242 4242 4242 thanks") && HandsPlan.looksLikeCardNumber("4242424242424242") && !HandsPlan.looksLikeCardNumber("call 506 889 9737 or 506 123 4567") && !HandsPlan.looksLikeCardNumber("level 12 345 678"))
   precondition(HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!) && HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+return")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+t")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("down")!))
   // Clips from past streams: durations and clock times are read, the clip is kept inside the video and Twitch's limits, and
@@ -9606,6 +9675,11 @@ import Foundation
   // The channel name is read out of whatever was typed or pasted.
   precondition(StreamData.channelLogin("TheyCallMeMattyB") == "theycallmemattyb" && StreamData.channelLogin("  @Name ") == "name" && StreamData.channelLogin("twitch.tv/abc_1") == "abc_1")
   precondition(StreamData.channelLogin("https://www.twitch.tv/TheyCallMe/videos?x=1") == "theycallme" && StreamData.channelLogin("They Call Me") == "theycallme" && StreamData.channelLogin("") == "")
+  // Fewer false alarms: long article titles are fine, short bank and login titles are not, and Return in a browser's single-line box is harmless.
+  precondition(HandsPlan.blockedReason(owner:"Safari",title:"Best banks in Canada for 2026 compared by a finance site") == nil && HandsPlan.blockedReason(owner:"Safari",title:"Online banking - Sign in") != nil)
+  precondition(HandsPlan.blockedReason(owner:"Safari",title:"How to fix the Minecraft Dungeons II login error on PC, a long guide") == nil && HandsPlan.blockedReason(owner:"Moomoo",title:"") != nil && HandsPlan.blockedReason(owner:"Safari",title:"A very long article about why Moomoo and other trading apps are popular") != nil)
+  precondition(HandsPlan.blockedReason(owner:"",title:"www.example.com/accounts/sign-in/start?next=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",strict:true) != nil)
+  precondition(!HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!,owner:"Safari",focusedRole:"AXTextField") && HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!,owner:"Safari",focusedRole:"AXTextArea") && HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!,owner:"Messages",focusedRole:"AXTextField") && HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!))
   print("All data checks passed.")
  }
 }
@@ -10230,6 +10304,23 @@ Matthew: she has trouble with all the screens ("I still need to select the one s
   I pick" mode). If she can't capture the screens the status line now says to re-grant Screen & System Audio Recording.
 - **VODs:** Twitch only saves every stream to the channel while "Store past broadcasts" is on in Twitch's own settings; the app can't switch it. The Stream
   page checklist now has a button that opens that Twitch page.
+
+## Hands with fewer false alarms, and a smarter-brain option (2026-10-06)
+
+Matthew: the hand button is there but "it isn't working very well with all the restrictions", and "can we upgrade her model too?"
+- **What I loosened** (the real safety stays: Allow box for send and buy, banking, Moomoo, password and login pages, System Settings, terminals, her own app, card numbers):
+  - Money-app brand names (Moomoo, Wealthsimple, Questrade, Interactive Brokers) block anywhere. Softer words (bank, sign in, password) now only block when
+    they're in an app's name or a SHORT page title (a real login or bank page has a short title); long article titles that mention a bank, or a wiki page called
+    "Terminal Velocity", are fine. Terminals, System Settings and her own app match on the app's name only. Web links use the strict version.
+  - "Needs Allow" no longer fires on ordinary clicks: Accept, Share, Apply, Upload, Allow, Approve and Remove are gone from the list (Send, Post, Pay, Buy, Order, Confirm,
+    Subscribe, Delete, Reply, Book, Register, Install and similar stay). Checkout-page detection is narrower ("Order of the Stick" and "Bag of Holding" don't trigger it).
+  - Return in a web browser's single-line box (address bar, search box) is harmless and no longer needs Allow; Return anywhere else still does.
+  - She no longer refuses when you touch the mouse or when two actions come close together: she waits up to 3 seconds for the mouse to be still, and
+    pauses 0.3 seconds between actions. The per-minute cap went from 30 to 60, and she can type 600 characters at a time (was 300).
+  - Whatever she did or refused, in her words, now shows as a small "Hands: ..." line on the Friday page, so a refusal is never a mystery.
+- **Her brain:** she was already on Google's newest everyday live model, `gemini-3.8-live`. Settings now has a switch: **Standard** (that one) or **Thinks harder**
+  (`gemini-3.8-live-extended-thinking`, thinking depth "low"): more background reasoning, slower, may use the free allowance sooner. It handles tool calls only in
+  Google's "async" way and reports end-of-turn differently, so it is new and untried here; switch back to Standard if it errors.
 ```
 
 ## FILE: meeting-room/README.md

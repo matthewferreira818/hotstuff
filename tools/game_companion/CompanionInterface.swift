@@ -115,6 +115,7 @@ struct CompanionInterfaceView: View {
    if c.tab == 0 && !live.heard.isEmpty { Text(live.heard).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)).multilineTextAlignment(.center).lineLimit(2) }
    if !clips.status.isEmpty { Text(clips.status).font(.system(size:12,design:.rounded)).foregroundStyle(Noir.crimsonLight.opacity(0.9)).multilineTextAlignment(.center).lineLimit(3).textSelection(.enabled) }
    if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
+   if hands.enabled && hands.hasAccess && !hands.status.isEmpty { Text("Hands: \(hands.status)").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45)).multilineTextAlignment(.center).lineLimit(3) }
    if hands.enabled && !hands.hasAccess { Button { hands.openSettings() } label: { Text("Her hands need macOS permission: tap to open Accessibility settings, switch Game Companion on, then restart Friday.").multilineTextAlignment(.center) }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
    if !currentReply.isEmpty { Text(currentReply).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(Color.white.opacity(0.90)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
   }
@@ -323,7 +324,9 @@ struct CompanionInterfaceView: View {
   Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)
   Toggle("Pop up in a corner when the window is out of sight while Friday is live",isOn:$corner.enabled)
   Picker("Corner",selection:$corner.position) { Text("Top right").tag(0); Text("Top left").tag(1); Text("Bottom right").tag(2); Text("Bottom left").tag(3) }.pickerStyle(.segmented).disabled(!corner.enabled)
-  TextField("Live model",text:$live.liveModel).disabled(live.running)
+  Picker("Her brain",selection:$live.liveModel) { Text("Standard · fast").tag("gemini-3.8-live"); Text("Thinks harder · slower").tag("gemini-3.8-live-extended-thinking") }.pickerStyle(.segmented).disabled(live.running)
+  Text("Standard is Google's newest everyday voice model and answers quickest. \"Thinks harder\" reasons in the background before it answers: smarter on tricky questions and multi-step jobs, but slower and it may use up the free allowance sooner. It's new and untested here; if she errors, switch back to Standard.").font(.caption).foregroundStyle(.secondary)
+  TextField("Model name (advanced)",text:$live.liveModel).disabled(live.running)
   Toggle("Look up game facts using the wiki",isOn:$live.wiki).disabled(live.running)
   Toggle("Use Google Search for game facts",isOn:$live.search).disabled(live.running)
   Picker("Screen usage",selection:$live.lowUsage) { Text("Low").tag(true); Text("Steady").tag(false) }.pickerStyle(.segmented)

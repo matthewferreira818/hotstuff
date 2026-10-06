@@ -78,7 +78,7 @@ enum WebPlan {
   if !host.contains(".") || numbersOnly || host.contains(":") || host.hasSuffix(".local") || host.hasSuffix(".internal") || host.hasSuffix(".localhost") {
    return .no("That points at a bare address or something on this Mac or the home network, so I didn't open it.")
   }
-  if let why = HandsPlan.blockedReason(owner:"",title:host + parts.path) { return .no("I won't open that: \(why).") }
+  if let why = HandsPlan.blockedReason(owner:"",title:host + parts.path,strict:true) { return .no("I won't open that: \(why).") }
   guard let url = parts.url else { return .no("I couldn't make sense of that link.") }
   return .ok(url)
  }

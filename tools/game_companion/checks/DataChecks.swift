@@ -153,7 +153,7 @@ import Foundation
   let placed = HandsPlan.canvasRect(for:leftScreen,union:desk,scale:plan.scale,canvasHeight:plan.height)
   precondition(abs(placed.minX) < 0.01 && abs(placed.minY - (576 - 72 - 360)) < 0.01 && abs(placed.width - 576) < 0.01 && abs(placed.height - 360) < 0.01)
   precondition(HandsPlan.layout([CGRect(x:0,y:0,width:800,height:450)],maxWidth:1600,maxHeight:900)!.scale == 1 && HandsPlan.layout([],maxWidth:1,maxHeight:1) == nil)
-  precondition(HandsPlan.cleanTyped("hello\nthere") == "hello\nthere" && HandsPlan.cleanTyped("") == nil && HandsPlan.cleanTyped("a\u{07}b") == nil && HandsPlan.cleanTyped(String(repeating:"x",count:301)) == nil)
+  precondition(HandsPlan.cleanTyped("hello\nthere") == "hello\nthere" && HandsPlan.cleanTyped("") == nil && HandsPlan.cleanTyped("a\u{07}b") == nil && HandsPlan.cleanTyped(String(repeating:"x",count:601)) == nil)
   let combo = HandsPlan.parseKeys("Cmd + Shift + T")!
   precondition(combo.code == 17 && combo.modifiers == ["shift","cmd"] && combo.label == "⇧⌘T")
   precondition(HandsPlan.parseKeys("enter")!.code == 36 && HandsPlan.parseKeys("down")!.modifiers.isEmpty && HandsPlan.parseKeys("cmd+nonsense") == nil && HandsPlan.parseKeys("hyper+t") == nil && HandsPlan.parseKeys("") == nil)
@@ -167,11 +167,12 @@ import Foundation
   precondition(HandsPlan.looksLikeCardNumber("4242 4242 4242 4242") && HandsPlan.looksLikeCardNumber("4242-4242-4242-4242") && !HandsPlan.looksLikeCardNumber("call 5068899737 now") && !HandsPlan.looksLikeCardNumber("12345"))
   // Review fixes: word forms (Payment, Sending, Posting, Orders), short bank names as the last word, card numbers inside a sentence,
   // her own Allow button, and the macOS security prompts.
-  precondition(HandsPlan.riskyIntent("Payment") && HandsPlan.riskyIntent("Sending") && HandsPlan.riskyIntent("Posting") && HandsPlan.riskyIntent("Orders") && HandsPlan.riskyIntent("Allow button") && HandsPlan.riskyIntent("Subscription"))
+  precondition(HandsPlan.riskyIntent("Payment") && HandsPlan.riskyIntent("Sending") && HandsPlan.riskyIntent("Posting") && HandsPlan.riskyIntent("Orders") && HandsPlan.riskyIntent("Subscription"))
+  precondition(!HandsPlan.riskyIntent("Accept cookies") && !HandsPlan.riskyIntent("Share") && !HandsPlan.riskyIntent("Allow") && !HandsPlan.riskyIntent("Apply filter") && !HandsPlan.riskyIntent("Upload") && !HandsPlan.riskyIntent("Remove filter"))
   precondition(!HandsPlan.riskyIntent("Apple menu") && !HandsPlan.riskyIntent("Bookmarks") && !HandsPlan.riskyIntent("postal"))
-  precondition(HandsPlan.riskyWindow(title:"Shopping bag") && HandsPlan.riskyWindow(title:"Payments - Account") && HandsPlan.riskyWindow(title:"Pay now"))
+  precondition(HandsPlan.riskyWindow(title:"Shopping bag") && HandsPlan.riskyWindow(title:"Payments - Account") && !HandsPlan.riskyWindow(title:"Order of the Stick") && !HandsPlan.riskyWindow(title:"Bag of Holding - wiki"))
   precondition(HandsPlan.blockedReason(owner:"Safari",title:"Sign in to RBC") != nil && HandsPlan.blockedReason(owner:"Safari",title:"My accounts - BMO") != nil && HandsPlan.blockedReason(owner:"Safari",title:"Harbcraft wiki") == nil && HandsPlan.blockedReason(owner:"Safari",title:"Interac e-Transfer") != nil && HandsPlan.blockedReason(owner:"Safari",title:"Interactive map of Dungeons") == nil)
-  precondition(HandsPlan.blockedReason(owner:"SecurityAgent",title:"") != nil && HandsPlan.blockedReason(owner:"loginwindow",title:"") != nil && HandsPlan.blockedReason(owner:"UserNotificationCenter",title:"") == nil && HandsPlan.blockedReason(owner:"Warp",title:"") != nil && HandsPlan.blockedReason(owner:"Warframe",title:"") == nil)
+  precondition(HandsPlan.blockedReason(owner:"SecurityAgent",title:"") != nil && HandsPlan.blockedReason(owner:"loginwindow",title:"") != nil && HandsPlan.blockedReason(owner:"UserNotificationCenter",title:"") == nil && HandsPlan.blockedReason(owner:"Warp",title:"") != nil && HandsPlan.blockedReason(owner:"Safari",title:"Terminal Velocity - Minecraft wiki") == nil && HandsPlan.blockedReason(owner:"Warframe",title:"") == nil)
   precondition(HandsPlan.looksLikeCardNumber("my card is 4242 4242 4242 4242 thanks") && HandsPlan.looksLikeCardNumber("4242424242424242") && !HandsPlan.looksLikeCardNumber("call 506 889 9737 or 506 123 4567") && !HandsPlan.looksLikeCardNumber("level 12 345 678"))
   precondition(HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!) && HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+return")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+t")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("down")!))
   // Clips from past streams: durations and clock times are read, the clip is kept inside the video and Twitch's limits, and
@@ -260,6 +261,11 @@ import Foundation
   // The channel name is read out of whatever was typed or pasted.
   precondition(StreamData.channelLogin("TheyCallMeMattyB") == "theycallmemattyb" && StreamData.channelLogin("  @Name ") == "name" && StreamData.channelLogin("twitch.tv/abc_1") == "abc_1")
   precondition(StreamData.channelLogin("https://www.twitch.tv/TheyCallMe/videos?x=1") == "theycallme" && StreamData.channelLogin("They Call Me") == "theycallme" && StreamData.channelLogin("") == "")
+  // Fewer false alarms: long article titles are fine, short bank and login titles are not, and Return in a browser's single-line box is harmless.
+  precondition(HandsPlan.blockedReason(owner:"Safari",title:"Best banks in Canada for 2026 compared by a finance site") == nil && HandsPlan.blockedReason(owner:"Safari",title:"Online banking - Sign in") != nil)
+  precondition(HandsPlan.blockedReason(owner:"Safari",title:"How to fix the Minecraft Dungeons II login error on PC, a long guide") == nil && HandsPlan.blockedReason(owner:"Moomoo",title:"") != nil && HandsPlan.blockedReason(owner:"Safari",title:"A very long article about why Moomoo and other trading apps are popular") != nil)
+  precondition(HandsPlan.blockedReason(owner:"",title:"www.example.com/accounts/sign-in/start?next=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",strict:true) != nil)
+  precondition(!HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!,owner:"Safari",focusedRole:"AXTextField") && HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!,owner:"Safari",focusedRole:"AXTextArea") && HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!,owner:"Messages",focusedRole:"AXTextField") && HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!))
   print("All data checks passed.")
  }
 }

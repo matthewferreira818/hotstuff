@@ -135,7 +135,9 @@ between launches since 2026-10-06 (he wants her to do what he asks; hand
 button on the Friday page), with an on-screen Allow box plus a
 spoken check before anything that could send or buy; banking and payment
 pages, Moomoo, password and login pages, System Settings, the app itself
-and terminals are off-limits (a word-match safety net, not a guarantee).
+and terminals are off-limits (a word-match safety net, not a guarantee;
+softened 2026-10-06 at his request: soft words only count in an app's name or a
+short page title, ordinary clicks like Accept or Share no longer need Allow).
 She can also open a web search (YouTube, TikTok, X, Google, Reddit, Pinterest,
 Facebook, Twitch, the Minecraft wiki) or an https link in his own browser
 and read the screen (`search_site`, `open_link`; works without the hands

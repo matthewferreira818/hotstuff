@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-06 from commit 5906e15. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-06 from commit 0d8d846. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -1712,15 +1712,16 @@ enum TwitchTokens {
  }
 
  func makeClip(title rawTitle: String) async -> String {
-  let login = channel.trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased()
+  let login = StreamData.channelLogin(channel)
   guard signedIn else { return say("Not signed in to Twitch yet.") }
   guard !login.isEmpty else { return say("Type your Twitch channel name first.") }
   if Date().timeIntervalSince(lastClip) < 30 { return say("Already clipped that a moment ago.\(lastClipURL.isEmpty ? "" : " " + lastClipURL)") }
   busy = true; defer { busy = false }
   let title = String(rawTitle.trimmingCharacters(in:.whitespacesAndNewlines).prefix(100))
   do {
-   let (_,who) = try await call("/users?login=\(login)")
-   guard let id = (who["data"] as? [[String:Any]])?.first?["id"] as? String else { return say("Couldn't find a Twitch channel called \(login).") }
+   let (whoCode,who) = try await call("/users?login=\(login)")
+   guard whoCode == 200 else { return say(StreamData.explain(code:whoCode,message:who["message"] as? String,doing:"look up the channel \(login)")) }
+   guard let id = (who["data"] as? [[String:Any]])?.first?["id"] as? String else { return say("There's no Twitch channel called \(login). Check the name in Accounts > Twitch.") }
    var (code,made) = try await call(clipPath(id,title),method:"POST")
    // A title can fail Twitch's AutoMod check (a 400). Clip without it rather than lose the moment.
    if code == 400, !title.isEmpty { (code,made) = try await call(clipPath(id,""),method:"POST") }
@@ -2353,7 +2354,7 @@ struct CompanionInterfaceView: View {
     NSWorkspace.shared.open(TwitchClips.clipsRoot)
    }
   } else {
-   Text("One time: make a free Twitch account for clips, register this app at dev.twitch.tv/console (type: Public), and paste its Client ID here. The Client ID isn't a secret. See the README.").font(.caption).foregroundStyle(.secondary)
+   Text("One time: make a free Twitch account for clips, register this app at dev.twitch.tv/console under Applications (not Extensions), type: Public, and paste its Client ID here. The Client ID isn't a secret. See the README.").font(.caption).foregroundStyle(.secondary)
    HStack { TextField("Client ID",text:$clips.clientID); Button("Sign in") { clips.signIn() } }
    if !clips.userCode.isEmpty { Text("Code: \(clips.userCode)").font(.title3.monospaced()) }
   }
@@ -4417,6 +4418,15 @@ enum StreamData {
   return try? JSONSerialization.data(withJSONObject:body)
  }
 
+ // The channel name as Twitch wants it, from whatever was typed or pasted: "TheyCallMe", "@TheyCallMe", "twitch.tv/TheyCallMe" or a whole
+ // https://www.twitch.tv/TheyCallMe/videos link all become "theycallme". Twitch names are letters, digits and underscores only.
+ static func channelLogin(_ raw: String) -> String {
+  var text = raw.trimmingCharacters(in:.whitespacesAndNewlines).lowercased()
+  for prefix in ["https://","http://","www.","m.","twitch.tv/"] where text.hasPrefix(prefix) { text = String(text.dropFirst(prefix.count)) }
+  if let end = text.firstIndex(where:{ $0 == "/" || $0 == "?" || $0 == "#" }) { text = String(text[..<end]) }
+  return text.filter { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_") }
+ }
+
  static let queryAllowed = CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
 
  static func encoded(_ text: String) -> String { text.addingPercentEncoding(withAllowedCharacters:queryAllowed) ?? "" }
@@ -4495,18 +4505,30 @@ import AppKit
  func refresh(force: Bool = false) async {
   guard let tw = twitch, tw.signedIn, !loading else { return }
   if !force && Date().timeIntervalSince(lastRefresh) < 50 { return }
-  let login = tw.channel.trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased()
+  let login = StreamData.channelLogin(tw.channel)
   guard !login.isEmpty else { return }
   loading = true
   defer { loading = false }
   // One call at a time: if the login has expired, only one of them should refresh it.
   do {
-   let (_,mine) = try await tw.call("/users")
+   let (mineCode,mine) = try await tw.call("/users")
+   // A refusal from Twitch (a bad Client ID, an expired login) used to read as "can't find the channel". Say what really happened.
+   guard mineCode == 200 else { message = StreamData.explain(code:mineCode,message:mine["message"] as? String,doing:"read your Twitch account") + " (If you just changed the Client ID, sign out of Twitch and sign in again.)"; return }
    meID = (StreamData.rows(mine).first?["id"] as? String) ?? ""
    meLogin = (StreamData.rows(mine).first?["login"] as? String) ?? ""
-   let (_,theirs) = try await tw.call("/users?login=\(StreamData.encoded(login))")
-   guard let id = StreamData.rows(theirs).first?["id"] as? String else {
-    message = "Couldn't find a Twitch channel called \(login). Check the name in Settings."
+   let (theirsCode,theirs) = try await tw.call("/users?login=\(StreamData.encoded(login))")
+   guard theirsCode == 200 else { message = StreamData.explain(code:theirsCode,message:theirs["message"] as? String,doing:"look up the channel \(login)"); return }
+   var found = StreamData.rows(theirs).first?["id"] as? String
+   if found == nil, !meID.isEmpty, !meLogin.isEmpty {
+    // No channel has that name. The signed-in account is almost certainly the one meant, so use it and say so.
+    found = meID
+    tw.channel = meLogin
+    message = "There's no Twitch channel called \(login), so I'm using the account you signed in with: \(meLogin). If that isn't your channel, change the name in Accounts > Twitch."
+   } else if found != nil {
+    message = ""
+   }
+   guard let id = found else {
+    message = "Couldn't find a Twitch channel called \(login). Check the name in Accounts > Twitch."
     return
    }
    let (_,streamJSON) = try await tw.call("/streams?user_id=\(id)")
@@ -4747,7 +4769,7 @@ extension CompanionInterfaceView {
   }
  }
 
- var hubStreamLogin: String { clips.channel.trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased() }
+ var hubStreamLogin: String { StreamData.channelLogin(clips.channel) }
  var hubTwitchDashboard: String { hubStreamLogin.isEmpty ? "https://dashboard.twitch.tv/" : "https://dashboard.twitch.tv/u/\(hubStreamLogin)/stream-manager" }
  func hubOpen(_ link: String) { if let url = URL(string:link) { NSWorkspace.shared.open(url) } }
 
@@ -5317,7 +5339,7 @@ import AppKit
   if twitch == nil { twitch = clips; stream = hub; feed = log }
  }
 
- var channelLogin: String { (twitch?.channel ?? "").trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased() }
+ var channelLogin: String { StreamData.channelLogin(twitch?.channel ?? "") }
 
  func start() {
   guard twitch?.signedIn == true else { status = "Connect Twitch first (Accounts)."; return }
@@ -9551,6 +9573,9 @@ import Foundation
    if case .ok = WebPlan.link(bad) { preconditionFailure("should refuse \(bad)") }
   }
   if case .no = WebPlan.link("https://www.tiktok.com/@someone/video/123") { preconditionFailure("tiktok video link should open") }
+  // The channel name is read out of whatever was typed or pasted.
+  precondition(StreamData.channelLogin("TheyCallMeMattyB") == "theycallmemattyb" && StreamData.channelLogin("  @Name ") == "name" && StreamData.channelLogin("twitch.tv/abc_1") == "abc_1")
+  precondition(StreamData.channelLogin("https://www.twitch.tv/TheyCallMe/videos?x=1") == "theycallme" && StreamData.channelLogin("They Call Me") == "theycallme" && StreamData.channelLogin("") == "")
   print("All data checks passed.")
  }
 }
@@ -10151,6 +10176,14 @@ can't. I want her to be able to do anything I ask, especially something that eas
 - **Fix (same day):** on the Friday page the round buttons (start and stop live, keyboard, clip, stop everything) were pushed off the bottom of a
   short window. They are now pinned at the bottom and always shown (smaller in a small window, 40 and 56 points instead of 54 and 80), and the
   orb and what she says scroll above them if there's no room. The "LIVE · ALL SCREENS + MIC SHARED WITH GOOGLE" note wraps instead of overflowing.
+
+- **Twitch setup gotcha (2026-10-06):** dev.twitch.tv/console has an **Applications** tab and an **Extensions** tab. The Client ID must come from
+  **Register Your Application** (Applications), not from Create Extension (which starts a viewer-panel/overlay project). Matthew's first try made an
+  Extension; the app still said "signed in" with its ID, so it may work, but if the Stream page shows a Twitch error, make a real Application and swap the ID.
+- **"Couldn't find the channel" fix (2026-10-06):** that message was shown for ANY refusal from Twitch, not only a wrong name (for example a login that
+  doesn't match the Client ID after the ID was swapped). Now the Stream page says what Twitch really answered, reads the name from whatever was
+  typed or pasted (`TheyCallMe`, `@TheyCallMe`, `twitch.tv/TheyCallMe` or a whole link), and if no channel has that name it uses the account you
+  signed in with and says so. Tests are in `checks/DataChecks.swift`.
 ```
 
 ## FILE: meeting-room/README.md

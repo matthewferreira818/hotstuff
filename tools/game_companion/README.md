@@ -594,3 +594,7 @@ can't. I want her to be able to do anything I ask, especially something that eas
 - **Twitch setup gotcha (2026-10-06):** dev.twitch.tv/console has an **Applications** tab and an **Extensions** tab. The Client ID must come from
   **Register Your Application** (Applications), not from Create Extension (which starts a viewer-panel/overlay project). Matthew's first try made an
   Extension; the app still said "signed in" with its ID, so it may work, but if the Stream page shows a Twitch error, make a real Application and swap the ID.
+- **"Couldn't find the channel" fix (2026-10-06):** that message was shown for ANY refusal from Twitch, not only a wrong name (for example a login that
+  doesn't match the Client ID after the ID was swapped). Now the Stream page says what Twitch really answered, reads the name from whatever was
+  typed or pasted (`TheyCallMe`, `@TheyCallMe`, `twitch.tv/TheyCallMe` or a whole link), and if no channel has that name it uses the account you
+  signed in with and says so. Tests are in `checks/DataChecks.swift`.

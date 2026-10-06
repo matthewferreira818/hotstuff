@@ -257,6 +257,9 @@ import Foundation
    if case .ok = WebPlan.link(bad) { preconditionFailure("should refuse \(bad)") }
   }
   if case .no = WebPlan.link("https://www.tiktok.com/@someone/video/123") { preconditionFailure("tiktok video link should open") }
+  // The channel name is read out of whatever was typed or pasted.
+  precondition(StreamData.channelLogin("TheyCallMeMattyB") == "theycallmemattyb" && StreamData.channelLogin("  @Name ") == "name" && StreamData.channelLogin("twitch.tv/abc_1") == "abc_1")
+  precondition(StreamData.channelLogin("https://www.twitch.tv/TheyCallMe/videos?x=1") == "theycallme" && StreamData.channelLogin("They Call Me") == "theycallme" && StreamData.channelLogin("") == "")
   print("All data checks passed.")
  }
 }

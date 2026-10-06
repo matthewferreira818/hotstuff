@@ -33,7 +33,7 @@ import AppKit
   if twitch == nil { twitch = clips; stream = hub; feed = log }
  }
 
- var channelLogin: String { (twitch?.channel ?? "").trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased() }
+ var channelLogin: String { StreamData.channelLogin(twitch?.channel ?? "") }
 
  func start() {
   guard twitch?.signedIn == true else { status = "Connect Twitch first (Accounts)."; return }

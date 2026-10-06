@@ -144,6 +144,15 @@ enum StreamData {
   return try? JSONSerialization.data(withJSONObject:body)
  }
 
+ // The channel name as Twitch wants it, from whatever was typed or pasted: "TheyCallMe", "@TheyCallMe", "twitch.tv/TheyCallMe" or a whole
+ // https://www.twitch.tv/TheyCallMe/videos link all become "theycallme". Twitch names are letters, digits and underscores only.
+ static func channelLogin(_ raw: String) -> String {
+  var text = raw.trimmingCharacters(in:.whitespacesAndNewlines).lowercased()
+  for prefix in ["https://","http://","www.","m.","twitch.tv/"] where text.hasPrefix(prefix) { text = String(text.dropFirst(prefix.count)) }
+  if let end = text.firstIndex(where:{ $0 == "/" || $0 == "?" || $0 == "#" }) { text = String(text[..<end]) }
+  return text.filter { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_") }
+ }
+
  static let queryAllowed = CharacterSet(charactersIn:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
 
  static func encoded(_ text: String) -> String { text.addingPercentEncoding(withAllowedCharacters:queryAllowed) ?? "" }

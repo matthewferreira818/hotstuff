@@ -156,15 +156,16 @@ enum TwitchTokens {
  }
 
  func makeClip(title rawTitle: String) async -> String {
-  let login = channel.trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased()
+  let login = StreamData.channelLogin(channel)
   guard signedIn else { return say("Not signed in to Twitch yet.") }
   guard !login.isEmpty else { return say("Type your Twitch channel name first.") }
   if Date().timeIntervalSince(lastClip) < 30 { return say("Already clipped that a moment ago.\(lastClipURL.isEmpty ? "" : " " + lastClipURL)") }
   busy = true; defer { busy = false }
   let title = String(rawTitle.trimmingCharacters(in:.whitespacesAndNewlines).prefix(100))
   do {
-   let (_,who) = try await call("/users?login=\(login)")
-   guard let id = (who["data"] as? [[String:Any]])?.first?["id"] as? String else { return say("Couldn't find a Twitch channel called \(login).") }
+   let (whoCode,who) = try await call("/users?login=\(login)")
+   guard whoCode == 200 else { return say(StreamData.explain(code:whoCode,message:who["message"] as? String,doing:"look up the channel \(login)")) }
+   guard let id = (who["data"] as? [[String:Any]])?.first?["id"] as? String else { return say("There's no Twitch channel called \(login). Check the name in Accounts > Twitch.") }
    var (code,made) = try await call(clipPath(id,title),method:"POST")
    // A title can fail Twitch's AutoMod check (a 400). Clip without it rather than lose the moment.
    if code == 400, !title.isEmpty { (code,made) = try await call(clipPath(id,""),method:"POST") }

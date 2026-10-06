@@ -53,18 +53,30 @@ import AppKit
  func refresh(force: Bool = false) async {
   guard let tw = twitch, tw.signedIn, !loading else { return }
   if !force && Date().timeIntervalSince(lastRefresh) < 50 { return }
-  let login = tw.channel.trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased()
+  let login = StreamData.channelLogin(tw.channel)
   guard !login.isEmpty else { return }
   loading = true
   defer { loading = false }
   // One call at a time: if the login has expired, only one of them should refresh it.
   do {
-   let (_,mine) = try await tw.call("/users")
+   let (mineCode,mine) = try await tw.call("/users")
+   // A refusal from Twitch (a bad Client ID, an expired login) used to read as "can't find the channel". Say what really happened.
+   guard mineCode == 200 else { message = StreamData.explain(code:mineCode,message:mine["message"] as? String,doing:"read your Twitch account") + " (If you just changed the Client ID, sign out of Twitch and sign in again.)"; return }
    meID = (StreamData.rows(mine).first?["id"] as? String) ?? ""
    meLogin = (StreamData.rows(mine).first?["login"] as? String) ?? ""
-   let (_,theirs) = try await tw.call("/users?login=\(StreamData.encoded(login))")
-   guard let id = StreamData.rows(theirs).first?["id"] as? String else {
-    message = "Couldn't find a Twitch channel called \(login). Check the name in Settings."
+   let (theirsCode,theirs) = try await tw.call("/users?login=\(StreamData.encoded(login))")
+   guard theirsCode == 200 else { message = StreamData.explain(code:theirsCode,message:theirs["message"] as? String,doing:"look up the channel \(login)"); return }
+   var found = StreamData.rows(theirs).first?["id"] as? String
+   if found == nil, !meID.isEmpty, !meLogin.isEmpty {
+    // No channel has that name. The signed-in account is almost certainly the one meant, so use it and say so.
+    found = meID
+    tw.channel = meLogin
+    message = "There's no Twitch channel called \(login), so I'm using the account you signed in with: \(meLogin). If that isn't your channel, change the name in Accounts > Twitch."
+   } else if found != nil {
+    message = ""
+   }
+   guard let id = found else {
+    message = "Couldn't find a Twitch channel called \(login). Check the name in Accounts > Twitch."
     return
    }
    let (_,streamJSON) = try await tw.call("/streams?user_id=\(id)")
@@ -305,7 +317,7 @@ extension CompanionInterfaceView {
   }
  }
 
- var hubStreamLogin: String { clips.channel.trimmingCharacters(in:CharacterSet(charactersIn:"@ \n")).lowercased() }
+ var hubStreamLogin: String { StreamData.channelLogin(clips.channel) }
  var hubTwitchDashboard: String { hubStreamLogin.isEmpty ? "https://dashboard.twitch.tv/" : "https://dashboard.twitch.tv/u/\(hubStreamLogin)/stream-manager" }
  func hubOpen(_ link: String) { if let url = URL(string:link) { NSWorkspace.shared.open(url) } }
 

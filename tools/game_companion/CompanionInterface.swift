@@ -357,7 +357,7 @@ struct CompanionInterfaceView: View {
     NSWorkspace.shared.open(TwitchClips.clipsRoot)
    }
   } else {
-   Text("One time: make a free Twitch account for clips, register this app at dev.twitch.tv/console (type: Public), and paste its Client ID here. The Client ID isn't a secret. See the README.").font(.caption).foregroundStyle(.secondary)
+   Text("One time: make a free Twitch account for clips, register this app at dev.twitch.tv/console under Applications (not Extensions), type: Public, and paste its Client ID here. The Client ID isn't a secret. See the README.").font(.caption).foregroundStyle(.secondary)
    HStack { TextField("Client ID",text:$clips.clientID); Button("Sign in") { clips.signIn() } }
    if !clips.userCode.isEmpty { Text("Code: \(clips.userCode)").font(.title3.monospaced()) }
   }

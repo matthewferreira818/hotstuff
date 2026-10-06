@@ -590,3 +590,7 @@ can't. I want her to be able to do anything I ask, especially something that eas
 - **Fix (same day):** on the Friday page the round buttons (start and stop live, keyboard, clip, stop everything) were pushed off the bottom of a
   short window. They are now pinned at the bottom and always shown (smaller in a small window, 40 and 56 points instead of 54 and 80), and the
   orb and what she says scroll above them if there's no room. The "LIVE · ALL SCREENS + MIC SHARED WITH GOOGLE" note wraps instead of overflowing.
+
+- **Twitch setup gotcha (2026-10-06):** dev.twitch.tv/console has an **Applications** tab and an **Extensions** tab. The Client ID must come from
+  **Register Your Application** (Applications), not from Create Extension (which starts a viewer-panel/overlay project). Matthew's first try made an
+  Extension; the app still said "signed in" with its ID, so it may work, but if the Stream page shows a Twitch error, make a real Application and swap the ID.

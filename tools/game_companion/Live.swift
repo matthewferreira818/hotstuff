@@ -622,6 +622,7 @@ enum GeminiKey {
      let shot = try await ScreenSnap.captureAll()
      guard current == session else { return }
      picturesSent += 1
+     hands?.lookedAround()
      lastSeen = shot.preview
      send(["realtimeInput":["video":["data":shot.jpeg.base64EncodedString(),"mimeType":"image/jpeg"]]])
      return
@@ -631,6 +632,7 @@ enum GeminiKey {
     let image = try await SCScreenshotManager.captureImage(contentFilter:filter,configuration:config)
     guard current == session, let jpeg = NSBitmapImageRep(cgImage:image).representation(using:.jpeg,properties:[.compressionFactor:0.6]) else { return }
     picturesSent += 1
+    hands?.lookedAround()
     lastSeen = NSImage(cgImage:image,size:NSSize(width:240,height:135))
     send(["realtimeInput":["video":["data":jpeg.base64EncodedString(),"mimeType":"image/jpeg"]]])
    } catch {

@@ -631,3 +631,15 @@ Matthew: the hand button is there but "it isn't working very well with all the r
 - **Her brain:** she was already on Google's newest everyday live model, `gemini-3.8-live`. Settings now has a switch: **Standard** (that one) or **Thinks harder**
   (`gemini-3.8-live-extended-thinking`, thinking depth "low"): more background reasoning, slower, may use the free allowance sooner. It handles tool calls only in
   Google's "async" way and reports end-of-turn differently, so it is new and untried here; switch back to Standard if it errors.
+
+## Her crimson cursor stays visible (2026-10-06)
+
+Matthew: "make sure we can see the crimson cursor when she is looking around". It used to show for 1.6 to 3.5 seconds when she acted and then vanish, so
+while she looked around (scroll, read, scroll) it flickered off, and you never saw it while she was just watching.
+- While Friday is live, her cursor now stays on screen the whole time: resting a bit softer (62%) between jobs where she last was (or low on the right
+  of the main screen), full strength while she moves. It pulses a ring each time a picture of your screens is sent to her (at most once every 5 seconds).
+  It puts itself away when the live session ends. Switch: Settings, "Keep her crimson cursor on screen while she's live" (on by default).
+- It's bigger and glows more (26 x 41 points), and the overlay sits at the screen-saver window level so it shows above full-screen windows and
+  borderless-window games. The Allow box was raised the same way, so it can't hide behind a full-screen game. A game in true exclusive full screen can
+  still cover both; if that happens, use borderless or windowed mode.
+- Not run on the Mac yet.

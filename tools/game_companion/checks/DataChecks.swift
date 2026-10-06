@@ -218,6 +218,35 @@ import Foundation
   precondition(!blipFired)
   precondition(TikTokPack.caption(title:"Boss down at one heart",game:"Minecraft Dungeons") == "Boss down at one heart 🔥\n\n#minecraft #minecraftdungeons #gaming #twitch #fyp\n")
   precondition(TikTokPack.caption(title:"Moment 2 at 1:05",game:"Just Chatting").hasPrefix("Clutch moment 🔥") && TikTokPack.hashtags(game:"Just Chatting") == ["#gaming","#twitch","#fyp"] && TikTokPack.cleanTitle("  a   b  ") == "a b")
+  // Voice-over: how much she can say, what she may say, reading Google's answers, the speech file and the volume plan.
+  precondition(VoiceOverPlan.wordBudget(clipSeconds:25) == 53 && VoiceOverPlan.wordBudget(clipSeconds:1) == 0 && VoiceOverPlan.available(clipSeconds:25) > 23)
+  precondition(VoiceOverPlan.clean("**Look** at this! 🔥 #fyp \"Nice one\"") == "Look at this! Nice one")
+  precondition(VoiceOverPlan.sentences("First one. Second one! Is it third? Trailing").count == 4 && VoiceOverPlan.sentences("It costs 1.5 gold. Next.").count == 2)
+  let vet = VoiceOverPlan.vetted("The player fights a zombie. It drops a sword with 45 damage. The drop chance is 20 percent. Farm the tower twice.",sources:["The player fights a zombie near a tower.","Sword: 45 damage. Drops from zombies."])
+  precondition(vet.kept == ["The player fights a zombie.","It drops a sword with 45 damage."] && vet.dropped.count == 2)
+  precondition(VoiceOverPlan.fit(["One two three.","Four five six.","Seven eight nine."],words:6) == ["One two three.","Four five six."] && VoiceOverPlan.fit(["One two three."],words:2).isEmpty)
+  let overview = VoiceOverPlan.parseOverview("Sure!\n```json\n{\"game\":\"Minecraft Dungeons II\",\"what_happens\":\"A fight in a cave.\",\"named\":[\"Zombie\",\"zombie\",\" \",\"Sword\",\"A\",\"B\",\"C\"]}\n```")
+  precondition(overview?.summary == "A fight in a cave." && overview?.named == ["Zombie","Sword","A"] && overview?.game == "Minecraft Dungeons II")
+  precondition(VoiceOverPlan.parseOverview("no json here") == nil && VoiceOverPlan.parseOverview("{\"what_happens\":\"\"}") == nil)
+  precondition(!VoiceOverPlan.isFound(lookup:"Neither MetaBot nor the wiki has a page. Tell the player you couldn't find it, and don't guess.") && VoiceOverPlan.isFound(lookup:"MetaBot page \"Sword\": damage 45"))
+  let reply: [String:Any] = ["steps":[["type":"model_output","content":[["type":"text","text":"Hello there"]]] as [String:Any]]]
+  precondition(VoiceOverPlan.replyText(reply) == "Hello there" && VoiceOverPlan.replyText(["output_text":"Hi"]) == "Hi" && VoiceOverPlan.replyText([:]) == nil)
+  let legacy: [String:Any] = ["candidates":[["content":["parts":[["text":"Legacy answer"]]]] as [String:Any]]]
+  precondition(VoiceOverPlan.replyText(legacy) == "Legacy answer")
+  let blob = Data([1,2,3,4]).base64EncodedString()
+  let audioReply: [String:Any] = ["steps":[["type":"model_output","content":[["type":"audio","data":blob]]] as [String:Any]]]
+  precondition(VoiceOverPlan.replyAudio(audioReply) == Data([1,2,3,4]) && VoiceOverPlan.replyAudio(reply) == nil)
+  let pcm = Data(repeating:0,count:48_000)   // one second of 24 kHz 16 bit mono
+  let wav = VoiceOverPlan.wavFromPCM(pcm)
+  precondition(wav.count == 44 + 48_000 && VoiceOverPlan.wavSeconds(wav) == 1.0 && VoiceOverPlan.asWAV(pcm).count == wav.count && VoiceOverPlan.asWAV(wav) == wav && VoiceOverPlan.wavSeconds(pcm) == nil)
+  let steps = VoiceOverPlan.ducking(start:0.8,length:10,clip:25)
+  precondition(steps.count == 2 && steps[0].at == 0.5 && steps[0].to == VoiceOverPlan.duckVolume && steps[1].at == 10.8 && steps[1].to == 1)
+  precondition(VoiceOverPlan.ducking(start:0.1,length:30,clip:25).count == 1 && VoiceOverPlan.ducking(start:30,length:5,clip:25).isEmpty)
+  precondition(VoiceOverPlan.explain(code:429,message:nil,doing:"watch the clip").contains("free limit") && VoiceOverPlan.explain(code:403,message:nil,doing:"x").contains("key"))
+  precondition(VoiceOverPlan.errorMessage(["error":["message":"bad"]]) == "bad")
+  precondition(VoiceOverPlan.focusClause("").contains("FACTS") && VoiceOverPlan.focusClause("best way to farm gold").contains("best way to farm gold") && VoiceOverPlan.scriptPrompt(summary:"S",facts:[],focus:"",words:50).contains("(none found)"))
+  precondition(VoiceOverPlan.videoBody(prompt:"p",video:Data([1])) != nil && VoiceOverPlan.speechBody(script:"hi",voice:"Kore") != nil)
+  precondition(TikTokPack.caption(title:"Boss down",game:"Minecraft Dungeons II",voiceOver:true).contains("AI voice") && !TikTokPack.caption(title:"Boss down",game:"Minecraft Dungeons II").contains("AI voice"))
   print("All data checks passed.")
  }
 }

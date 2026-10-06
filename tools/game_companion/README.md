@@ -539,3 +539,27 @@ screens; the key migration only marks itself done when every old item was copied
 buttons and privacy captions now say "all your screens" when that's the mode (and don't need a chosen window); the round X button also turns
 Clip autopilot off; the Meeting Room's Friday card and her inbox are accurate. Still true: these rules are a safety net, not a guarantee;
 the Allow box is the hard stop for send and buy. None of it has been run on the Mac yet.
+
+## Friday's voice-over (2026-10-06)
+
+Matthew: "like a voice over of the clip, like in the clip she explains what's going on, how to get loot, best ways to farm." Built as a
+card on the Stream page, **Friday's voice-over** (`VoiceOver.swift`; the rules, prompts and tests are in `VoiceOverData.swift`).
+How it works, step by step:
+1. She **watches** the clip: a small copy (picture and sound, under 14 MB) goes to Google's Gemini with his free key, which says what happens
+   and names the items, enemies and areas it can clearly read or hear (at most 3).
+2. She **looks those names up** on the game wiki (the same MetaBot and Minecraft wiki lookup she uses live).
+3. She **writes** a short script from only those two sources (about 2.3 words a second, so about 53 words for a 25-second clip). Anything about
+   loot or farming may only come from the wiki pages. Every sentence with a number (digits or spelled-out, such as "twenty percent") that
+   the sources don't contain is dropped.
+4. Gemini's voice maker **speaks** it in the voice she uses live; if it runs too long for the clip, fewer sentences and once more.
+5. The speech is **mixed over the clip** from 0.8 seconds in, with the game's sound (and his voice in the clip) turned down to 22% while she
+   talks. He gets `highlight-tall-voiceover.mp4` and `highlight-wide-voiceover.mp4` next to the plain ones, plus `voiceover-script.txt`
+   (the words, what she looked at, which wiki pages, and that the voice is an AI) and `voiceover.wav`.
+Switch it on and every cut clip gets one (off by default); or press **Add a voice-over to my latest clip**; or tell Friday ("narrate that clip",
+optionally "...and cover how to farm it"), which runs in the background and lands in the clips folder and the Friday feed. The TikTok caption
+saved by the autopilot adds "Voice-over by Friday, my AI companion (AI voice)." whenever a voice-over version exists. **Nothing is posted.**
+Honest limits: it has NOT been run on the Mac or with a real key. The Google endpoint and model names (`gemini-3.8-flash`,
+`gemini-3.8-flash-tts`, the `interactions` call) come from Google's docs as of today and may need a tweak; the free plan may not include the voice
+maker (if so she says so and saves the words as `voiceover-draft.txt`; there is no Mac-voice fallback yet). English only. She can be wrong about
+what she saw, so listen before posting. It does not translate his own speech. Part of the clip's sound (his voice, the game) is lowered, not
+removed, while she talks. A small copy of the clip goes to Google (public Twitch footage, but still sent).

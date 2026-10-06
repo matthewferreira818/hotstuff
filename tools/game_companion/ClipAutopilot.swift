@@ -175,7 +175,7 @@ enum ClipLedger {
 
  // Called after every finished clip, whoever asked for it.
  func writePack(folder: URL,title: String) {
-  let text = TikTokPack.caption(title:title,game:stream?.channel?.gameName ?? "")
+  let text = TikTokPack.caption(title:title,game:stream?.channel?.gameName ?? "",voiceOver:VoiceOver.hasVoiceOver(in:folder))
   try? text.write(to:folder.appendingPathComponent("tiktok-caption.txt"),atomically:true,encoding:.utf8)
   note("Ready for TikTok: \(folder.lastPathComponent)")
  }

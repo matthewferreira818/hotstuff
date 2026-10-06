@@ -44,6 +44,8 @@ enum TwitchTokens {
  var lastClip = Date.distantPast
  // Called with the folder and title after a clip has been downloaded and cut (the autopilot saves a TikTok caption there).
  var onTidied: ((URL,String) -> Void)?
+ // Called after the highlight is cut and before onTidied: Friday's voice-over adds its own version of the clip here (VoiceOver.swift).
+ var afterEdit: ((URL,String) async -> Void)?
  var loginTask: Task<Void,Never>?
  var inFlight: Task<String,Never>?
  // clips:edit makes the clip. The two manage-clips permissions let the app download it (whichever fits the account).
@@ -242,6 +244,7 @@ enum TwitchTokens {
    editStatus = "Cutting the highlight…"
    let files = try await ClipEditor.tidy(original:original,folder:folder,maxLength:Double(highlightSeconds))
    lastFolder = folder
+   await afterEdit?(folder,title)
    onTidied?(folder,title)
    editStatus = "Done: a \(Int(files.cut.length.rounded()))-second highlight, wide and tall, saved in Movies > Game Companion Clips > \(folder.lastPathComponent). \(files.note)".trimmingCharacters(in:.whitespaces)
    NSWorkspace.shared.activateFileViewerSelecting([files.vertical ?? files.landscape ?? original])

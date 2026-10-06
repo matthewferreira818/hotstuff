@@ -86,9 +86,11 @@ enum TikTokPack {
   return String(words.prefix(90))
  }
 
- static func caption(title raw: String,game: String) -> String {
+ // `voiceOver` adds the line that says the narration is an AI voice (Friday's), so nobody mistakes it for a person.
+ static func caption(title raw: String,game: String,voiceOver: Bool = false) -> String {
   let title = cleanTitle(raw)
   let head = title.isEmpty || title.lowercased().hasPrefix("moment") ? "Clutch moment" : title
-  return head + " 🔥\n\n" + hashtags(game:game).joined(separator:" ") + "\n"
+  let note = voiceOver ? "Voice-over by Friday, my AI companion (AI voice).\n\n" : ""
+  return head + " 🔥\n\n" + note + hashtags(game:game).joined(separator:" ") + "\n"
  }
 }

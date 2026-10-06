@@ -129,7 +129,7 @@ struct CompanionInterfaceView: View {
    if clips.signedIn {
     Button { Task { await clips.clipNow() } } label: { Image(systemName:"scissors") }.buttonStyle(OrbButtonStyle(diameter:54)).disabled(clips.busy).help("Clip the last 30 seconds")
    }
-   Button { stopAll() } label: { Image(systemName:"xmark") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Stop everything")
+   Button { stopAll(); autopilot.enabled = false } label: { Image(systemName:"xmark") }.buttonStyle(OrbButtonStyle(diameter:54)).help("Stop everything")
   }
  }
  var mainIcon: String {
@@ -214,7 +214,7 @@ struct CompanionInterfaceView: View {
  func stopAll() { conversation.stopInitiative(); live.clearSession(); c.stop(); chat.stop() }
  @ViewBuilder var engineChoice: some View {
   Picker("Conversation mode",selection:$c.tab) { Text("On this Mac").tag(1); Text("Google Live").tag(0) }.pickerStyle(.segmented).disabled(live.running || c.busy)
-  Text(c.tab == 0 ? "Google Live sends microphone audio, selected-window frames and messages to Google when started. Check your account's free-tier limits before use." : "On this Mac uses your existing Ollama model. A 4B model can slow an 8 GB Mac.").font(.caption).foregroundStyle(.secondary)
+  Text(c.tab == 0 ? "Google Live sends microphone audio, \(live.sees == 0 ? "pictures of all your screens" : "pictures of the window you pick"), and messages to Google when started. Check your account's free-tier limits before use." : "On this Mac uses your existing Ollama model. A 4B model can slow an 8 GB Mac.").font(.caption).foregroundStyle(.secondary)
  }
  @ViewBuilder var gamePage: some View {
   engineChoice
@@ -222,7 +222,7 @@ struct CompanionInterfaceView: View {
    HStack { VStack(alignment:.leading,spacing:5) { Label("Game window",systemImage:"rectangle.on.rectangle").font(.headline); Text(c.sharing ? (c.screenVerified ? "Access verified" : "Selected · not yet tested") : "No window shared").font(.caption).foregroundStyle(.secondary) }; Spacer(); Button("Choose window") { c.choose() }.disabled(DesignPreview.enabled); Button("Stop sharing") { live.stop(); c.stopScreen() }.disabled(!c.sharing) }
   }
   if c.tab == 0 {
-   HStack { Button(live.running ? "Stop live session" : "Start live session",systemImage:live.running ? "stop.circle" : "play.circle") { if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:conversation.page == 0 ? c.gameNotes : "") } }.buttonStyle(.borderedProminent).disabled(DesignPreview.enabled || !live.hasKey || !c.sharing); Text(live.hasKey ? "Google key saved on this Mac" : "Add your key in Settings").font(.caption).foregroundStyle(.secondary) }
+   HStack { Button(live.running ? "Stop live session" : "Start live session",systemImage:live.running ? "stop.circle" : "play.circle") { if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:conversation.page == 0 ? c.gameNotes : "") } }.buttonStyle(.borderedProminent).disabled(DesignPreview.enabled || !live.hasKey || (live.sees == 1 && !c.sharing)); Text(live.hasKey ? "Google key saved on this Mac" : "Add your key in Settings").font(.caption).foregroundStyle(.secondary) }
   } else {
    HStack { Button(c.listening ? "Stop microphone" : "Listen",systemImage:"mic") { c.mic() }.disabled(DesignPreview.enabled || c.busy || !c.voiceReady); Text(c.voiceReady ? "Local voice available" : "Local speech unavailable").font(.caption).foregroundStyle(.secondary) }
   }
@@ -261,8 +261,8 @@ struct CompanionInterfaceView: View {
  @ViewBuilder var conversationPage: some View {
   engineChoice
   if c.tab == 0 {
-   HStack { Button(live.running ? "Stop live conversation" : "Start live conversation",systemImage:live.running ? "stop.circle" : "play.circle") { if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:"") } }.buttonStyle(.borderedProminent).disabled(DesignPreview.enabled || !live.hasKey || !c.sharing) }
-   Text(live.running ? "This live session shares your chosen game window and microphone with Google. Stop all ends sharing." : "Choose a window on the Game view before starting a live conversation. Local conversation works without sharing a screen.").font(.caption).foregroundStyle(.secondary)
+   HStack { Button(live.running ? "Stop live conversation" : "Start live conversation",systemImage:live.running ? "stop.circle" : "play.circle") { if live.running { live.stop() } else { c.stopMic(); c.cancelResponse(); live.start(filter:c.filter,notes:"") } }.buttonStyle(.borderedProminent).disabled(DesignPreview.enabled || !live.hasKey || (live.sees == 1 && !c.sharing)) }
+   Text(live.running ? "This live session shares \(live.sees == 0 ? "all your screens" : "your chosen game window") and microphone with Google. Stop all ends sharing." : (live.sees == 0 ? "Friday sees all your screens while live. Local conversation works without sharing a screen." : "Choose a window on the Game view before starting a live conversation. Local conversation works without sharing a screen.")).font(.caption).foregroundStyle(.secondary)
   } else {
    HStack { Button(c.listening ? "Stop microphone" : "Listen",systemImage:"mic") { c.mic() }.disabled(DesignPreview.enabled || c.busy || !c.voiceReady); Text("Local conversation does not capture the game window.").font(.caption).foregroundStyle(.secondary) }
   }

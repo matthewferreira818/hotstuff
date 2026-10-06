@@ -9,10 +9,15 @@ import ScreenCaptureKit
 //  - Anything that could SEND or BUY needs his Allow on an on-screen box first (and she is told to ask him out loud too): pressing
 //    Return or Enter, a button or label that says Send, Pay, Order, Post and the like, anything in a checkout, cart or payment window.
 //  - Never in: banking and payment pages, trading apps (Moomoo), password pages and fields, login pages, System Settings, this app, or a
-//    terminal. She also refuses to type what looks like a card number, and quit, log-out and Trash shortcuts.
-//  - Off every time the app opens, and only while Friday is live. At most 30 actions a minute.
+//    terminal. She also refuses to type what looks like a card number, and quit, log-out and Trash shortcuts. Scrolling follows the
+//    same list.
+//  - Off every time the app opens, and only while Friday is live. At most 30 actions a minute, one at a time, and nothing else runs
+//    while an Allow box is open.
 //  - Scrolling yields to the real mouse: if Matthew moved it in the last 1.5 seconds she leaves the page alone.
-//  - Her cursor always glides to the spot first, so he can watch what she is about to do.
+//  - Her cursor always glides to the spot first, so he can watch what she is about to do. Everything is checked again after the glide
+//    and after any wait for Allow, because the screen can change in between.
+//  - A click lands on whatever window is on top at that spot, of any kind (menus, pop-ups, her own Allow box), so that is the window
+//    the rules are checked against. Her own windows are never clicked.
 // The word lists are a safety net that matches the app name, the window title and the button's label. They can miss a page that
 // doesn't say what it is; the Allow box is the hard backstop for send and buy.
 // Needs macOS's Accessibility permission for clicking, typing, keys and scrolling. Pointing needs no permission.
@@ -228,7 +233,7 @@ struct FridayApprovalView: View {
    if enabled { checkAccess() } else { hideCursor(after:0) }
   }
  }
- @Published var hasAccess = CGPreflightPostEventAccess()
+ @Published var hasAccess = AXIsProcessTrusted()
  @Published var status = ""
  let cursor = FridayCursorModel()
  let approval = FridayApproval()
@@ -237,15 +242,18 @@ struct FridayApprovalView: View {
  private var recent: [Date] = []
  private var lastAction = Date.distantPast
  private var hideTask: Task<Void,Never>?
+ private var busy = false
+ private var cursorDesk: CGPoint?
 
  func attach(_ buddy: LiveBuddy) { if live == nil { live = buddy } }
 
  func checkAccess() {
-  hasAccess = CGPreflightPostEventAccess() || AXIsProcessTrusted()
+  // Accessibility is required, not just permission to post events: the password-field and button-name checks read it.
+  hasAccess = AXIsProcessTrusted()
   if !hasAccess {
    _ = CGRequestPostEventAccess()
    _ = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String:true] as CFDictionary)
-   hasAccess = CGPreflightPostEventAccess() || AXIsProcessTrusted()
+   hasAccess = AXIsProcessTrusted()
   }
   status = hasAccess ? "" : "Pointing works now. For clicking, typing and scrolling, allow this app in System Settings, Privacy & Security, Accessibility."
  }
@@ -256,23 +264,41 @@ struct FridayApprovalView: View {
 
  // MARK: windows and screens (desk coordinates: origin top-left of the main screen)
 
- private struct Win { var id: CGWindowID; var rect: CGRect; var owner: String; var title: String; var pid: Int }
+ private struct Win { var id: CGWindowID; var rect: CGRect; var owner: String; var title: String; var pid: Int; var layer: Int; var alpha: Double }
 
- // Every normal on-screen window, front-most first.
- private func windows() -> [Win] {
+ private let ownPid = Int(ProcessInfo.processInfo.processIdentifier)
+
+ // Every window on screen of every kind (normal windows, menus, pop-ups, panels, the Dock), front-most first.
+ private func allWindows() -> [Win] {
   guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly,.excludeDesktopElements],kCGNullWindowID) as? [[String:Any]] else { return [] }
   var found: [Win] = []
   for info in list {
-   guard (info[kCGWindowLayer as String] as? Int) == 0,
-         let boundsInfo = info[kCGWindowBounds as String] as? NSDictionary,
-         let rect = CGRect(dictionaryRepresentation:boundsInfo as CFDictionary), rect.width > 40, rect.height > 40,
-         let number = info[kCGWindowNumber as String] as? Int else { continue }
-   found.append(Win(id:CGWindowID(number),rect:rect,owner:info[kCGWindowOwnerName as String] as? String ?? "",title:info[kCGWindowName as String] as? String ?? "",pid:info[kCGWindowOwnerPID as String] as? Int ?? 0))
+   guard let boundsInfo = info[kCGWindowBounds as String] as? NSDictionary,
+         let rect = CGRect(dictionaryRepresentation:boundsInfo as CFDictionary), rect.width > 0, rect.height > 0,
+         let number = info[kCGWindowNumber as String] as? Int, let id = UInt32(exactly:number) else { continue }
+   found.append(Win(id:id,rect:rect,owner:info[kCGWindowOwnerName as String] as? String ?? "",title:info[kCGWindowName as String] as? String ?? "",
+                    pid:info[kCGWindowOwnerPID as String] as? Int ?? 0,layer:info[kCGWindowLayer as String] as? Int ?? 0,alpha:info[kCGWindowAlpha as String] as? Double ?? 1))
   }
   return found
  }
 
- private func topWindow(at point: CGPoint) -> Win? { windows().first { $0.rect.contains(point) } }
+ // Ordinary app windows only, front-most first.
+ private func windows() -> [Win] { allWindows().filter { $0.layer == 0 && $0.rect.width > 40 && $0.rect.height > 40 } }
+
+ // What a click or a scroll at this spot would really land on: the top-most visible window of ANY kind. Only her own cursor overlay
+ // (which lets the mouse through) and the invisible bits of macOS itself are skipped. That means her own Allow box is found, not the
+ // page under it.
+ private func hitWindow(at point: CGPoint) -> Win? {
+  let skip = (panel?.windowNumber).flatMap { UInt32(exactly:$0) }
+  return allWindows().first { $0.rect.contains(point) && $0.alpha > 0.05 && $0.id != skip && !($0.owner == "Window Server" && $0.title != "Menubar") }
+ }
+
+ // nil when she may act in this window; otherwise the reason, as part of a sentence.
+ private func refusal(for window: Win) -> String? {
+  if window.pid == ownPid { return "that's my own app, and she must not change her own switches or press her own Allow button" }
+  if window.owner == "Dock" || window.title == "Menubar" { return "that's the Dock or the menu bar" }
+  return HandsPlan.blockedReason(owner:window.owner,title:window.title)
+ }
 
  private func frontWindow() -> Win? {
   guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return nil }
@@ -327,9 +353,9 @@ struct FridayApprovalView: View {
   return parts.joined(separator:" ")
  }
 
- // True when the field that has the keyboard is a password box.
+ // True when the field that has the keyboard is a password box (or when macOS won't let her look, which counts as "yes").
  private func passwordFieldFocused() -> Bool {
-  guard AXIsProcessTrusted() else { return false }
+  guard AXIsProcessTrusted() else { return true }
   var focused: CFTypeRef?
   guard AXUIElementCopyAttributeValue(AXUIElementCreateSystemWide(),kAXFocusedUIElementAttribute as CFString,&focused) == .success, let field = focused else { return false }
   var subrole: CFTypeRef?
@@ -375,17 +401,21 @@ struct FridayApprovalView: View {
   ensurePanel(on:screen)
   cursor.label = label
   let destination = local(desk,in:screen)
-  if !cursor.visible {
+  if !cursor.visible || cursorDesk == nil {
    let mouse = NSEvent.mouseLocation
    cursor.point = screen.frame.contains(mouse) ? CGPoint(x:mouse.x - screen.frame.minX,y:screen.frame.maxY - mouse.y) : destination
    cursor.trail = []
    withAnimation(.easeOut(duration:0.25)) { cursor.visible = true }
    try? await Task.sleep(nanoseconds:200_000_000)
+  } else if let before = cursorDesk {
+   // The overlay may have just moved to another screen: say where the cursor was in this screen's own terms.
+   cursor.point = local(before,in:screen)
   }
   let start = cursor.point
   let distance = Double(hypot(destination.x - start.x,destination.y - start.y))
   // Slow enough to watch: 0.7 seconds for a short hop, up to 1.4 for a long one.
   await cursor.glide(from:start,to:destination,duration:min(1.4,0.7 + distance / 1600))
+  cursorDesk = desk
   try? await Task.sleep(nanoseconds:180_000_000)
  }
 
@@ -395,6 +425,7 @@ struct FridayApprovalView: View {
    try? await Task.sleep(nanoseconds:UInt64(seconds * 1_000_000_000))
    guard !Task.isCancelled, let self = self else { return }
    withAnimation(.easeIn(duration:0.5)) { self.cursor.visible = false }
+   self.cursorDesk = nil
    try? await Task.sleep(nanoseconds:550_000_000)
    if !Task.isCancelled { self.panel?.orderOut(nil) }
   }
@@ -405,11 +436,20 @@ struct FridayApprovalView: View {
  private func gate(needsAccess: Bool) -> String? {
   guard let live = live, live.running else { return "I'm not live right now, so I can't use my hands." }
   guard enabled else { return "My hands are switched off. Matthew can turn them on in Settings: Let Friday use her hands." }
+  if approval.pending { return "I'm waiting for Matthew to answer the Allow box, so I'm not doing anything else until he does." }
+  if busy { return "I'm still in the middle of another move. One thing at a time." }
   if needsAccess && !hasAccess {
    checkAccess()
    if !hasAccess { return "macOS hasn't let this app control the Mac yet. Matthew needs to allow it in System Settings, Privacy and Security, Accessibility. I can still point." }
   }
   return rateProblem()
+ }
+
+ // The same switches, checked again after anything that takes time (the glide, the wait for Allow, a long typing job).
+ private func stillAllowed() -> String? {
+  guard let live = live, live.running, enabled else { return "I'm not live any more, or my hands were switched off, so I stopped." }
+  guard hasAccess, AXIsProcessTrusted() else { return "macOS no longer lets this app control the Mac, so I stopped." }
+  return nil
  }
 
  // Asks for his Allow when something could send or buy. Returns nil if it can go ahead, or a sentence for Friday if it can't.
@@ -418,18 +458,43 @@ struct FridayApprovalView: View {
   return allowed ? nil : "Matthew didn't allow it, so I didn't do it. Ask him what he'd like instead."
  }
 
+ // What is under a spot, judged by the window that would really receive the click.
+ private struct Aim { var win: Win; var label: String; var risky: Bool }
+ private enum AimResult { case ok(Aim); case no(String) }
+
+ private func aim(at spot: CGPoint,named: String) -> AimResult {
+  guard let hit = hitWindow(at:spot) else { return .no("I can't tell what is at that spot, so I didn't.") }
+  if let why = refusal(for:hit) { return .no("I won't act there: \(why).") }
+  let label = elementLabel(at:spot)
+  let risky = HandsPlan.riskyIntent(named) || HandsPlan.riskyIntent(label) || HandsPlan.riskyWindow(title:hit.title)
+  return .ok(Aim(win:hit,label:label,risky:risky))
+ }
+
+ // The window that has the keyboard, or why she can't type or press keys there.
+ private func keyboardTarget() -> (win: Win?,problem: String?) {
+  guard let front = frontWindow() else { return (nil,"I can't tell which window has the keyboard, so I didn't.") }
+  if let why = refusal(for:front) { return (nil,"I won't use the keyboard there: \(why).") }
+  if passwordFieldFocused() { return (nil,"A password box has the keyboard (or macOS won't let me check), so I won't. Matthew does that himself.") }
+  return (front,nil)
+ }
+
+ private func sameWindow(_ a: Win,_ b: Win) -> Bool { a.id == b.id && a.pid == b.pid && a.title == b.title }
+
  // MARK: Friday's tools. Each returns a sentence she can say.
 
  // x and y are 0 to 1000 across the picture she sees (optional for scrolling).
  func scroll(direction: String,amount: String,x: Double?,y: Double?) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
+  busy = true
+  defer { busy = false }
   var target: Win?
   if live?.sees == 1 { target = chosenWindow() }
-  else if let x = x, let y = y, let area = deskUnion() { target = topWindow(at:HandsPlan.desk(x,y,in:area)) }
+  else if let x = x, let y = y, let area = deskUnion() { target = hitWindow(at:HandsPlan.desk(x,y,in:area)) }
   else { target = frontWindow() }
   guard let found = target else { return "I can't find the window to scroll, so I didn't." }
+  if let why = refusal(for:found) { return "I won't scroll there: \(why)." }
   let middle = CGPoint(x:found.rect.midX,y:found.rect.midY)
-  guard topWindow(at:middle)?.id == found.id else { return "That window isn't in front at its middle (something is covering it), so I didn't scroll." }
+  guard let covering = hitWindow(at:middle), covering.id == found.id else { return "That window isn't in front at its middle (something is covering it), so I didn't scroll." }
   if usingMouse() { return "Matthew is using the mouse right now, so I left the page alone." }
   noteAction()
   let way = direction.lowercased()
@@ -447,6 +512,10 @@ struct FridayApprovalView: View {
    words = "\(way == "up" ? "up" : "down") about \(size == "small" ? "a little" : (size == "large" ? "a page" : "half a page"))"
   }
   await moveCursor(to:middle,label:"Friday")
+  // The glide takes a second or two: look again before touching anything.
+  if let problem = stillAllowed() { hideCursor(after:0.4); return problem }
+  guard let now = hitWindow(at:middle), sameWindow(now,found), refusal(for:now) == nil else { hideCursor(after:0.4); return "The window changed while my cursor was moving, so I didn't scroll." }
+  if usingMouse() { hideCursor(after:0.4); return "Matthew picked up the mouse, so I left the page alone." }
   let saved = CGEvent(source:nil)?.location ?? middle
   CGWarpMouseCursorPosition(middle)
   let each = Int32((total / Double(steps)).rounded())
@@ -466,6 +535,8 @@ struct FridayApprovalView: View {
 
  func point(x: Double,y: Double,label: String) async -> String {
   if let problem = gate(needsAccess:false) { return problem }
+  busy = true
+  defer { busy = false }
   guard let area = pictureArea() else { return "I can't tell where my picture is on the desk, so I can't point." }
   noteAction()
   let spot = HandsPlan.desk(x,y,in:area)
@@ -478,21 +549,38 @@ struct FridayApprovalView: View {
 
  func click(x: Double,y: Double,what: String,button: String,double: Bool) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
+  busy = true
+  defer { busy = false }
   guard let area = pictureArea() else { return "I can't tell where my picture is on the desk, so I didn't click." }
   let spot = HandsPlan.desk(x,y,in:area)
-  guard let under = topWindow(at:spot) else { return "I can't tell what window is at that spot, so I didn't click." }
-  if let why = HandsPlan.blockedReason(owner:under.owner,title:under.title) { return "I won't click there: \(why)." }
-  let label = elementLabel(at:spot)
   let named = what.trimmingCharacters(in:.whitespacesAndNewlines)
-  let risky = HandsPlan.riskyIntent(named) || HandsPlan.riskyIntent(label) || HandsPlan.riskyWindow(title:under.title)
+  let first: Aim
+  switch aim(at:spot,named:named) {
+  case .no(let problem): return problem
+  case .ok(let found): first = found
+  }
   noteAction()
-  let shownName = String((named.isEmpty ? (label.isEmpty ? "Friday" : label) : named).prefix(28))
+  let shownName = String((named.isEmpty ? (first.label.isEmpty ? "Friday" : first.label) : named).prefix(28))
   await moveCursor(to:spot,label:shownName)
+  // The glide takes a second or two, so the screen may have changed: decide again from scratch.
+  if let problem = stillAllowed() { hideCursor(after:0.4); return problem }
+  var now: Aim
+  switch aim(at:spot,named:named) {
+  case .no(let problem): hideCursor(after:0.4); return problem
+  case .ok(let found): now = found
+  }
+  guard sameWindow(now.win,first.win) else { hideCursor(after:0.4); return "The window changed while my cursor was moving, so I didn't click." }
   let verb = double ? "Double-click" : (button.lowercased() == "right" ? "Right-click" : "Click")
-  if risky {
-   let where_ = "in \(under.owner)\(under.title.isEmpty ? "" : " — \(String(under.title.prefix(60)))")"
+  if now.risky {
+   let where_ = "in \(now.win.owner)\(now.win.title.isEmpty ? "" : " — \(String(now.win.title.prefix(60)))")"
    if let refusal = await needAllow("\(verb) “\(shownName)”? This might send or buy something.",detail:where_) { hideCursor(after:0.4); return refusal }
-   guard topWindow(at:spot)?.id == under.id else { hideCursor(after:0.4); return "The window changed while I waited, so I didn't click." }
+   // Up to 25 seconds passed: check everything once more.
+   if let problem = stillAllowed() { hideCursor(after:0.4); return problem }
+   switch aim(at:spot,named:named) {
+   case .no(let problem): hideCursor(after:0.4); return problem
+   case .ok(let found): now = found
+   }
+   guard sameWindow(now.win,first.win) else { hideCursor(after:0.4); return "The window changed while I waited, so I didn't click." }
   }
   let saved = CGEvent(source:nil)?.location ?? spot
   CGWarpMouseCursorPosition(spot)
@@ -515,17 +603,18 @@ struct FridayApprovalView: View {
   CGWarpMouseCursorPosition(saved)
   hideCursor(after:1.6)
   status = "\(verb)ed \(shownName)."
-  return "\(verb == "Click" ? "Clicked" : (verb == "Right-click" ? "Right-clicked" : "Double-clicked")) \(shownName) in \(under.owner)."
+  return "\(verb == "Click" ? "Clicked" : (verb == "Right-click" ? "Right-clicked" : "Double-clicked")) \(shownName) in \(now.win.owner)."
  }
 
  // Types plain text into whatever has the keyboard. A line break (Return) needs his Allow, like any Return.
  func type(_ raw: String) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
+  busy = true
+  defer { busy = false }
   guard let text = HandsPlan.cleanTyped(raw) else { return "I can only type plain text up to \(HandsPlan.maxTyped) characters. Nothing was typed." }
-  if HandsPlan.looksLikeCardNumber(text) { return "That looks like a card number, so I won't type it. Matthew types those himself." }
-  if passwordFieldFocused() { return "A password box has the keyboard, so I won't type. Matthew types passwords himself." }
-  guard let front = frontWindow() else { return "I can't tell which window has the keyboard, so I didn't type." }
-  if let why = HandsPlan.blockedReason(owner:front.owner,title:front.title) { return "I won't type there: \(why)." }
+  if HandsPlan.looksLikeCardNumber(text) { return "That has a long run of digits that could be a card number, so I won't type it. Matthew types those himself." }
+  let checked = keyboardTarget()
+  guard let front = checked.win else { return checked.problem ?? "I couldn't tell where to type, so I didn't." }
   noteAction()
   let needsReturn = text.contains("\n")
   if needsReturn || HandsPlan.riskyWindow(title:front.title) {
@@ -533,14 +622,35 @@ struct FridayApprovalView: View {
    let why = needsReturn ? "It includes a line break, which can send or submit." : "This window looks like a checkout or payment page."
    if let refusal = await needAllow("Type “\(preview)”? \(why)",detail:"into \(front.owner)\(front.title.isEmpty ? "" : " — \(String(front.title.prefix(60)))")") { return refusal }
   }
+  var typed = 0
+  // Before every piece: same switches, same window, no password box. If anything moved, stop where we are.
+  func stillGood() -> String? {
+   if let problem = stillAllowed() { return problem }
+   let again = keyboardTarget()
+   guard let now = again.win else { return again.problem }
+   return sameWindow(now,front) ? nil : "The window changed, so I stopped."
+  }
   for (index,line) in text.components(separatedBy:"\n").enumerated() {
-   if index > 0 { await postKey(code:36,flags:[]) }
+   if index > 0 {
+    if let problem = stillGood() { return typed == 0 ? problem : "\(problem) I had typed \(typed) characters." }
+    await postKey(code:36,flags:[])
+    typed += 1
+   }
    var chunk = ""
    for character in line {
     chunk.append(character)
-    if chunk.count >= 10 { await postText(chunk); chunk = "" }
+    if chunk.count >= 10 {
+     if let problem = stillGood() { return typed == 0 ? problem : "\(problem) I had typed \(typed) characters." }
+     await postText(chunk)
+     typed += chunk.count
+     chunk = ""
+    }
    }
-   if !chunk.isEmpty { await postText(chunk) }
+   if !chunk.isEmpty {
+    if let problem = stillGood() { return typed == 0 ? problem : "\(problem) I had typed \(typed) characters." }
+    await postText(chunk)
+    typed += chunk.count
+   }
   }
   status = "Typed \(text.count) characters."
   return "Typed it into \(front.owner)."
@@ -549,15 +659,21 @@ struct FridayApprovalView: View {
  // Presses a key or a combination such as cmd+t or escape. Return and Enter need his Allow.
  func press(_ spec: String) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
+  busy = true
+  defer { busy = false }
   guard let press = HandsPlan.parseKeys(spec) else { return "I don't know that key. Use names like enter, escape, tab, space, down, or combinations like cmd+t." }
   if let why = HandsPlan.blockedCombo(press) { return "I won't press \(press.label): that's for \(why)." }
-  if passwordFieldFocused() { return "A password box has the keyboard, so I won't press keys. Matthew does that himself." }
-  guard let front = frontWindow() else { return "I can't tell which window has the keyboard, so I didn't press anything." }
-  if let why = HandsPlan.blockedReason(owner:front.owner,title:front.title) { return "I won't press keys there: \(why)." }
+  let checked = keyboardTarget()
+  guard let front = checked.win else { return checked.problem ?? "I couldn't tell where to press keys, so I didn't." }
   noteAction()
   if HandsPlan.needsAllow(press) || HandsPlan.riskyWindow(title:front.title) {
    let why = HandsPlan.needsAllow(press) ? "Return can send or submit something." : "This window looks like a checkout or payment page."
    if let refusal = await needAllow("Press \(press.label)? \(why)",detail:"in \(front.owner)\(front.title.isEmpty ? "" : " — \(String(front.title.prefix(60)))")") { return refusal }
+   // Up to 25 seconds passed: the keyboard may be somewhere else now.
+   if let problem = stillAllowed() { return problem }
+   let again = keyboardTarget()
+   guard let now = again.win else { return again.problem ?? "I couldn't tell where the keyboard is now, so I didn't press anything." }
+   guard sameWindow(now,front) else { return "The window changed while I waited, so I didn't press anything." }
   }
   await postKey(code:press.code,flags:press.modifiers)
   status = "Pressed \(press.label)."

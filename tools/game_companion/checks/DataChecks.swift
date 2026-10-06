@@ -165,6 +165,14 @@ import Foundation
   precondition(!HandsPlan.riskyIntent("search box") && !HandsPlan.riskyIntent("the border") && !HandsPlan.riskyIntent("") && !HandsPlan.riskyIntent("health bar"))
   precondition(HandsPlan.riskyWindow(title:"Checkout - Shop") && HandsPlan.riskyWindow(title:"Your cart") && !HandsPlan.riskyWindow(title:"Minecraft wiki") && !HandsPlan.riskyWindow(title:""))
   precondition(HandsPlan.looksLikeCardNumber("4242 4242 4242 4242") && HandsPlan.looksLikeCardNumber("4242-4242-4242-4242") && !HandsPlan.looksLikeCardNumber("call 5068899737 now") && !HandsPlan.looksLikeCardNumber("12345"))
+  // Review fixes: word forms (Payment, Sending, Posting, Orders), short bank names as the last word, card numbers inside a sentence,
+  // her own Allow button, and the macOS security prompts.
+  precondition(HandsPlan.riskyIntent("Payment") && HandsPlan.riskyIntent("Sending") && HandsPlan.riskyIntent("Posting") && HandsPlan.riskyIntent("Orders") && HandsPlan.riskyIntent("Allow button") && HandsPlan.riskyIntent("Subscription"))
+  precondition(!HandsPlan.riskyIntent("Apple menu") && !HandsPlan.riskyIntent("Bookmarks") && !HandsPlan.riskyIntent("postal"))
+  precondition(HandsPlan.riskyWindow(title:"Shopping bag") && HandsPlan.riskyWindow(title:"Payments - Account") && HandsPlan.riskyWindow(title:"Pay now"))
+  precondition(HandsPlan.blockedReason(owner:"Safari",title:"Sign in to RBC") != nil && HandsPlan.blockedReason(owner:"Safari",title:"My accounts - BMO") != nil && HandsPlan.blockedReason(owner:"Safari",title:"Harbcraft wiki") == nil && HandsPlan.blockedReason(owner:"Safari",title:"Interac e-Transfer") != nil && HandsPlan.blockedReason(owner:"Safari",title:"Interactive map of Dungeons") == nil)
+  precondition(HandsPlan.blockedReason(owner:"SecurityAgent",title:"") != nil && HandsPlan.blockedReason(owner:"loginwindow",title:"") != nil && HandsPlan.blockedReason(owner:"UserNotificationCenter",title:"") == nil && HandsPlan.blockedReason(owner:"Warp",title:"") != nil && HandsPlan.blockedReason(owner:"Warframe",title:"") == nil)
+  precondition(HandsPlan.looksLikeCardNumber("my card is 4242 4242 4242 4242 thanks") && HandsPlan.looksLikeCardNumber("4242424242424242") && !HandsPlan.looksLikeCardNumber("call 506 889 9737 or 506 123 4567") && !HandsPlan.looksLikeCardNumber("level 12 345 678"))
   precondition(HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!) && HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+return")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("cmd+t")!) && !HandsPlan.needsAllow(HandsPlan.parseKeys("down")!))
   // Clips from past streams: durations and clock times are read, the clip is kept inside the video and Twitch's limits, and
   // markers become clips that end a few seconds after the moment.

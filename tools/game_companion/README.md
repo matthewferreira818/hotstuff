@@ -519,3 +519,23 @@ Minecraft one, so the Minecraft account has to be authorised with our TikTok dev
 and the app needs its keys, which Matthew pastes himself. **Dubbing**: a short voice-over line (his clip's title in a Mac voice, mixed
 over the start with the game sound turned down) is doable with Apple's speech and video tools and is the next step; translating his own
 speech into another language is not possible with what is built.
+
+## Review fixes (2026-10-06)
+
+An overnight review of the newest builds found 26 real problems (none stopped the app from building). All are fixed, with new tests in
+`checks/DataChecks.swift`. The ones that matter most are about Friday's hands:
+- A click or scroll lands on whatever window is on TOP at that spot, of any kind (menus, pop-ups, her own Allow box). The rules are now
+  checked against that window, and her own windows are never clicked, so she can't press her own Allow button.
+- Nothing else runs while an Allow box is open, and only one hands action runs at a time.
+- Everything is checked AGAIN after the cursor glide and after any wait for Allow (same window, not a blocked app, not a password box,
+  hands still on, still live). Typing re-checks before every ten characters and stops if the window changed.
+- Scrolling follows the same off-limits list as clicking and typing, and the "Matthew is using the mouse" check runs again after the glide.
+- The hands now need macOS's Accessibility permission (the password-box and button-name checks read it). If macOS won't let her look, a
+  password box counts as "there".
+- Word lists: "Payment", "Sending", "Posting", "Orders", "Allow" now ask for his Allow; "RBC"/"BMO" match as the last word of a title;
+  security prompts (SecurityAgent, loginwindow) are off-limits; a card number anywhere inside the text she's asked to type is refused.
+Also fixed: in Google Search mode she is told she has no other tools; click/point refuse a missing x or y; the cursor glides correctly across
+screens; the key migration only marks itself done when every old item was copied; the orb never freezes if the clock steps back; the Start
+buttons and privacy captions now say "all your screens" when that's the mode (and don't need a chosen window); the round X button also turns
+Clip autopilot off; the Meeting Room's Friday card and her inbox are accurate. Still true: these rules are a safety net, not a guarantee;
+the Allow box is the hard stop for send and buy. None of it has been run on the Mac yet.

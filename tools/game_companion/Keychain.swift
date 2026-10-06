@@ -45,13 +45,16 @@ enum Keychain {
  // Copies each old Keychain item into a private file, once. Runs at start; any password box macOS shows now is the last one.
  static func migrateLegacy(_ services: [String]) {
   guard !migrated else { return }
+  // Only call it done when every old item was copied (or never existed). A failed copy is tried again next launch, and until then
+  // read() still falls back to the old item.
+  var allDone = true
   for service in services where !SecretFile.exists(service) && legacyExists(service) {
    if let data = legacyRead(service), SecretFile.write(service,data) {
     cache[service] = data
     legacyRemove(service)
-   }
+   } else { allDone = false }
   }
-  UserDefaults.standard.set(true,forKey:migratedKey)
+  if allDone { UserDefaults.standard.set(true,forKey:migratedKey) }
  }
 
  // True if a secret is saved. Never asks for a password.

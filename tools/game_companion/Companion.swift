@@ -393,7 +393,7 @@ struct LegacyContentView: View {
   if !live.heard.isEmpty { Text("You: \(live.heard)").font(.callout) }
   ScrollView { Text(live.said.isEmpty ? "What your buddy says appears here." : live.said).frame(maxWidth:.infinity,alignment:.leading).textSelection(.enabled) }.frame(minHeight:100)
   clipControls
-  Text("While it's on, Live buddy sends pictures of the chosen window (mostly while you talk, in Low usage) plus your microphone to Google. Google's free tier may use that data to improve its products. When it looks something up, only the name it's looking up goes to MetaBot or the Minecraft wiki. Nothing is saved on this Mac. Use headphones, or untick the box so it doesn't hear itself.").font(.caption).foregroundStyle(.secondary)
+  Text("While it's on, Live buddy sends pictures of \(live.sees == 0 ? "all your screens" : "the chosen window") (mostly while you talk, in Low usage) plus your microphone to Google. Google's free tier may use that data to improve its products. When it looks something up, only the name it's looking up goes to MetaBot or the Minecraft wiki. Nothing is saved on this Mac. Use headphones, or untick the box so it doesn't hear itself.").font(.caption).foregroundStyle(.secondary)
  }
  // Twitch clips: a separate Twitch account makes clips of the stream when Matthew clicks or asks.
  @ViewBuilder var clipControls: some View {

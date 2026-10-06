@@ -93,27 +93,35 @@ enum HandsPlan {
 
  // MARK: where she may not act
 
- private static let offLimits: [(words: [String],why: String)] = [
-  (["moomoo","futu","wealthsimple","questrade","interactive brokers","brokerage"],"that's a trading or money app"),
-  (["bank","banking","rbc ","scotiabank","bmo ","cibc","desjardins","tangerine","paypal","interac","stripe","porkbun"],"that looks like a bank, payment or domain account"),
-  (["password","1password","bitwarden","lastpass","keychain","passkey"],"that's a password page"),
-  (["sign in","log in","login","sign-in","log-in"],"that looks like a login page"),
-  (["system settings","system preferences","activity monitor"],"that's a system settings window"),
-  (["game companion"],"that's my own app, and she must not change her own switches"),
-  (["terminal","iterm","ghostty","warp","kitty"],"that's a command line, and a typed command could do real damage")
+ // `words` match anywhere in the app name or window title; `exact` only match as a whole word, so "rbc" doesn't catch "Harbcraft".
+ private static let offLimits: [(words: [String],exact: [String],why: String)] = [
+  (["moomoo","futu","wealthsimple","questrade","interactive brokers","brokerage"],[],"that's a trading or money app"),
+  (["bank","banking","scotiabank","cibc","desjardins","tangerine","paypal","stripe","porkbun"],["rbc","bmo","interac"],"that looks like a bank, payment or domain account"),
+  (["password","1password","bitwarden","lastpass","keychain","passkey","securityagent","loginwindow","universalaccessauthwarn","coreservicesuiagent","authenticate","touch id"],[],"that's a password or security prompt"),
+  (["sign in","log in","login","sign-in","log-in"],[],"that looks like a login page"),
+  (["system settings","system preferences","activity monitor"],[],"that's a system settings window"),
+  (["game companion"],[],"that's my own app, and she must not change her own switches"),
+  (["terminal","iterm","ghostty"],["warp","kitty"],"that's a command line, and a typed command could do real damage")
  ]
+
+ private static func hasWord(_ word: String,in text: String) -> Bool {
+  let pattern = "(?<![a-z0-9])" + NSRegularExpression.escapedPattern(for:word) + "(?![a-z0-9])"
+  return text.range(of:pattern,options:.regularExpression) != nil
+ }
 
  // nil when the window is fine to act in. `owner` is the app's name, `title` the window's title.
  static func blockedReason(owner: String,title: String) -> String? {
   let haystack = (owner + " | " + title).lowercased()
-  for rule in offLimits where rule.words.contains(where: { haystack.contains($0) }) { return rule.why }
+  for rule in offLimits {
+   if rule.words.contains(where: { haystack.contains($0) }) || rule.exact.contains(where: { hasWord($0,in:haystack) }) { return rule.why }
+  }
   return nil
  }
 
  // MARK: what could send or buy something (these need his Allow, and she is told to ask him out loud too)
 
- private static let riskyPattern = try! NSRegularExpression(pattern:"\\b(send|submit|post|publish|buy|pay|purchase|checkout|check out|place order|order|confirm|subscribe|donate|tip|transfer|withdraw|delete|remove|reply|tweet|share|book|reserve|apply|upload|sign up|register|accept|agree|bid|invoice|trade|sell)\\b",options:[.caseInsensitive])
- private static let riskyWindowPattern = try! NSRegularExpression(pattern:"\\b(checkout|check out|payment|billing|cart|basket|order|invoice|purchase|confirm|subscription)\\b",options:[.caseInsensitive])
+ private static let riskyPattern = try! NSRegularExpression(pattern:"\\b(send|sends|sending|sent|submit|submits|submitting|post|posts|posting|publish|publishing|buy|buying|bought|pay|pays|paying|payment|payments|purchase|purchases|purchasing|checkout|check out|place order|order|orders|ordering|confirm|confirms|confirming|confirmation|subscribe|subscribing|subscription|donate|donating|donation|tip|tipping|transfer|transfers|transferring|withdraw|withdrawal|withdrawing|delete|deleting|remove|removing|reply|replying|tweet|tweeting|share|sharing|book|booking|reserve|reserving|reservation|apply|applying|upload|uploading|sign up|register|registration|accept|accepting|agree|agreeing|bid|bidding|invoice|trade|trading|sell|selling|sold|allow|approve|approving|authorize|authorise|install)\\b",options:[.caseInsensitive])
+ private static let riskyWindowPattern = try! NSRegularExpression(pattern:"\\b(checkout|check out|pay|paying|payment|payments|billing|cart|bag|basket|order|orders|invoice|invoices|purchase|purchases|confirm|confirmation|subscription|subscriptions|donate|donation)\\b",options:[.caseInsensitive])
 
  private static func matches(_ regex: NSRegularExpression,_ text: String) -> Bool {
   regex.firstMatch(in:text,options:[],range:NSRange(text.startIndex..<text.endIndex,in:text)) != nil
@@ -125,12 +133,11 @@ enum HandsPlan {
  // A window whose title says it is a checkout, payment, cart or order page: everything done there needs Allow.
  static func riskyWindow(title: String) -> Bool { !title.isEmpty && matches(riskyWindowPattern,title) }
 
- // 13 to 19 digits with only spaces or dashes between them: it looks like a card number, so she won't type it.
- static func looksLikeCardNumber(_ text: String) -> Bool {
-  let digits = text.filter { $0.isNumber }
-  let others = text.filter { !$0.isNumber && $0 != " " && $0 != "-" }
-  return digits.count >= 13 && digits.count <= 19 && others.isEmpty
- }
+ // Any run of 13 or more digits, with single spaces or dashes allowed between them, anywhere in the text: it could be a card number,
+ // so she won't type it.
+ private static let cardPattern = try! NSRegularExpression(pattern:"\\d(?:[ -]?\\d){12,}",options:[])
+
+ static func looksLikeCardNumber(_ text: String) -> Bool { matches(cardPattern,text) }
 
  // Pressing Return or Enter is how most things get sent, so it always needs Allow.
  static func needsAllow(_ press: KeyPress) -> Bool { press.code == 36 }

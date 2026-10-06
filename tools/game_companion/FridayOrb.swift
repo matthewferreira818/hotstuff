@@ -73,6 +73,7 @@ final class OrbDynamics: ObservableObject {
    return Frame(glow:0.5,level:0,flowPhase:0,wobble:0,wobblePhase:0,ripples:0,ripplePhase:0,sparks:0.3,breath:0)
   }
   guard let previous = last else { last = t; return frame }
+  if t < previous { last = t; return frame }   // the clock went backwards: start from here instead of freezing
   let dt = min(max(t - previous,0),0.1)   // a long gap (window hidden) must not make a jump
   if dt <= 0 { return frame }
   last = t

@@ -115,6 +115,7 @@ struct CompanionInterfaceView: View {
    if c.tab == 0 && !live.heard.isEmpty { Text(live.heard).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)).multilineTextAlignment(.center).lineLimit(2) }
    if !clips.status.isEmpty { Text(clips.status).font(.system(size:12,design:.rounded)).foregroundStyle(Noir.crimsonLight.opacity(0.9)).multilineTextAlignment(.center).lineLimit(3).textSelection(.enabled) }
    if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
+   if hands.enabled && !hands.hasAccess { Button { hands.openSettings() } label: { Text("Her hands need macOS permission: tap to open Accessibility settings, switch Game Companion on, then restart Friday.").multilineTextAlignment(.center) }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
    if !currentReply.isEmpty { Text(currentReply).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(Color.white.opacity(0.90)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
   }
   .frame(maxWidth:.infinity,minHeight:hub.compact ? 30 : 120,alignment:.top)
@@ -137,7 +138,9 @@ struct CompanionInterfaceView: View {
   let small: CGFloat = compact ? 40 : 54
   let big: CGFloat = compact ? 56 : 80
   return HStack(spacing:compact ? 10 : 18) {
-   Button { c.choose() } label: { Image(systemName:"rectangle.on.rectangle") }.buttonStyle(OrbButtonStyle(diameter:small,filled:c.sharing)).disabled(DesignPreview.enabled).help("Choose the game window")
+   // Only needed in "Just the window I pick" mode. In the default all-screens mode there is nothing to choose.
+   if live.sees == 1 { Button { c.choose() } label: { Image(systemName:"rectangle.on.rectangle") }.buttonStyle(OrbButtonStyle(diameter:small,filled:c.sharing)).disabled(DesignPreview.enabled).help("Choose the game window") }
+   Button { hands.enabled.toggle() } label: { Image(systemName:"hand.point.up.left.fill") }.buttonStyle(OrbButtonStyle(diameter:small,filled:hands.enabled)).help(hands.enabled ? "Her hands are ON: scroll, point, click and type when you ask. Tap to turn off." : "Her hands are OFF. Tap to let Friday scroll, point, click and type when you ask.")
    Button { c.showKeyboard.toggle() } label: { Image(systemName:"keyboard") }.buttonStyle(OrbButtonStyle(diameter:small,filled:c.showKeyboard)).help("Type instead of talking")
    Button { mainAction() } label: { Image(systemName:mainIcon) }.buttonStyle(OrbButtonStyle(diameter:big,filled:true)).disabled(DesignPreview.enabled).help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session") : "Talk")
    if clips.signedIn {

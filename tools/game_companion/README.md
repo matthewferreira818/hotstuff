@@ -598,3 +598,19 @@ can't. I want her to be able to do anything I ask, especially something that eas
   doesn't match the Client ID after the ID was swapped). Now the Stream page says what Twitch really answered, reads the name from whatever was
   typed or pasted (`TheyCallMe`, `@TheyCallMe`, `twitch.tv/TheyCallMe` or a whole link), and if no channel has that name it uses the account you
   signed in with and says so. Tests are in `checks/DataChecks.swift`.
+
+## Scrolling, screens and hands, round two (2026-10-06)
+
+Matthew: she has trouble with all the screens ("I still need to select the one she can operate on") and can't scroll pages.
+- **Scrolling:** with no spot given she used "the front window", and right after he talks to her the front window is Friday herself (so the
+  scroll hit her own app or was refused). Now she scrolls the top-most window that isn't hers, and her tool is told to ALWAYS give the middle
+  of the page (x and y across the picture of all screens), so she scrolls exactly that page on any screen. If something floats over the
+  middle of a window she tries other spots in it before giving up.
+- **Hands switch:** it was off at every launch and buried in Settings, so she often had no hands without him knowing. It is now remembered, and
+  there is a hand button on the Friday page (filled = on). If macOS hasn't given the app Accessibility permission, a line on the Friday page says
+  so and opens the right Settings page. (After every rebuild macOS may forget Accessibility and Screen Recording for the app: switch Game
+  Companion off and on in Privacy & Security.)
+- **Screens:** in the default all-screens mode there is nothing to choose, so the choose-window button is hidden (it only shows in "Just the window
+  I pick" mode). If she can't capture the screens the status line now says to re-grant Screen & System Audio Recording.
+- **VODs:** Twitch only saves every stream to the channel while "Store past broadcasts" is on in Twitch's own settings; the app can't switch it. The Stream
+  page checklist now has a button that opens that Twitch page.

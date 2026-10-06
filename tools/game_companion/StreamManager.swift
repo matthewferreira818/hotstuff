@@ -492,6 +492,9 @@ extension CompanionInterfaceView {
    hubCheck(clips.signedIn,"Friday can run this page by voice","Connect Twitch in Accounts; then just ask her.")
    hubCheck(chat.on,"Chat helper is on (posts your links while you're live)","Press Start in the Chat helper card.")
    hubCheck(stream.live != nil,"You're live on Twitch","Start streaming in OBS or Streamlabs.")
+   Button { if let url = URL(string:"https://dashboard.twitch.tv/settings/stream") { NSWorkspace.shared.open(url) } } label: { Label("Open Twitch: store past broadcasts",systemImage:"arrow.up.right.square") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   Text("Twitch saves every stream to your channel as a VOD only while \"Store past broadcasts\" is on there. Only Twitch can switch it, not this app, and Twitch deletes old VODs after a while.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))
   }
   .padding(18).frame(maxWidth:.infinity,minHeight:300,alignment:.topLeading).hubCard()
  }

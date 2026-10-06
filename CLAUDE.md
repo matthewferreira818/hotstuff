@@ -130,7 +130,9 @@ live, so everything visible (private windows, messages, banking tabs, a
 Moomoo window) goes to Google, whose free tier may use it to improve its
 products; he chose that knowingly and can switch to "just the window I
 pick" in Settings. Her "hands" (cursor, scroll, click, type, keys) work only
-when he tells her, off at every launch, with an on-screen Allow box plus a
+when he tells her and only while she is live; the on/off switch is remembered
+between launches since 2026-10-06 (he wants her to do what he asks; hand
+button on the Friday page), with an on-screen Allow box plus a
 spoken check before anything that could send or buy; banking and payment
 pages, Moomoo, password and login pages, System Settings, the app itself
 and terminals are off-limits (a word-match safety net, not a guarantee).

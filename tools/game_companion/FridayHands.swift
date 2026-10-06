@@ -11,8 +11,8 @@ import ScreenCaptureKit
 //  - Never in: banking and payment pages, trading apps (Moomoo), password pages and fields, login pages, System Settings, this app, or a
 //    terminal. She also refuses to type what looks like a card number, and quit, log-out and Trash shortcuts. Scrolling follows the
 //    same list.
-//  - Off every time the app opens, and only while Friday is live. At most 30 actions a minute, one at a time, and nothing else runs
-//    while an Allow box is open.
+//  - The on/off switch is remembered between launches (hand button on the Friday page, or Settings), and it only works while Friday is live.
+//    At most 30 actions a minute, one at a time, and nothing else runs while an Allow box is open.
 //  - Scrolling yields to the real mouse: if Matthew moved it in the last 1.5 seconds she leaves the page alone.
 //  - Her cursor always glides to the spot first, so he can watch what she is about to do. Everything is checked again after the glide
 //    and after any wait for Allow, because the screen can change in between.
@@ -227,9 +227,11 @@ struct FridayApprovalView: View {
 // MARK: the hands
 
 @MainActor final class FridayHands: ObservableObject {
- // Not saved: off every time the app opens.
- @Published var enabled = false {
+ // Remembered between launches (Matthew, 2026-10-06: "I want her to be able to do anything I ask"). It still only works while Friday is live,
+ // and everything that could send or buy still needs his Allow. The hand button on the Friday page switches it off in one tap.
+ @Published var enabled = UserDefaults.standard.bool(forKey:"hands.on") {
   didSet {
+   UserDefaults.standard.set(enabled,forKey:"hands.on")
    if enabled { checkAccess() } else { hideCursor(after:0) }
   }
  }
@@ -482,19 +484,41 @@ struct FridayApprovalView: View {
 
  // MARK: Friday's tools. Each returns a sentence she can say.
 
- // x and y are 0 to 1000 across the picture she sees (optional for scrolling).
+ // The page he means when he says "scroll" without pointing at anything: the top-most ordinary window that isn't hers. Just after he
+ // talks to her, the front window IS Friday, so "the front window" would mean scrolling herself.
+ private func pageWindow() -> Win? {
+  windows().first { $0.pid != ownPid && $0.owner != "Dock" && $0.alpha > 0.05 && $0.rect.width >= 200 && $0.rect.height >= 150 }
+ }
+
+ // A spot inside the window that really belongs to it (nothing floating over it). Tries the spot she aimed at, then the middle and a few others.
+ private func scrollSpot(in window: Win,preferred: CGPoint?) -> CGPoint? {
+  var tries: [CGPoint] = []
+  if let spot = preferred { tries.append(spot) }
+  for (fx,fy) in [(0.5,0.5),(0.5,0.35),(0.5,0.65),(0.35,0.5),(0.65,0.5),(0.5,0.2),(0.5,0.8)] {
+   tries.append(CGPoint(x:window.rect.minX + window.rect.width * CGFloat(fx),y:window.rect.minY + window.rect.height * CGFloat(fy)))
+  }
+  return tries.first { hitWindow(at:$0)?.id == window.id }
+ }
+
+ // x and y are 0 to 1000 across the picture she sees. Give them (the middle of the page) and she scrolls exactly that page, on any screen.
  func scroll(direction: String,amount: String,x: Double?,y: Double?) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
   var target: Win?
-  if live?.sees == 1 { target = chosenWindow() }
-  else if let x = x, let y = y, let area = deskUnion() { target = hitWindow(at:HandsPlan.desk(x,y,in:area)) }
-  else { target = frontWindow() }
-  guard let found = target else { return "I can't find the window to scroll, so I didn't." }
-  if let why = refusal(for:found) { return "I won't scroll there: \(why)." }
-  let middle = CGPoint(x:found.rect.midX,y:found.rect.midY)
-  guard let covering = hitWindow(at:middle), covering.id == found.id else { return "That window isn't in front at its middle (something is covering it), so I didn't scroll." }
+  var aimed: CGPoint?
+  if live?.sees == 1, let chosen = chosenWindow() { target = chosen }
+  else if live?.sees != 1, let x = x, let y = y, let area = deskUnion() {
+   let spot = HandsPlan.desk(x,y,in:area)
+   target = hitWindow(at:spot)
+   aimed = spot
+  } else { target = pageWindow() }
+  guard let found = target else { return "I can't find a page to scroll, so I didn't. Tell me which window, or open the page and try again." }
+  if let why = refusal(for:found) {
+   // Only an aimed-at spot can land on her own window; without one she already skipped it. Say it plainly.
+   return "I won't scroll there: \(why)."
+  }
+  guard let spot = scrollSpot(in:found,preferred:aimed) else { return "Something is covering that window, so I didn't scroll." }
   if usingMouse() { return "Matthew is using the mouse right now, so I left the page alone." }
   noteAction()
   let way = direction.lowercased()
@@ -511,17 +535,17 @@ struct FridayApprovalView: View {
    total = way == "up" ? distance : -distance
    words = "\(way == "up" ? "up" : "down") about \(size == "small" ? "a little" : (size == "large" ? "a page" : "half a page"))"
   }
-  await moveCursor(to:middle,label:"Friday")
+  await moveCursor(to:spot,label:"Friday")
   // The glide takes a second or two: look again before touching anything.
   if let problem = stillAllowed() { hideCursor(after:0.4); return problem }
-  guard let now = hitWindow(at:middle), sameWindow(now,found), refusal(for:now) == nil else { hideCursor(after:0.4); return "The window changed while my cursor was moving, so I didn't scroll." }
+  guard let now = hitWindow(at:spot), sameWindow(now,found), refusal(for:now) == nil else { hideCursor(after:0.4); return "The window changed while my cursor was moving, so I didn't scroll." }
   if usingMouse() { hideCursor(after:0.4); return "Matthew picked up the mouse, so I left the page alone." }
-  let saved = CGEvent(source:nil)?.location ?? middle
-  CGWarpMouseCursorPosition(middle)
+  let saved = CGEvent(source:nil)?.location ?? spot
+  CGWarpMouseCursorPosition(spot)
   let each = Int32((total / Double(steps)).rounded())
   for _ in 0..<steps {
    if let event = CGEvent(scrollWheelEvent2Source:nil,units:.pixel,wheelCount:1,wheel1:each,wheel2:0,wheel3:0) {
-    event.location = middle
+    event.location = spot
     event.post(tap:.cghidEventTap)
    }
    try? await Task.sleep(nanoseconds:14_000_000)

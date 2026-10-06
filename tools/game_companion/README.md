@@ -563,3 +563,9 @@ Honest limits: it has NOT been run on the Mac or with a real key. The Google end
 maker (if so she says so and saves the words as `voiceover-draft.txt`; there is no Mac-voice fallback yet). English only. She can be wrong about
 what she saw, so listen before posting. It does not translate his own speech. Part of the clip's sound (his voice, the game) is lowered, not
 removed, while she talks. A small copy of the clip goes to Google (public Twitch footage, but still sent).
+
+### One-click update (2026-10-06)
+
+After this one, you don't need to type the update command: double-click **Update Game Companion.command** (in this folder, in Finder). It runs
+`git pull` and then `rebuild.sh`, and waits for a key press so you can read the result. If it says BUILD FAILED, the old app is still
+installed; copy the error and send it to Claude. (The first time, get the file with the usual `cd ~/hotstuff && git pull`.)

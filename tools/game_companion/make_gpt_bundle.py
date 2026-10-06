@@ -43,6 +43,7 @@ FILES = [
     ("AudioRoute.swift", "Tells headphones from speakers (CoreAudio) so the mic can pause while Friday talks on speakers."),
     ("VodData.swift", "Clips from past streams (VODs): reading Twitch's answers, clock times, the clip plan and error words. No Mac frameworks; tested."),
     ("VodClips.swift", "Clips from past streams: the Stream page card, the clip-my-marked-moments button and Friday's voice tools for it."),
+    ("WebData.swift", "Friday's browser tools: which sites she can search and which links she won't open. No Mac frameworks; tested."),
     ("VoiceOverData.swift", "Friday's voice-over on a clip: how much she can say, the claim check on her script, Google's answers, the speech file, the volume plan. No Mac frameworks; tested."),
     ("VoiceOver.swift", "The voice-over job (watch the clip, check the wiki, write, speak, mix) and its Stream page card."),
     ("AutopilotData.swift", "Clip autopilot rules: which viewer clips to take, live-clip caps, the hype detector and the TikTok caption. No Mac frameworks; tested."),

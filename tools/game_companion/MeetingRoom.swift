@@ -145,7 +145,7 @@ extension CompanionInterfaceView {
  var hubMeeting: some View {
   VStack(spacing:0) {
    Picker("Channel",selection:$meeting.channel) { Text("Team board").tag(0); Text("Friday · private").tag(1) }
-    .pickerStyle(.segmented).labelsHidden().frame(width:340)
+    .pickerStyle(.segmented).labelsHidden().frame(maxWidth:340)
     .frame(maxWidth:.infinity,alignment:.leading)
     .padding(.horizontal,32).padding(.bottom,12)
    if meeting.channel == 0 { hubMeetingBoard } else { hubFeed }

@@ -569,3 +569,21 @@ removed, while she talks. A small copy of the clip goes to Google (public Twitch
 After this one, you don't need to type the update command: double-click **Update Game Companion.command** (in this folder, in Finder). It runs
 `git pull` and then `rebuild.sh`, and waits for a key press so you can read the result. If it says BUILD FAILED, the old app is still
 installed; copy the error and send it to Claude. (The first time, get the file with the usual `cd ~/hotstuff && git pull`.)
+
+## Smaller window, and Friday can use the web (2026-10-06)
+
+Matthew: the window takes up too much of the screen, and "I asked her to search TikTok, Twitter and YouTube for references and she said she
+can't. I want her to be able to do anything I ask, especially something that easy."
+- **Window:** it can now be shrunk to 440 x 400 (it was stuck at 960 x 660) and opens at 900 x 640. Under 720 points wide the app goes
+  compact: a slim icon rail without labels, a one-line top bar (no blurb, the Refresh button is just its icon, no avatar), no orb on the Home
+  card, and the fixed-width pickers and boxes are allowed to shrink. A window you resized before keeps its old size until you drag it.
+- **The web:** she had no way to open a page, so she said she couldn't. New voice tools in `Live.swift` (rules and tests in `WebData.swift`):
+  `search_site` (YouTube, TikTok, X/Twitter, Google, Reddit, Pinterest, Facebook, Twitch or the Minecraft wiki plus search words) and
+  `open_link` (an https address). They open the page in his own browser and she reads what is on the screen (she sees every screen while
+  live), scrolls with her hands and clicks a result if asked. No key, no cost, and no need for the hands switch to just open a page; scrolling
+  and clicking still need it. Safety: https only (http is upgraded), never a bare number address, this Mac or the home network, a link with a
+  password in it, or a page whose address looks like a bank, payment, password or login page; 8 pages a minute; only his voice can ask.
+  Honest limits: she only sees the pages through the pictures she is sent (every few seconds), she cannot hear a video, and she cannot
+  open private pages. She is told never to invent results. The Google Search switch in Settings is a separate thing and still doesn't
+  work on the free key (first live test 2026-10-05: quota).
+- Not run on the Mac yet. Rules and tests pass here (`checks/DataChecks.swift`); the layout changes are untested.

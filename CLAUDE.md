@@ -134,6 +134,11 @@ when he tells her, off at every launch, with an on-screen Allow box plus a
 spoken check before anything that could send or buy; banking and payment
 pages, Moomoo, password and login pages, System Settings, the app itself
 and terminals are off-limits (a word-match safety net, not a guarantee).
+She can also open a web search (YouTube, TikTok, X, Google, Reddit, Pinterest,
+Facebook, Twitch, the Minecraft wiki) or an https link in his own browser
+and read the screen (`search_site`, `open_link`; works without the hands
+switch; no login, bank, payment or private-address pages; 8 a minute).
+Google Search inside her voice session failed on his free key (quota).
 This does not loosen the real-money rule: Moomoo trading stays his own
 hands, and the app never wires into it.
 

@@ -83,6 +83,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
 @MainActor final class HubModel: ObservableObject {
  @Published var section: HubSection = .home
  @Published var query = ""
+ // True when the window is narrow (under 720 points): a slimmer rail and top bar, so the window can be shrunk a lot.
+ @Published var compact = false
  // Which card or button the pointer is over, so it can lift a little. Empty means none.
  @Published var hovered = ""
  // Which account row on the Accounts page is open, showing its connect form. Empty means none.
@@ -347,15 +349,19 @@ extension CompanionInterfaceView {
  // MARK: shell
 
  var hubShell: some View {
-  HStack(spacing:0) {
-   hubRail
-   VStack(spacing:0) {
-    hubTopBar
-    hubContent
-     .frame(maxWidth:.infinity,maxHeight:.infinity)
-     .id(hub.section)
-     .transition(.opacity.combined(with:.scale(scale:0.985)))
+  GeometryReader { geo in
+   HStack(spacing:0) {
+    hubRail
+    VStack(spacing:0) {
+     hubTopBar
+     hubContent
+      .frame(maxWidth:.infinity,maxHeight:.infinity)
+      .id(hub.section)
+      .transition(.opacity.combined(with:.scale(scale:0.985)))
+    }
    }
+   .onAppear { hub.compact = geo.size.width < 720 }
+   .onChange(of:geo.size.width) { _,width in hub.compact = width < 720 }
   }
  }
 
@@ -387,15 +393,15 @@ extension CompanionInterfaceView {
    Button { c.showPanel = true } label: {
     VStack(spacing:5) {
      Image(systemName:"slider.horizontal.3").font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(0.7)).frame(width:48,height:32)
-     Text("Settings").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+     if !hub.compact { Text("Settings").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)) }
     }
    }
    .buttonStyle(.plain)
    .keyboardShortcut(",",modifiers:.command)
    .hubHover("rail-settings",hub,lift:1.06)
   }
-  .padding(.top,40).padding(.bottom,16)
-  .frame(width:88)
+  .padding(.top,hub.compact ? 28 : 40).padding(.bottom,16)
+  .frame(width:hub.compact ? 60 : 88)
   .background(.ultraThinMaterial)
   .overlay(alignment:.trailing) { Rectangle().fill(Color.white.opacity(0.08)).frame(width:1) }
  }
@@ -414,7 +420,7 @@ extension CompanionInterfaceView {
      }
      Image(systemName:section.icon).font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(selected ? 1 : 0.7))
     }
-    Text(section.title).font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(selected ? 0.95 : 0.5))
+    if !hub.compact { Text(section.title).font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(selected ? 0.95 : 0.5)) }
    }
   }
   .buttonStyle(.plain)
@@ -432,8 +438,8 @@ extension CompanionInterfaceView {
  var hubTopBar: some View {
   HStack(spacing:14) {
    VStack(alignment:.leading,spacing:3) {
-    Text(hub.section == .home ? hubGreeting : hub.section.title).font(.system(size:26,weight:.bold,design:.rounded)).foregroundStyle(Color.white)
-    Text(hub.section.blurb).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.55))
+    Text(hub.section == .home ? hubGreeting : hub.section.title).font(.system(size:hub.compact ? 19 : 26,weight:.bold,design:.rounded)).foregroundStyle(Color.white).lineLimit(1).minimumScaleFactor(0.7)
+    if !hub.compact { Text(hub.section.blurb).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)) }
    }
    Spacer()
    if c.tab == 0 && live.running {
@@ -448,7 +454,7 @@ extension CompanionInterfaceView {
    Button { Task { await hubRefreshAll() } } label: {
     HStack(spacing:6) {
      if hubAnyLoading { ProgressView().controlSize(.small) } else { Image(systemName:"arrow.clockwise") }
-     Text(hubAnyLoading ? "Refreshing…" : (hub.refreshedAt.map { "Updated \(hubAgo($0))" } ?? "Refresh"))
+     if !hub.compact { Text(hubAnyLoading ? "Refreshing…" : (hub.refreshedAt.map { "Updated \(hubAgo($0))" } ?? "Refresh")) }
     }
     .font(.system(size:12,weight:.medium,design:.rounded))
    }
@@ -461,14 +467,16 @@ extension CompanionInterfaceView {
     TextField("Ask Friday…",text:$hub.query).textFieldStyle(.plain).onSubmit { hubAskFromBar() }
    }
    .padding(.horizontal,16).padding(.vertical,11)
-   .frame(width:300)
+   .frame(minWidth:110,idealWidth:300,maxWidth:300)
    .background(.ultraThinMaterial,in:Capsule())
    .overlay(Capsule().stroke(Color.white.opacity(0.12),lineWidth:1))
-   Text("M").font(.system(size:14,weight:.bold,design:.rounded)).foregroundStyle(Color.white)
-    .frame(width:36,height:36)
-    .background(Circle().fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimsonDeep],startPoint:.topLeading,endPoint:.bottomTrailing)))
+   if !hub.compact {
+    Text("M").font(.system(size:14,weight:.bold,design:.rounded)).foregroundStyle(Color.white)
+     .frame(width:36,height:36)
+     .background(Circle().fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimsonDeep],startPoint:.topLeading,endPoint:.bottomTrailing)))
+   }
   }
-  .padding(.horizontal,32).padding(.top,26).padding(.bottom,12)
+  .padding(.horizontal,hub.compact ? 14 : 32).padding(.top,hub.compact ? 14 : 26).padding(.bottom,12)
  }
 
  var hubAnyLoading: Bool { stocks.loading || ventures.loading || sales.loading || meeting.loading || stream.loading }
@@ -502,7 +510,7 @@ extension CompanionInterfaceView {
    GeometryReader { geo in
     HStack {
      Spacer(minLength:0)
-     fridayStage(orb:min(max(geo.size.height * 0.36,190),360)).frame(width:min(max(geo.size.width * 0.55,520),760))
+     fridayStage(orb:min(max(geo.size.height * 0.36,150),360)).frame(width:min(max(geo.size.width * 0.55,520),760,max(geo.size.width - 24,280)))
      Spacer(minLength:0)
     }
    }
@@ -556,13 +564,15 @@ extension CompanionInterfaceView {
     Text("Talk to her, show her your game, or ask how any venture is doing.").font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.7))
     Button { hubSelect(.friday) } label: { Label("Talk to Friday",systemImage:"waveform") }.buttonStyle(PillButtonStyle()).padding(.top,4)
    }
-   Spacer()
-   TimelineView(.animation(minimumInterval:1.0/60.0)) { timeline in
-    FridayOrb(state:orbState(at:timeline.date),t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:130,animated:!reduceMotion,showsPicker:false)
+   if !hub.compact {
+    Spacer()
+    TimelineView(.animation(minimumInterval:1.0/60.0)) { timeline in
+     FridayOrb(state:orbState(at:timeline.date),t:timeline.date.timeIntervalSinceReferenceDate,level:orbLevel(at:timeline.date),size:130,animated:!reduceMotion,showsPicker:false)
+    }
+    .frame(width:230,height:190)
    }
-   .frame(width:230,height:190)
   }
-  .padding(26)
+  .padding(hub.compact ? 16 : 26)
   .frame(maxWidth:.infinity)
   .background(
    RoundedRectangle(cornerRadius:30,style:.continuous)
@@ -662,7 +672,7 @@ extension CompanionInterfaceView {
       .disabled(stocks.loading)
     }
     Picker("Robot",selection:$stocks.robot) { Text("Dip robot").tag(0); Text("Momentum robot").tag(1) }
-     .pickerStyle(.segmented).labelsHidden().frame(width:300)
+     .pickerStyle(.segmented).labelsHidden().frame(maxWidth:300)
     if let r = stocks.current {
      hubRobot(r)
     } else if stocks.failed {
@@ -806,7 +816,7 @@ extension CompanionInterfaceView {
    }
    ForEach(s.channels) { channel in
     HStack(spacing:12) {
-     Text(channel.label).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.85)).frame(width:210,alignment:.leading)
+     Text(channel.label).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.85)).frame(minWidth:90,idealWidth:210,maxWidth:210,alignment:.leading)
      RoundedRectangle(cornerRadius:5,style:.continuous).fill(LinearGradient(colors:[HubColor.amber,HubColor.amber.opacity(0.5)],startPoint:.leading,endPoint:.trailing)).frame(width:max(8,CGFloat(channel.count) / CGFloat(biggest) * 260),height:10)
      Text(String(channel.count)).font(.system(size:13,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
      Spacer()
@@ -1290,7 +1300,7 @@ extension CompanionInterfaceView {
      }
     }
    }
-   .padding(20).frame(width:440,alignment:.leading).hubCard()
+   .padding(20).frame(maxWidth:440,alignment:.leading).hubCard()
    Spacer(minLength:0)
   }
   .frame(maxWidth:.infinity)

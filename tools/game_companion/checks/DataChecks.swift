@@ -247,6 +247,16 @@ import Foundation
   precondition(VoiceOverPlan.focusClause("").contains("FACTS") && VoiceOverPlan.focusClause("best way to farm gold").contains("best way to farm gold") && VoiceOverPlan.scriptPrompt(summary:"S",facts:[],focus:"",words:50).contains("(none found)"))
   precondition(VoiceOverPlan.videoBody(prompt:"p",video:Data([1])) != nil && VoiceOverPlan.speechBody(script:"hi",voice:"Kore") != nil)
   precondition(TikTokPack.caption(title:"Boss down",game:"Minecraft Dungeons II",voiceOver:true).contains("AI voice") && !TikTokPack.caption(title:"Boss down",game:"Minecraft Dungeons II").contains("AI voice"))
+  // Browser tools: which sites she can search, how the search words are tidied, and which links she will not open.
+  precondition(WebPlan.site("Twitter")?.key == "x" && WebPlan.site(" YouTube ")?.key == "youtube" && WebPlan.site("tik tok")?.key == "tiktok" && WebPlan.site("myspace") == nil)
+  precondition(WebPlan.searchURL(site:WebPlan.site("youtube")!,query:"minecraft dungeons loot farm")?.absoluteString == "https://www.youtube.com/results?search_query=minecraft%20dungeons%20loot%20farm")
+  precondition(WebPlan.searchURL(site:WebPlan.site("x")!,query:"a&b=c#d")?.absoluteString == "https://x.com/search?q=a%26b%3Dc%23d&src=typed_query" && WebPlan.searchURL(site:WebPlan.site("tiktok")!,query:"   ") == nil)
+  precondition(WebPlan.cleanQuery("one\ntwo\t three") == "one two three" && WebPlan.cleanQuery(String(repeating:"x",count:300))?.count == 120)
+  precondition(WebPlan.link("youtube.com/watch?v=abc") == .ok(URL(string:"https://youtube.com/watch?v=abc")!) && WebPlan.link("http://x.com/a") == .ok(URL(string:"https://x.com/a")!))
+  for bad in ["", "javascript:alert(1)", "ftp://x.com/a", "https://192.168.1.1/admin", "https://localhost/a", "https://user:pw@evil.com/", "https://example.com:8080/", "https://my.local/x", "https://example.com/a b", "https://www.mybank.com/login", "https://rbc.com/", "https://paypal.com/send", "https://x.com/i/flow/login", "https://moomoo.com/"] {
+   if case .ok = WebPlan.link(bad) { preconditionFailure("should refuse \(bad)") }
+  }
+  if case .no = WebPlan.link("https://www.tiktok.com/@someone/video/123") { preconditionFailure("tiktok video link should open") }
   print("All data checks passed.")
  }
 }

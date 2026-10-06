@@ -28,7 +28,7 @@ struct CompanionInterfaceView: View {
  @Environment(\.accessibilityReduceMotion) var reduceMotion
  var body: some View {
   hubShell
-  .frame(minWidth:960,idealWidth:1100,maxWidth:.infinity,minHeight:660,idealHeight:760,maxHeight:.infinity)
+  .frame(minWidth:440,idealWidth:900,maxWidth:.infinity,minHeight:400,idealHeight:640,maxHeight:.infinity)
   .background(NoirBackground())
   .preferredColorScheme(.dark)
   .tint(Noir.crimson)
@@ -163,7 +163,7 @@ struct CompanionInterfaceView: View {
     }.frame(maxWidth:.infinity,alignment:.leading)
    }.scrollIndicators(.hidden)
   }
-  .padding(.horizontal,26).padding(.vertical,18).frame(width:620,height:720)
+  .padding(.horizontal,26).padding(.vertical,18).frame(minWidth:380,idealWidth:620,maxWidth:620,minHeight:300,idealHeight:720,maxHeight:720)
   .background(NoirBackground())
   .preferredColorScheme(.dark)
   .tint(Noir.crimson)

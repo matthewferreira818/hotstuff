@@ -343,7 +343,7 @@ struct CompanionInterfaceView: View {
  @ViewBuilder var clipSettings: some View {
   Divider()
   Text("Twitch clips").font(.headline)
-  HStack { Text("Your channel"); TextField("twitch.tv/…  (just the name)",text:$clips.channel) }
+  HStack { Text("Your channel"); TextField("just your Twitch name, like theycallmemattyb",text:$clips.channel) }
   if clips.signedIn {
    HStack {
     Button("Clip it now") { Task { await clips.clipNow() } }.disabled(clips.busy)

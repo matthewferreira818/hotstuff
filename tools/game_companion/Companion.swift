@@ -399,7 +399,7 @@ struct LegacyContentView: View {
  @ViewBuilder var clipControls: some View {
   Divider()
   Text("Twitch clips").font(.headline)
-  HStack { Text("Your channel"); TextField("twitch.tv/…  (just the name)",text:$clips.channel) }
+  HStack { Text("Your channel"); TextField("just your Twitch name, like theycallmemattyb",text:$clips.channel) }
   if clips.signedIn {
    HStack {
     Button("Clip the last 30 seconds") { Task { await clips.clipNow() } }.disabled(clips.busy)

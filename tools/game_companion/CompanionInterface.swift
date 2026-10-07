@@ -249,7 +249,7 @@ struct CompanionInterfaceView: View {
   composer
   DisclosureGroup("Settings",isExpanded:$conversation.settingsOpen) {
    VStack(alignment:.leading,spacing:14) {
-    TextField("Game notes and build context",text:$c.gameNotes)
+    TextField("Game notes and build context (paste your build here)",text:$c.gameNotes,axis:.vertical).lineLimit(2...8)
     Text("Game notes are saved as a setting and sent as context in Google Live.").font(.caption).foregroundStyle(.secondary)
     HStack { Button("Test screen access · no AI") { c.testScreenAccess() }.disabled(DesignPreview.enabled || !c.sharing || c.busy); Button("Screen permission settings") { NSWorkspace.shared.open(URL(string:"x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!) }.disabled(DesignPreview.enabled) }
     if c.tab == 0 { googleSettings } else { localSettings }

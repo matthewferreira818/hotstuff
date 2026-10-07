@@ -682,3 +682,6 @@ Google's servers, not his Mac: they aren't logged in as him, can't use his cooki
 - New tool `watch_screen` (seconds 5 to 40, default 15, and a question): once the video is playing, a picture of every screen is taken each second and sent to Google's reader in order
   (about 1280 x 720 each, under 14 MB in total). It works on anything he can see, logged in or not. Pictures only, **no sound**, and one picture a second misses fast action. Needs the
   Screen Recording permission. Not run on the Mac yet.
+
+- **Build notes (2026-10-07):** the "Game notes and build context" box in Settings (on the Game view) now takes up to 2000 characters (it silently cut at 400) and grows to show what you paste, so a whole
+  12-slot build with its enchantments fits. Friday reads it as true facts about his game and can coach him through it. (She still can't equip anything: she has no way to press a console's buttons.)

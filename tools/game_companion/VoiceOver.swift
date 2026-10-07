@@ -121,6 +121,48 @@ enum VoiceMix {
   return "On it. I'm watching the clip and writing the voice-over now. It takes a minute or two, and the new version will be in the clips folder."
  }
 
+ // MARK: Friday's "read this link / watch this video" tool
+
+ private var reading = false
+
+ // Reads a public web page, watches a public YouTube video, or watches the newest saved clip, and answers a question about it with Google's own
+ // reader. (Matthew, 2026-10-07: "she can't analyze videos" and "she can't search links": before this she could only open a page and look at the screen.)
+ // Not for TikTok, X, Instagram or Twitch videos, pages behind a login, or private videos: Google's tools can't open those, and she is told so.
+ func voiceRead(source rawSource: String,question rawQuestion: String) async -> String {
+  if reading { return "I'm already reading something. One at a time." }
+  reading = true
+  defer { reading = false }
+  let source = rawSource.trimmingCharacters(in:.whitespacesAndNewlines)
+  let lower = source.lowercased()
+  var body: Data?
+  var what = "that page"
+  if !lower.contains("/") && !lower.contains(".") && (lower.isEmpty || lower.contains("clip")) {
+   guard let folder = latestFolder() else { return "There's no saved clip on this Mac to watch yet." }
+   let fm = FileManager.default
+   let candidates = [folder.appendingPathComponent("highlight-wide.mp4"),folder.appendingPathComponent("highlight-tall.mp4")]
+   guard let file = candidates.first(where:{ fm.fileExists(atPath:$0.path) }) else { return "I couldn't find the clip's video file." }
+   let small = fm.temporaryDirectory.appendingPathComponent("friday-read-\(UUID().uuidString).mp4")
+   defer { try? fm.removeItem(at:small) }
+   do { try await VoiceMix.shrink(file,to:small) } catch { return "Couldn't prepare the clip to watch: \(error.localizedDescription)" }
+   guard let video = try? Data(contentsOf:small), !video.isEmpty else { return "Couldn't read the prepared clip." }
+   guard video.count <= VoiceOverPlan.maxVideoBytes else { return "That clip is too big to send to Google in one go." }
+   body = VoiceOverPlan.videoBody(prompt:WebPlan.cleanQuestion(rawQuestion) + " Describe only what you can see and hear in this clip.",video:video)
+   what = "your latest clip"
+  } else if let youtube = WebPlan.youtubeURL(source) {
+   body = WebPlan.youtubeBody(url:youtube,question:rawQuestion)
+   what = "that YouTube video"
+  } else {
+   switch WebPlan.link(source) {
+   case .no(let problem): return problem
+   case .ok(let url): body = WebPlan.pageBody(url:url,question:rawQuestion); what = url.host ?? "that page"
+   }
+  }
+  let answer = await call(body,doing:"read \(what)",timeout:240)
+  guard let json = answer.json else { return answer.problem ?? "Couldn't read that." }
+  guard let text = VoiceOverPlan.replyText(json) else { return "Google answered but sent back no words about \(what). It may be private, behind a login, or not something its reader can open." }
+  return "From Google's reader, about \(what): " + String(text.prefix(2500)) + " (Say it came from Google's reader. It can be wrong.)"
+ }
+
  // MARK: talking to Google
 
  private func call(_ body: Data?,doing: String,timeout: Double) async -> (json: [String:Any]?,problem: String?) {

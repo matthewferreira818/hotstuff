@@ -655,3 +655,21 @@ stream, team) and the app told her so, and nothing on screen said which mode she
 - Settings shows "Tools she has this session: ..." (the real list sent to Google when the session started), so what she says can be checked against what she has.
   If hands and web tools are missing from that list, tell Claude.
 - The tools list is also shown on the Friday page itself while she is live (small grey "Tools on: ..." under her words), not only in Settings.
+
+## Listening, fresh pictures, links and videos (2026-10-07)
+
+Matthew: "she has trouble listening to me the first time", "she can't analyze videos", "she can't search links", and "she sees more of my screen than I can: when I ask her to scroll she
+says she can see things I can't see yet".
+- **Listening.** Three real causes. (1) Google's voice detector clips the first syllable unless it keeps some sound from before speech starts: the setup now asks for 300 ms of
+  padding, high start sensitivity, and 700 ms of quiet before deciding he's finished (`realtimeInputConfig.automaticActivityDetection`; if Google refuses the fields the app
+  drops them and reconnects with defaults). (2) On speakers the mic stream pauses while she talks, and Google's docs say to send an `audioStreamEnd` after a pause of over a
+  second so nothing stale is left; the app never did, so the first sentence after she spoke could be mangled. It does now, and the mute after she stops talking is 0.35 s instead of 0.6.
+  (3) Every ~10 minutes Google ends the connection and the app reconnects; anything he said in that gap was lost. The last 3 seconds of his voice are now kept and sent the moment she is back.
+  Headphones still help most: on speakers she can't hear him while she talks (that is the echo guard).
+- **Fresh pictures.** In Low usage she only looks every 15 seconds when he's quiet, so after she scrolled she was describing the screen from before. Now a fresh picture is sent 0.8 and 2.2
+  seconds after any hands action, and 3 and 6 seconds after opening a page, and she is told to describe only the NEWEST picture. She also sees every screen, including ones he isn't looking at.
+  The small "Friday sees this" preview now shows in a small window too, so you can compare.
+- **Links and videos.** New tool `read_link` (rules and tests in `WebData.swift`, the call in `VoiceOver.swift`): a public YouTube address is watched by Google's video reader; any other public page
+  is read by Google's "url_context" tool; "latest clip" watches the newest saved clip (as in the voice-over). She reads a YouTube address from the browser's address bar if he doesn't say it.
+  It can't open TikTok, X, Instagram or Twitch videos, pages behind a login or paywall, or private videos, and she is told to say so and describe only what is on screen. Long videos use a lot of
+  the free allowance. Not run on the Mac yet.

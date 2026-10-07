@@ -66,6 +66,7 @@ enum FeedFormat {
   case "narrate_clip": return "Voice-over"
   case "search_site": return "Search"
   case "open_link": return "Link"
+  case "read_link": return "Read link"
   case "tell_the_team": return "To the team"
   case "team_messages": return "Team inbox"
   case "point_at": return "Pointer"

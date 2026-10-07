@@ -266,6 +266,10 @@ import Foundation
   precondition(HandsPlan.blockedReason(owner:"Safari",title:"How to fix the Minecraft Dungeons II login error on PC, a long guide") == nil && HandsPlan.blockedReason(owner:"Moomoo",title:"") != nil && HandsPlan.blockedReason(owner:"Safari",title:"A very long article about why Moomoo and other trading apps are popular") != nil)
   precondition(HandsPlan.blockedReason(owner:"",title:"www.example.com/accounts/sign-in/start?next=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",strict:true) != nil)
   precondition(!HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!,owner:"Safari",focusedRole:"AXTextField") && HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!,owner:"Safari",focusedRole:"AXTextArea") && HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!,owner:"Messages",focusedRole:"AXTextField") && HandsPlan.needsAllow(HandsPlan.parseKeys("enter")!))
+  // YouTube addresses become one clean watch link; other sites are not treated as video.
+  precondition(WebPlan.youtubeURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLxyz&t=42")?.absoluteString == "https://www.youtube.com/watch?v=dQw4w9WgXcQ" && WebPlan.youtubeURL("youtu.be/dQw4w9WgXcQ?si=abc")?.absoluteString == "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+  precondition(WebPlan.youtubeURL("https://m.youtube.com/shorts/dQw4w9WgXcQ") != nil && WebPlan.youtubeURL("https://www.youtube.com/watch?v=short") == nil && WebPlan.youtubeURL("https://www.tiktok.com/@a/video/123") == nil && WebPlan.youtubeURL("https://notyoutube.com/watch?v=dQw4w9WgXcQ") == nil && WebPlan.youtubeURL("latest clip") == nil)
+  precondition(WebPlan.cleanQuestion("") == WebPlan.defaultReadQuestion && WebPlan.cleanQuestion("how do I\nget loot?") == "how do I get loot?" && WebPlan.youtubeBody(url:URL(string:"https://www.youtube.com/watch?v=dQw4w9WgXcQ")!,question:"x") != nil && WebPlan.pageBody(url:URL(string:"https://example.com/a")!,question:"") != nil)
   print("All data checks passed.")
  }
 }

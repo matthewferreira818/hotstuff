@@ -57,6 +57,41 @@ enum WebPlan {
   return URL(string:site.template.replacingOccurrences(of:"%@",with:encoded))
  }
 
+ // A YouTube video address (watch, youtu.be, shorts or live) as one clean watch link, or nil if it isn't one.
+ static func youtubeURL(_ raw: String) -> URL? {
+  var text = raw.trimmingCharacters(in:.whitespacesAndNewlines)
+  guard !text.isEmpty, text.count <= 300, !text.contains(" ") else { return nil }
+  if !text.contains("://") { text = "https://" + text }
+  guard let parts = URLComponents(string:text), let host = parts.host?.lowercased() else { return nil }
+  var id: String?
+  if host == "youtu.be" { id = parts.path.split(separator:"/").first.map(String.init) }
+  else if host == "youtube.com" || host.hasSuffix(".youtube.com") {
+   let pieces = parts.path.split(separator:"/").map(String.init)
+   if pieces.first == "watch" { id = parts.queryItems?.first(where:{ $0.name == "v" })?.value }
+   else if pieces.count >= 2, ["shorts","live","embed","v"].contains(pieces[0]) { id = pieces[1] }
+  }
+  guard let video = id, video.count == 11, video.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_" || $0 == "-") }) else { return nil }
+  return URL(string:"https://www.youtube.com/watch?v=\(video)")
+ }
+
+ static let defaultReadQuestion = "Say what this is and the main points, in plain words, in 5 to 8 short sentences."
+
+ static func cleanQuestion(_ raw: String) -> String {
+  cleanQuery(String(raw.prefix(300))) ?? defaultReadQuestion
+ }
+
+ // Google's video reader takes a public YouTube address directly (ai.google.dev/gemini-api/docs/video-understanding, checked 2026-10-06).
+ static func youtubeBody(url: URL,question: String) -> Data? {
+  let input: [[String:Any]] = [["type":"text","text":cleanQuestion(question)],["type":"video","uri":url.absoluteString]]
+  return try? JSONSerialization.data(withJSONObject:["model":VoiceOverPlan.model,"input":input] as [String:Any])
+ }
+
+ // Google's page reader: the "url_context" tool fetches public pages itself (ai.google.dev/gemini-api/docs/url-context, checked 2026-10-06).
+ static func pageBody(url: URL,question: String) -> Data? {
+  let body: [String:Any] = ["model":VoiceOverPlan.model,"input":"\(cleanQuestion(question))\n\n\(url.absoluteString)","tools":[["type":"url_context"]]]
+  return try? JSONSerialization.data(withJSONObject:body)
+ }
+
  enum LinkResult: Equatable {
   case ok(URL)
   case no(String)

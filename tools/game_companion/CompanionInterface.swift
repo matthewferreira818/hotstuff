@@ -70,7 +70,7 @@ struct CompanionInterfaceView: View {
     }
    }
    if c.showKeyboard { composer.padding(.vertical,8) }
-   if !tight { seesRow }
+   seesRow
    controlBar(compact:tight)
    if !tight {
     HStack(spacing:6) { Image(systemName:"lock.shield"); Text(conversation.memoryEnabled ? "Reviewed notes saved locally · chats and images not saved" : "Memory off · chats and images not saved by this app") }
@@ -128,7 +128,7 @@ struct CompanionInterfaceView: View {
  @ViewBuilder var seesRow: some View {
   if c.tab == 0, let seen = live.lastSeen {
    HStack(spacing:10) {
-    Image(nsImage:seen).resizable().scaledToFit().frame(height:44).clipShape(RoundedRectangle(cornerRadius:6,style:.continuous))
+    Image(nsImage:seen).resizable().scaledToFit().frame(height:hub.compact ? 30 : 44).clipShape(RoundedRectangle(cornerRadius:6,style:.continuous))
     Text("Friday sees this · \(live.picturesSent) sent").font(.system(size:11,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))
     Spacer()
    }

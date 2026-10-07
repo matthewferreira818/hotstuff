@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-07 from commit 53559ec. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-07 from commit 1261c98. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -2129,6 +2129,7 @@ struct CompanionInterfaceView: View {
    if c.tab == 0 && !live.heard.isEmpty { Text(live.heard).font(.system(size:14,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)).multilineTextAlignment(.center).lineLimit(2) }
    if !clips.status.isEmpty { Text(clips.status).font(.system(size:12,design:.rounded)).foregroundStyle(Noir.crimsonLight.opacity(0.9)).multilineTextAlignment(.center).lineLimit(3).textSelection(.enabled) }
    if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
+   if c.tab == 0 && live.running && !live.toolNames.isEmpty { Text("Tools on: " + live.toolNames.joined(separator:", ")).font(.system(size:10,design:.rounded)).foregroundStyle(Color.white.opacity(0.3)).multilineTextAlignment(.center).lineLimit(4).textSelection(.enabled) }
    if hands.enabled && hands.hasAccess && !hands.status.isEmpty { Text("Hands: \(hands.status)").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45)).multilineTextAlignment(.center).lineLimit(3) }
    if hands.enabled && !hands.hasAccess { Button { hands.openSettings() } label: { Text("Her hands need macOS permission: tap to open Accessibility settings, switch Game Companion on, then restart Friday.").multilineTextAlignment(.center) }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
    if !currentReply.isEmpty { Text(currentReply).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(Color.white.opacity(0.90)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
@@ -10417,6 +10418,7 @@ stream, team) and the app told her so, and nothing on screen said which mode she
 - Her instructions now say: never say you can't do something your tools cover; call the tool and repeat what it returned or why it refused.
 - Settings shows "Tools she has this session: ..." (the real list sent to Google when the session started), so what she says can be checked against what she has.
   If hands and web tools are missing from that list, tell Claude.
+- The tools list is also shown on the Friday page itself while she is live (small grey "Tools on: ..." under her words), not only in Settings.
 ```
 
 ## FILE: meeting-room/README.md

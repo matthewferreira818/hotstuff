@@ -654,3 +654,4 @@ stream, team) and the app told her so, and nothing on screen said which mode she
 - Her instructions now say: never say you can't do something your tools cover; call the tool and repeat what it returned or why it refused.
 - Settings shows "Tools she has this session: ..." (the real list sent to Google when the session started), so what she says can be checked against what she has.
   If hands and web tools are missing from that list, tell Claude.
+- The tools list is also shown on the Friday page itself while she is live (small grey "Tools on: ..." under her words), not only in Settings.

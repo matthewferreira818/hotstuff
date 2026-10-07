@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 19.78,
+ "cash": 205.12,
  "spy_at_start": 764.32,
  "positions": {
   "ABNB": {
@@ -19,10 +19,6 @@
   "HOOD": {
    "qty": 1.8272643668077861,
    "avg_entry_price": 114.3622
-  },
-  "RIOT": {
-   "qty": 10.4785210312054,
-   "avg_entry_price": 19.9417
   }
  },
  "orders": [
@@ -154,6 +150,16 @@
    "qty": 5.276683,
    "price": 19.6146,
    "dollars": 105.49,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-07T13:38:44+00:00",
+   "symbol": "RIOT",
+   "side": "sell",
+   "status": "filled",
+   "qty": 10.478521,
+   "price": 17.8771,
+   "dollars": 185.34,
    "fee": 1.99
   }
  ],

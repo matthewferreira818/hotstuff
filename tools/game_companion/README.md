@@ -643,3 +643,14 @@ while she looked around (scroll, read, scroll) it flickered off, and you never s
   borderless-window games. The Allow box was raised the same way, so it can't hide behind a full-screen game. A game in true exclusive full screen can
   still cover both; if that happens, use borderless or windowed mode.
 - Not run on the Mac yet.
+
+## "I can't control your browser" (2026-10-06 night)
+
+Matthew asked her to scroll a Safari page and she answered that she can't control the browser or scroll, she can only see: the scroll tool never ran, so her tools
+either weren't there or she didn't trust them. Two things were wrong in the design. Google Search mode used to switch ALL her other tools off (hands, web, clips,
+stream, team) and the app told her so, and nothing on screen said which mode she was in. And her instructions never told her not to claim limits from memory.
+- Google Search now works together with her tools (Google's Live docs, updated 2026-09-15, allow it), and the wiki and Search switches no longer cancel each other. If
+  Search won't start for any reason before the connection is ready, the app drops it, keeps her tools, and says so in the status line.
+- Her instructions now say: never say you can't do something your tools cover; call the tool and repeat what it returned or why it refused.
+- Settings shows "Tools she has this session: ..." (the real list sent to Google when the session started), so what she says can be checked against what she has.
+  If hands and web tools are missing from that list, tell Claude.

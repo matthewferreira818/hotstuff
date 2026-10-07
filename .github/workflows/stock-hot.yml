@@ -1,0 +1,45 @@
+name: Stock bot (hot hands)
+
+# Robot 3: same-day trading of cheap, wide-swinging stocks on its own
+# practice account, next to the dip (stock-bot.yml) and momentum
+# (stock-momentum.yml) robots. One run loops through the trading day,
+# checking every 10 seconds, and is out of every stock before the close.
+# Same hourly queue trick as the others to cover the 6-hour job limit; a
+# manual run with no inputs starts the day too.
+# Public logs: the script prints counts only.
+
+on:
+  schedule:
+    - cron: "9 13-20 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      snapshot:
+        description: "Only refresh the live page"
+        type: boolean
+        default: false
+
+concurrency:
+  group: stock-hot-${{ inputs.snapshot && 'manual' || 'loop' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Self-test
+        run: |
+          python stock_bot/hot_bot.py --selftest
+          python stock_bot/paper_broker.py --selftest
+      - name: Run
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          SNAP: ${{ inputs.snapshot && '--snapshot' || '' }}
+        run: python stock_bot/hot_bot.py $SNAP

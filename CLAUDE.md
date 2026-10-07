@@ -113,6 +113,11 @@ same deposits. Moomoo approved 09-27 and is wired in:
 (setup: stock_bot/MOOMOO-SETUP.md), on Moomoo's PAPER account by default.
 Real money needs three switches, all his: env real, live_auto_trade true,
 and Unlock clicked in OpenD. Never run the Moomoo path on GitHub.
+Three practice robots run side by side (live page tabs): dip
+(stock_bot.py), momentum (momentum_bot.py), and since 2026-10-08 "Hot
+hands" (hot_bot.py), Matthew's same-day trading of cheap swingers like
+ONDS. EXP-0004 says hot hands loses after fees; it's a live experiment.
+The weekday routine "Start stock robots" dispatches all three workflows.
 
 ## Game Companion, and the chassis dream (as of 2026-10-05)
 

@@ -78,6 +78,28 @@ graded picks, beating SPY after costs, the typical pick winning, no
 blow-through losses, winning unseen walk-forward windows, the Practice
 Desk ahead of SPY). They're listed in `.claude/skills/stock-council/SKILL.md`.
 
+## Robot 3: Hot hands (same-day trading, since 2026-10-08)
+
+Matthew's mission: trade cheap stocks that swing a lot in a day, like
+Ondas (~$7, moving ~45-60 cents a day). `hot_bot.py`, settings in
+`watchlist-hot.json`, its own practice account
+(`paper/account-hot.json`, $1,000 + the same payday deposits from
+2026-10-14), its own tab on the live page, workflow `stock-hot.yml`.
+
+- **Buys** when a stock is 2% under its average price for the day (VWAP),
+  after the first 15 minutes, with half the account; 2 at a time at most.
+- **Sells** back at VWAP, at -3%, or 5 minutes before the close. Never
+  holds overnight.
+- **Stocks:** the 10 that passed EXP-0004's filter ($2-$25, typical day
+  swing 5%+): ONDS, MARA, RIOT, LCID, AMC, SMR, RGTI, ACHR, PLUG, QBTS.
+
+Honest status: in EXP-0004 (`research/experiments/EXP-0004.md`) this rule
+was the only day-trading rule whose trades rose on average before costs,
+but a $1,000 account still lost about $757 in 60 days after Moomoo's
+fees, and no nearby setting made money. It runs as a live experiment.
+For real money, the US pattern day trader rule (more than 3 day trades in
+5 business days in a margin account under US$25,000) also applies.
+
 ## Research
 
 `python stock_bot/backtest.py --why` explains, trade by trade, why the

@@ -1,0 +1,554 @@
+{
+ "id": "EXP-0004",
+ "run": "2026-10-07",
+ "defaults": {
+  "SNAP": {
+   "under": 2,
+   "stop": 3,
+   "trips": 2
+  },
+  "OR": {
+   "target_x": 2
+  },
+  "RUN": {
+   "trigger": 2,
+   "trail": 1
+  }
+ },
+ "names": {
+  "SNAP": "VWAP snap-back",
+  "OR": "Opening-range breakout",
+  "RUN": "Momentum run"
+ },
+ "stocks": [
+  "MARA",
+  "RIOT",
+  "LCID",
+  "AMC",
+  "SMR",
+  "ONDS",
+  "RGTI",
+  "ACHR",
+  "PLUG",
+  "QBTS"
+ ],
+ "measured": {
+  "ONDS": {
+   "price": 7.64,
+   "range_pct": 5.8,
+   "range_cents": 44.4
+  },
+  "ASTS": {
+   "price": 61.62,
+   "range_pct": 6.2,
+   "range_cents": 384.1
+  },
+  "CRWD": {
+   "price": 213.5,
+   "range_pct": 4.5,
+   "range_cents": 953.0
+  },
+  "HOOD": {
+   "price": 106.22,
+   "range_pct": 4.2,
+   "range_cents": 445.9
+  },
+  "NVDA": {
+   "price": 218.69,
+   "range_pct": 2.2,
+   "range_cents": 490.6
+  },
+  "ABNB": {
+   "price": 166.06,
+   "range_pct": 2.6,
+   "range_cents": 430.3
+  },
+  "RIOT": {
+   "price": 20.76,
+   "range_pct": 6.9,
+   "range_cents": 142.4
+  },
+  "ARM": {
+   "price": 266.77,
+   "range_pct": 5.1,
+   "range_cents": 1355.3
+  },
+  "MU": {
+   "price": 952.33,
+   "range_pct": 4.7,
+   "range_cents": 4505.8
+  },
+  "PFE": {
+   "price": 27.62,
+   "range_pct": 1.8,
+   "range_cents": 48.6
+  },
+  "AMD": {
+   "price": 502.18,
+   "range_pct": 4.0,
+   "range_cents": 1985.8
+  },
+  "TSLA": {
+   "price": 355.51,
+   "range_pct": 3.0,
+   "range_cents": 1055.3
+  },
+  "META": {
+   "price": 608.32,
+   "range_pct": 3.0,
+   "range_cents": 1800.0
+  },
+  "AMZN": {
+   "price": 254.94,
+   "range_pct": 2.0,
+   "range_cents": 514.5
+  },
+  "NFLX": {
+   "price": 74.16,
+   "range_pct": 2.5,
+   "range_cents": 182.8
+  },
+  "AVGO": {
+   "price": 369.16,
+   "range_pct": 2.7,
+   "range_cents": 1001.8
+  },
+  "SMCI": {
+   "price": 37.26,
+   "range_pct": 5.3,
+   "range_cents": 198.6
+  },
+  "INTC": {
+   "price": 100.26,
+   "range_pct": 4.7,
+   "range_cents": 471.0
+  },
+  "APP": {
+   "price": 316.68,
+   "range_pct": 4.2,
+   "range_cents": 1324.3
+  },
+  "PLTR": {
+   "price": 173.98,
+   "range_pct": 3.4,
+   "range_cents": 592.5
+  },
+  "SHOP": {
+   "price": 144.15,
+   "range_pct": 3.8,
+   "range_cents": 540.6
+  },
+  "NET": {
+   "price": 301.36,
+   "range_pct": 5.0,
+   "range_cents": 1514.1
+  },
+  "SNOW": {
+   "price": 329.1,
+   "range_pct": 3.9,
+   "range_cents": 1287.3
+  },
+  "DDOG": {
+   "price": 246.86,
+   "range_pct": 4.3,
+   "range_cents": 1066.3
+  },
+  "ROKU": {
+   "price": 153.24,
+   "range_pct": 1.2,
+   "range_cents": 178.8
+  },
+  "RBLX": {
+   "price": 43.7,
+   "range_pct": 4.7,
+   "range_cents": 207.4
+  },
+  "U": {
+   "price": 42.11,
+   "range_pct": 4.4,
+   "range_cents": 184.1
+  },
+  "UBER": {
+   "price": 71.63,
+   "range_pct": 2.4,
+   "range_cents": 172.4
+  },
+  "PINS": {
+   "price": 22.67,
+   "range_pct": 3.4,
+   "range_cents": 76.8
+  },
+  "SNAP": {
+   "price": 5.35,
+   "range_pct": 4.6,
+   "range_cents": 24.5
+  },
+  "AI": {
+   "price": 10.35,
+   "range_pct": 4.4,
+   "range_cents": 45.4
+  },
+  "COIN": {
+   "price": 174.35,
+   "range_pct": 4.9,
+   "range_cents": 861.0
+  },
+  "MSTR": {
+   "price": 123.19,
+   "range_pct": 5.1,
+   "range_cents": 626.7
+  },
+  "MARA": {
+   "price": 11.31,
+   "range_pct": 7.0,
+   "range_cents": 78.9
+  },
+  "SOFI": {
+   "price": 17.33,
+   "range_pct": 3.7,
+   "range_cents": 64.1
+  },
+  "UPST": {
+   "price": 27.94,
+   "range_pct": 4.3,
+   "range_cents": 119.5
+  },
+  "AFRM": {
+   "price": 73.75,
+   "range_pct": 4.0,
+   "range_cents": 296.2
+  },
+  "PYPL": {
+   "price": 55.92,
+   "range_pct": 2.2,
+   "range_cents": 122.4
+  },
+  "XYZ": {
+   "price": 79.44,
+   "range_pct": 2.9,
+   "range_cents": 228.5
+  },
+  "RIVN": {
+   "price": 15.84,
+   "range_pct": 3.8,
+   "range_cents": 60.8
+  },
+  "LCID": {
+   "price": 5.09,
+   "range_pct": 6.9,
+   "range_cents": 35.2
+  },
+  "NIO": {
+   "price": 4.37,
+   "range_pct": 2.6,
+   "range_cents": 11.4
+  },
+  "PLUG": {
+   "price": 2.11,
+   "range_pct": 5.1,
+   "range_cents": 10.8
+  },
+  "ENPH": {
+   "price": 37.22,
+   "range_pct": 4.6,
+   "range_cents": 173.0
+  },
+  "FSLR": {
+   "price": 205.98,
+   "range_pct": 3.8,
+   "range_cents": 788.0
+  },
+  "OKLO": {
+   "price": 40.85,
+   "range_pct": 5.5,
+   "range_cents": 226.2
+  },
+  "SMR": {
+   "price": 8.8,
+   "range_pct": 6.2,
+   "range_cents": 54.8
+  },
+  "IONQ": {
+   "price": 40.19,
+   "range_pct": 5.5,
+   "range_cents": 220.5
+  },
+  "RGTI": {
+   "price": 15.69,
+   "range_pct": 5.5,
+   "range_cents": 86.0
+  },
+  "QBTS": {
+   "price": 17.44,
+   "range_pct": 5.1,
+   "range_cents": 88.2
+  },
+  "SOUN": {
+   "price": 6.41,
+   "range_pct": 4.2,
+   "range_cents": 26.6
+  },
+  "BBAI": {
+   "price": 2.89,
+   "range_pct": 4.6,
+   "range_cents": 13.3
+  },
+  "RKLB": {
+   "price": 69.71,
+   "range_pct": 5.3,
+   "range_cents": 371.3
+  },
+  "ACHR": {
+   "price": 5.47,
+   "range_pct": 5.2,
+   "range_cents": 28.3
+  },
+  "JOBY": {
+   "price": 7.06,
+   "range_pct": 4.2,
+   "range_cents": 29.9
+  },
+  "GME": {
+   "price": 21.26,
+   "range_pct": 2.5,
+   "range_cents": 53.1
+  },
+  "AMC": {
+   "price": 2.62,
+   "range_pct": 6.3,
+   "range_cents": 16.5
+  },
+  "CVNA": {
+   "price": 67.7,
+   "range_pct": 4.3,
+   "range_cents": 291.9
+  },
+  "DKNG": {
+   "price": 24.02,
+   "range_pct": 4.3,
+   "range_cents": 103.2
+  },
+  "CHWY": {
+   "price": 22.06,
+   "range_pct": 3.8,
+   "range_cents": 83.2
+  },
+  "PTON": {
+   "price": 5.38,
+   "range_pct": 3.3,
+   "range_cents": 17.5
+  },
+  "HIMS": {
+   "price": 29.38,
+   "range_pct": 5.5,
+   "range_cents": 160.3
+  },
+  "CELH": {
+   "price": 28.79,
+   "range_pct": 4.0,
+   "range_cents": 114.7
+  },
+  "ELF": {
+   "price": 96.82,
+   "range_pct": 4.3,
+   "range_cents": 417.1
+  },
+  "MRNA": {
+   "price": 139.61,
+   "range_pct": 6.3,
+   "range_cents": 884.9
+  },
+  "TEM": {
+   "price": 62.06,
+   "range_pct": 6.0,
+   "range_cents": 374.9
+  }
+ },
+ "results": {
+  "SNAP": {
+   "trades": 310,
+   "gross_avg_move": 0.15,
+   "gross_win_rate": 59,
+   "pnl_100": -1249.12,
+   "pnl_500": -1335.17,
+   "pnl_1000": -1659.41,
+   "win_rate_500": 41,
+   "acct_trades": 176,
+   "acct_pnl": -756.89,
+   "acct_first": -434.55,
+   "acct_second": -322.34,
+   "acct_fees": 700.48,
+   "acct_green_days": "16/58",
+   "exits": {
+    "stop": 52,
+    "close": 123,
+    "target": 135
+   }
+  },
+  "OR": {
+   "trades": 253,
+   "gross_avg_move": -0.021,
+   "gross_win_rate": 44,
+   "pnl_100": -1061.72,
+   "pnl_500": -1297.96,
+   "pnl_1000": -1769.25,
+   "win_rate_500": 32,
+   "acct_trades": 112,
+   "acct_pnl": -454.13,
+   "acct_first": -90.91,
+   "acct_second": -363.22,
+   "acct_fees": 445.76,
+   "acct_green_days": "22/58",
+   "exits": {
+    "close": 217,
+    "stop": 27,
+    "target": 9
+   }
+  },
+  "RUN": {
+   "trades": 133,
+   "gross_avg_move": -0.226,
+   "gross_win_rate": 35,
+   "pnl_100": -584.76,
+   "pnl_500": -819.56,
+   "pnl_1000": -1244.61,
+   "win_rate_500": 13,
+   "acct_trades": 120,
+   "acct_pnl": -739.67,
+   "acct_first": -425.8,
+   "acct_second": -313.86,
+   "acct_fees": 477.6,
+   "acct_green_days": "5/50",
+   "exits": {
+    "trail": 91,
+    "close": 42
+   }
+  }
+ },
+ "passed": {
+  "SNAP": false,
+  "OR": false,
+  "RUN": false
+ },
+ "spy_hold": 30.47,
+ "days": 60,
+ "robustness": {
+  "SNAP": [
+   {
+    "under": 1.5,
+    "stop": 2,
+    "trips": 2,
+    "acct_pnl": -1276.19
+   },
+   {
+    "under": 1.5,
+    "stop": 3,
+    "trips": 2,
+    "acct_pnl": -1129.88
+   },
+   {
+    "under": 1.5,
+    "stop": 5,
+    "trips": 2,
+    "acct_pnl": -882.82
+   },
+   {
+    "under": 2,
+    "stop": 2,
+    "trips": 2,
+    "acct_pnl": -865.21
+   },
+   {
+    "under": 2,
+    "stop": 3,
+    "trips": 2,
+    "acct_pnl": -756.89
+   },
+   {
+    "under": 2,
+    "stop": 5,
+    "trips": 2,
+    "acct_pnl": -645.47
+   },
+   {
+    "under": 3,
+    "stop": 2,
+    "trips": 2,
+    "acct_pnl": -424.81
+   },
+   {
+    "under": 3,
+    "stop": 3,
+    "trips": 2,
+    "acct_pnl": -442.78
+   },
+   {
+    "under": 3,
+    "stop": 5,
+    "trips": 2,
+    "acct_pnl": -313.4
+   }
+  ],
+  "OR": [
+   {
+    "target_x": 1,
+    "acct_pnl": -511.87
+   },
+   {
+    "target_x": 2,
+    "acct_pnl": -454.13
+   },
+   {
+    "target_x": 3,
+    "acct_pnl": -408.31
+   }
+  ],
+  "RUN": [
+   {
+    "trigger": 1,
+    "trail": 0.5,
+    "acct_pnl": -888.72
+   },
+   {
+    "trigger": 1,
+    "trail": 1,
+    "acct_pnl": -910.07
+   },
+   {
+    "trigger": 1,
+    "trail": 2,
+    "acct_pnl": -861.96
+   },
+   {
+    "trigger": 2,
+    "trail": 0.5,
+    "acct_pnl": -725.44
+   },
+   {
+    "trigger": 2,
+    "trail": 1,
+    "acct_pnl": -739.67
+   },
+   {
+    "trigger": 2,
+    "trail": 2,
+    "acct_pnl": -737.06
+   },
+   {
+    "trigger": 3,
+    "trail": 0.5,
+    "acct_pnl": -541.53
+   },
+   {
+    "trigger": 3,
+    "trail": 1,
+    "acct_pnl": -549.21
+   },
+   {
+    "trigger": 3,
+    "trail": 2,
+    "acct_pnl": -605.57
+   }
+  ]
+ }
+}

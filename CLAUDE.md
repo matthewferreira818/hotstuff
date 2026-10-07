@@ -144,7 +144,8 @@ and read the screen (`search_site`, `open_link`; works without the hands
 switch; no login, bank, payment or private-address pages; 8 a minute).
 `read_link` makes Google's own reader open a public page, watch a public YouTube
 video or watch his latest saved clip and answer a question (not TikTok, X, Twitch,
-login pages or private videos). Google Search inside her voice session failed on his free key (quota); since
+login pages or private videos); `watch_screen` has Google study a few seconds of
+pictures of his screens for videos playing there (no sound). Google Search inside her voice session failed on his free key (quota); since
 2026-10-06 it can be on together with her tools (Google's Live docs allow it)
 and is dropped automatically if it won't start.
 This does not loosen the real-money rule: Moomoo trading stays his own

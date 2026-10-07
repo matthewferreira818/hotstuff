@@ -92,6 +92,22 @@ enum WebPlan {
   return try? JSONSerialization.data(withJSONObject:body)
  }
 
+ // How long she watches the screens for "watch_screen": 5 to 40 seconds, 15 if she doesn't say.
+ static func watchSeconds(_ raw: Double?) -> Int {
+  guard let value = raw, value.isFinite else { return 15 }
+  return Int(min(40,max(5,value)))
+ }
+
+ // A short run of screenshots, one a second, sent to Google's reader as pictures in order (there is no sound). Inline pictures count toward
+ // Google's 20 MB request limit, so the caller keeps the total under about 14 MB (ai.google.dev/gemini-api/docs/image-understanding, checked 2026-10-07).
+ static func screenWatchBody(question: String,frames: [Data]) -> Data? {
+  guard frames.count >= 2 else { return nil }
+  let intro = "These \(frames.count) pictures are screenshots of the player's screens, taken about one second apart, in order, while something played. There is no sound. \(cleanQuestion(question)) Describe only what you can see. If the pictures are not enough to tell, say so."
+  var input: [[String:Any]] = [["type":"text","text":intro]]
+  for frame in frames { input.append(["type":"image","data":frame.base64EncodedString(),"mime_type":"image/jpeg"]) }
+  return try? JSONSerialization.data(withJSONObject:["model":VoiceOverPlan.model,"input":input] as [String:Any])
+ }
+
  enum LinkResult: Equatable {
   case ok(URL)
   case no(String)

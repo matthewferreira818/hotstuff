@@ -163,6 +163,31 @@ enum VoiceMix {
   return "From Google's reader, about \(what): " + String(text.prefix(2500)) + " (Say it came from Google's reader. It can be wrong.)"
  }
 
+ // For a video that is playing on his screen (TikTok, X, Twitch, anything he is logged in to): a picture of every screen once a second for 5 to 40
+ // seconds, studied by Google's reader. Pictures only, no sound. Google never sees the site, only what was on his screens.
+ func voiceWatchScreen(seconds rawSeconds: Double?,question: String) async -> String {
+  if reading { return "I'm already reading something. One at a time." }
+  reading = true
+  defer { reading = false }
+  let count = WebPlan.watchSeconds(rawSeconds)
+  var frames: [Data] = []
+  var bytes = 0
+  for index in 0..<count {
+   let started = Date()
+   guard let shot = try? await ScreenSnap.captureAll(maxWidth:1280,maxHeight:720) else { break }
+   frames.append(shot.jpeg)
+   bytes += shot.jpeg.count
+   if bytes > 14_000_000 { break }
+   let spent = Date().timeIntervalSince(started)
+   if index < count - 1 && spent < 1 { try? await Task.sleep(nanoseconds:UInt64((1 - spent) * 1_000_000_000)) }
+  }
+  guard frames.count >= 2 else { return "I couldn't capture the screens. macOS may have forgotten the Screen Recording permission after the update: switch Game Companion off and on in Privacy & Security, Screen & System Audio Recording." }
+  let answer = await call(WebPlan.screenWatchBody(question:question,frames:frames),doing:"study the screens",timeout:240)
+  guard let json = answer.json else { return answer.problem ?? "Couldn't study the screens." }
+  guard let text = VoiceOverPlan.replyText(json) else { return "Google sent back no words about the screens." }
+  return "From Google's reader, about \(frames.count) seconds of the player's screens (pictures one second apart, no sound): " + String(text.prefix(2500)) + " (Say it came from pictures only, with no sound, so it can miss fast action and anything that was spoken.)"
+ }
+
  // MARK: talking to Google
 
  private func call(_ body: Data?,doing: String,timeout: Double) async -> (json: [String:Any]?,problem: String?) {

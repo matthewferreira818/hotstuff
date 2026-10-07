@@ -673,3 +673,12 @@ says she can see things I can't see yet".
   is read by Google's "url_context" tool; "latest clip" watches the newest saved clip (as in the voice-over). She reads a YouTube address from the browser's address bar if he doesn't say it.
   It can't open TikTok, X, Instagram or Twitch videos, pages behind a login or paywall, or private videos, and she is told to say so and describe only what is on screen. Long videos use a lot of
   the free allowance. Not run on the Mac yet.
+
+### Why `read_link` can't open TikTok, X or Twitch videos, and the answer: `watch_screen` (2026-10-07)
+
+Matthew: "if I'm already logged in it should be okay, no?" Two different things. **Opening** a page (`open_link`, `search_site`) happens in HIS browser, where he is logged in, so
+logged-in pages open fine and she reads them off the screen (the app only refuses addresses that look like a login, bank or payment page). **Reading** a page (`read_link`) is done by
+Google's servers, not his Mac: they aren't logged in as him, can't use his cookies, and Google's video reader only takes YouTube addresses or uploaded files, not TikTok, X or Twitch pages.
+- New tool `watch_screen` (seconds 5 to 40, default 15, and a question): once the video is playing, a picture of every screen is taken each second and sent to Google's reader in order
+  (about 1280 x 720 each, under 14 MB in total). It works on anything he can see, logged in or not. Pictures only, **no sound**, and one picture a second misses fast action. Needs the
+  Screen Recording permission. Not run on the Mac yet.

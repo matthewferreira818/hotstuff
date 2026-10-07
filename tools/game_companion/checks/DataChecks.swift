@@ -270,6 +270,8 @@ import Foundation
   precondition(WebPlan.youtubeURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLxyz&t=42")?.absoluteString == "https://www.youtube.com/watch?v=dQw4w9WgXcQ" && WebPlan.youtubeURL("youtu.be/dQw4w9WgXcQ?si=abc")?.absoluteString == "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
   precondition(WebPlan.youtubeURL("https://m.youtube.com/shorts/dQw4w9WgXcQ") != nil && WebPlan.youtubeURL("https://www.youtube.com/watch?v=short") == nil && WebPlan.youtubeURL("https://www.tiktok.com/@a/video/123") == nil && WebPlan.youtubeURL("https://notyoutube.com/watch?v=dQw4w9WgXcQ") == nil && WebPlan.youtubeURL("latest clip") == nil)
   precondition(WebPlan.cleanQuestion("") == WebPlan.defaultReadQuestion && WebPlan.cleanQuestion("how do I\nget loot?") == "how do I get loot?" && WebPlan.youtubeBody(url:URL(string:"https://www.youtube.com/watch?v=dQw4w9WgXcQ")!,question:"x") != nil && WebPlan.pageBody(url:URL(string:"https://example.com/a")!,question:"") != nil)
+  precondition(WebPlan.watchSeconds(nil) == 15 && WebPlan.watchSeconds(2) == 5 && WebPlan.watchSeconds(500) == 40 && WebPlan.watchSeconds(.nan) == 15 && WebPlan.watchSeconds(20) == 20)
+  precondition(WebPlan.screenWatchBody(question:"what happens?",frames:[Data([1]),Data([2])]) != nil && WebPlan.screenWatchBody(question:"x",frames:[Data([1])]) == nil)
   print("All data checks passed.")
  }
 }

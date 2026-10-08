@@ -19,10 +19,7 @@
     "fee_per_share": 0.0099,
     "slippage_pct": 0.1
   },
-  "practice_deposits": {
-    "amount_cad": 100,
-    "every_days": 14,
-    "first": "2026-09-30"
-  },
+  "practice_deposits": null,
+  "practice_deposits_note": "Paused 2026-10-08: no real deposits were ever made, so the practice mirror stops too. Put the old block back to restart it.",
   "check_every_seconds": 10
 }

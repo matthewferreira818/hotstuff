@@ -26,7 +26,7 @@ Canadian tax residents, not even practice ones.
   whole account (cash + stocks), never under $100 (smaller and the fees
   eat it), never over 20% in one stock, never more than the cash on hand.
   As deposits grow the account, the bets grow and the fees matter less.
-- **Payday deposits** (`practice_deposits`): mirrors Matthew adding
+- **Payday deposits** (`practice_deposits`, PAUSED 2026-10-08: set to null in the watchlists; the deposits already made stay in the fake accounts): mirrors Matthew adding
   $100 CAD per paycheque, converted to US dollars at the day's rate. The
   "same money in SPY" comparison buys SPY with each deposit too, so it
   stays fair. Set `first` to the next payday to switch it on.

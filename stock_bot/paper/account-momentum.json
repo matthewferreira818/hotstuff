@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:28+00:00",
  "start_cash": 1000.0,
- "cash": 963.27,
+ "cash": 856.93,
  "spy_at_start": 764.384,
  "positions": {
   "MU": {
@@ -9,6 +9,10 @@
    "avg_entry_price": 1108.3389,
    "peak": 1086.4949951171875,
    "trail": 13.02
+  },
+  "PLTR": {
+   "qty": 0.5265734921743409,
+   "avg_entry_price": 201.9471
   }
  },
  "orders": [
@@ -20,6 +24,16 @@
    "qty": 0.096568,
    "price": 1087.7316,
    "dollars": 107.03,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-08T19:35:06+00:00",
+   "symbol": "PLTR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.526573,
+   "price": 198.168,
+   "dollars": 106.34,
    "fee": 1.99
   }
  ],

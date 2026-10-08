@@ -104,11 +104,12 @@ can't be used (Google needs a live recording made inside its own tool) and nothi
 Practice-money trading bot in `stock_bot/` (guide: stock_bot/README.md;
 live app: findhotstuff.com/stock_bot/live/). Research so far says its
 rules do NOT beat just holding (stock_bot/research/). Real broker route:
-Moomoo Canada (applied 09-27). Matthew plans to add ~$100 CAD per
-paycheque (every second Wednesday, from 09-30) to Moomoo; that money sits
-as cash until a strategy passes the six-condition gate in
-.claude/skills/stock-council/SKILL.md. The practice account mirrors the
-same deposits. Moomoo approved 09-27 and is wired in:
+Moomoo Canada (applied 09-27). Matthew had planned to add ~$100 CAD per
+paycheque (every second Wednesday, from 09-30) to Moomoo, cash only until
+a strategy passes the six-condition gate in .claude/skills/stock-council/SKILL.md.
+**PAUSED 2026-10-08: nothing real was ever deposited, and nothing goes to
+Moomoo until he says so.** The practice account's mirrored deposits are fake
+money. Moomoo approved 09-27 and is wired in:
 `stock_bot/moomoo_broker.py` runs on Matthew's Mac through moomoo OpenD
 (setup: stock_bot/MOOMOO-SETUP.md), on Moomoo's PAPER account by default.
 Real money needs three switches, all his: env real, live_auto_trade true,

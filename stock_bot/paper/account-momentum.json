@@ -12,7 +12,9 @@
   },
   "PLTR": {
    "qty": 0.5265734921743409,
-   "avg_entry_price": 201.9471
+   "avg_entry_price": 201.9471,
+   "peak": 198.0095977783203,
+   "trail": 9.19
   }
  },
  "orders": [
@@ -47,5 +49,5 @@
   }
  ],
  "next_deposit": "2026-10-14",
- "last_close_check": "2026-10-07"
+ "last_close_check": "2026-10-08"
 }

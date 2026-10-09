@@ -18,7 +18,9 @@
   },
   "SNOW": {
    "qty": 0.2842871414299986,
-   "avg_entry_price": 374.8675
+   "avg_entry_price": 374.8675,
+   "peak": 367.5,
+   "trail": 11.81
   }
  },
  "orders": [
@@ -63,5 +65,5 @@
   }
  ],
  "next_deposit": "2026-10-14",
- "last_close_check": "2026-10-08"
+ "last_close_check": "2026-10-09"
 }

@@ -260,6 +260,7 @@ extension CompanionInterfaceView {
   ScrollView {
    VStack(alignment:.leading,spacing:18) {
     hubStreamHeader
+    hubStreamObs
     if !clips.signedIn {
      hubStreamConnect
     } else if clips.channel.trimmingCharacters(in:.whitespaces).isEmpty {
@@ -297,7 +298,7 @@ extension CompanionInterfaceView {
     if !stream.message.isEmpty {
      Text(stream.message).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.75)).textSelection(.enabled)
     }
-    Text("Twitch doesn't let any app press Start Streaming for you; that stays in OBS or Streamlabs. Nothing on this page changes your channel until you press Update, Mark or Clip.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+    Text("Twitch itself doesn't let an app press Start Streaming; Friday can ask OBS to, but only after you press Allow. Nothing on this page changes your channel until you press Update, Mark or Clip.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
    }
    .padding(.horizontal,32).padding(.bottom,30)
   }
@@ -491,6 +492,7 @@ extension CompanionInterfaceView {
    hubCheck(clips.voiceClips,"\"Clip it\" by voice is on","Tick it in Settings before starting Friday.")
    hubCheck(clips.signedIn,"Friday can run this page by voice","Connect Twitch in Accounts; then just ask her.")
    hubCheck(chat.on,"Chat helper is on (posts your links while you're live)","Press Start in the Chat helper card.")
+   hubCheck(obs.ready,"OBS is linked to Friday","Use the OBS card at the top of this page.")
    hubCheck(stream.live != nil,"You're live on Twitch","Start streaming in OBS or Streamlabs.")
    Button { if let url = URL(string:"https://dashboard.twitch.tv/settings/stream") { NSWorkspace.shared.open(url) } } label: { Label("Open Twitch: store past broadcasts",systemImage:"arrow.up.right.square") }
     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))

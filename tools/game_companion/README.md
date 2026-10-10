@@ -685,3 +685,33 @@ Google's servers, not his Mac: they aren't logged in as him, can't use his cooki
 
 - **Build notes (2026-10-07):** the "Game notes and build context" box in Settings (on the Game view) now takes up to 2000 characters (it silently cut at 400) and grows to show what you paste, so a whole
   12-slot build with its enchantments fits. Friday reads it as true facts about his game and can coach him through it. (She still can't equip anything: she has no way to press a console's buttons.)
+
+## OBS: Friday can work it (2026-10-10)
+
+Matthew's plan (2026-10-10): stream the PlayStation to Twitch **through OBS Studio on the Mac**, with a camera that is not plugged into the
+console, and let Friday work OBS. New files: `ObsData.swift` (the rules, tested on any machine) and `ObsBridge.swift` (the short visits to OBS and
+the **OBS card at the top of the Stream page**).
+
+**How it works.** OBS has a remote-control door built in since OBS 28 (*Tools → WebSocket Server Settings*, speaks "obs-websocket 5.x"). Each job
+opens a short connection to OBS on **this Mac only** (`ws://127.0.0.1:<port>`, port 4455 unless changed), logs in, sends its requests and hangs up.
+The login is OBS's recipe (`base64(sha256(base64(sha256(password + salt)) + challenge))`); the SHA-256 is plain Swift in `ObsData.swift`, so it
+is tested here against Python's `hashlib` and against the protocol document's own example (password `supersecretpassword`).
+Checked on 2026-10-10 against `docs/generated/protocol.md` in github.com/obsproject/obs-websocket: opcodes 0/1/2/6/7, the request names
+`GetVersion`, `GetStreamStatus`, `GetRecordStatus`, `GetReplayBufferStatus`, `GetSceneList`, `GetInputList`, `SetCurrentProgramScene`,
+`StartReplayBuffer`, `SaveReplayBuffer`, `GetLastReplayBufferReplay`, `GetSpecialInputs`, `SetInputMute`, `StartStream`, `StopStream`, and the
+close code 4009 for a wrong password. Not seen on a real OBS yet: the first run on Matthew's Mac is the true test.
+
+**Set up (once).** Install OBS from obsproject.com. In OBS: *Tools → WebSocket Server Settings*, tick *Enable WebSocket server*, press *Show
+Connect Info*, copy the password. In the app: Stream page → OBS card → paste it → **Save and test**. The password is saved in a private file
+(`SecretFile.swift`, like the other keys). It is never in the feed, in chat or in the repo, and Friday never sees it. If the test passes, the card
+says LINKED and the switch lets Friday use OBS.
+
+**What Friday can do** (tools exist only while OBS is linked and the switch is on): `obs_status` (live or recording, current scene, replay
+buffer, scene and source names), `obs_scene` (switch scene by name; asks which one if several fit), `obs_replay` (save the last moments, or turn
+the replay buffer on), `obs_mute` (mic or game sound, or a source by name), and `obs_stream` (**go live or end the stream**).
+Only Matthew's voice can ask; **going live or ending the stream always waits for his press on the Allow box** (the same box her hands use,
+25 seconds then it counts as Deny), at most 2 changes in 2 minutes, and she checks OBS first (no "go live" if already live). Everything else is
+rate-limited to 20 OBS visits a minute. The card also has scene buttons and **Save a replay**.
+
+**What it won't do.** It never talks to another machine, never starts anything on its own, and never touches OBS settings, sources or the stream
+key (the key stays in OBS). It does not capture the PlayStation or the camera: that part is set up inside OBS itself, not by this app.

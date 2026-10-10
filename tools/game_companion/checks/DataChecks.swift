@@ -2,7 +2,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift VoiceOverData.swift WebData.swift ObsData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -272,6 +272,62 @@ import Foundation
   precondition(WebPlan.cleanQuestion("") == WebPlan.defaultReadQuestion && WebPlan.cleanQuestion("how do I\nget loot?") == "how do I get loot?" && WebPlan.youtubeBody(url:URL(string:"https://www.youtube.com/watch?v=dQw4w9WgXcQ")!,question:"x") != nil && WebPlan.pageBody(url:URL(string:"https://example.com/a")!,question:"") != nil)
   precondition(WebPlan.watchSeconds(nil) == 15 && WebPlan.watchSeconds(2) == 5 && WebPlan.watchSeconds(500) == 40 && WebPlan.watchSeconds(.nan) == 15 && WebPlan.watchSeconds(20) == 20)
   precondition(WebPlan.screenWatchBody(question:"what happens?",frames:[Data([1]),Data([2])]) != nil && WebPlan.screenWatchBody(question:"x",frames:[Data([1])]) == nil)
+  // OBS link: the login maths (checked against Python's hashlib and the protocol document's own example), the message shapes, names and words.
+  func hex(_ bytes: [UInt8]) -> String { bytes.map { String(format:"%02x",$0) }.joined() }
+  precondition(hex(ObsPlan.sha256([])) == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+  precondition(hex(ObsPlan.sha256(Array("abc".utf8))) == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad")
+  precondition(hex(ObsPlan.sha256(Array("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq".utf8))) == "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1")
+  precondition(hex(ObsPlan.sha256([UInt8](repeating:97,count:55))) == "9f4390f8d30c2dd92ec9f095b65e2b9ae9b0a925a5258e241c9f1e910f734318")
+  precondition(hex(ObsPlan.sha256([UInt8](repeating:97,count:56))) == "b35439a4ac6f0948b6d6f9e3c6af0f5f590ce20f1bde7090ef7970686ec6738a")
+  precondition(hex(ObsPlan.sha256([UInt8](repeating:97,count:64))) == "ffe054fe7ae0cb6dc65c3af9b61d5209f439851db43d0ba5997337df154668eb")
+  precondition(hex(ObsPlan.sha256([UInt8](repeating:97,count:119))) == "31eba51c313a5c08226adf18d4a359cfdfd8d2e816b13f4af952f7ea6584dcfb")
+  precondition(hex(ObsPlan.sha256([UInt8](repeating:97,count:1_000_000))) == "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0")
+  precondition(ObsPlan.authentication(password:"supersecretpassword",salt:"lM1GncleQOaCu9lT1yeUZhFYnqhsLLP1G5lAGo3ixaI=",challenge:"+IxH4CnCiqpX1rM9scsNynZzbOe4KhDeYcTNS3PDaeY=") == "1Ct943GAT+6YQUUX47Ia/ncufilbe6+oD6lY+5kaCu4=")
+  precondition(ObsPlan.authentication(password:"pässword ✓",salt:"salt",challenge:"chal") == "fzeYX1qi64ErPGyLkB1tILSFxzLfZw5QLGC+AesI5B8=")
+  precondition(ObsPlan.port("") == 4455 && ObsPlan.port(" 4456 ") == 4456 && ObsPlan.port("80") == nil && ObsPlan.port("70000") == nil && ObsPlan.port("44a5") == nil && ObsPlan.port("-1") == nil && ObsPlan.port("123456") == nil)
+  precondition(ObsPlan.url(port:4455)?.absoluteString == "ws://127.0.0.1:4455")
+  let helloText = "{\"op\":0,\"d\":{\"obsStudioVersion\":\"31.0.0\",\"obsWebSocketVersion\":\"5.5.4\",\"rpcVersion\":1,\"authentication\":{\"challenge\":\"abc=\",\"salt\":\"xyz=\"}}}"
+  let hi = ObsPlan.hello(Data(helloText.utf8))
+  precondition(hi?.needsPassword == true && hi?.challenge == "abc=" && hi?.salt == "xyz=" && hi?.obsVersion == "31.0.0" && hi?.socketVersion == "5.5.4" && hi?.rpc == 1)
+  let noPassword = ObsPlan.hello(Data("{\"op\":0,\"d\":{\"obsStudioVersion\":\"31.0.0\",\"obsWebSocketVersion\":\"5.5.4\",\"rpcVersion\":1}}".utf8))
+  precondition(noPassword != nil && noPassword?.needsPassword == false)
+  precondition(ObsPlan.hello(Data("{\"op\":2,\"d\":{}}".utf8)) == nil && ObsPlan.hello(Data("nonsense".utf8)) == nil)
+  let ident = ObsPlan.object(ObsPlan.identify(authentication:"AUTH")!)!
+  let identBody = ident["d"] as! [String:Any]
+  precondition(ObsPlan.int(ident["op"]) == 1 && ObsPlan.int(identBody["rpcVersion"]) == 1 && ObsPlan.int(identBody["eventSubscriptions"]) == 0 && identBody["authentication"] as? String == "AUTH")
+  precondition((ObsPlan.object(ObsPlan.identify(authentication:nil)!)!["d"] as! [String:Any])["authentication"] == nil)
+  precondition(ObsPlan.isIdentified(Data("{\"op\":2,\"d\":{\"negotiatedRpcVersion\":1}}".utf8)) && !ObsPlan.isIdentified(Data("{\"op\":5,\"d\":{}}".utf8)))
+  let asked = ObsPlan.object(ObsPlan.request(type:"SetCurrentProgramScene",id:"r1",fields:["sceneName":"Game"])!)!
+  let askedBody = asked["d"] as! [String:Any]
+  precondition(ObsPlan.int(asked["op"]) == 6 && askedBody["requestType"] as? String == "SetCurrentProgramScene" && askedBody["requestId"] as? String == "r1" && (askedBody["requestData"] as? [String:Any])?["sceneName"] as? String == "Game")
+  precondition((ObsPlan.object(ObsPlan.request(type:"GetVersion",id:"r2")!)!["d"] as! [String:Any])["requestData"] == nil)
+  let good = ObsPlan.reply(Data("{\"op\":7,\"d\":{\"requestType\":\"GetStreamStatus\",\"requestId\":\"r3\",\"requestStatus\":{\"result\":true,\"code\":100},\"responseData\":{\"outputActive\":true,\"outputDuration\":754000}}}".utf8))
+  precondition(good?.ok == true && good?.id == "r3" && good?.type == "GetStreamStatus" && good?.code == 100 && (good?.fields["outputActive"] as? Bool) == true && ObsPlan.minutes(milliseconds:ObsPlan.number(good?.fields["outputDuration"])) == 12)
+  let bad = ObsPlan.reply(Data("{\"op\":7,\"d\":{\"requestType\":\"SaveReplayBuffer\",\"requestId\":\"r4\",\"requestStatus\":{\"result\":false,\"code\":604,\"comment\":\"Replay buffer is not active\"}}}".utf8))!
+  precondition(!bad.ok && bad.code == 604 && bad.fields.isEmpty && ObsPlan.failure(bad,doing:"saving a replay").contains("Replay buffer is not active"))
+  precondition(ObsPlan.reply(Data("{\"op\":5,\"d\":{}}".utf8)) == nil && ObsPlan.reply(Data("{\"op\":7,\"d\":{}}".utf8)) == nil)
+  precondition(ObsPlan.failure(ObsPlan.Reply(id:"x",type:"T",ok:false,code:207,comment:"",fields:[:]),doing:"x").contains("isn't ready") && ObsPlan.failure(ObsPlan.Reply(id:"x",type:"T",ok:false,code:999,comment:"",fields:[:]),doing:"going live").contains("999"))
+  precondition(ObsPlan.closeReason(4009).contains("password") && ObsPlan.closeReason(1234).contains("1234"))
+  let sceneNames = ["Game Only","Game + Face Cam","Starting Soon","BRB"]
+  precondition(ObsPlan.pick("brb",from:sceneNames) == .one("BRB") && ObsPlan.pick("the BRB scene",from:sceneNames) == .none && ObsPlan.pick("BRB scene",from:sceneNames) == .one("BRB"))
+  precondition(ObsPlan.pick("starting",from:sceneNames) == .one("Starting Soon") && ObsPlan.pick("face cam",from:sceneNames) == .one("Game + Face Cam"))
+  precondition(ObsPlan.pick("game",from:sceneNames) == .several(["Game Only","Game + Face Cam"]) && ObsPlan.pick("lobby",from:sceneNames) == .none && ObsPlan.pick("  ",from:sceneNames) == .none)
+  precondition(ObsPlan.pick("GAME ONLY",from:sceneNames) == .one("Game Only") && ObsPlan.pick("game",from:["Game","Game Over"]) == .one("Game"))
+  precondition(ObsPlan.muteTarget("My Microphone") == .mic && ObsPlan.muteTarget("game sound") == .desktop && ObsPlan.muteTarget(" Elgato Audio ") == .named("Elgato Audio"))
+  precondition(ObsPlan.cleanName("  Game\u{0007} scene ") == "Game scene" && ObsPlan.cleanName("   ") == nil && ObsPlan.cleanName(String(repeating:"x",count:101)) == nil)
+  precondition(ObsPlan.duration(0) == "under a minute" && ObsPlan.duration(1) == "1 minute" && ObsPlan.duration(45) == "45 minutes" && ObsPlan.duration(60) == "1 hour" && ObsPlan.duration(125) == "2 hours 5 minutes" && ObsPlan.duration(61) == "1 hour 1 minute")
+  precondition(ObsPlan.minutes(milliseconds:nil) == 0 && ObsPlan.minutes(milliseconds:-5) == 0 && ObsPlan.minutes(milliseconds:59_999) == 0 && ObsPlan.minutes(milliseconds:60_000) == 1)
+  precondition(ObsPlan.skippedPercent(skipped:50,total:100) == 0 && abs(ObsPlan.skippedPercent(skipped:30,total:1000) - 3) < 0.001 && ObsPlan.skippedPercent(skipped:nil,total:1000) == 0)
+  var snap = ObsPlan.Snapshot()
+  snap.scene = "Game + Face Cam"; snap.scenes = sceneNames; snap.inputs = ["Mic/Aux","Elgato"]; snap.replayOn = true
+  let idle = ObsPlan.describe(snap)
+  precondition(idle.contains("NOT streaming") && idle.contains("replay buffer is on") && idle.contains("“Game + Face Cam”") && idle.contains("“Elgato”") && !idle.contains("LIVE"))
+  snap.streaming = true; snap.streamMinutes = 12; snap.skippedPercent = 4.4; snap.recording = true
+  let obsLive = ObsPlan.describe(snap)
+  precondition(obsLive.contains("LIVE, on air for 12 minutes") && obsLive.contains("4%") && obsLive.contains("recording") && !obsLive.contains("NOT streaming"))
+  precondition(ObsPlan.goLiveDetail(scene:"Game").contains("“Game”") && ObsPlan.goLiveDetail(scene:"").contains("public") && ObsPlan.stopDetail.contains("end"))
+  let obsT0 = Date(timeIntervalSince1970:1_000_000)
+  precondition(ObsPlan.underLimit([],now:obsT0,window:60,max:3) && !ObsPlan.underLimit([obsT0,obsT0.addingTimeInterval(-5),obsT0.addingTimeInterval(-10)],now:obsT0,window:60,max:3) && ObsPlan.underLimit([obsT0.addingTimeInterval(-70),obsT0.addingTimeInterval(-80),obsT0.addingTimeInterval(-5)],now:obsT0,window:60,max:3))
   print("All data checks passed.")
  }
 }

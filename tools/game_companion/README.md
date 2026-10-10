@@ -714,4 +714,5 @@ Only Matthew's voice can ask; **going live or ending the stream always waits for
 rate-limited to 20 OBS visits a minute. The card also has scene buttons and **Save a replay**.
 
 **What it won't do.** It never talks to another machine, never starts anything on its own, and never touches OBS settings, sources or the stream
-key (the key stays in OBS). It does not capture the PlayStation or the camera: that part is set up inside OBS itself, not by this app.
+key (the key stays in OBS). It does not capture the PlayStation or the camera: that part is set up inside OBS itself, not by this app. The verified free route for a PS5 (Remote Play on the Mac) with a phone as the camera is in
+`OBS-SETUP.md`.

@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 490.4,
+ "cash": 0.93,
  "spy_at_start": 777.22,
  "positions": {
   "ACHR": {
    "qty": 102.82867817114392,
    "avg_entry_price": 4.7691,
    "fill": 4.7497
+  },
+  "PLUG": {
+   "qty": 302.7913630922292,
+   "avg_entry_price": 1.6165,
+   "fill": 1.6066
   }
  },
  "orders": [
@@ -80,6 +85,16 @@
    "price": 4.7497,
    "dollars": 490.4,
    "fee": 1.99
+  },
+  {
+   "time": "2026-10-12T14:04:22+00:00",
+   "symbol": "PLUG",
+   "side": "buy",
+   "status": "filled",
+   "qty": 302.791363,
+   "price": 1.6066,
+   "dollars": 489.47,
+   "fee": 3.0
   }
  ],
  "deposited": 1000.0,

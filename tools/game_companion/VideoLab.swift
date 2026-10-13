@@ -125,6 +125,15 @@ import UniformTypeIdentifiers
   board.writeObjects([image])
  }
 
+ // Every sheet at once, as separate pictures on the clipboard. Some chat boxes paste them all, some only the first; the single-sheet buttons always work.
+ func copyAllSheets() {
+  let images = sheets.compactMap { NSImage(contentsOf:$0) }
+  guard !images.isEmpty else { return }
+  let board = NSPasteboard.general
+  board.clearContents()
+  board.writeObjects(images)
+ }
+
  func copyWords() {
   guard !words.isEmpty else { return }
   let board = NSPasteboard.general
@@ -176,6 +185,9 @@ extension CompanionInterfaceView {
    Text("For a TikTok: save it first (the Share button, then Save video, or on tiktok.com right-click the video and choose Download video when the creator allows it), then choose that file here. Only use videos that are yours or that you saved as a reference. Nothing is posted anywhere.").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
    HStack(spacing:10) {
     Button { lab.choose() } label: { Label("Choose a video…",systemImage:"film") }.buttonStyle(PillButtonStyle()).disabled(lab.working)
+    if lab.sheets.count > 1 {
+     Button { lab.copyAllSheets() } label: { Label("Copy all \(lab.sheets.count) sheets",systemImage:"square.stack") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    }
     ForEach(Array(lab.sheets.enumerated()),id:\.offset) { item in
      Button { lab.copySheet(item.offset + 1) } label: { Label("Copy sheet \(item.offset + 1)",systemImage:"doc.on.clipboard") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
     }

@@ -46,12 +46,12 @@ enum VideoLabPlan {
   }
  }
 
- // Pictures per sheet, chosen so a sheet is about 2000 wide and not much taller than 2000.
+ // Pictures per sheet: a 45-second video (24 pictures) fits on ONE sheet, so most short videos need a single paste.
  static func perSheet(_ shape: Shape) -> Int {
   switch shape {
-  case .tall: return 18
-  case .square: return 15
-  case .wide: return 16
+  case .tall: return 24
+  case .square: return 20
+  case .wide: return 20
   }
  }
 

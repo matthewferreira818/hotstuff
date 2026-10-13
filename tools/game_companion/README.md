@@ -726,7 +726,7 @@ Matthew's ask: "we need to find a way for you to analyze videos". Claude (in the
 **Choose a video…** (a screen recording, or a TikTok he saved: TikTok's Share, then Save video, or right-click the video on tiktok.com and choose
 Download video when the creator allows it). The lab then:
 1. Takes 12 to 48 pictures spread evenly through the video (12 for 15 seconds or less, up to 48 for over two minutes), stamped with their times.
-2. Lays them out as **contact sheets** (JPEGs about 2000 pixels wide: 6 across for a phone-shaped video, 4 for a wide one; up to 3 sheets) in
+2. Lays them out as **contact sheets** (JPEGs about 2000 pixels wide: 6 across for a phone-shaped video, 4 for a wide one; 24 pictures per sheet for a phone-shaped video, so a video up to 45 seconds needs one sheet; up to 3 sheets) in
    `Movies / Game Companion Clips / Video Lab / <name>-<date>/`. **Sheet 1 goes on the clipboard** so he can paste it straight into the chat with Claude;
    **Copy sheet 2 / 3** buttons do the rest.
 3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 5 minutes) to Google with his free Gemini key and

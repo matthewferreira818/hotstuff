@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-13 from commit e4ecbe6. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-13 from commit 213a592. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -7222,12 +7222,12 @@ enum VideoLabPlan {
   }
  }
 
- // Pictures per sheet, chosen so a sheet is about 2000 wide and not much taller than 2000.
+ // Pictures per sheet: a 45-second video (24 pictures) fits on ONE sheet, so most short videos need a single paste.
  static func perSheet(_ shape: Shape) -> Int {
   switch shape {
-  case .tall: return 18
-  case .square: return 15
-  case .wide: return 16
+  case .tall: return 24
+  case .square: return 20
+  case .wide: return 20
   }
  }
 
@@ -7414,6 +7414,15 @@ import UniformTypeIdentifiers
   board.writeObjects([image])
  }
 
+ // Every sheet at once, as separate pictures on the clipboard. Some chat boxes paste them all, some only the first; the single-sheet buttons always work.
+ func copyAllSheets() {
+  let images = sheets.compactMap { NSImage(contentsOf:$0) }
+  guard !images.isEmpty else { return }
+  let board = NSPasteboard.general
+  board.clearContents()
+  board.writeObjects(images)
+ }
+
  func copyWords() {
   guard !words.isEmpty else { return }
   let board = NSPasteboard.general
@@ -7465,6 +7474,9 @@ extension CompanionInterfaceView {
    Text("For a TikTok: save it first (the Share button, then Save video, or on tiktok.com right-click the video and choose Download video when the creator allows it), then choose that file here. Only use videos that are yours or that you saved as a reference. Nothing is posted anywhere.").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
    HStack(spacing:10) {
     Button { lab.choose() } label: { Label("Choose a video…",systemImage:"film") }.buttonStyle(PillButtonStyle()).disabled(lab.working)
+    if lab.sheets.count > 1 {
+     Button { lab.copyAllSheets() } label: { Label("Copy all \(lab.sheets.count) sheets",systemImage:"square.stack") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    }
     ForEach(Array(lab.sheets.enumerated()),id:\.offset) { item in
      Button { lab.copySheet(item.offset + 1) } label: { Label("Copy sheet \(item.offset + 1)",systemImage:"doc.on.clipboard") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
     }
@@ -11125,8 +11137,8 @@ import Foundation
   let wideSheet = VideoLabPlan.layout(count:3,aspect:16.0 / 9.0)!
   precondition(wideSheet == VideoLabPlan.Layout(columns:3,rows:1,tileWidth:487,tileHeight:273,sheetHeight:367) && VideoLabPlan.layout(count:0,aspect:1) == nil)
   for aspect in [0.46,0.5625,1,1.78,3.0] { for count in [1,7,12,18,24] { let l = VideoLabPlan.layout(count:min(count,VideoLabPlan.perSheet(VideoLabPlan.shape(aspect:aspect))),aspect:aspect)!; precondition(l.tileWidth > 0 && l.tileHeight > 0 && l.sheetHeight > 0 && l.sheetHeight < 3200 && l.columns * l.rows >= min(count,VideoLabPlan.perSheet(VideoLabPlan.shape(aspect:aspect)))) } }
-  precondition(VideoLabPlan.sheetRanges(total:48,aspect:9.0 / 16.0) == [0..<18,18..<36,36..<48] && VideoLabPlan.sheetRanges(total:60,aspect:9.0 / 16.0) == [0..<18,18..<36,36..<54])
-  precondition(VideoLabPlan.sheetRanges(total:20,aspect:16.0 / 9.0) == [0..<16,16..<20] && VideoLabPlan.sheetRanges(total:0,aspect:1).isEmpty)
+  precondition(VideoLabPlan.sheetRanges(total:24,aspect:9.0 / 16.0) == [0..<24] && VideoLabPlan.sheetRanges(total:36,aspect:9.0 / 16.0) == [0..<24,24..<36] && VideoLabPlan.sheetRanges(total:80,aspect:9.0 / 16.0) == [0..<24,24..<48,48..<72])
+  precondition(VideoLabPlan.sheetRanges(total:30,aspect:16.0 / 9.0) == [0..<20,20..<30] && VideoLabPlan.sheetRanges(total:0,aspect:1).isEmpty)
   precondition(VideoLabPlan.label(7) == "0:07" && VideoLabPlan.label(65) == "1:05" && VideoLabPlan.label(3723) == "1:02:03" && VideoLabPlan.label(-5) == "0:00" && VideoLabPlan.label(.nan) == "0:00")
   precondition(VideoLabPlan.folderName(for:"My TikTok (final) #2.mp4",stamp:"20261013-101500") == "My-TikTok-final-2-20261013-101500" && VideoLabPlan.folderName(for:"../../etc/passwd.mp4",stamp:"s") == "etc-passwd-s" && VideoLabPlan.folderName(for:"日本語.mov",stamp:"s") == "video-s")
   precondition(VideoLabPlan.folderName(for:String(repeating:"a",count:90) + ".mp4",stamp:"s").count == 42 && VideoLabPlan.question.contains("every word spoken") && VideoLabPlan.question.contains("Describe only what is really in the video"))
@@ -11866,7 +11878,7 @@ Matthew's ask: "we need to find a way for you to analyze videos". Claude (in the
 **Choose a video…** (a screen recording, or a TikTok he saved: TikTok's Share, then Save video, or right-click the video on tiktok.com and choose
 Download video when the creator allows it). The lab then:
 1. Takes 12 to 48 pictures spread evenly through the video (12 for 15 seconds or less, up to 48 for over two minutes), stamped with their times.
-2. Lays them out as **contact sheets** (JPEGs about 2000 pixels wide: 6 across for a phone-shaped video, 4 for a wide one; up to 3 sheets) in
+2. Lays them out as **contact sheets** (JPEGs about 2000 pixels wide: 6 across for a phone-shaped video, 4 for a wide one; 24 pictures per sheet for a phone-shaped video, so a video up to 45 seconds needs one sheet; up to 3 sheets) in
    `Movies / Game Companion Clips / Video Lab / <name>-<date>/`. **Sheet 1 goes on the clipboard** so he can paste it straight into the chat with Claude;
    **Copy sheet 2 / 3** buttons do the rest.
 3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 5 minutes) to Google with his free Gemini key and

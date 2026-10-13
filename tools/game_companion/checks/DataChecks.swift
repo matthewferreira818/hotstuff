@@ -338,8 +338,8 @@ import Foundation
   let wideSheet = VideoLabPlan.layout(count:3,aspect:16.0 / 9.0)!
   precondition(wideSheet == VideoLabPlan.Layout(columns:3,rows:1,tileWidth:487,tileHeight:273,sheetHeight:367) && VideoLabPlan.layout(count:0,aspect:1) == nil)
   for aspect in [0.46,0.5625,1,1.78,3.0] { for count in [1,7,12,18,24] { let l = VideoLabPlan.layout(count:min(count,VideoLabPlan.perSheet(VideoLabPlan.shape(aspect:aspect))),aspect:aspect)!; precondition(l.tileWidth > 0 && l.tileHeight > 0 && l.sheetHeight > 0 && l.sheetHeight < 3200 && l.columns * l.rows >= min(count,VideoLabPlan.perSheet(VideoLabPlan.shape(aspect:aspect)))) } }
-  precondition(VideoLabPlan.sheetRanges(total:48,aspect:9.0 / 16.0) == [0..<18,18..<36,36..<48] && VideoLabPlan.sheetRanges(total:60,aspect:9.0 / 16.0) == [0..<18,18..<36,36..<54])
-  precondition(VideoLabPlan.sheetRanges(total:20,aspect:16.0 / 9.0) == [0..<16,16..<20] && VideoLabPlan.sheetRanges(total:0,aspect:1).isEmpty)
+  precondition(VideoLabPlan.sheetRanges(total:24,aspect:9.0 / 16.0) == [0..<24] && VideoLabPlan.sheetRanges(total:36,aspect:9.0 / 16.0) == [0..<24,24..<36] && VideoLabPlan.sheetRanges(total:80,aspect:9.0 / 16.0) == [0..<24,24..<48,48..<72])
+  precondition(VideoLabPlan.sheetRanges(total:30,aspect:16.0 / 9.0) == [0..<20,20..<30] && VideoLabPlan.sheetRanges(total:0,aspect:1).isEmpty)
   precondition(VideoLabPlan.label(7) == "0:07" && VideoLabPlan.label(65) == "1:05" && VideoLabPlan.label(3723) == "1:02:03" && VideoLabPlan.label(-5) == "0:00" && VideoLabPlan.label(.nan) == "0:00")
   precondition(VideoLabPlan.folderName(for:"My TikTok (final) #2.mp4",stamp:"20261013-101500") == "My-TikTok-final-2-20261013-101500" && VideoLabPlan.folderName(for:"../../etc/passwd.mp4",stamp:"s") == "etc-passwd-s" && VideoLabPlan.folderName(for:"日本語.mov",stamp:"s") == "video-s")
   precondition(VideoLabPlan.folderName(for:String(repeating:"a",count:90) + ".mp4",stamp:"s").count == 42 && VideoLabPlan.question.contains("every word spoken") && VideoLabPlan.question.contains("Describe only what is really in the video"))

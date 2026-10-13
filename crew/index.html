@@ -126,8 +126,8 @@ const REPO = "matthewferreira818/hotstuff";
 const API = "https://api.github.com/repos/" + REPO;
 const RAW = "https://raw.githubusercontent.com/" + REPO + "/";
 const TZ = "America/Moncton";
-const CACHE_MS = 5 * 60 * 1000;     // reuse answers for 5 minutes so a reload doesn't spend GitHub's free hourly limit
-const POLL_MS = 3 * 60 * 1000;      // re-check "who is working" every 3 minutes while the tab is open
+const CACHE_MS = 20 * 60 * 1000;    // last-run answers are reused for 20 minutes so a reload doesn't spend GitHub's free hourly limit
+const POLL_MS = 4 * 60 * 1000;      // re-check "who is working" every 4 minutes while the tab is open
 
 /* The crew. wf = the GitHub workflow file that is this bot's job. look = how its character is drawn (all original). */
 const CREW = [
@@ -189,24 +189,36 @@ function timer(ms) {
 /* ---------- reading the public record ---------- */
 function note(text, kind) { const b = $("banner"); b.textContent = text; b.className = "banner" + (kind ? " " + kind : ""); }
 
-async function gh(path, ttl) {
+/* allowStale: when GitHub can't be asked, an older reading of something that doesn't change by the minute (a finished run, a commit) is
+   still shown, with its age. "Who is working right now" is never served stale: a stale "working" would be a false claim. */
+async function gh(path, ttl, allowStale, cacheOnly) {
   const key = "crew.v1." + path;
   const age = ttl == null ? CACHE_MS : ttl;
+  let hit = null;
   try {
-    const hit = JSON.parse(localStorage.getItem(key) || "null");
+    hit = JSON.parse(localStorage.getItem(key) || "null");
     if (hit && Date.now() - hit.t < age) return hit.body;
   } catch (e) { /* no storage: fine */ }
-  const r = await fetch(API + path, { headers: { Accept: "application/vnd.github+json" } });
-  const left = r.headers.get("x-ratelimit-remaining");
-  if (left != null) { state.api.remaining = +left; state.api.reset = +r.headers.get("x-ratelimit-reset") * 1000; }
-  if (!r.ok) {
-    const err = new Error("GitHub said " + r.status);
-    err.status = r.status;
+  if (cacheOnly) {
+    if (hit && hit.body) { state.staleFrom = Math.min(state.staleFrom || Infinity, hit.t); return hit.body; }
+    throw new Error("not read (saving GitHub's free limit)");
+  }
+  try {
+    const r = await fetch(API + path, { headers: { Accept: "application/vnd.github+json" } });
+    const left = r.headers.get("x-ratelimit-remaining");
+    if (left != null) { state.api.remaining = +left; state.api.reset = +r.headers.get("x-ratelimit-reset") * 1000; }
+    if (!r.ok) {
+      const err = new Error("GitHub said " + r.status);
+      err.status = r.status;
+      throw err;
+    }
+    const body = await r.json();
+    try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), body })); } catch (e) { /* ignore */ }
+    return body;
+  } catch (err) {
+    if (allowStale && hit && hit.body) { state.staleFrom = Math.min(state.staleFrom || Infinity, hit.t); return hit.body; }
     throw err;
   }
-  const body = await r.json();
-  try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), body })); } catch (e) { /* ignore */ }
-  return body;
 }
 async function plain(url) {
   const r = await fetch(url, { cache: "no-store" });
@@ -227,7 +239,7 @@ async function loadRunsNow() {
   state.runsNow = now;
 }
 async function loadLast(file, ttl) {
-  const d = await gh("/actions/workflows/" + file + "/runs?per_page=3", ttl);
+  const d = await gh("/actions/workflows/" + file + "/runs?per_page=3", ttl, true);
   const done = (d.workflow_runs || []).find(r => r.status === "completed");
   state.lastRun[file] = done || null;
 }
@@ -243,19 +255,17 @@ async function loadAll() {
   for (const bot of CREW) if (bot.type === "action") apiJobs.push(loadLast(bot.wf));
   const settled = await Promise.allSettled(apiJobs);
   for (const s of settled) if (s.status === "rejected") apiError = s.reason;
-  // The two extras are nice to have, so skip them when GitHub's free limit is nearly used.
+  // The two extras are nice to have: when GitHub's free limit is nearly used, they come from the saved reading instead.
   const roomy = state.api.remaining == null || state.api.remaining > 12;
-  if (roomy) {
-    jobs.push(gh("/commits?per_page=20").then(c => { state.commits = c; }).catch(() => { state.commits = null; }));
-    jobs.push(gh("/issues/comments?sort=created&direction=desc&per_page=30").then(c => { state.comments = c; }).catch(() => { state.comments = null; }));
-  }
+  jobs.push(gh("/commits?per_page=20", null, true, !roomy).then(c => { state.commits = c; }).catch(() => { state.commits = null; }));
+  jobs.push(gh("/issues/comments?sort=created&direction=desc&per_page=30", null, true, !roomy).then(c => { state.comments = c; }).catch(() => { state.comments = null; }));
   await Promise.allSettled(jobs);
   state.fetchedAt = Date.now();
   if (apiError) {
     state.api.ok = false;
     if (apiError.status === 403 || apiError.status === 429) {
       const when = state.api.reset ? " It resets about " + clockStr(state.api.reset) + "." : "";
-      state.api.note = "GitHub's free look-up limit is used up for now." + when + " Desks that need it show UNKNOWN until then; nothing is guessed.";
+      state.api.note = "GitHub's free look-up limit is used up for now." + when + " Desks I have no reading for show UNKNOWN until then; nothing is guessed." + (state.staleFrom ? " Finished-run details come from my last reading at " + clockStr(state.staleFrom) + "." : "");
     } else {
       state.api.note = "Can't reach GitHub right now (" + apiError.message + "). Desks that need it show UNKNOWN.";
     }

@@ -66,7 +66,29 @@ body {
 .chip.waiting, .chip.queued { background: var(--amber); } .chip.watching { background: var(--blue); } .chip.closed { background: var(--grey); }
 .chip.active { background: var(--green); } .chip.quiet { background: var(--grey); } .chip.away { background: var(--violet); } .chip.unknown { background: #4b5578; color: #cfd6f5; }
 .floor { background: var(--panel); border: 2px solid var(--line); box-shadow: 0 0 0 2px #000; padding: 8px; }
-canvas#station { width: 100%; display: block; image-rendering: pixelated; background: #0a0f26; cursor: pointer; touch-action: manipulation; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.toolbar button { font: inherit; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); background: var(--panel-2); border: 2px solid var(--line-dim); padding: 6px 10px; cursor: pointer; }
+.toolbar button:hover { border-color: var(--line); color: var(--ink); }
+.toolbar button.on { border-color: var(--amber); color: var(--amber); }
+.toolbar button:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+.log ul { list-style: none; margin: 6px 0 0; padding: 0; font-size: 12px; line-height: 1.55; color: var(--ink-2); }
+.log li { padding: 2px 0; border-bottom: 1px solid var(--line-dim); }
+.log .lt { display: inline-block; min-width: 92px; color: var(--ink-3); }
+.log b { color: var(--amber); letter-spacing: .08em; margin-right: 2px; }
+.log b.bad { color: var(--red); }
+canvas#station { width: 100%; display: block; image-rendering: pixelated; background: #0a0f26; touch-action: manipulation; }
+.stage { position: relative; border: 2px solid var(--line-dim); overflow: hidden; }
+.stage::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(2, 4, 14, .55) 100%),
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, .13) 0, rgba(0, 0, 0, .13) 1px, transparent 1px, transparent 3px);
+}
+.floor { transition: box-shadow .6s; }
+.floor.busy { box-shadow: 0 0 0 2px #000, 0 0 30px rgba(61, 220, 132, .2); border-color: #2f8f63; }
+.dot { display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #4b5578; vertical-align: 1px; }
+.dot.on { background: var(--green); box-shadow: 0 0 8px var(--green); animation: beat 2.4s ease-in-out infinite; }
+@keyframes beat { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
 .card { margin-top: 8px; padding: 12px 14px; background: var(--panel-2); border: 2px solid var(--line-dim); min-height: 96px; }
 .card h2 { margin: 0 0 4px; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; }
 .card p { margin: 3px 0; color: var(--ink-2); }
@@ -80,7 +102,7 @@ canvas#station { width: 100%; display: block; image-rendering: pixelated; backgr
   .roster { order: 2; }
   .clock { text-align: left; }
 }
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } .dot.on { animation: none; } .floor { transition: none; } }
 </style>
 </head>
 <body>
@@ -92,7 +114,7 @@ canvas#station { width: 100%; display: block; image-rendering: pixelated; backgr
     <div class="stat"><b id="hDone">–</b><span>done today</span></div>
     <div class="stat"><b id="hDays">–</b><span id="hDaysLbl">site-feed posts</span></div>
     <div class="grow"></div>
-    <div class="clock"><b id="hClock">--:--:--</b><span class="lbl">Moncton time</span></div>
+    <div class="clock"><b id="hClock">--:--:--</b><span class="lbl"><i class="dot" id="liveDot"></i>Moncton time</span></div>
   </header>
   <div class="banner" id="banner">Connecting to the record…</div>
   <main class="layout">
@@ -100,9 +122,17 @@ canvas#station { width: 100%; display: block; image-rendering: pixelated; backgr
       <div class="roster-head">Crew &middot; <b id="rWork">0</b> working &middot; <b id="rDone">0</b> done today</div>
       <ul id="rosterList"></ul>
     </aside>
-    <section class="floor">
-      <canvas id="station" aria-label="The station: one desk for each bot"></canvas>
+    <section class="floor" id="floor">
+      <div class="toolbar" role="toolbar" aria-label="Camera">
+        <button type="button" data-view="all">All</button>
+        <button type="button" data-view="engine">Engine room</button>
+        <button type="button" data-view="trading">Trading floor</button>
+        <button type="button" data-view="bridge">The bridge</button>
+        <button type="button" id="tourBtn">▶ Tour</button>
+      </div>
+      <div class="stage"><canvas id="station" aria-label="The station: three rooms, one desk for each bot"></canvas></div>
       <div class="card" id="card"><h2>Tap a desk</h2><p>Pick any bot to see what it does, when it last ran, and the proof.</p></div>
+      <div class="card log"><h2>Work log</h2><ul id="logList"><li>Reading the public record…</li></ul></div>
     </section>
   </main>
   <div class="foot">
@@ -161,7 +191,7 @@ const CREW = [
 
 const state = {
   api: { ok: null, note: "", remaining: null, reset: null },
-  stats: null, runsNow: {}, lastRun: {}, snaps: {}, commits: null, comments: null,
+  stats: null, runsNow: {}, lastRun: {}, runCount: {}, snaps: {}, commits: null, comments: null,
   fetchedAt: null, selected: null, started: Date.now()
 };
 const $ = id => document.getElementById(id);
@@ -242,6 +272,7 @@ async function loadLast(file, ttl) {
   const d = await gh("/actions/workflows/" + file + "/runs?per_page=3", ttl, true);
   const done = (d.workflow_runs || []).find(r => r.status === "completed");
   state.lastRun[file] = done || null;
+  if (typeof d.total_count === "number") state.runCount[file] = d.total_count;
 }
 async function loadSnap(bot) {
   state.snaps[bot.id] = await plain(RAW + bot.live + "/live.json?nc=" + Date.now());
@@ -261,6 +292,7 @@ async function loadAll() {
   jobs.push(gh("/issues/comments?sort=created&direction=desc&per_page=30", null, true, !roomy).then(c => { state.comments = c; }).catch(() => { state.comments = null; }));
   await Promise.allSettled(jobs);
   state.fetchedAt = Date.now();
+  if (typeof renderLog === "function") renderLog();
   if (apiError) {
     state.api.ok = false;
     if (apiError.status === 403 || apiError.status === 429) {
@@ -419,26 +451,82 @@ function drawSprite(ctx, look, x, y, s, frame, blink, mood, clipRows) {
   }
 }
 
-/* ---------- the station ---------- */
+/* ---------- the station: three rooms joined by corridors, and a camera that glides between them ---------- */
 const STATE_COLOR = { working: "#3ddc84", done: "#6fe3a3", failed: "#ff5a5a", waiting: "#ffb000", queued: "#ffb000", watching: "#4aa3ff", closed: "#7b86ad",
   active: "#3ddc84", quiet: "#7b86ad", away: "#a98bff", idle: "#7b86ad", unknown: "#4b5578" };
-const CELL_H = 142, WALL_H = 34, SPR = 3;
-const cvs = $("station"), ctx = cvs.getContext("2d");
-let cols = 3, cssW = 600, dpr = 1;
-const stars = Array.from({ length: 26 }, (_, i) => [(i * 97) % 997 / 997, (i * 53) % 31 / 31, i % 5]);
-const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const GLOW = { working: "61,220,132", done: "111,227,163", failed: "255,90,90", waiting: "255,176,0", queued: "255,176,0", watching: "74,163,255", active: "61,220,132" };
+let hoverId = null;
+const CW = 150, CH = 132, PAD = 22, HEAD = 40, SPR = 3;
+const ROOMS = [
+  { id: "engine",  name: "Engine room",   blurb: "the machines that make and send the daily posts", ids: ["pack", "courier", "cards", "fresh", "watch", "smoke", "count"], cols: 4 },
+  { id: "trading", name: "Trading floor", blurb: "three practice robots, pretend money", ids: ["dip", "momo", "hot"], cols: 3 },
+  { id: "bridge",  name: "The bridge",    blurb: "the two AIs and Friday", ids: ["claude", "gpt", "friday"], cols: 3 }
+];
+const WORLD = { w: 0, h: 0, corridors: [], desks: [] };
+(function layoutWorld() {
+  for (const r of ROOMS) {
+    r.w = PAD * 2 + r.cols * CW;
+    r.h = HEAD + PAD * 2 + Math.ceil(r.ids.length / r.cols) * CH;
+  }
+  const eng = ROOMS[0], trd = ROOMS[1], brg = ROOMS[2];
+  eng.x = 70; eng.y = 130;
+  trd.x = eng.x + eng.w + 130; trd.y = 60;
+  brg.x = trd.x; brg.y = trd.y + trd.h + 120;
+  WORLD.w = trd.x + trd.w + 70;
+  WORLD.h = Math.max(eng.y + eng.h + 70, brg.y + brg.h + 70);
+  const spineX = eng.x + eng.w + 65, my = eng.y + eng.h / 2, ty = trd.y + trd.h / 2, by = brg.y + brg.h / 2;
+  WORLD.corridors = [
+    { x: eng.x + eng.w - 4, y: my - 14, w: spineX - (eng.x + eng.w) + 18, h: 28 },
+    { x: spineX - 14, y: Math.min(ty, by) - 14, w: 28, h: Math.abs(by - ty) + 28 },
+    { x: spineX, y: ty - 14, w: trd.x - spineX + 4, h: 28 },
+    { x: spineX, y: by - 14, w: brg.x - spineX + 4, h: 28 }
+  ];
+  for (const r of ROOMS) r.ids.forEach((id, i) => {
+    WORLD.desks.push({ bot: CREW.find(b => b.id === id), room: r, x: r.x + PAD + (i % r.cols) * CW, y: r.y + HEAD + PAD + Math.floor(i / r.cols) * CH, w: CW, h: CH });
+  });
+})();
+const roomOf = id => (WORLD.desks.find(d => d.bot.id === id) || {}).room;
+const stars = Array.from({ length: 170 }, (_, i) => [((i * 7919) % 1000) / 1000, ((i * 104729) % 1000) / 1000, i % 5]);
 
+const cvs = $("station"), ctx = cvs.getContext("2d");
+const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let cvsW = 600, cvsH = 420, dpr = 1, view = "all", camTarget = null;
+const cam = { x: 0, y: 0, z: 1 };
+
+function viewTarget(id) {
+  if (id === "all") return { x: WORLD.w / 2, y: WORLD.h / 2, z: Math.min(cvsW / WORLD.w, cvsH / WORLD.h) * 0.96 };
+  const r = ROOMS.find(x => x.id === id);
+  return { x: r.x + r.w / 2, y: r.y + r.h / 2, z: Math.min(2.2, cvsW / (r.w + 90), cvsH / (r.h + 120)) };
+}
+function goView(id, instant) {
+  view = id;
+  camTarget = viewTarget(id);
+  if (instant || reduced) Object.assign(cam, camTarget);
+  syncButtons();
+}
 function sizeCanvas() {
-  cssW = Math.max(300, Math.floor(cvs.parentElement.clientWidth - 16));
-  cols = Math.max(2, Math.min(5, Math.floor(cssW / 175)));
-  const rows = Math.ceil(CREW.length / cols);
+  cvsW = Math.max(240, Math.floor(cvs.parentElement.clientWidth));
+  cvsH = cvsW < 700 ? Math.max(260, Math.min(520, Math.round(cvsW * 0.78))) : Math.max(430, Math.min(700, Math.round(cvsW * 0.5)));
   dpr = Math.min(2, window.devicePixelRatio || 1);
-  cvs.style.height = (WALL_H + rows * CELL_H) + "px";
-  cvs.width = Math.floor(cssW * dpr); cvs.height = Math.floor((WALL_H + rows * CELL_H) * dpr);
+  cvs.style.height = cvsH + "px";
+  cvs.width = Math.floor(cvsW * dpr); cvs.height = Math.floor(cvsH * dpr);
+  camTarget = viewTarget(view);
+  Object.assign(cam, camTarget);
 }
 function text(s, x, y, color, size, align) {
   ctx.fillStyle = color; ctx.font = "800 " + size + "px ui-monospace, Menlo, Consolas, monospace"; ctx.textAlign = align || "left"; ctx.textBaseline = "middle";
   ctx.fillText(s, x, y);
+}
+function chamfer(x, y, w, h, c) {
+  ctx.beginPath();
+  ctx.moveTo(x + c, y); ctx.lineTo(x + w - c, y); ctx.lineTo(x + w, y + c); ctx.lineTo(x + w, y + h - c);
+  ctx.lineTo(x + w - c, y + h); ctx.lineTo(x + c, y + h); ctx.lineTo(x, y + h - c); ctx.lineTo(x, y + c); ctx.closePath();
+}
+/* Over each desk: how many times its job has run on record, or how many pretend trades the robot has made. Both are plain counts. */
+function counterOf(bot) {
+  if (bot.type === "action" && state.runCount[bot.wf] != null) return state.runCount[bot.wf] + " RUNS";
+  if (bot.type === "robot") { const s = state.snaps[bot.id]; if (s && s.account && s.account.trades != null) return s.account.trades + " TRADES"; }
+  return null;
 }
 function drawMonitor(x, y, st, t) {
   ctx.fillStyle = "#0b0e1a"; ctx.fillRect(x, y, 38, 29);
@@ -475,30 +563,45 @@ function drawMonitor(x, y, st, t) {
     ctx.fillStyle = "#2a3566"; ctx.fillRect(sx + 3, sy + 5, 16, 2); ctx.fillRect(sx + 3, sy + 10, 10, 2);
   }
 }
-function drawCell(bot, i, x, y, w, h, t) {
-  const st = bot._st;
-  ctx.fillStyle = (Math.floor(i / cols) + i) % 2 ? "#141a36" : "#161d3b"; ctx.fillRect(x, y, w, h);
-  ctx.fillStyle = "#0d1229"; ctx.fillRect(x + w - 1, y, 1, h); ctx.fillRect(x, y + h - 1, w, 1);
+function drawDesk(d, i, t) {
+  const bot = d.bot, st = bot._st, x = d.x, y = d.y, w = d.w, h = d.h;
   const cx = x + w / 2;
-  ctx.fillStyle = "#1b2552"; ctx.fillRect(Math.round(cx - w * 0.4), y + 46, Math.round(w * 0.8), 82);   // rug
-  // character, seated behind the desk
+  const glow = GLOW[st.state];
+  if (glow) {   // a pool of light on the floor in the bot's real state colour
+    const a = st.state === "working" ? 0.17 + 0.06 * Math.sin(t / 380) : st.state === "failed" ? (Math.floor(t / 500) % 2 ? 0.1 : 0.22) : 0.11;
+    const g = ctx.createRadialGradient(cx, y + 92, 4, cx, y + 92, 84);
+    g.addColorStop(0, "rgba(" + glow + "," + a + ")"); g.addColorStop(1, "rgba(" + glow + ",0)");
+    ctx.fillStyle = g; ctx.fillRect(x - 4, y + 18, w + 8, h - 14);
+  }
+  if (state.selected === bot.id) {   // spotlight from the ceiling
+    ctx.fillStyle = "rgba(255, 190, 60, .08)";
+    ctx.beginPath(); ctx.moveTo(cx - 14, y + 2); ctx.lineTo(cx + 14, y + 2); ctx.lineTo(cx + w * 0.46, y + h - 6); ctx.lineTo(cx - w * 0.46, y + h - 6); ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle = "rgba(27, 37, 82, .85)"; ctx.fillRect(Math.round(cx - w * 0.4), y + 46, Math.round(w * 0.8), 76);   // rug
   const phase = Math.floor(t / 420);
   const frame = st.state === "working" || st.state === "active" ? phase % 2 : 0;
   const blink = (Math.floor(t / 140) + i * 7) % 26 === 0;
   const mood = st.state === "done" ? "happy" : st.state === "failed" ? "worried" : "calm";
-  drawSprite(ctx, bot.look, Math.round(cx - 6.5 * SPR), y + 12, SPR, frame, blink, mood);
-  // desk
+  const hop = st.state === "done" && (Math.floor(t / 600) + i) % 7 === 0 ? -3 : 0;          // a happy little hop
+  const shake = st.state === "failed" && (Math.floor(t / 140) + i) % 11 < 2 ? (Math.floor(t / 140) % 2 ? 2 : -2) : 0;   // a worried shiver
+  drawSprite(ctx, bot.look, Math.round(cx - 6.5 * SPR) + shake, y + 12 + hop, SPR, frame, blink, mood);
   const dx = Math.round(x + w * 0.1), dw = Math.round(w * 0.8), dy = y + 62;
   ctx.fillStyle = "#6a5140"; ctx.fillRect(dx, dy, dw, 8);
   ctx.fillStyle = "#4a392d"; ctx.fillRect(dx, dy + 8, dw, 26);
   ctx.fillStyle = "#3a2c22"; ctx.fillRect(dx + 6, dy + 34, 6, 10); ctx.fillRect(dx + dw - 12, dy + 34, 6, 10);
-  ctx.fillStyle = "#cfd6ff"; ctx.fillRect(Math.round(cx - 11), dy + 2, 22, 4);          // keyboard
+  ctx.fillStyle = "#cfd6ff"; ctx.fillRect(Math.round(cx - 11), dy + 2, 22, 4);
   drawMonitor(dx + 8, dy - 28, st, t);
-  ctx.fillStyle = "#e8ecff"; ctx.fillRect(dx + dw - 22, dy - 6, 8, 7); ctx.fillStyle = "#8a93aa"; ctx.fillRect(dx + dw - 14, dy - 4, 2, 3);   // mug
-  // lamp
+  ctx.fillStyle = "#e8ecff"; ctx.fillRect(dx + dw - 22, dy - 6, 8, 7); ctx.fillStyle = "#8a93aa"; ctx.fillRect(dx + dw - 14, dy - 4, 2, 3);
+  if (st.state === "working" || st.state === "active") {   // steam off the mug
+    for (let k = 0; k < 3; k++) {
+      const u = ((t / 110 + k * 6) % 16) / 16;
+      ctx.globalAlpha = 0.65 * (1 - u); ctx.fillStyle = "#dfe6ff";
+      ctx.fillRect(Math.round(dx + dw - 19 + Math.sin(u * 6 + k * 2) * 2), Math.round(dy - 9 - u * 16), 2, 2);
+    }
+    ctx.globalAlpha = 1;
+  }
   const lampOn = st.state !== "unknown" && (st.state !== "failed" || Math.floor(t / 500) % 2 === 0);
   ctx.fillStyle = lampOn ? STATE_COLOR[st.state] : "#2a3566"; ctx.fillRect(dx + dw - 8, dy + 12, 5, 5);
-  // bubbles above the head
   if (st.state === "working" && st.since) {
     const label = timer(Date.now() - st.since);
     ctx.fillStyle = "#04200f"; ctx.fillRect(Math.round(cx + 18), y + 8, label.length * 8 + 10, 16);
@@ -507,29 +610,111 @@ function drawCell(bot, i, x, y, w, h, t) {
   } else if (st.state === "done") { text("✓", Math.round(cx + 24), y + 14, "#6fe3a3", 18, "center"); }
   else if (st.state === "failed") { text("!", Math.round(cx + 24), y + 14, "#ff5a5a", 20, "center"); }
   else if (st.state === "waiting" || st.state === "queued") { text("…", Math.round(cx + 24), y + 12, "#ffb000", 18, "center"); }
-  // name plate
-  ctx.fillStyle = "#070b1c"; ctx.fillRect(Math.round(cx - 46), y + h - 26, 92, 18);
-  ctx.fillStyle = STATE_COLOR[st.state]; ctx.fillRect(Math.round(cx - 46), y + h - 26, 3, 18);
-  text(bot.name.toUpperCase(), Math.round(cx + 2), y + h - 17, "#e8ecff", 12, "center");
-  if (state.selected === bot.id) {
-    ctx.strokeStyle = "#ffb000"; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+  const count = counterOf(bot);
+  if (count) {
+    const pw = count.length * 6.6 + 10;
+    ctx.fillStyle = "#04200f"; ctx.fillRect(x + 8, y + 4, pw, 15);
+    ctx.fillStyle = "#2fae66"; ctx.fillRect(x + 8, y + 4, pw, 2);
+    text(count, x + 13, y + 12.5, "#9dffc4", 10);
   }
+  ctx.fillStyle = "#070b1c"; ctx.fillRect(Math.round(cx - 46), y + h - 24, 92, 18);
+  ctx.fillStyle = STATE_COLOR[st.state]; ctx.fillRect(Math.round(cx - 46), y + h - 24, 3, 18);
+  text(bot.name.toUpperCase(), Math.round(cx + 2), y + h - 15, "#e8ecff", 12, "center");
+  if (state.selected === bot.id) { ctx.strokeStyle = "#ffb000"; ctx.lineWidth = 3; ctx.strokeRect(x + 3, y + 3, w - 6, h - 6); }
+  else if (hoverId === bot.id) { ctx.strokeStyle = "rgba(154, 168, 224, .8)"; ctx.lineWidth = 2; ctx.strokeRect(x + 3, y + 3, w - 6, h - 6); }
 }
-function drawStation(t) {
+function drawPlant(x, y) {   // a decoration for the empty spot in the engine room
+  ctx.fillStyle = "#6a3f2a"; ctx.fillRect(x + 22, y + 82, 28, 22); ctx.fillStyle = "#8a5538"; ctx.fillRect(x + 22, y + 82, 28, 5);
+  ctx.fillStyle = "#1f7a47"; [[32, 50, 8, 34], [24, 58, 8, 26], [40, 56, 8, 28], [16, 68, 8, 16], [48, 66, 8, 18]].forEach(p => ctx.fillRect(x + p[0], y + p[1], p[2], p[3]));
+  ctx.fillStyle = "#2fae66"; [[34, 46, 4, 20], [26, 56, 4, 14], [42, 54, 4, 16]].forEach(p => ctx.fillRect(x + p[0], y + p[1], p[2], p[3]));
+}
+function drawRoom(r) {
+  const anyWorking = r.ids.some(id => { const b = CREW.find(k => k.id === id); return b._st && b._st.state === "working"; });
+  chamfer(r.x - 14, r.y - 14, r.w + 28, r.h + 28, 22); ctx.fillStyle = "#262f57"; ctx.fill();
+  if (anyWorking) { ctx.save(); ctx.shadowColor = "rgba(61, 220, 132, .55)"; ctx.shadowBlur = 22; ctx.strokeStyle = "#3a9a70"; ctx.lineWidth = 3; ctx.stroke(); ctx.restore(); }
+  else { ctx.strokeStyle = "#4a5cb0"; ctx.lineWidth = 3; ctx.stroke(); }
+  chamfer(r.x - 6, r.y - 6, r.w + 12, r.h + 12, 16); ctx.fillStyle = "#101633"; ctx.fill();
+  ctx.save();
+  chamfer(r.x, r.y, r.w, r.h, 12); ctx.clip();
+  for (let ty = 0; ty * 33 < r.h; ty++) for (let tx = 0; tx * 33 < r.w; tx++) {
+    ctx.fillStyle = (tx + ty) % 2 ? "#151c3a" : "#18203f"; ctx.fillRect(r.x + tx * 33, r.y + ty * 33, 33, 33);
+  }
+  ctx.fillStyle = "#0d1330"; ctx.fillRect(r.x, r.y, r.w, HEAD - 6);
+  ctx.fillStyle = "#1b2a6b"; ctx.fillRect(r.x, r.y + HEAD - 9, r.w, 3);
+  for (let k = r.x; k < r.x + r.w; k += 24) { ctx.fillStyle = "rgba(255, 176, 0, .22)"; ctx.fillRect(k, r.y + r.h - 6, 12, 4); ctx.fillStyle = "rgba(0, 0, 0, .35)"; ctx.fillRect(k + 12, r.y + r.h - 6, 12, 4); }   // floor edge stripe
+  ctx.restore();
+  text(r.name.toUpperCase(), r.x + 16, r.y + HEAD / 2 - 4, "#ffb000", 14);
+  const tw = ctx.measureText(r.name.toUpperCase()).width;
+  r.ids.forEach((id, k) => {   // one little light per crew member: their real state at a glance
+    const b = CREW.find(q => q.id === id), c = STATE_COLOR[(b._st || {}).state] || "#4b5578";
+    ctx.fillStyle = "#070b1c"; ctx.fillRect(r.x + 16 + tw + 14 + k * 13, r.y + HEAD / 2 - 9, 9, 9);
+    ctx.fillStyle = c; ctx.fillRect(r.x + 16 + tw + 15 + k * 13, r.y + HEAD / 2 - 8, 7, 7);
+  });
+  text(r.blurb, r.x + r.w - 16, r.y + HEAD / 2 - 4, "#6877b8", 11, "right");
+}
+function drawCorridor(c) {
+  ctx.fillStyle = "#262f57"; ctx.fillRect(c.x - 4, c.y - 4, c.w + 8, c.h + 8);
+  ctx.fillStyle = "#151c3a"; ctx.fillRect(c.x, c.y, c.w, c.h);
+  ctx.fillStyle = "#2c3770";
+  if (c.w >= c.h) for (let k = c.x + 8; k < c.x + c.w - 8; k += 22) ctx.fillRect(k, c.y + c.h / 2 - 1, 10, 2);
+  else for (let k = c.y + 8; k < c.y + c.h - 8; k += 22) ctx.fillRect(c.x + c.w / 2 - 1, k, 2, 10);
+}
+const TOUR = [
+  { view: "all",     ms: 4200, cap: "THE CREW: every bot on the project, live" },
+  { view: "engine",  ms: 8000, cap: "ENGINE ROOM: the machines that make and send the daily posts" },
+  { view: "trading", ms: 6500, cap: "TRADING FLOOR: three practice robots, pretend money" },
+  { view: "bridge",  ms: 6500, cap: "THE BRIDGE: Claude, GPT and Friday" },
+  { view: "all",     ms: 3600, cap: "All of it is read live from the public record" }
+];
+const tour = { on: false, step: 0, at: 0 };
+function drawWorld(t) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  ctx.fillStyle = "#0a0f26"; ctx.fillRect(0, 0, cssW, cvs.height / dpr);
-  // back wall with windows and the sign
-  ctx.fillStyle = "#0b1230"; ctx.fillRect(0, 0, cssW, WALL_H);
-  ctx.fillStyle = "#1b2a6b"; ctx.fillRect(0, WALL_H - 3, cssW, 3);
-  for (let k = 0; k < Math.floor((cssW - 190) / 120); k++) {
-    const wx = 14 + k * 120;
-    ctx.fillStyle = "#050818"; ctx.fillRect(wx, 6, 70, 18);
-    stars.forEach((s, j) => { if (j % 4 === k % 4) { ctx.fillStyle = (Math.floor(t / 600) + s[2]) % 5 === 0 ? "#6877b8" : "#cfd6ff"; ctx.fillRect(wx + 3 + Math.floor(s[0] * 62), 8 + Math.floor(s[1] * 14), 2, 2); } });
+  ctx.fillStyle = "#070b1c"; ctx.fillRect(0, 0, cvsW, cvsH);
+  ctx.save();
+  ctx.translate(cvsW / 2, cvsH / 2); ctx.scale(cam.z, cam.z); ctx.translate(-cam.x, -cam.y);
+  const grad = ctx.createRadialGradient(WORLD.w * 0.82, WORLD.h * 0.3, 10, WORLD.w * 0.82, WORLD.h * 0.3, WORLD.w * 0.5);
+  grad.addColorStop(0, "rgba(120, 70, 200, .22)"); grad.addColorStop(1, "rgba(120, 70, 200, 0)");
+  ctx.fillStyle = grad; ctx.fillRect(-400, -400, WORLD.w + 800, WORLD.h + 800);
+  ctx.save(); ctx.translate(cam.x * 0.14, cam.y * 0.14);   // the stars drift slower than the rooms: depth
+  stars.forEach(s => {
+    ctx.fillStyle = (Math.floor(t / 700) + s[2]) % 6 === 0 ? "#6877b8" : "#cfd6ff";
+    ctx.fillRect(-300 + s[0] * (WORLD.w + 600), -300 + s[1] * (WORLD.h + 600), s[2] % 2 + 1.5, s[2] % 2 + 1.5);
+  });
+  const sh = (t % 11000) / 11000;   // an occasional shooting star
+  if (sh < 0.06) {
+    const u = sh / 0.06, sx = WORLD.w * 0.1 + u * WORLD.w * 0.5, sy = -40 + u * WORLD.h * 0.35;
+    for (let k = 0; k < 8; k++) { ctx.globalAlpha = (1 - k / 8) * (1 - u * 0.5); ctx.fillStyle = "#e8ecff"; ctx.fillRect(sx - k * 7, sy - k * 3, 3, 2); }
+    ctx.globalAlpha = 1;
   }
-  text("HOTSTUFF STATION", cssW - 12, 17, "#ffb000", 12, "right");
-  const cw = cssW / cols;
-  CREW.forEach((bot, i) => drawCell(bot, i, Math.round((i % cols) * cw), WALL_H + Math.floor(i / cols) * CELL_H, Math.round(cw), CELL_H, t));
+  ctx.restore();
+  WORLD.corridors.forEach(drawCorridor);
+  ROOMS.forEach(drawRoom);
+  WORLD.desks.forEach((d, i) => drawDesk(d, i, t));
+  const er = ROOMS[0]; drawPlant(er.x + PAD + 3 * CW, er.y + HEAD + PAD + CH);   // fills the engine room's one empty spot
+  ctx.restore();
+  if (tour.on) {
+    const cap = TOUR[tour.step].cap;
+    ctx.font = "800 13px ui-monospace, Menlo, Consolas, monospace";
+    const w = Math.min(cvsW - 24, ctx.measureText(cap).width + 28);
+    ctx.fillStyle = "rgba(4, 8, 24, .86)"; ctx.fillRect(Math.round((cvsW - w) / 2), cvsH - 46, Math.round(w), 30);
+    ctx.fillStyle = "#ffb000"; ctx.fillRect(Math.round((cvsW - w) / 2), cvsH - 46, 3, 30);
+    text(cap, Math.round(cvsW / 2), cvsH - 31, "#e8ecff", 13, "center");
+  }
+}
+function stepCamera(dt) {
+  if (!camTarget) return false;
+  const k = reduced ? 1 : 1 - Math.exp(-dt * 2.6);
+  const dx = camTarget.x - cam.x, dy = camTarget.y - cam.y, dz = camTarget.z - cam.z;
+  cam.x += dx * k; cam.y += dy * k; cam.z += dz * k;
+  return Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5 || Math.abs(dz) > 0.002;
+}
+function startTour() { tour.on = true; tour.step = 0; tour.at = performance.now(); goView(TOUR[0].view); }
+function stopTour() { tour.on = false; syncButtons(); }
+function syncButtons() {
+  document.querySelectorAll(".toolbar button[data-view]").forEach(b => b.classList.toggle("on", !tour.on && b.dataset.view === view));
+  const tb = $("tourBtn");
+  if (tb) { tb.classList.toggle("on", tour.on); tb.textContent = tour.on ? "■ Stop tour" : "▶ Tour"; }
 }
 
 /* The site-feed counter: "every day since" only when the numbers really say so (one post per day, last one today or yesterday). */
@@ -595,6 +780,8 @@ function refreshText() {
   }
   $("hCrew").textContent = CREW.length; $("hWork").textContent = work; $("hDone").textContent = done;
   $("rWork").textContent = work; $("rDone").textContent = done;
+  $("floor").classList.toggle("busy", work > 0);
+  $("liveDot").className = "dot " + (state.fetchedAt && state.api.ok !== false ? "on" : "off");
   feedText();
   if (state.api.ok === false) note(state.api.note, "warn");
   else if (state.fetchedAt) note("Live from the public record · checked " + clockStr(state.fetchedAt) + " · busy bots update every few minutes while this page is open.");
@@ -622,39 +809,103 @@ function renderCard() {
 }
 function select(id) {
   state.selected = state.selected === id ? null : id;
-  refreshText(); renderCard(); drawStation(performance.now());
+  if (state.selected && !tour.on) { const room = roomOf(id); if (room && view !== room.id) goView(room.id); }
+  refreshText(); renderCard(); drawWorld(performance.now());
   if (state.selected) rowEls[id].b.scrollIntoView({ block: "nearest" });
+}
+
+/* ---------- the work log: the newest things the crew really did, from the same public records ---------- */
+function logTime(ms) {
+  const d = new Date(ms);
+  const clock = d.toLocaleTimeString("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit" });
+  return dayKey(ms) === dayKey(Date.now()) ? clock : d.toLocaleDateString("en-US", { timeZone: TZ, month: "short", day: "numeric" }) + " " + clock;
+}
+function buildLog() {
+  const items = [];
+  for (const bot of CREW) {
+    if (bot.type === "action") {
+      const last = state.lastRun[bot.wf];
+      if (last) items.push({ t: Date.parse(last.updated_at), who: bot.name, text: last.conclusion === "success" ? "finished a run" : "ended a run: " + String(last.conclusion || "unknown").replace("_", " "), bad: last.conclusion === "failure" || last.conclusion === "timed_out" });
+    }
+    if (bot.type === "robot") {
+      const s = state.snaps[bot.id];
+      if (s && Array.isArray(s.orders)) for (const o of s.orders.slice(0, 4)) items.push({ t: Date.parse(o.time), who: bot.name, text: (o.side === "buy" ? "bought " : "sold ") + o.symbol + " for $" + Math.round(o.dollars) + " (pretend)" });
+    }
+  }
+  if (Array.isArray(state.commits)) {
+    for (const c of state.commits.slice(0, 20)) {
+      const who = (c.commit && c.commit.author && c.commit.author.name) || "someone";
+      if (/^stock-bot$/i.test(who)) continue;   // the robots' trades are already listed from their own snapshots
+      items.push({ t: Date.parse(c.commit.author.date), who: who, text: String(c.commit.message || "").split("\n")[0].slice(0, 90) });
+    }
+  }
+  return items.filter(x => isFinite(x.t)).sort((a, b) => b.t - a.t).slice(0, 16);
+}
+function renderLog() {
+  const ul = $("logList");
+  const items = buildLog();
+  ul.textContent = "";
+  if (!items.length) { const li = document.createElement("li"); li.textContent = state.fetchedAt ? "Nothing to show yet." : "Reading the public record…"; ul.appendChild(li); return; }
+  for (const it of items) {
+    const li = document.createElement("li");
+    const tm = document.createElement("span"); tm.className = "lt"; tm.textContent = logTime(it.t);
+    const who = document.createElement("b"); who.textContent = it.who.toUpperCase(); if (it.bad) who.className = "bad";
+    li.append(tm, who, document.createTextNode(" " + it.text));
+    ul.appendChild(li);
+  }
 }
 function render() {
   refreshText();
   CREW.forEach(paintPortrait);
   renderCard();
-  drawStation(performance.now());
+  renderLog();
+  drawWorld(performance.now());
 }
 
 /* ---------- start ---------- */
 cvs.addEventListener("click", e => {
   const r = cvs.getBoundingClientRect();
-  const x = e.clientX - r.left, y = e.clientY - r.top - WALL_H;
-  if (y < 0) return;
-  const col = Math.min(cols - 1, Math.floor(x / (cssW / cols))), row = Math.floor(y / CELL_H);
-  const bot = CREW[row * cols + col];
-  if (bot) select(bot.id);
+  const wx = ((e.clientX - r.left) * cvsW / r.width - cvsW / 2) / cam.z + cam.x, wy = ((e.clientY - r.top) * cvsH / r.height - cvsH / 2) / cam.z + cam.y;
+  const d = WORLD.desks.find(k => wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
+  if (d) { select(d.bot.id); return; }
+  const room = ROOMS.find(k => wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
+  if (room && view === "all") { stopTour(); goView(room.id); }
 });
+cvs.addEventListener("pointermove", e => {
+  if (e.pointerType !== "mouse") return;
+  const r = cvs.getBoundingClientRect();
+  const wx = ((e.clientX - r.left) * cvsW / r.width - cvsW / 2) / cam.z + cam.x, wy = ((e.clientY - r.top) * cvsH / r.height - cvsH / 2) / cam.z + cam.y;
+  const d = WORLD.desks.find(k => wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
+  const room = !d && view === "all" && ROOMS.find(k => wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
+  cvs.style.cursor = d || room ? "pointer" : "default";
+  const id = d ? d.bot.id : null;
+  if (id !== hoverId) { hoverId = id; drawWorld(performance.now()); }
+});
+cvs.addEventListener("pointerleave", () => { if (hoverId) { hoverId = null; drawWorld(performance.now()); } });
+document.querySelectorAll(".toolbar button[data-view]").forEach(b => b.addEventListener("click", () => { stopTour(); goView(b.dataset.view); }));
+$("tourBtn").addEventListener("click", () => { if (tour.on) stopTour(); else startTour(); });
 let resizeTimer = null;
-window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { sizeCanvas(); drawStation(performance.now()); }, 120); });
+window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { sizeCanvas(); drawWorld(performance.now()); }, 120); });
 buildRoster();
 CREW.forEach(b => { b._st = statusOf(b); });
+view = cvs.parentElement.clientWidth < 700 ? "engine" : "all";
 sizeCanvas();
+syncButtons();
 render();
-function tick() {
-  $("hClock").textContent = clockStr(Date.now());
-  refreshText();
-  drawStation(performance.now());
-  setTimeout(tick, reduced ? 1000 : 150);
+setInterval(() => { $("hClock").textContent = clockStr(Date.now()); refreshText(); }, 1000);
+setInterval(renderLog, 30000);
+let lastDraw = 0, lastFrame = 0;
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (document.hidden) return;
+  const dt = Math.min(0.25, (now - lastFrame) / 1000); lastFrame = now;
+  if (tour.on && now - tour.at > TOUR[tour.step].ms) { tour.step = (tour.step + 1) % TOUR.length; tour.at = now; goView(TOUR[tour.step].view); }
+  const moving = stepCamera(dt);
+  if (moving || now - lastDraw > (reduced ? 1000 : 140)) { lastDraw = now; drawWorld(now); }
 }
-tick();
-loadAll().catch(e => { state.api.ok = false; state.api.note = "Something went wrong reading the record (" + e.message + ")."; render(); });
+requestAnimationFrame(frame);
+if (/[?&]tour=1/.test(location.search)) startTour();
+loadAll().then(renderLog).catch(e => { state.api.ok = false; state.api.note = "Something went wrong reading the record (" + e.message + ")."; render(); });
 setInterval(poll, POLL_MS);
 </script>
 </body>

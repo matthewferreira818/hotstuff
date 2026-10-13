@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#070b1c">
+<title>The Crew</title>
+<meta name="description" content="The bots that run HotsTuff and East Coast Social, live: who is working right now, who is done for today, and when each one last ran.">
+<style>
+:root {
+  --bg: #070b1c; --panel: #0c1330; --panel-2: #101940; --line: #2a3f9c; --line-dim: #1b2a6b;
+  --ink: #e8ecff; --ink-2: #9aa8e0; --ink-3: #6877b8;
+  --amber: #ffb000; --green: #3ddc84; --red: #ff5a5a; --blue: #4aa3ff; --grey: #7b86ad; --violet: #a98bff;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; min-height: 100vh; color: var(--ink);
+  font: 13px/1.45 ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  background: radial-gradient(900px 500px at 20% -10%, #14205a 0%, transparent 60%), var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+.shell { max-width: 1180px; margin: 0 auto; padding: 14px 16px calc(28px + env(safe-area-inset-bottom)); }
+.hud {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px;
+  padding: 12px 14px; background: var(--panel); border: 2px solid var(--line);
+  box-shadow: 0 0 0 2px #000, 0 0 24px rgba(74, 110, 255, .25);
+}
+.logo { font-weight: 800; font-size: 20px; letter-spacing: .14em; color: var(--blue); text-shadow: 0 0 12px rgba(74, 163, 255, .6); font-style: italic; }
+.logo small { display: block; font-size: 10px; letter-spacing: .2em; color: var(--ink-3); font-style: normal; font-weight: 600; }
+.stat { display: flex; flex-direction: column; min-width: 78px; }
+.stat b { font-size: 18px; color: var(--amber); line-height: 1.1; }
+.stat span { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+.grow { flex: 1; }
+.clock { text-align: right; }
+.clock b { font-size: 16px; color: var(--ink); }
+.clock .lbl { display: block; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); }
+.banner {
+  margin-top: 10px; padding: 8px 12px; border: 2px solid var(--line-dim); background: #0a1028;
+  color: var(--ink-2); font-size: 12px;
+}
+.banner.warn { border-color: #8a6a00; color: #ffd36b; background: #1c1604; }
+.banner.bad { border-color: #8a2a2a; color: #ffb0b0; background: #1c0808; }
+.layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 14px; margin-top: 14px; align-items: start; }
+.roster { background: var(--panel); border: 2px solid var(--line); box-shadow: 0 0 0 2px #000; }
+.roster-head { padding: 10px 12px; border-bottom: 2px solid var(--line-dim); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.roster-head b { color: var(--amber); font-size: 13px; }
+.roster ul { list-style: none; margin: 0; padding: 6px; display: flex; flex-direction: column; gap: 5px; }
+.bot {
+  display: grid; grid-template-columns: 40px 1fr auto; gap: 4px 10px; align-items: center;
+  padding: 7px 8px; background: var(--panel-2); border: 2px solid transparent; cursor: pointer; text-align: left; width: 100%;
+  color: inherit; font: inherit;
+}
+.bot:hover { border-color: var(--line-dim); }
+.bot:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
+.bot.sel { border-color: var(--blue); background: #14225c; }
+.bot canvas { grid-row: 1 / span 2; width: 40px; height: 40px; image-rendering: pixelated; background: #080d24; border: 2px solid var(--line-dim); }
+.bot .nm { font-weight: 800; letter-spacing: .1em; text-transform: uppercase; font-size: 13px; }
+.bot .tm { font-size: 12px; color: var(--ink-2); text-align: right; white-space: nowrap; max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+.bot .rl { grid-column: 2 / span 2; font-size: 11px; color: var(--ink-3); line-height: 1.3; }
+.chip { display: inline-block; padding: 0 6px; font-size: 10px; letter-spacing: .12em; font-weight: 800; color: #04101c; background: var(--grey); white-space: nowrap; }
+.bot .nm .chip { display: block; width: max-content; margin-top: 3px; }
+.card h2 .chip { margin-left: 10px; vertical-align: 2px; }
+.chip.working { background: var(--green); } .chip.done { background: #6fe3a3; } .chip.failed { background: var(--red); color: #1c0505; }
+.chip.waiting, .chip.queued { background: var(--amber); } .chip.watching { background: var(--blue); } .chip.closed { background: var(--grey); }
+.chip.active { background: var(--green); } .chip.quiet { background: var(--grey); } .chip.away { background: var(--violet); } .chip.unknown { background: #4b5578; color: #cfd6f5; }
+.floor { background: var(--panel); border: 2px solid var(--line); box-shadow: 0 0 0 2px #000; padding: 8px; }
+canvas#station { width: 100%; display: block; image-rendering: pixelated; background: #0a0f26; cursor: pointer; touch-action: manipulation; }
+.card { margin-top: 8px; padding: 12px 14px; background: var(--panel-2); border: 2px solid var(--line-dim); min-height: 96px; }
+.card h2 { margin: 0 0 4px; font-size: 15px; letter-spacing: .12em; text-transform: uppercase; }
+.card p { margin: 3px 0; color: var(--ink-2); }
+.card .big { color: var(--ink); font-size: 14px; }
+.card a { color: var(--blue); }
+.foot { margin-top: 16px; padding: 12px 14px; border: 2px solid var(--line-dim); background: #0a1028; color: var(--ink-2); font-size: 12px; line-height: 1.55; }
+.foot b { color: var(--ink); }
+.foot a { color: var(--blue); }
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
+  .roster { order: 2; }
+  .clock { text-align: left; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="hud">
+    <div class="logo">THE CREW<small>HOTSTUFF STATION</small></div>
+    <div class="stat"><b id="hCrew">–</b><span>on the crew</span></div>
+    <div class="stat"><b id="hWork">–</b><span>working now</span></div>
+    <div class="stat"><b id="hDone">–</b><span>done today</span></div>
+    <div class="stat"><b id="hDays">–</b><span id="hDaysLbl">site-feed posts</span></div>
+    <div class="grow"></div>
+    <div class="clock"><b id="hClock">--:--:--</b><span class="lbl">Moncton time</span></div>
+  </header>
+  <div class="banner" id="banner">Connecting to the record…</div>
+  <main class="layout">
+    <aside class="roster" aria-label="Crew list">
+      <div class="roster-head">Crew &middot; <b id="rWork">0</b> working &middot; <b id="rDone">0</b> done today</div>
+      <ul id="rosterList"></ul>
+    </aside>
+    <section class="floor">
+      <canvas id="station" aria-label="The station: one desk for each bot"></canvas>
+      <div class="card" id="card"><h2>Tap a desk</h2><p>Pick any bot to see what it does, when it last ran, and the proof.</p></div>
+    </section>
+  </main>
+  <div class="foot">
+    <b>How to read this.</b> <b>Working</b> means a run is going right now, and its timer is real. <b>Done today</b> means its last run finished OK today (Moncton time).
+    <b>Not yet today</b> means a daily bot hasn't finished one yet. The practice robots trade <b>pretend money</b>, and their desks show how they're doing next to
+    simply holding the S&amp;P 500 fund. Friday lives on Matthew's Mac, so her live status stays private.
+    Nothing here is made up: it is read live from this project's public record on GitHub, the robots' public snapshots and the feed counter, and if any of it can't be reached,
+    the page says so. (Your browser asks GitHub directly; nothing about you is stored here.) <span id="feedLine"></span> East Coast Social is built on that same engine, built on our own store first:
+    <a href="../automation/">findhotstuff.com/automation</a>.
+  </div>
+</div>
+<script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+"use strict";
+/* The Crew: one desk per bot, every state read from public records. Honesty rules in the footer are enforced here:
+   - "working" only while GitHub shows a run in progress right now; timers are real clocks;
+   - "done today" only when the last run finished OK on today's Moncton date;
+   - practice robots show pretend money next to what just holding the index fund would be;
+   - anything we can't read shows as UNKNOWN, never a guess. */
+const REPO = "matthewferreira818/hotstuff";
+const API = "https://api.github.com/repos/" + REPO;
+const RAW = "https://raw.githubusercontent.com/" + REPO + "/";
+const TZ = "America/Moncton";
+const CACHE_MS = 5 * 60 * 1000;     // reuse answers for 5 minutes so a reload doesn't spend GitHub's free hourly limit
+const POLL_MS = 3 * 60 * 1000;      // re-check "who is working" every 3 minutes while the tab is open
+
+/* The crew. wf = the GitHub workflow file that is this bot's job. look = how its character is drawn (all original). */
+const CREW = [
+  { id: "pack",    name: "Pack",    role: "Makes the two daily TikTok packs", type: "action", wf: "daily-tiktok.yml", daily: true,
+    look: { kind: "human", skin: "#f1c27d", hair: "#2c1b10", shirt: "#ff8a3d", pants: "#2a3566", style: "cap", acc: "#ffe08a" } },
+  { id: "courier", name: "Courier", role: "Sends the drafts into TikTok", type: "action", wf: "tiktok-draft.yml", daily: true,
+    look: { kind: "human", skin: "#c68642", hair: "#111111", shirt: "#4aa3ff", pants: "#223060", style: "spiky", acc: "#ffffff" } },
+  { id: "cards",   name: "Cards",   role: "Builds the daily East Coast Social card for the site feed", type: "action", wf: "ecs-daily-post.yml", daily: true,
+    look: { kind: "human", skin: "#ffdbac", hair: "#a0522d", shirt: "#e0568a", pants: "#3a2a5c", style: "long", acc: "#ffd1e6" } },
+  { id: "fresh",   name: "Fresh",   role: "Refreshes the trending products every 3 days", type: "action", wf: "refresh-products.yml", daily: false,
+    look: { kind: "human", skin: "#8d5524", hair: "#1c1008", shirt: "#3ddc84", pants: "#1f3a2e", style: "bun", acc: "#b9ffd9" } },
+  { id: "watch",   name: "Watch",   role: "Taps Matthew on the shoulder when something newsworthy happens (a buy click, a checkout, a traffic spike)", type: "action", wf: "watch-changes.yml", daily: false,
+    look: { kind: "robot", metal: "#aab4c8", body: "#7e8aa6", acc: "#3ddc84" } },
+  { id: "smoke",   name: "Smoke",   role: "Tests the whole site every morning: pages, checkout, lead form", type: "action", wf: "site-smoke.yml", daily: true,
+    look: { kind: "robot", metal: "#c9b49a", body: "#9a7f66", acc: "#ffb000" } },
+  { id: "count",   name: "Count",   role: "Sends Matthew a traffic snapshot every few hours", type: "action", wf: "traffic-report.yml", daily: false,
+    look: { kind: "robot", metal: "#9fc3d9", body: "#6d93ab", acc: "#4aa3ff" } },
+  { id: "dip",     name: "Dip",     role: "Practice robot: buys dips (pretend money)", type: "robot", wf: "stock-bot.yml", live: "stock-live",
+    look: { kind: "human", skin: "#f1c27d", hair: "#5a3a1a", shirt: "#6b7bff", pants: "#25306a", style: "hood", acc: "#cfd6ff" } },
+  { id: "momo",    name: "Momo",    role: "Practice robot: rides momentum (pretend money)", type: "robot", wf: "stock-momentum.yml", live: "stock-live-momentum",
+    look: { kind: "human", skin: "#e0ac69", hair: "#d9b13b", shirt: "#ff5a7a", pants: "#40203a", style: "spiky", acc: "#ffc1cf" } },
+  { id: "hot",     name: "Hot",     role: "Practice robot: same-day swings (pretend money)", type: "robot", wf: "stock-hot.yml", live: "stock-live-hot",
+    look: { kind: "human", skin: "#ffdbac", hair: "#c43b2a", shirt: "#ffb000", pants: "#4a2f12", style: "short", acc: "#fff0c2" } },
+  { id: "claude",  name: "Claude",  role: "Co-CEO: runs the engine and writes the code", type: "claude",
+    look: { kind: "human", skin: "#f1c27d", hair: "#2a2a35", shirt: "#e8805a", pants: "#2a2f55", style: "short", acc: "#ffcab3" } },
+  { id: "gpt",     name: "GPT",     role: "Second AI: checks the work and keeps notes", type: "gpt",
+    look: { kind: "human", skin: "#d7a77a", hair: "#1c1c1c", shirt: "#10a37f", pants: "#16322c", style: "bun", acc: "#b6f2df" } },
+  { id: "friday",  name: "Friday",  role: "Game buddy on Matthew's Mac", type: "mac",
+    look: { kind: "human", skin: "#f5cba7", hair: "#8b1e3f", shirt: "#bd3650", pants: "#2c1730", style: "long", acc: "#ffc3cf" } }
+];
+
+const state = {
+  api: { ok: null, note: "", remaining: null, reset: null },
+  stats: null, runsNow: {}, lastRun: {}, snaps: {}, commits: null, comments: null,
+  fetchedAt: null, selected: null, started: Date.now()
+};
+const $ = id => document.getElementById(id);
+
+/* ---------- time helpers ---------- */
+const dayKey = d => new Date(d).toLocaleDateString("en-CA", { timeZone: TZ });
+const clockStr = d => new Date(d).toLocaleTimeString("en-US", { timeZone: TZ, hour: "numeric", minute: "2-digit", second: "2-digit" });
+function ago(ms) {
+  if (ms < 0) ms = 0;
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return "just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + " min ago";
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + "h " + (m % 60) + "m ago";
+  const d = Math.floor(h / 24);
+  return d + (d === 1 ? " day ago" : " days ago");
+}
+function timer(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+  return (h ? h + ":" + String(m).padStart(2, "0") : m) + ":" + String(r).padStart(2, "0");
+}
+
+/* ---------- reading the public record ---------- */
+function note(text, kind) { const b = $("banner"); b.textContent = text; b.className = "banner" + (kind ? " " + kind : ""); }
+
+async function gh(path, ttl) {
+  const key = "crew.v1." + path;
+  const age = ttl == null ? CACHE_MS : ttl;
+  try {
+    const hit = JSON.parse(localStorage.getItem(key) || "null");
+    if (hit && Date.now() - hit.t < age) return hit.body;
+  } catch (e) { /* no storage: fine */ }
+  const r = await fetch(API + path, { headers: { Accept: "application/vnd.github+json" } });
+  const left = r.headers.get("x-ratelimit-remaining");
+  if (left != null) { state.api.remaining = +left; state.api.reset = +r.headers.get("x-ratelimit-reset") * 1000; }
+  if (!r.ok) {
+    const err = new Error("GitHub said " + r.status);
+    err.status = r.status;
+    throw err;
+  }
+  const body = await r.json();
+  try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), body })); } catch (e) { /* ignore */ }
+  return body;
+}
+async function plain(url) {
+  const r = await fetch(url, { cache: "no-store" });
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}
+
+const fileOf = run => ((run && run.path) || "").split("/").pop().split("@")[0];
+
+async function loadRunsNow() {
+  const [a, b] = await Promise.all([
+    gh("/actions/runs?status=in_progress&per_page=50", 0),
+    gh("/actions/runs?status=queued&per_page=50", 0)
+  ]);
+  const now = {};
+  for (const run of (b.workflow_runs || [])) now[fileOf(run)] = { run, queued: true };
+  for (const run of (a.workflow_runs || [])) now[fileOf(run)] = { run, queued: false };
+  state.runsNow = now;
+}
+async function loadLast(file, ttl) {
+  const d = await gh("/actions/workflows/" + file + "/runs?per_page=3", ttl);
+  const done = (d.workflow_runs || []).find(r => r.status === "completed");
+  state.lastRun[file] = done || null;
+}
+async function loadSnap(bot) {
+  state.snaps[bot.id] = await plain(RAW + bot.live + "/live.json?nc=" + Date.now());
+}
+async function loadAll() {
+  const jobs = [];
+  jobs.push(plain("../automation/feed/stats.json?nc=" + Date.now()).then(s => { state.stats = s; }));
+  for (const bot of CREW) if (bot.live) jobs.push(loadSnap(bot).catch(() => { state.snaps[bot.id] = null; }));
+  let apiError = null;
+  const apiJobs = [loadRunsNow()];
+  for (const bot of CREW) if (bot.type === "action") apiJobs.push(loadLast(bot.wf));
+  const settled = await Promise.allSettled(apiJobs);
+  for (const s of settled) if (s.status === "rejected") apiError = s.reason;
+  // The two extras are nice to have, so skip them when GitHub's free limit is nearly used.
+  const roomy = state.api.remaining == null || state.api.remaining > 12;
+  if (roomy) {
+    jobs.push(gh("/commits?per_page=20").then(c => { state.commits = c; }).catch(() => { state.commits = null; }));
+    jobs.push(gh("/issues/comments?sort=created&direction=desc&per_page=30").then(c => { state.comments = c; }).catch(() => { state.comments = null; }));
+  }
+  await Promise.allSettled(jobs);
+  state.fetchedAt = Date.now();
+  if (apiError) {
+    state.api.ok = false;
+    if (apiError.status === 403 || apiError.status === 429) {
+      const when = state.api.reset ? " It resets about " + clockStr(state.api.reset) + "." : "";
+      state.api.note = "GitHub's free look-up limit is used up for now." + when + " Desks that need it show UNKNOWN until then; nothing is guessed.";
+    } else {
+      state.api.note = "Can't reach GitHub right now (" + apiError.message + "). Desks that need it show UNKNOWN.";
+    }
+  } else {
+    state.api.ok = true;
+    state.api.note = "";
+  }
+  render();
+}
+async function poll() {
+  if (document.hidden) return;
+  if (state.api.remaining != null && state.api.remaining < 14) return;
+  const before = Object.assign({}, state.runsNow);
+  try { await loadRunsNow(); } catch (e) { return; }
+  for (const bot of CREW) {
+    if (bot.type === "action" && before[bot.wf] && !state.runsNow[bot.wf]) { try { await loadLast(bot.wf, 0); } catch (e) { /* keep old */ } }
+  }
+  for (const bot of CREW) if (bot.live) { try { await loadSnap(bot); } catch (e) { /* keep old */ } }
+  state.fetchedAt = Date.now();
+  render();
+}
+
+/* ---------- what each bot is doing right now ---------- */
+const pretty = n => "$" + Number(n).toLocaleString("en-US", { maximumFractionDigits: 0 });
+function statusOf(bot) {
+  const now = Date.now();
+  const out = { state: "unknown", label: "Unknown", since: null, time: "", lines: [], link: null, linkText: "" };
+  const running = state.runsNow[bot.wf];
+  if (bot.type === "mac") {
+    out.state = "away"; out.label = "On the Mac"; out.time = "private";
+    out.lines.push("Friday is the live voice-and-screen buddy that runs on Matthew's Mac, so there is nothing public to read about what she is doing right now.");
+    return out;
+  }
+  if (state.fetchedAt == null && !running) { out.label = "Checking"; out.lines.push("Reading the public record…"); return out; }
+  if (running) {
+    out.state = running.queued ? "queued" : "working";
+    out.label = running.queued ? "In line" : "Working";
+    out.since = Date.parse(running.run.run_started_at || running.run.created_at);
+    out.link = running.run.html_url; out.linkText = "Watch this run on GitHub";
+    out.lines.push((running.queued ? "Waiting for a free GitHub runner. " : "A run is going right now. ") + "Started " + clockStr(out.since) + ".");
+  }
+  if (bot.type === "action") {
+    const last = state.lastRun[bot.wf];
+    if (!running) {
+      if (!state.api.ok && last === undefined) { out.lines.push("Can't read GitHub right now."); return out; }
+      if (!last) { out.lines.push("No finished run found."); return out; }
+      const at = Date.parse(last.updated_at);
+      out.link = last.html_url; out.linkText = "See the last run on GitHub";
+      out.time = ago(now - at);
+      const bad = last.conclusion === "failure" || last.conclusion === "timed_out";
+      if (bad) { out.state = "failed"; out.label = "Failed"; out.lines.push("Its last run ended in " + last.conclusion.replace("_", " ") + " " + ago(now - at) + ". Someone should look."); }
+      else if (last.conclusion === "cancelled") { out.state = "idle"; out.label = "Idle"; out.lines.push("Its last run was cancelled " + ago(now - at) + "."); }
+      else if (bot.daily && dayKey(at) === dayKey(now)) { out.state = "done"; out.label = "Done today"; out.lines.push("Last run finished OK at " + clockStr(at) + "."); }
+      else if (bot.daily) { out.state = "waiting"; out.label = "Not yet today"; out.lines.push("Its last good run was " + ago(now - at) + ". Today's isn't in yet."); }
+      else { out.state = "idle"; out.label = "Idle"; out.lines.push("Last ran OK " + ago(now - at) + "."); }
+    } else {
+      out.time = timer(now - out.since);
+    }
+    return out;
+  }
+  if (bot.type === "robot") {
+    const snap = state.snaps[bot.id];
+    if (snap) {
+      const age = now - Date.parse(snap.updated);
+      const a = snap.account || {};
+      const spyTxt = a.spy_value != null ? " Just holding the S&P 500 fund would be " + pretty(a.spy_value) + "." : "";
+      const today = (snap.orders || []).filter(o => dayKey(o.time) === dayKey(now)).length;
+      out.lines.push("Pretend money: the robot's account is " + pretty(a.value) + " (it has had " + pretty(a.start_cash) + " put in, all pretend)." + spyTxt);
+      out.lines.push(today + " pretend order" + (today === 1 ? "" : "s") + " today, " + (a.trades != null ? a.trades + " in all, " : "") + "fees included in the numbers.");
+      out.lines.push("Snapshot taken " + ago(age) + ".");
+      out.link = "../stock_bot/live/"; out.linkText = "Open the Practice Desk";
+      if (!running) {
+        out.time = ago(age);
+        if (snap.market_open && age < 45 * 60 * 1000) { out.state = "watching"; out.label = "Watching the market"; }
+        else { out.state = "closed"; out.label = "Market closed"; }
+      } else { out.time = timer(now - out.since); }
+    } else if (!running) { out.lines.push("Can't read this robot's snapshot right now."); }
+    return out;
+  }
+  if (bot.type === "claude" || bot.type === "gpt") {
+    let at = null, text = "", link = null;
+    if (bot.type === "claude" && Array.isArray(state.commits)) {
+      const c = state.commits.find(x => /^claude/i.test((x.commit && x.commit.author && x.commit.author.name) || ""));
+      if (c) { at = Date.parse(c.commit.author.date); text = String(c.commit.message || "").split("\n")[0].slice(0, 110); link = c.html_url; }
+    }
+    if (bot.type === "gpt" && Array.isArray(state.comments)) {
+      const c = state.comments.find(x => /^\*\*\[GPT/.test(x.body || ""));
+      if (c) { at = Date.parse(c.created_at); text = "last message on the team board"; link = c.html_url; }
+    }
+    if (at == null) { out.lines.push(state.api.ok === false ? "Can't read GitHub right now." : "No recent activity found in the public record."); return out; }
+    out.time = ago(now - at); out.link = link; out.linkText = bot.type === "claude" ? "See that commit" : "See that message";
+    out.lines.push((bot.type === "claude" ? "Last commit " : "Last message ") + ago(now - at) + (text ? ": " + text : "") + ".");
+    if (now - at < 15 * 60 * 1000) { out.state = "active"; out.label = "Active now"; } else { out.state = "quiet"; out.label = "Quiet"; }
+    return out;
+  }
+  return out;
+}
+
+/* ---------- characters (all drawn here; none copied from anywhere) ---------- */
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const c = v => Math.max(0, Math.min(255, v + amt));
+  return "#" + [c(n >> 16), c((n >> 8) & 255), c(n & 255)].map(v => v.toString(16).padStart(2, "0")).join("");
+}
+const OY = 3;   // spare rows on top for antennas and buns
+function spriteRects(look, frame, blink, mood) {
+  const P = [];
+  const R = (x, y, w, h, c) => P.push([x, y + OY, w, h, c]);
+  const ink = "#10131f";
+  if (look.kind === "robot") {
+    const dark = shade(look.body, -40);
+    R(6, -2, 1, 2, "#8a93aa"); R(5, -3, 3, 1, look.acc);
+    R(3, 8, 7, 5, look.body); R(3, 12, 7, 1, dark); R(6, 9, 1, 1, look.acc);
+    if (frame === 1) { R(2, 9, 1, 3, dark); R(10, 9, 1, 3, dark); R(3, 12, 1, 1, look.metal); R(9, 12, 1, 1, look.metal); }
+    else { R(2, 9, 1, 4, dark); R(10, 9, 1, 4, dark); R(2, 13, 1, 1, look.metal); R(10, 13, 1, 1, look.metal); }
+    R(4, 13, 2, 2, "#46506b"); R(7, 13, 2, 2, "#46506b"); R(4, 15, 2, 1, "#222"); R(7, 15, 2, 1, "#222");
+    R(5, 7, 3, 1, "#6b7691"); R(3, 1, 7, 6, look.metal); R(3, 1, 7, 1, shade(look.metal, 25));
+    R(4, 3, 5, 2, ink);
+    if (blink) { R(5, 4, 1, 1, look.acc); R(7, 4, 1, 1, look.acc); } else { R(5, 3, 1, 2, look.acc); R(7, 3, 1, 2, look.acc); }
+    R(5, 6, 3, 1, "#6b7691");
+    return P;
+  }
+  const dark = shade(look.shirt, -38);
+  const pants = look.pants;
+  R(3, 8, 7, 5, look.shirt); R(3, 12, 7, 1, dark);
+  if (frame === 1) { R(2, 9, 1, 3, dark); R(10, 9, 1, 3, dark); R(3, 12, 1, 1, look.skin); R(9, 12, 1, 1, look.skin); }
+  else { R(2, 9, 1, 4, dark); R(10, 9, 1, 4, dark); R(2, 13, 1, 1, look.skin); R(10, 13, 1, 1, look.skin); }
+  R(4, 13, 2, 2, pants); R(7, 13, 2, 2, pants); R(4, 15, 2, 1, "#111"); R(7, 15, 2, 1, "#111");
+  R(5, 7, 3, 1, look.skin); R(3, 1, 7, 6, look.skin);
+  if (blink) { R(4, 4, 2, 1, ink); R(7, 4, 2, 1, ink); } else { R(4, 3, 1, 2, ink); R(8, 3, 1, 2, ink); }
+  if (mood === "happy") { R(5, 6, 3, 1, "#b04a4a"); R(4, 5, 1, 1, "#b04a4a"); R(8, 5, 1, 1, "#b04a4a"); }
+  else if (mood === "worried") { R(5, 6, 3, 1, "#7a4040"); R(4, 3, 2, 1, "#5a3a2a"); }
+  else { R(5, 6, 3, 1, "#a05a5a"); }
+  const h = look.hair;
+  switch (look.style) {
+    case "spiky": R(3, 1, 7, 1, h); R(3, 0, 1, 1, h); R(5, 0, 1, 1, h); R(7, 0, 1, 1, h); R(9, 0, 1, 1, h); R(3, 2, 1, 2, h); R(9, 2, 1, 2, h); break;
+    case "long": R(3, 0, 7, 2, h); R(2, 1, 1, 8, h); R(10, 1, 1, 8, h); R(3, 2, 1, 3, h); R(9, 2, 1, 3, h); break;
+    case "bun": R(3, 0, 7, 2, h); R(3, 2, 1, 2, h); R(9, 2, 1, 2, h); R(5, -2, 3, 2, h); break;
+    case "cap": R(3, 0, 7, 2, look.acc); R(2, 2, 9, 1, look.acc); R(3, 1, 7, 1, shade(look.acc, -30)); break;
+    case "hood": R(2, 0, 9, 3, look.shirt); R(2, 3, 1, 5, look.shirt); R(10, 3, 1, 5, look.shirt); R(3, 1, 7, 1, shade(look.shirt, -25)); break;
+    default: R(3, 0, 7, 2, h); R(3, 2, 1, 2, h); R(9, 2, 1, 2, h);
+  }
+  return P;
+}
+function drawSprite(ctx, look, x, y, s, frame, blink, mood, clipRows) {
+  const rects = spriteRects(look, frame, blink, mood);
+  for (const [px, py, w, h, c] of rects) {
+    if (clipRows != null && py >= clipRows) continue;
+    ctx.fillStyle = c;
+    ctx.fillRect(Math.round(x + px * s), Math.round(y + py * s), w * s, h * s);
+  }
+}
+
+/* ---------- the station ---------- */
+const STATE_COLOR = { working: "#3ddc84", done: "#6fe3a3", failed: "#ff5a5a", waiting: "#ffb000", queued: "#ffb000", watching: "#4aa3ff", closed: "#7b86ad",
+  active: "#3ddc84", quiet: "#7b86ad", away: "#a98bff", idle: "#7b86ad", unknown: "#4b5578" };
+const CELL_H = 142, WALL_H = 34, SPR = 3;
+const cvs = $("station"), ctx = cvs.getContext("2d");
+let cols = 3, cssW = 600, dpr = 1;
+const stars = Array.from({ length: 26 }, (_, i) => [(i * 97) % 997 / 997, (i * 53) % 31 / 31, i % 5]);
+const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function sizeCanvas() {
+  cssW = Math.max(300, Math.floor(cvs.parentElement.clientWidth - 16));
+  cols = Math.max(2, Math.min(5, Math.floor(cssW / 175)));
+  const rows = Math.ceil(CREW.length / cols);
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  cvs.style.height = (WALL_H + rows * CELL_H) + "px";
+  cvs.width = Math.floor(cssW * dpr); cvs.height = Math.floor((WALL_H + rows * CELL_H) * dpr);
+}
+function text(s, x, y, color, size, align) {
+  ctx.fillStyle = color; ctx.font = "800 " + size + "px ui-monospace, Menlo, Consolas, monospace"; ctx.textAlign = align || "left"; ctx.textBaseline = "middle";
+  ctx.fillText(s, x, y);
+}
+function drawMonitor(x, y, st, t) {
+  ctx.fillStyle = "#0b0e1a"; ctx.fillRect(x, y, 38, 29);
+  ctx.fillStyle = "#1a2040"; ctx.fillRect(x + 15, y + 29, 8, 4); ctx.fillRect(x + 11, y + 33, 16, 2);
+  const sx = x + 3, sy = y + 3, sw = 32, sh = 21;
+  if (st.state === "working") {
+    ctx.fillStyle = "#06210f"; ctx.fillRect(sx, sy, sw, sh);
+    for (let k = 0; k < 5; k++) {
+      const w = 6 + ((k * 7 + Math.floor(t / 220)) % 5) * 4;
+      ctx.fillStyle = k % 2 ? "#2fae66" : "#3ddc84"; ctx.fillRect(sx + 3, sy + 3 + k * 4, w, 2);
+    }
+  } else if (st.state === "done") {
+    ctx.fillStyle = "#0b3a1a"; ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = "#6fe3a3"; [[8, 11], [10, 13], [12, 15], [14, 13], [16, 11], [18, 9], [20, 7], [22, 5]].forEach(p => ctx.fillRect(sx + p[0], sy + p[1], 3, 3));
+  } else if (st.state === "failed") {
+    ctx.fillStyle = Math.floor(t / 500) % 2 ? "#3a0b0b" : "#5a1010"; ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = "#ff5a5a"; for (let k = 0; k < 7; k++) { ctx.fillRect(sx + 9 + k * 2, sy + 4 + k * 2, 3, 3); ctx.fillRect(sx + 21 - k * 2, sy + 4 + k * 2, 3, 3); }
+  } else if (st.state === "waiting" || st.state === "queued") {
+    ctx.fillStyle = "#1c1604"; ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = "#6a5200"; ctx.fillRect(sx + 3, sy + 4, 18, 2); ctx.fillRect(sx + 3, sy + 9, 12, 2);
+    if (Math.floor(t / 500) % 2 === 0) { ctx.fillStyle = "#ffb000"; ctx.fillRect(sx + 3, sy + 15, 6, 2); }
+  } else if (st.state === "watching") {
+    ctx.fillStyle = "#08183a"; ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = "#4aa3ff"; const o = Math.floor(t / 300);
+    for (let k = 0; k < 6; k++) ctx.fillRect(sx + 3 + k * 5, sy + 10 + ((o + k * 3) % 4) * 2, 3, 2);
+  } else if (st.state === "active") {
+    ctx.fillStyle = "#06210f"; ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = "#3ddc84"; ctx.fillRect(sx + 3, sy + 4, 20, 2); ctx.fillRect(sx + 3, sy + 9, 14, 2); ctx.fillRect(sx + 3, sy + 14, 24, 2);
+  } else if (st.state === "unknown") {
+    ctx.fillStyle = "#151a2e"; ctx.fillRect(sx, sy, sw, sh);
+    text("?", sx + sw / 2, sy + sh / 2 + 1, "#6877b8", 16, "center");
+  } else {
+    ctx.fillStyle = "#0f1530"; ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = "#2a3566"; ctx.fillRect(sx + 3, sy + 5, 16, 2); ctx.fillRect(sx + 3, sy + 10, 10, 2);
+  }
+}
+function drawCell(bot, i, x, y, w, h, t) {
+  const st = bot._st;
+  ctx.fillStyle = (Math.floor(i / cols) + i) % 2 ? "#141a36" : "#161d3b"; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = "#0d1229"; ctx.fillRect(x + w - 1, y, 1, h); ctx.fillRect(x, y + h - 1, w, 1);
+  const cx = x + w / 2;
+  ctx.fillStyle = "#1b2552"; ctx.fillRect(Math.round(cx - w * 0.4), y + 46, Math.round(w * 0.8), 82);   // rug
+  // character, seated behind the desk
+  const phase = Math.floor(t / 420);
+  const frame = st.state === "working" || st.state === "active" ? phase % 2 : 0;
+  const blink = (Math.floor(t / 140) + i * 7) % 26 === 0;
+  const mood = st.state === "done" ? "happy" : st.state === "failed" ? "worried" : "calm";
+  drawSprite(ctx, bot.look, Math.round(cx - 6.5 * SPR), y + 12, SPR, frame, blink, mood);
+  // desk
+  const dx = Math.round(x + w * 0.1), dw = Math.round(w * 0.8), dy = y + 62;
+  ctx.fillStyle = "#6a5140"; ctx.fillRect(dx, dy, dw, 8);
+  ctx.fillStyle = "#4a392d"; ctx.fillRect(dx, dy + 8, dw, 26);
+  ctx.fillStyle = "#3a2c22"; ctx.fillRect(dx + 6, dy + 34, 6, 10); ctx.fillRect(dx + dw - 12, dy + 34, 6, 10);
+  ctx.fillStyle = "#cfd6ff"; ctx.fillRect(Math.round(cx - 11), dy + 2, 22, 4);          // keyboard
+  drawMonitor(dx + 8, dy - 28, st, t);
+  ctx.fillStyle = "#e8ecff"; ctx.fillRect(dx + dw - 22, dy - 6, 8, 7); ctx.fillStyle = "#8a93aa"; ctx.fillRect(dx + dw - 14, dy - 4, 2, 3);   // mug
+  // lamp
+  const lampOn = st.state !== "unknown" && (st.state !== "failed" || Math.floor(t / 500) % 2 === 0);
+  ctx.fillStyle = lampOn ? STATE_COLOR[st.state] : "#2a3566"; ctx.fillRect(dx + dw - 8, dy + 12, 5, 5);
+  // bubbles above the head
+  if (st.state === "working" && st.since) {
+    const label = timer(Date.now() - st.since);
+    ctx.fillStyle = "#04200f"; ctx.fillRect(Math.round(cx + 18), y + 8, label.length * 8 + 10, 16);
+    ctx.fillStyle = "#3ddc84"; ctx.fillRect(Math.round(cx + 18), y + 8, label.length * 8 + 10, 2);
+    text(label, Math.round(cx + 23), y + 17, "#3ddc84", 12);
+  } else if (st.state === "done") { text("✓", Math.round(cx + 24), y + 14, "#6fe3a3", 18, "center"); }
+  else if (st.state === "failed") { text("!", Math.round(cx + 24), y + 14, "#ff5a5a", 20, "center"); }
+  else if (st.state === "waiting" || st.state === "queued") { text("…", Math.round(cx + 24), y + 12, "#ffb000", 18, "center"); }
+  // name plate
+  ctx.fillStyle = "#070b1c"; ctx.fillRect(Math.round(cx - 46), y + h - 26, 92, 18);
+  ctx.fillStyle = STATE_COLOR[st.state]; ctx.fillRect(Math.round(cx - 46), y + h - 26, 3, 18);
+  text(bot.name.toUpperCase(), Math.round(cx + 2), y + h - 17, "#e8ecff", 12, "center");
+  if (state.selected === bot.id) {
+    ctx.strokeStyle = "#ffb000"; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+  }
+}
+function drawStation(t) {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = "#0a0f26"; ctx.fillRect(0, 0, cssW, cvs.height / dpr);
+  // back wall with windows and the sign
+  ctx.fillStyle = "#0b1230"; ctx.fillRect(0, 0, cssW, WALL_H);
+  ctx.fillStyle = "#1b2a6b"; ctx.fillRect(0, WALL_H - 3, cssW, 3);
+  for (let k = 0; k < Math.floor((cssW - 190) / 120); k++) {
+    const wx = 14 + k * 120;
+    ctx.fillStyle = "#050818"; ctx.fillRect(wx, 6, 70, 18);
+    stars.forEach((s, j) => { if (j % 4 === k % 4) { ctx.fillStyle = (Math.floor(t / 600) + s[2]) % 5 === 0 ? "#6877b8" : "#cfd6ff"; ctx.fillRect(wx + 3 + Math.floor(s[0] * 62), 8 + Math.floor(s[1] * 14), 2, 2); } });
+  }
+  text("HOTSTUFF STATION", cssW - 12, 17, "#ffb000", 12, "right");
+  const cw = cssW / cols;
+  CREW.forEach((bot, i) => drawCell(bot, i, Math.round((i % cols) * cw), WALL_H + Math.floor(i / cols) * CELL_H, Math.round(cw), CELL_H, t));
+}
+
+/* The site-feed counter: "every day since" only when the numbers really say so (one post per day, last one today or yesterday). */
+function feedText() {
+  const s = state.stats;
+  if (!s || s.total == null || !s.since || !s.last) { $("hDays").textContent = "–"; $("feedLine").textContent = ""; return; }
+  const at = d => new Date(d + "T12:00:00Z");
+  const nice = d => at(d).toLocaleDateString("en-US", { timeZone: "UTC", month: "long", day: "numeric" });
+  const short = d => at(d).toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" });
+  const days = Math.round((at(s.last) - at(s.since)) / 86400000) + 1;
+  const gap = Math.round((at(dayKey(Date.now())) - at(s.last)) / 86400000);
+  $("hDays").textContent = s.total;
+  $("hDaysLbl").textContent = "site-feed posts since " + short(s.since);
+  $("feedLine").textContent = (s.total === days && gap <= 1)
+    ? "My own store's site feed has published a new post every day since " + nice(s.since) + " (" + s.total + " so far)."
+    : "My own store's site feed counter reads " + s.total + " posts since " + nice(s.since) + "; the last one was " + nice(s.last) + ".";
+}
+
+/* ---------- the list and the card ---------- */
+const rowEls = {};
+function buildRoster() {
+  const ul = $("rosterList");
+  ul.textContent = "";
+  for (const bot of CREW) {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "bot"; b.dataset.id = bot.id;
+    const c = document.createElement("canvas"); c.width = 40; c.height = 40;
+    const nm = document.createElement("div"); nm.className = "nm";
+    const nameSpan = document.createElement("span"); nameSpan.textContent = bot.name;
+    const chip = document.createElement("span"); chip.className = "chip unknown"; chip.textContent = "…";
+    nm.append(nameSpan, chip);
+    const tm = document.createElement("div"); tm.className = "tm";
+    const rl = document.createElement("div"); rl.className = "rl"; rl.textContent = bot.role;
+    b.append(c, nm, tm, rl);
+    b.addEventListener("click", () => select(bot.id));
+    li.appendChild(b); ul.appendChild(li);
+    rowEls[bot.id] = { b, c, chip, tm };
+  }
+}
+function paintPortrait(bot) {
+  const el = rowEls[bot.id], g = el.c.getContext("2d");
+  g.clearRect(0, 0, 40, 40);
+  g.fillStyle = "#080d24"; g.fillRect(0, 0, 40, 40);
+  g.imageSmoothingEnabled = false;
+  const mood = bot._st.state === "done" ? "happy" : bot._st.state === "failed" ? "worried" : "calm";
+  g.save();
+  drawSprite(g, bot.look, 7, 4, 2, 0, false, mood, OY + 13);
+  g.restore();
+}
+function refreshText() {
+  const now = Date.now();
+  let work = 0, done = 0;
+  for (const bot of CREW) {
+    const st = statusOf(bot);
+    bot._st = st;
+    if (st.state === "working") work++;
+    if (st.state === "done") done++;
+    const el = rowEls[bot.id];
+    el.chip.className = "chip " + st.state; el.chip.textContent = st.label.toUpperCase();
+    el.tm.textContent = st.state === "working" && st.since ? timer(now - st.since) : st.time;
+    el.b.classList.toggle("sel", state.selected === bot.id);
+  }
+  $("hCrew").textContent = CREW.length; $("hWork").textContent = work; $("hDone").textContent = done;
+  $("rWork").textContent = work; $("rDone").textContent = done;
+  feedText();
+  if (state.api.ok === false) note(state.api.note, "warn");
+  else if (state.fetchedAt) note("Live from the public record · checked " + clockStr(state.fetchedAt) + " · busy bots update every few minutes while this page is open.");
+}
+function renderCard() {
+  const card = $("card");
+  const bot = CREW.find(b => b.id === state.selected);
+  card.textContent = "";
+  if (!bot) {
+    const h = document.createElement("h2"); h.textContent = "Tap a desk";
+    const p = document.createElement("p"); p.textContent = "Pick any bot to see what it does, when it last ran, and the proof.";
+    card.append(h, p); return;
+  }
+  const st = bot._st || statusOf(bot);
+  const h = document.createElement("h2"); h.textContent = bot.name;
+  const chip = document.createElement("span"); chip.className = "chip " + st.state; chip.textContent = st.label.toUpperCase(); h.appendChild(chip);
+  const role = document.createElement("p"); role.className = "big"; role.textContent = bot.role;
+  card.append(h, role);
+  for (const line of st.lines) { const p = document.createElement("p"); p.textContent = line; card.appendChild(p); }
+  if (st.link) {
+    const p = document.createElement("p"); const a = document.createElement("a");
+    a.href = st.link; a.textContent = st.linkText + " ↗"; if (/^https?:/.test(st.link)) { a.target = "_blank"; a.rel = "noopener"; }
+    p.appendChild(a); card.appendChild(p);
+  }
+}
+function select(id) {
+  state.selected = state.selected === id ? null : id;
+  refreshText(); renderCard(); drawStation(performance.now());
+  if (state.selected) rowEls[id].b.scrollIntoView({ block: "nearest" });
+}
+function render() {
+  refreshText();
+  CREW.forEach(paintPortrait);
+  renderCard();
+  drawStation(performance.now());
+}
+
+/* ---------- start ---------- */
+cvs.addEventListener("click", e => {
+  const r = cvs.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top - WALL_H;
+  if (y < 0) return;
+  const col = Math.min(cols - 1, Math.floor(x / (cssW / cols))), row = Math.floor(y / CELL_H);
+  const bot = CREW[row * cols + col];
+  if (bot) select(bot.id);
+});
+let resizeTimer = null;
+window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { sizeCanvas(); drawStation(performance.now()); }, 120); });
+buildRoster();
+CREW.forEach(b => { b._st = statusOf(b); });
+sizeCanvas();
+render();
+function tick() {
+  $("hClock").textContent = clockStr(Date.now());
+  refreshText();
+  drawStation(performance.now());
+  setTimeout(tick, reduced ? 1000 : 150);
+}
+tick();
+loadAll().catch(e => { state.api.ok = false; state.api.note = "Something went wrong reading the record (" + e.message + ")."; render(); });
+setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>

@@ -163,6 +163,25 @@ enum VoiceMix {
   return "From Google's reader, about \(what): " + String(text.prefix(2500)) + " (Say it came from Google's reader. It can be wrong.)"
  }
 
+ // For the Video lab: Google watches AND listens to a video file the player chose (their own recording, or a TikTok they saved). A small
+ // shrunken copy goes up with the question; the answer comes back as words (or the plain reason it couldn't).
+ func readVideoFile(_ file: URL,question: String) async -> (text: String?,problem: String?) {
+  if reading { return (nil,"Friday is already reading something. One at a time.") }
+  reading = true
+  defer { reading = false }
+  let fm = FileManager.default
+  let small = fm.temporaryDirectory.appendingPathComponent("friday-lab-\(UUID().uuidString).mp4")
+  defer { try? fm.removeItem(at:small) }
+  do { try await VoiceMix.shrink(file,to:small) } catch { return (nil,"Couldn't prepare the video to send: \(error.localizedDescription)") }
+  guard let video = try? Data(contentsOf:small), !video.isEmpty else { return (nil,"Couldn't read the prepared copy of the video.") }
+  guard video.count <= VoiceOverPlan.maxVideoBytes else { return (nil,"That video is too big to send to Google in one go, even shrunk (over \(VoiceOverPlan.maxVideoBytes / 1_000_000) MB).") }
+  let body = VoiceOverPlan.videoBody(prompt:question,video:video)
+  let answer = await call(body,doing:"watch that video",timeout:300)
+  guard let json = answer.json else { return (nil,answer.problem ?? "Couldn't watch that video.") }
+  guard let text = VoiceOverPlan.replyText(json) else { return (nil,"Google answered but sent back no words. The video may have no usable picture or sound.") }
+  return (String(text.prefix(6000)),nil)
+ }
+
  // For a video that is playing on his screen (TikTok, X, Twitch, anything he is logged in to): a picture of every screen once a second for 5 to 40
  // seconds, studied by Google's reader. Pictures only, no sound. Google never sees the site, only what was on his screens.
  func voiceWatchScreen(seconds rawSeconds: Double?,question: String) async -> String {

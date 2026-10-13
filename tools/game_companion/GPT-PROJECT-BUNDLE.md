@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-10 from commit f83ca51. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-13 from commit e4ecbe6. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -84,6 +84,8 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `VoiceOverData.swift`: Friday's voice-over on a clip: how much she can say, the claim check on her script, Google's answers, the speech file, the volume plan. No Mac frameworks; tested.
 - `VoiceOver.swift`: The voice-over job (watch the clip, check the wiki, write, speak, mix) and its Stream page card.
 - `ObsData.swift`: Friday's link to OBS Studio: the remote-control login (SHA-256 in plain Swift), the message shapes, scene matching, plain-words answers. No Mac frameworks; tested.
+- `VideoLabData.swift`: The Video lab's rules: how many pictures, when, how the contact sheets are laid out, folder names, what Google is asked. No Mac frameworks; tested.
+- `VideoLab.swift`: The Video lab: picture grabbing, contact sheets, the play-by-play from Google, and its card on the Stream page.
 - `ObsBridge.swift`: The short visits to OBS on this Mac (scenes, replay, mute, go live with the Allow box) and the OBS card on the Stream page.
 - `AutopilotData.swift`: Clip autopilot rules: which viewer clips to take, live-clip caps, the hype detector and the TikTok caption. No Mac frameworks; tested.
 - `ClipAutopilot.swift`: Clip autopilot: clips from markers, exciting live moments and viewers' best clips, with caps, a log and a TikTok caption for each.
@@ -2137,6 +2139,7 @@ struct CompanionInterfaceView: View {
  @StateObject var autopilot = ClipAutopilot()
  @StateObject var voiceover = VoiceOver()
  @StateObject var obs = ObsHub()
+ @StateObject var lab = VideoLab()
  @StateObject var corner = FridayCornerController()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
@@ -2151,7 +2154,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; vods.attach(clips,stream:stream); autopilot.attach(clips:clips,stream:stream,vods:vods,live:live,feed:feed); live.vods = vods; voiceover.attach(clips:clips,live:live,feed:feed); live.voiceover = voiceover; live.meeting = meeting; hands.attach(live); live.obs = obs; obs.approve = { [hands] title,detail in await hands.approval.ask(title,detail:detail) }; chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; vods.attach(clips,stream:stream); autopilot.attach(clips:clips,stream:stream,vods:vods,live:live,feed:feed); live.vods = vods; voiceover.attach(clips:clips,live:live,feed:feed); live.voiceover = voiceover; live.meeting = meeting; hands.attach(live); lab.attach(voiceover); live.obs = obs; obs.approve = { [hands] title,detail in await hands.approval.ask(title,detail:detail) }; chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll(); autopilot.pause() }
@@ -4842,6 +4845,7 @@ extension CompanionInterfaceView {
    VStack(alignment:.leading,spacing:18) {
     hubStreamHeader
     hubStreamObs
+    hubStreamVideoLab
     if !clips.signedIn {
      hubStreamConnect
     } else if clips.channel.trimmingCharacters(in:.whitespaces).isEmpty {
@@ -6642,6 +6646,25 @@ enum VoiceMix {
   return "From Google's reader, about \(what): " + String(text.prefix(2500)) + " (Say it came from Google's reader. It can be wrong.)"
  }
 
+ // For the Video lab: Google watches AND listens to a video file the player chose (their own recording, or a TikTok they saved). A small
+ // shrunken copy goes up with the question; the answer comes back as words (or the plain reason it couldn't).
+ func readVideoFile(_ file: URL,question: String) async -> (text: String?,problem: String?) {
+  if reading { return (nil,"Friday is already reading something. One at a time.") }
+  reading = true
+  defer { reading = false }
+  let fm = FileManager.default
+  let small = fm.temporaryDirectory.appendingPathComponent("friday-lab-\(UUID().uuidString).mp4")
+  defer { try? fm.removeItem(at:small) }
+  do { try await VoiceMix.shrink(file,to:small) } catch { return (nil,"Couldn't prepare the video to send: \(error.localizedDescription)") }
+  guard let video = try? Data(contentsOf:small), !video.isEmpty else { return (nil,"Couldn't read the prepared copy of the video.") }
+  guard video.count <= VoiceOverPlan.maxVideoBytes else { return (nil,"That video is too big to send to Google in one go, even shrunk (over \(VoiceOverPlan.maxVideoBytes / 1_000_000) MB).") }
+  let body = VoiceOverPlan.videoBody(prompt:question,video:video)
+  let answer = await call(body,doing:"watch that video",timeout:300)
+  guard let json = answer.json else { return (nil,answer.problem ?? "Couldn't watch that video.") }
+  guard let text = VoiceOverPlan.replyText(json) else { return (nil,"Google answered but sent back no words. The video may have no usable picture or sound.") }
+  return (String(text.prefix(6000)),nil)
+ }
+
  // For a video that is playing on his screen (TikTok, X, Twitch, anything he is logged in to): a picture of every screen once a second for 5 to 40
  // seconds, studied by Google's reader. Pictures only, no sound. Google never sees the site, only what was on his screens.
  func voiceWatchScreen(seconds rawSeconds: Double?,question: String) async -> String {
@@ -7144,6 +7167,321 @@ enum ObsPlan {
  // At most `max` of these in the last `window` seconds. Used to keep her from hammering OBS.
  static func underLimit(_ times: [Date],now: Date,window: TimeInterval,max: Int) -> Bool {
   times.filter { now.timeIntervalSince($0) < window }.count < max
+ }
+}
+```
+
+## FILE: VideoLabData.swift
+
+```swift
+import Foundation
+
+// The Video lab's rules, with no Mac frameworks so they can be tested anywhere. Matthew's ask (2026-10-13): "we need to find a way for you
+// to analyze videos". Claude (in the cloud chat) can read pictures and words, not play a video, so the lab turns a video file on his Mac into
+// both: contact sheets (a grid of frames with their times, small enough to paste into the chat) and a written play-by-play from Google's
+// reader (which can hear as well as see). Nothing here posts, saves or sends anything by itself; see VideoLab.swift for what leaves the Mac.
+
+enum VideoLabPlan {
+ static let sheetWidth = 2000
+ static let gap = 10
+ static let labelHeight = 30
+ static let headerHeight = 44    // the title line across the top of each sheet
+ static let maxSheets = 3
+ static let maxWordSeconds = 300.0   // longer than this is too big to send to Google in one go
+
+ // How many pictures to take: enough to follow a short clip, capped so a long video still fits in a few sheets.
+ static func frameCount(duration: Double) -> Int {
+  guard duration.isFinite, duration > 0 else { return 0 }
+  if duration <= 15 { return 12 }
+  if duration <= 45 { return 24 }
+  if duration <= 120 { return 36 }
+  return 48
+ }
+
+ // The moments to take pictures at: the middle of each of `count` equal slices of the video, so the first and last pictures are not black
+ // fade-in or fade-out frames.
+ static func frameTimes(duration: Double,count: Int) -> [Double] {
+  guard duration.isFinite, duration > 0, count > 0 else { return [] }
+  return (0..<count).map { min(duration,duration * (Double($0) + 0.5) / Double(count)) }
+ }
+
+ enum Shape: Equatable { case tall, square, wide }
+
+ // aspect = shown width / shown height (so a TikTok is about 0.56).
+ static func shape(aspect: Double) -> Shape {
+  if !aspect.isFinite || aspect <= 0 { return .wide }
+  if aspect < 0.8 { return .tall }
+  return aspect <= 1.25 ? .square : .wide
+ }
+
+ static func columns(_ shape: Shape) -> Int {
+  switch shape {
+  case .tall: return 6
+  case .square: return 5
+  case .wide: return 4
+  }
+ }
+
+ // Pictures per sheet, chosen so a sheet is about 2000 wide and not much taller than 2000.
+ static func perSheet(_ shape: Shape) -> Int {
+  switch shape {
+  case .tall: return 18
+  case .square: return 15
+  case .wide: return 16
+  }
+ }
+
+ struct Layout: Equatable {
+  var columns: Int
+  var rows: Int
+  var tileWidth: Int
+  var tileHeight: Int
+  var sheetHeight: Int
+ }
+
+ static func layout(count: Int,aspect: Double) -> Layout? {
+  guard count > 0 else { return nil }
+  let kind = shape(aspect:aspect)
+  let full = columns(kind)               // pictures are always the same size, even on a last sheet that has only a few
+  let cols = min(count,full)
+  let rows = (count + cols - 1) / cols
+  let safeAspect = aspect.isFinite && aspect > 0 ? min(3,max(0.3,aspect)) : 16.0 / 9.0
+  let tileW = (sheetWidth - gap * (full + 1)) / full
+  let tileH = max(1,Int(Double(tileW) / safeAspect))
+  return Layout(columns:cols,rows:rows,tileWidth:tileW,tileHeight:tileH,sheetHeight:headerHeight + gap + rows * (tileH + labelHeight + gap))
+ }
+
+ // Which pictures go on which sheet, in order. At most `maxSheets` sheets; pictures beyond that are left out (the screen says so).
+ static func sheetRanges(total: Int,aspect: Double) -> [Range<Int>] {
+  guard total > 0 else { return [] }
+  let size = perSheet(shape(aspect:aspect))
+  var out: [Range<Int>] = []
+  var start = 0
+  while start < total && out.count < maxSheets {
+   out.append(start..<min(total,start + size))
+   start += size
+  }
+  return out
+ }
+
+ // 0:07, 1:05, 1:02:03
+ static func label(_ seconds: Double) -> String {
+  let whole = max(0,Int(seconds.isFinite ? seconds : 0))
+  let h = whole / 3600, m = (whole % 3600) / 60, s = whole % 60
+  return h > 0 ? "\(h):" + String(format:"%02d:%02d",m,s) : "\(m):" + String(format:"%02d",s)
+ }
+
+ // A folder name made from the video's file name: letters, digits, dash and underscore only, at most 40 characters.
+ static func folderName(for file: String,stamp: String) -> String {
+  let base = (file as NSString).deletingPathExtension
+  let safe = String(base.map { $0.isASCII && ($0.isLetter || $0.isNumber) ? $0 : "-" }).split(separator:"-",omittingEmptySubsequences:true).joined(separator:"-")
+  let trimmed = String(safe.prefix(40))
+  return (trimmed.isEmpty ? "video" : trimmed) + "-" + stamp
+ }
+
+ // What Google is asked about the video. It can hear it, so the words spoken are part of the answer.
+ static let question = "This is a short social video someone saved as a reference. Describe it for a founder who cannot watch it, in plain words: (1) what happens, scene by scene with rough times; (2) every word spoken or sung, as close to exact as you can, and say clearly if there is no speech; (3) any text shown on screen; (4) the look: colors, style, camera, editing speed, and any music or sound effects; (5) the hook in the first three seconds and why it might keep people watching. Say what you could not tell. Describe only what is really in the video."
+}
+```
+
+## FILE: VideoLab.swift
+
+```swift
+import SwiftUI
+import AppKit
+import AVFoundation
+import UniformTypeIdentifiers
+
+// The Video lab: turns a video file on Matthew's Mac into something Claude can actually study.
+// Matthew's ask (2026-10-13): "we need to find a way for you to analyze videos". Claude, in the chat, can read pictures and words but cannot play a
+// video, so the lab makes both: CONTACT SHEETS (a grid of frames, each stamped with its time, small enough to paste into the chat) and a WRITTEN
+// PLAY-BY-PLAY from Google's reader, which can hear as well as see (so the words spoken in the video come through). The rules and the maths are in
+// VideoLabData.swift (tested).
+// What stays on the Mac: the pictures and the sheets (folder "Video Lab" inside the clips folder). What leaves the Mac: only the "words" step, which
+// sends a small shrunken copy of the video to Google with Matthew's own free key (Google's free tier may use it to improve its products). Nothing is
+// posted anywhere. It is meant for his own recordings and for videos he saved as a reference.
+// Checked against Apple's docs on 2026-10-13: AVAssetImageGenerator.image(at:) async, appliesPreferredTrackTransform, maximumSize;
+// AVAsset.load(.duration), loadTracks(withMediaType:), AVAssetTrack.load(.naturalSize/.preferredTransform);
+// NSImage(size:flipped:drawingHandler:), NSBitmapImageRep.representation(using:properties:), NSOpenPanel.allowedContentTypes.
+
+@MainActor final class VideoLab: ObservableObject {
+ @Published var working = false
+ @Published var status = ""
+ @Published var words = ""
+ @Published var sheets: [URL] = []
+ @Published var videoName = ""
+ private var reader: VoiceOver?
+ private(set) var folder: URL?
+
+ static var root: URL { TwitchClips.clipsRoot.appendingPathComponent("Video Lab",isDirectory:true) }
+
+ func attach(_ voice: VoiceOver) { reader = voice }
+
+ func choose() {
+  let panel = NSOpenPanel()
+  panel.title = "Choose a video"
+  panel.message = "A screen recording, or a TikTok you saved. It stays on your Mac."
+  panel.canChooseFiles = true
+  panel.canChooseDirectories = false
+  panel.allowsMultipleSelection = false
+  panel.allowedContentTypes = [.movie]
+  guard panel.runModal() == .OK, let url = panel.url else { return }
+  Task { await analyze(url) }
+ }
+
+ func analyze(_ url: URL) async {
+  if working { return }
+  working = true
+  defer { working = false }
+  words = ""
+  sheets = []
+  videoName = url.lastPathComponent
+  status = "Opening the video…"
+  let asset = AVURLAsset(url:url)
+  let duration: Double
+  let aspect: Double
+  do {
+   duration = try await asset.load(.duration).seconds
+   guard let track = try await asset.loadTracks(withMediaType:.video).first else { status = "That file has no picture in it, so there is nothing to look at."; return }
+   let natural = try await track.load(.naturalSize)
+   let transform = try await track.load(.preferredTransform)
+   let shown = natural.applying(transform)
+   aspect = abs(shown.height) > 0 ? Double(abs(shown.width) / abs(shown.height)) : 16.0 / 9.0
+  } catch {
+   status = "I couldn't open that video: \(error.localizedDescription)"
+   return
+  }
+  let count = VideoLabPlan.frameCount(duration:duration)
+  guard count > 0, let plan = VideoLabPlan.layout(count:min(count,VideoLabPlan.perSheet(VideoLabPlan.shape(aspect:aspect))),aspect:aspect) else { status = "That video has no length I can read."; return }
+  let times = VideoLabPlan.frameTimes(duration:duration,count:count)
+  let generator = AVAssetImageGenerator(asset:asset)
+  generator.appliesPreferredTrackTransform = true
+  generator.maximumSize = CGSize(width:CGFloat(plan.tileWidth) * 1.5,height:CGFloat(plan.tileHeight) * 1.5)
+  generator.requestedTimeToleranceBefore = CMTime(seconds:0.4,preferredTimescale:600)
+  generator.requestedTimeToleranceAfter = CMTime(seconds:0.4,preferredTimescale:600)
+  var frames: [(time: Double,image: CGImage)] = []
+  for (index,time) in times.enumerated() {
+   status = "Taking pictures… \(index + 1) of \(times.count)"
+   if let made = try? await generator.image(at:CMTime(seconds:time,preferredTimescale:600)) { frames.append((time,made.image)) }
+  }
+  guard frames.count >= 2 else { status = "I could only get \(frames.count) picture from that video, so there is no sheet to make."; return }
+  // The folder for this video: Movies / Game Companion Clips / Video Lab / name-date
+  let stamp = DateFormatter()
+  stamp.dateFormat = "yyyyMMdd-HHmmss"
+  let target = Self.root.appendingPathComponent(VideoLabPlan.folderName(for:url.lastPathComponent,stamp:stamp.string(from:Date())),isDirectory:true)
+  do { try FileManager.default.createDirectory(at:target,withIntermediateDirectories:true) } catch { status = "I couldn't make a folder for the sheets: \(error.localizedDescription)"; return }
+  folder = target
+  status = "Laying out the contact sheets…"
+  var made: [URL] = []
+  let ranges = VideoLabPlan.sheetRanges(total:frames.count,aspect:aspect)
+  for (number,range) in ranges.enumerated() {
+   let part = Array(frames[range])
+   guard let layout = VideoLabPlan.layout(count:part.count,aspect:aspect) else { continue }
+   let title = "\(url.lastPathComponent)  ·  sheet \(number + 1) of \(ranges.count)  ·  \(VideoLabPlan.label(duration)) long"
+   let image = Self.sheetImage(part,layout:layout,title:title)
+   guard let tiff = image.tiffRepresentation, let rep = NSBitmapImageRep(data:tiff),
+         let jpeg = rep.representation(using:.jpeg,properties:[.compressionFactor:0.8]) else { continue }
+   let file = target.appendingPathComponent("sheet-\(number + 1).jpg")
+   if (try? jpeg.write(to:file)) != nil { made.append(file) }
+  }
+  sheets = made
+  guard !made.isEmpty else { status = "I took the pictures but couldn't save the sheets."; return }
+  copySheet(1)
+  let left = frames.count - (ranges.last?.upperBound ?? 0)
+  var report = "\(made.count) contact sheet\(made.count == 1 ? "" : "s") ready (\(frames.count) pictures, each stamped with its time). Sheet 1 is on your clipboard: paste it into the chat with Claude."
+  if left > 0 { report += " (\(left) later pictures didn't fit on the sheets.)" }
+  // The words: Google watches and listens to a small copy.
+  if duration > VideoLabPlan.maxWordSeconds {
+   status = report + " The video is longer than \(Int(VideoLabPlan.maxWordSeconds / 60)) minutes, so I didn't send it to Google for the words."
+   return
+  }
+  guard let voice = reader else { status = report; return }
+  status = "Sheets done. Now Google is watching and listening… (a minute or two)"
+  let result = await voice.readVideoFile(url,question:VideoLabPlan.question)
+  if let text = result.text {
+   words = text
+   try? text.write(to:target.appendingPathComponent("play-by-play.txt"),atomically:true,encoding:.utf8)
+   status = report + " The play-by-play is below; the copy button puts it on your clipboard too."
+  } else {
+   status = report + " The play-by-play didn't work: \(result.problem ?? "no answer")."
+  }
+ }
+
+ func copySheet(_ number: Int) {
+  guard sheets.indices.contains(number - 1), let image = NSImage(contentsOf:sheets[number - 1]) else { return }
+  let board = NSPasteboard.general
+  board.clearContents()
+  board.writeObjects([image])
+ }
+
+ func copyWords() {
+  guard !words.isEmpty else { return }
+  let board = NSPasteboard.general
+  board.clearContents()
+  board.setString(words,forType:.string)
+ }
+
+ func openFolder() {
+  let target = folder ?? Self.root
+  try? FileManager.default.createDirectory(at:target,withIntermediateDirectories:true)
+  NSWorkspace.shared.open(target)
+ }
+
+ // One sheet: dark background, a title line across the top (video name, sheet number, length), and each picture with its time under it.
+ private static func sheetImage(_ frames: [(time: Double,image: CGImage)],layout: VideoLabPlan.Layout,title: String) -> NSImage {
+  let size = NSSize(width:VideoLabPlan.sheetWidth,height:layout.sheetHeight)
+  return NSImage(size:size,flipped:true) { rect in
+   NSColor(calibratedWhite:0.07,alpha:1).setFill()
+   rect.fill()
+   let stamp: [NSAttributedString.Key:Any] = [.font:NSFont.monospacedSystemFont(ofSize:22,weight:.bold),.foregroundColor:NSColor.white]
+   for (index,frame) in frames.enumerated() {
+    let col = index % layout.columns
+    let row = index / layout.columns
+    let x = VideoLabPlan.gap + col * (layout.tileWidth + VideoLabPlan.gap)
+    let y = VideoLabPlan.headerHeight + VideoLabPlan.gap + row * (layout.tileHeight + VideoLabPlan.labelHeight + VideoLabPlan.gap)
+    let tile = NSRect(x:x,y:y,width:layout.tileWidth,height:layout.tileHeight)
+    // Fit the picture inside its tile without stretching it.
+    let w = CGFloat(frame.image.width), h = CGFloat(frame.image.height)
+    let scale = min(tile.width / max(1,w),tile.height / max(1,h))
+    let fit = NSRect(x:tile.midX - w * scale / 2,y:tile.midY - h * scale / 2,width:w * scale,height:h * scale)
+    NSImage(cgImage:frame.image,size:NSSize(width:w,height:h)).draw(in:fit,from:.zero,operation:.copy,fraction:1,respectFlipped:true,hints:nil)
+    NSString(string:VideoLabPlan.label(frame.time)).draw(at:NSPoint(x:CGFloat(x) + 2,y:tile.maxY + 3),withAttributes:stamp)
+   }
+   NSString(string:title).draw(at:NSPoint(x:CGFloat(VideoLabPlan.gap),y:10),withAttributes:stamp)
+   return true
+  }
+ }
+}
+
+extension CompanionInterfaceView {
+ var hubStreamVideoLab: some View {
+  VStack(alignment:.leading,spacing:12) {
+   HStack(spacing:10) {
+    Text("Video lab: let Claude see a video").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    if lab.working { ProgressView().controlSize(.small) }
+    Spacer()
+   }
+   Text("Claude can read pictures and words but can't play a video. Choose a video file and the lab makes contact sheets (a grid of pictures, each stamped with its time) and a written play-by-play from Google, which can hear the words too. Paste the sheet and the play-by-play into your chat with Claude and he can study it with you.").font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.65))
+   Text("For a TikTok: save it first (the Share button, then Save video, or on tiktok.com right-click the video and choose Download video when the creator allows it), then choose that file here. Only use videos that are yours or that you saved as a reference. Nothing is posted anywhere.").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   HStack(spacing:10) {
+    Button { lab.choose() } label: { Label("Choose a video…",systemImage:"film") }.buttonStyle(PillButtonStyle()).disabled(lab.working)
+    ForEach(Array(lab.sheets.enumerated()),id:\.offset) { item in
+     Button { lab.copySheet(item.offset + 1) } label: { Label("Copy sheet \(item.offset + 1)",systemImage:"doc.on.clipboard") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    }
+    if !lab.words.isEmpty {
+     Button { lab.copyWords() } label: { Label("Copy the play-by-play",systemImage:"text.quote") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    }
+    Button { lab.openFolder() } label: { Label("Open the folder",systemImage:"folder") }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+   if !lab.status.isEmpty {
+    Text(lab.status).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.75)).textSelection(.enabled)
+   }
+   if !lab.words.isEmpty {
+    Text(lab.words).font(.system(size:12.5,design:.rounded)).foregroundStyle(Noir.crimsonLight).textSelection(.enabled)
+   }
+   Text("The pictures and sheets stay on this Mac. Only the play-by-play step sends a small shrunken copy of the video to Google, with your free Gemini key; Google's free tier may use it to improve its products. Google can get things wrong, and it can't tell you who is speaking.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))
+  }
+  .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
  }
 }
 ```
@@ -10310,7 +10648,7 @@ TMP=$(mktemp -d)
 
 echo "Building Game Companion (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,FridayHands,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,FridayHands,Hub}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -10451,7 +10789,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift VoiceOverData.swift WebData.swift ObsData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift VoiceOverData.swift WebData.swift ObsData.swift VideoLabData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -10777,6 +11115,21 @@ import Foundation
   precondition(ObsPlan.goLiveDetail(scene:"Game").contains("“Game”") && ObsPlan.goLiveDetail(scene:"").contains("public") && ObsPlan.stopDetail.contains("end"))
   let obsT0 = Date(timeIntervalSince1970:1_000_000)
   precondition(ObsPlan.underLimit([],now:obsT0,window:60,max:3) && !ObsPlan.underLimit([obsT0,obsT0.addingTimeInterval(-5),obsT0.addingTimeInterval(-10)],now:obsT0,window:60,max:3) && ObsPlan.underLimit([obsT0.addingTimeInterval(-70),obsT0.addingTimeInterval(-80),obsT0.addingTimeInterval(-5)],now:obsT0,window:60,max:3))
+  // Video lab: how many pictures, when, how they are laid out on the sheets, and the folder name.
+  precondition(VideoLabPlan.frameCount(duration:0) == 0 && VideoLabPlan.frameCount(duration:.nan) == 0 && VideoLabPlan.frameCount(duration:10) == 12 && VideoLabPlan.frameCount(duration:30) == 24 && VideoLabPlan.frameCount(duration:90) == 36 && VideoLabPlan.frameCount(duration:600) == 48)
+  precondition(VideoLabPlan.frameTimes(duration:10,count:5) == [1,3,5,7,9] && VideoLabPlan.frameTimes(duration:0,count:5).isEmpty && VideoLabPlan.frameTimes(duration:10,count:0).isEmpty)
+  for duration in [0.5,3,17.3,59,300] { let times = VideoLabPlan.frameTimes(duration:duration,count:VideoLabPlan.frameCount(duration:duration)); precondition(times.count == VideoLabPlan.frameCount(duration:duration) && times.allSatisfy { $0 > 0 && $0 < duration } && times == times.sorted()) }
+  precondition(VideoLabPlan.shape(aspect:9.0 / 16.0) == .tall && VideoLabPlan.shape(aspect:1) == .square && VideoLabPlan.shape(aspect:16.0 / 9.0) == .wide && VideoLabPlan.shape(aspect:.nan) == .wide && VideoLabPlan.shape(aspect:0) == .wide)
+  let tallSheet = VideoLabPlan.layout(count:12,aspect:9.0 / 16.0)!
+  precondition(tallSheet == VideoLabPlan.Layout(columns:6,rows:2,tileWidth:321,tileHeight:570,sheetHeight:1274))
+  let wideSheet = VideoLabPlan.layout(count:3,aspect:16.0 / 9.0)!
+  precondition(wideSheet == VideoLabPlan.Layout(columns:3,rows:1,tileWidth:487,tileHeight:273,sheetHeight:367) && VideoLabPlan.layout(count:0,aspect:1) == nil)
+  for aspect in [0.46,0.5625,1,1.78,3.0] { for count in [1,7,12,18,24] { let l = VideoLabPlan.layout(count:min(count,VideoLabPlan.perSheet(VideoLabPlan.shape(aspect:aspect))),aspect:aspect)!; precondition(l.tileWidth > 0 && l.tileHeight > 0 && l.sheetHeight > 0 && l.sheetHeight < 3200 && l.columns * l.rows >= min(count,VideoLabPlan.perSheet(VideoLabPlan.shape(aspect:aspect)))) } }
+  precondition(VideoLabPlan.sheetRanges(total:48,aspect:9.0 / 16.0) == [0..<18,18..<36,36..<48] && VideoLabPlan.sheetRanges(total:60,aspect:9.0 / 16.0) == [0..<18,18..<36,36..<54])
+  precondition(VideoLabPlan.sheetRanges(total:20,aspect:16.0 / 9.0) == [0..<16,16..<20] && VideoLabPlan.sheetRanges(total:0,aspect:1).isEmpty)
+  precondition(VideoLabPlan.label(7) == "0:07" && VideoLabPlan.label(65) == "1:05" && VideoLabPlan.label(3723) == "1:02:03" && VideoLabPlan.label(-5) == "0:00" && VideoLabPlan.label(.nan) == "0:00")
+  precondition(VideoLabPlan.folderName(for:"My TikTok (final) #2.mp4",stamp:"20261013-101500") == "My-TikTok-final-2-20261013-101500" && VideoLabPlan.folderName(for:"../../etc/passwd.mp4",stamp:"s") == "etc-passwd-s" && VideoLabPlan.folderName(for:"日本語.mov",stamp:"s") == "video-s")
+  precondition(VideoLabPlan.folderName(for:String(repeating:"a",count:90) + ".mp4",stamp:"s").count == 42 && VideoLabPlan.question.contains("every word spoken") && VideoLabPlan.question.contains("Describe only what is really in the video"))
   print("All data checks passed.")
  }
 }
@@ -11501,7 +11854,31 @@ Only Matthew's voice can ask; **going live or ending the stream always waits for
 rate-limited to 20 OBS visits a minute. The card also has scene buttons and **Save a replay**.
 
 **What it won't do.** It never talks to another machine, never starts anything on its own, and never touches OBS settings, sources or the stream
-key (the key stays in OBS). It does not capture the PlayStation or the camera: that part is set up inside OBS itself, not by this app.
+key (the key stays in OBS). It does not capture the PlayStation or the camera: that part is set up inside OBS itself, not by this app. The verified free route for a PS5 (Remote Play on the Mac) with a phone as the camera is in
+`OBS-SETUP.md`.
+
+## Video lab: a way for Claude to see a video (2026-10-13)
+
+Matthew's ask: "we need to find a way for you to analyze videos". Claude (in the cloud chat) can read pictures and words but cannot play a video, so the
+**Video lab** card at the top of the Stream page (under the OBS card) turns a video file into things Claude can study. New files: `VideoLabData.swift`
+(the rules, tested) and `VideoLab.swift` (the work and the card); `VoiceOver.swift` gained `readVideoFile`.
+
+**Choose a video…** (a screen recording, or a TikTok he saved: TikTok's Share, then Save video, or right-click the video on tiktok.com and choose
+Download video when the creator allows it). The lab then:
+1. Takes 12 to 48 pictures spread evenly through the video (12 for 15 seconds or less, up to 48 for over two minutes), stamped with their times.
+2. Lays them out as **contact sheets** (JPEGs about 2000 pixels wide: 6 across for a phone-shaped video, 4 for a wide one; up to 3 sheets) in
+   `Movies / Game Companion Clips / Video Lab / <name>-<date>/`. **Sheet 1 goes on the clipboard** so he can paste it straight into the chat with Claude;
+   **Copy sheet 2 / 3** buttons do the rest.
+3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 5 minutes) to Google with his free Gemini key and
+   asks for a scene-by-scene play-by-play that includes **every word spoken**, the on-screen text, the look and sound, and the hook. It is shown on the
+   card, saved as `play-by-play.txt`, and **Copy the play-by-play** puts it on the clipboard. Google's reader hears the audio, which pictures alone can't give.
+
+What stays on the Mac: the pictures and sheets. What leaves: only the shrunken copy for step 3 (Google's free tier may use it to improve its products; he
+accepted that for Friday's other Google features). If there is no Google key, or the video is longer than 5 minutes or too big, step 3 is skipped with the
+reason and the sheets still work. Nothing is posted anywhere. It is for his own recordings and videos he saved as a reference.
+Honest limits: Google can get things wrong and can't say who is speaking; the sheets show only some moments (one picture per slice of the video).
+Tested here: the picture times, the sheet layout maths, the folder names (DataChecks). Not yet run on his Mac: the picture grabbing and drawing.
+Until he tries it, he can also play a video on his Mac and tell Friday "watch the screen and tell the team what's in it" (`watch_screen` plus `tell_the_team`).
 ```
 
 ## FILE: meeting-room/README.md
@@ -11580,7 +11957,9 @@ _Last updated: 2026-10-05 by Claude and GPT_
 - [GPT] Add frequency-claim detection to tools/claims_check.py ("3x a day", "posts three times daily", "every hour"), with tests, on a branch. The eight page fixes in claude-fixes-for-gpt.md are already done (see Decisions), so skip those. Status: assigned
 - [Claude] New this round: Friday's orb rewritten (aura, glass sphere, sparks, look bar), a Siri-style corner popup when Friday is live and the window is out of sight, drag-to-reorder rail icons, and a Stream page for Twitch (live status, title and category with presets, markers, clips, go-live checklist), and Friday's new job setting (Game buddy or Stream manager, default Stream manager) so she runs it by voice: am I live, change title or category, use a preset, mark a moment. Matthew's private chat with Friday now lives in the Meeting Room as its own channel, saved on his Mac only. A chat helper on the Stream page posts his saved links and reminders (store, Prime sub, follow) in his Twitch chat while he is live; off until he starts it. Not yet: answering !commands and deleting spam or banning. The Twitch reader and the chat and feed rules are tested here, and GPT compile-checked all of it on the Mac with zero errors (master 2dc0cfb). Not yet seen on screen or tried against live Twitch: waiting on Matthew connecting Twitch and sending screenshots. Status: waiting
 - [Claude] Friday hearing herself on speakers: new Sound output setting (Auto / Headphones / Speakers) with CoreAudio detection, and the mic pauses while she talks on speakers (new file AudioRoute.swift). GPT: please compile-check at your next room check. Matthew: rebuild and tell me if she still cuts herself off. Status: waiting
-- [Claude] 2026-10-10: OBS link for Friday (Matthew's plan: stream the PlayStation through OBS on the Mac with a camera that isn't plugged into the console). New files ObsData.swift (tested: SHA-256 login, messages, scene matching) and ObsBridge.swift (short connections to OBS on this Mac only, plus the OBS card at the top of the Stream page); Live.swift gains obs_status, obs_scene, obs_replay, obs_mute, obs_stream. Going live or ending the stream needs his press on the Allow box every time; the OBS password lives in a private file. The bridge logic type-checks on Linux against stand-ins; the SwiftUI card and the real OBS connection are untested. GPT: please compile-check ObsBridge.swift (URLSessionWebSocketTask async send/receive under Swift 6) and Live.swift on the Mac. Matthew: update, install OBS, link it from the OBS card. Status: waiting
+- [Claude] 2026-10-13: Video lab for Matthew ("we need to find a way for you to analyze videos"): a card under the OBS card on the Stream page. He chooses a video file; it makes contact sheets (pictures with time stamps, sheet 1 copied to the clipboard to paste into the chat with Claude) and a play-by-play from Google that includes the spoken words (small shrunken copy sent with his own key). New files VideoLabData.swift (tested) and VideoLab.swift; readVideoFile added to VoiceOver.swift. GPT: please compile-check VideoLab.swift (AVAssetImageGenerator.image(at:) async, NSImage drawing handler, NSOpenPanel with UTType.movie) and VoiceOver.swift. Matthew: update, then try it on a short video. Status: waiting
+- [Claude] 2026-10-13: The Crew page (findhotstuff.com/crew/, noindex for now): one pixel desk per bot (Pack, Courier, Cards, Fresh, Watch, Smoke, Count, the three practice robots, Claude, GPT, Friday) with live status read from GitHub's public record, the robots' public snapshots and the feed counter. Matthew's reference: two TikToks from @androoagi showing a pixel-art agent roster and station. Honest by design: WORKING only while a run is in progress (real timer), DONE TODAY only if the last run finished OK on today's Moncton date, practice robots shown next to just holding SPY and labelled pretend money, Friday's status private, UNKNOWN when GitHub can't be read. Original characters (the videos use Pikachu and other famous ones; we don't). GPT: please review the wording on the page against rule 1. Status: waiting
+- [Claude] 2026-10-10: OBS link for Friday (Matthew's plan: stream the PlayStation through OBS on the Mac with a camera that isn't plugged into the console). New files ObsData.swift (tested: SHA-256 login, messages, scene matching) and ObsBridge.swift (short connections to OBS on this Mac only, plus the OBS card at the top of the Stream page); Live.swift gains obs_status, obs_scene, obs_replay, obs_mute, obs_stream. Going live or ending the stream needs his press on the Allow box every time; the OBS password lives in a private file. Update 2026-10-10 night: Matthew rebuilt, installed OBS 32.2.2 and the OBS card says LINKED, so the app compiled and the real login and test worked. Not yet seen: Friday's OBS voice tools on a real stream, and Remote Play captured in OBS (the window capture works, game sound and the iPhone camera are next). Setup guide: tools/game_companion/OBS-SETUP.md. Status: waiting
 - [Claude] 2026-10-07: Friday app, since 10-06: hands scroll the page not herself and the hands switch is remembered; Google Search no longer switches her other tools off; tools she has are shown on the Friday page; listening fixes (audio padding, stream-end after pauses, words kept during reconnects); fresh pictures after her actions; new tools read_link (pages, YouTube, latest clip) and watch_screen (a video playing on his screens, no sound); game notes hold 2000 characters. Matthew's own rebuilds compile through 182f864 (he is running it), so GPT: compile-check only what came after (63327e0, 5feafcb, af5d153: Live.swift, VoiceOver.swift, WebData.swift, CompanionInterface.swift). No reply from GPT since 10-05 22:22.
 - [Claude] 2026-10-06: Friday can open searches and links in Matthew's browser (search_site, open_link; WebData.swift tested) because she told him she couldn't search TikTok/X/YouTube; the app window can shrink to 440x400 with a compact layout. GPT: both are in the same compile-check ask (WebData.swift is new; Hub.swift has a GeometryReader in hubShell).
 - [Claude] 2026-10-06: Friday's voice-over on clips (Matthew's ask: she explains what's going on, how to get loot, best ways to farm, in the clip). New files VoiceOverData.swift (tested) and VoiceOver.swift; card on the Stream page; Friday tool narrate_clip. Loot/farming tips only from the game wiki, numbers she can't back up are dropped, AI voice is disclosed. GPT: compile-check VoiceOver.swift (AVFoundation mixing) and sanity-check the Google endpoint/model names against ai.google.dev. Nothing is posted.

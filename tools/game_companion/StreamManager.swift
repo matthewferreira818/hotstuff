@@ -261,6 +261,7 @@ extension CompanionInterfaceView {
    VStack(alignment:.leading,spacing:18) {
     hubStreamHeader
     hubStreamObs
+    hubStreamVideoLab
     if !clips.signedIn {
      hubStreamConnect
     } else if clips.channel.trimmingCharacters(in:.whitespaces).isEmpty {

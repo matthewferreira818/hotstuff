@@ -47,6 +47,8 @@ FILES = [
     ("VoiceOverData.swift", "Friday's voice-over on a clip: how much she can say, the claim check on her script, Google's answers, the speech file, the volume plan. No Mac frameworks; tested."),
     ("VoiceOver.swift", "The voice-over job (watch the clip, check the wiki, write, speak, mix) and its Stream page card."),
     ("ObsData.swift", "Friday's link to OBS Studio: the remote-control login (SHA-256 in plain Swift), the message shapes, scene matching, plain-words answers. No Mac frameworks; tested."),
+    ("VideoLabData.swift", "The Video lab's rules: how many pictures, when, how the contact sheets are laid out, folder names, what Google is asked. No Mac frameworks; tested."),
+    ("VideoLab.swift", "The Video lab: picture grabbing, contact sheets, the play-by-play from Google, and its card on the Stream page."),
     ("ObsBridge.swift", "The short visits to OBS on this Mac (scenes, replay, mute, go live with the Allow box) and the OBS card on the Stream page."),
     ("AutopilotData.swift", "Clip autopilot rules: which viewer clips to take, live-clip caps, the hype detector and the TikTok caption. No Mac frameworks; tested."),
     ("ClipAutopilot.swift", "Clip autopilot: clips from markers, exciting live moments and viewers' best clips, with caps, a log and a TikTok caption for each."),

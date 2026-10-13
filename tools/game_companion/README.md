@@ -716,3 +716,26 @@ rate-limited to 20 OBS visits a minute. The card also has scene buttons and **Sa
 **What it won't do.** It never talks to another machine, never starts anything on its own, and never touches OBS settings, sources or the stream
 key (the key stays in OBS). It does not capture the PlayStation or the camera: that part is set up inside OBS itself, not by this app. The verified free route for a PS5 (Remote Play on the Mac) with a phone as the camera is in
 `OBS-SETUP.md`.
+
+## Video lab: a way for Claude to see a video (2026-10-13)
+
+Matthew's ask: "we need to find a way for you to analyze videos". Claude (in the cloud chat) can read pictures and words but cannot play a video, so the
+**Video lab** card at the top of the Stream page (under the OBS card) turns a video file into things Claude can study. New files: `VideoLabData.swift`
+(the rules, tested) and `VideoLab.swift` (the work and the card); `VoiceOver.swift` gained `readVideoFile`.
+
+**Choose a video…** (a screen recording, or a TikTok he saved: TikTok's Share, then Save video, or right-click the video on tiktok.com and choose
+Download video when the creator allows it). The lab then:
+1. Takes 12 to 48 pictures spread evenly through the video (12 for 15 seconds or less, up to 48 for over two minutes), stamped with their times.
+2. Lays them out as **contact sheets** (JPEGs about 2000 pixels wide: 6 across for a phone-shaped video, 4 for a wide one; up to 3 sheets) in
+   `Movies / Game Companion Clips / Video Lab / <name>-<date>/`. **Sheet 1 goes on the clipboard** so he can paste it straight into the chat with Claude;
+   **Copy sheet 2 / 3** buttons do the rest.
+3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 5 minutes) to Google with his free Gemini key and
+   asks for a scene-by-scene play-by-play that includes **every word spoken**, the on-screen text, the look and sound, and the hook. It is shown on the
+   card, saved as `play-by-play.txt`, and **Copy the play-by-play** puts it on the clipboard. Google's reader hears the audio, which pictures alone can't give.
+
+What stays on the Mac: the pictures and sheets. What leaves: only the shrunken copy for step 3 (Google's free tier may use it to improve its products; he
+accepted that for Friday's other Google features). If there is no Google key, or the video is longer than 5 minutes or too big, step 3 is skipped with the
+reason and the sheets still work. Nothing is posted anywhere. It is for his own recordings and videos he saved as a reference.
+Honest limits: Google can get things wrong and can't say who is speaking; the sheets show only some moments (one picture per slice of the video).
+Tested here: the picture times, the sheet layout maths, the folder names (DataChecks). Not yet run on his Mac: the picture grabbing and drawing.
+Until he tries it, he can also play a video on his Mac and tell Friday "watch the screen and tell the team what's in it" (`watch_screen` plus `tell_the_team`).

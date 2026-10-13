@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 240.91,
+ "cash": 140.91,
  "spy_at_start": 764.32,
  "positions": {
   "ABNB": {
@@ -23,6 +23,10 @@
   "MU": {
    "qty": 0.09773108993353104,
    "avg_entry_price": 1023.2158
+  },
+  "NVDA": {
+   "qty": 0.43700998844939937,
+   "avg_entry_price": 228.8277
   }
  },
  "orders": [
@@ -254,6 +258,16 @@
    "qty": 1.825356,
    "price": 48.5114,
    "dollars": 86.56,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-13T13:30:21+00:00",
+   "symbol": "NVDA",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.43701,
+   "price": 224.274,
+   "dollars": 100.0,
    "fee": 1.99
   }
  ],

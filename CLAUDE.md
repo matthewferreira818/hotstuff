@@ -92,6 +92,7 @@ than discovering something was papered over.
 
 ## Money mode (as of 2026-08-19)
 
+**Big multi-agent runs burn real usage:** on 2026-10-14 two review workflows (about 2.5M tokens each) hit Matthew's monthly spend limit mid-run. Ask him before launching more than about 10 agents or a million tokens, and say what it might cost.
 Frugal until client #1: paid items are SHELVED (Anthropic API key for the
 name polisher, X API credits, hoodie sample). Don't pitch paid anything in
 briefs until Matthew says the first invoice cleared. Everything currently

@@ -204,8 +204,16 @@ enum VoiceOverPlan {
 
  // MARK: requests
 
+ // Google's docs (ai.google.dev video-understanding, checked 2026-10-13) put the question AFTER the video in the list.
  static func videoBody(prompt: String,video: Data) -> Data? {
-  let input: [[String:Any]] = [["type":"text","text":prompt],["type":"video","data":video.base64EncodedString(),"mime_type":"video/mp4"]]
+  let input: [[String:Any]] = [["type":"video","data":video.base64EncodedString(),"mime_type":"video/mp4"],["type":"text","text":prompt]]
+  return try? JSONSerialization.data(withJSONObject:["model":model,"input":input] as [String:Any])
+ }
+
+ // Sound only (the Video lab's fallback when the picture is too big to send). Google lists audio/m4a, audio/mp3, audio/wav, audio/aac and more
+ // (ai.google.dev audio page, checked 2026-10-13); the whole request, base64 included, must stay under 20 MB.
+ static func audioBody(prompt: String,audio: Data,mime: String) -> Data? {
+  let input: [[String:Any]] = [["type":"audio","data":audio.base64EncodedString(),"mime_type":mime],["type":"text","text":prompt]]
   return try? JSONSerialization.data(withJSONObject:["model":model,"input":input] as [String:Any])
  }
 

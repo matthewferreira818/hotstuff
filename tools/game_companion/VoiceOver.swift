@@ -20,6 +20,18 @@ enum VoiceMix {
   try await session.export(to:destination,as:.mp4)
  }
 
+ // Just the sound of a video, as a small .m4a (for when the picture is too big to send). Fails if the video has no sound.
+ static func audioOnly(_ source: URL,to destination: URL) async throws {
+  let asset = AVURLAsset(url:source)
+  let soundTracks = try await asset.loadTracks(withMediaType:.audio)
+  guard !soundTracks.isEmpty else {
+   throw NSError(domain:"voiceover",code:3,userInfo:[NSLocalizedDescriptionKey:"The video has no sound track."])
+  }
+  guard let session = AVAssetExportSession(asset:asset,presetName:AVAssetExportPresetAppleM4A) else { throw ClipEditError.noExporter }
+  try? FileManager.default.removeItem(at:destination)
+  try await session.export(to:destination,as:.m4a)
+ }
+
  // The clip with her speech laid over it from `start` seconds in, and the game's own sound turned down while she talks.
  static func mix(video: URL,narration: URL,start: Double,length: Double,to destination: URL) async throws {
   let asset = AVURLAsset(url:video)
@@ -164,20 +176,43 @@ enum VoiceMix {
  }
 
  // For the Video lab: Google watches AND listens to a video file the player chose (their own recording, or a TikTok they saved). A small
- // shrunken copy goes up with the question; the answer comes back as words (or the plain reason it couldn't).
- func readVideoFile(_ file: URL,question: String) async -> (text: String?,problem: String?) {
-  if reading { return (nil,"Friday is already reading something. One at a time.") }
+ // shrunken copy goes up with the question; the answer comes back as words (or the plain reason it couldn't). Google takes at most 20 MB in
+ // one request, so when the picture copy comes out too big (a 2 to 3 minute video usually does) or `audioOnly` is set (a long video), only the
+ // video's SOUND goes, with a question that doesn't ask about the picture, and `note` says so plainly so nobody takes it for a full description.
+ func readVideoFile(_ file: URL,question: String,audioQuestion: String,audioOnly: Bool) async -> (text: String?,problem: String?,note: String?) {
+  if reading { return (nil,"Friday is already reading something. One at a time.",nil) }
   reading = true
   defer { reading = false }
   let fm = FileManager.default
-  let small = fm.temporaryDirectory.appendingPathComponent("friday-lab-\(UUID().uuidString).mp4")
-  defer { try? fm.removeItem(at:small) }
-  do { try await VoiceMix.shrink(file,to:small) } catch { return (nil,"Couldn't prepare the video to send: \(error.localizedDescription)") }
-  guard let video = try? Data(contentsOf:small), !video.isEmpty else { return (nil,"Couldn't read the prepared copy of the video.") }
-  guard video.count <= VoiceOverPlan.maxVideoBytes else { return (nil,"That video is too big to send to Google in one go, even shrunk (over \(VoiceOverPlan.maxVideoBytes / 1_000_000) MB).") }
-  let body = VoiceOverPlan.videoBody(prompt:question,video:video)
-  let answer = await call(body,doing:"watch that video",timeout:300)
-  guard let json = answer.json else { return (nil,answer.problem ?? "Couldn't watch that video.") }
+  let limit = VoiceOverPlan.maxVideoBytes
+  var why = "it is a long video"
+  if !audioOnly {
+   let small = fm.temporaryDirectory.appendingPathComponent("friday-lab-\(UUID().uuidString).mp4")
+   defer { try? fm.removeItem(at:small) }
+   do {
+    try await VoiceMix.shrink(file,to:small)
+    let video = try Data(contentsOf:small)
+    if video.isEmpty { why = "the small picture copy came out empty" }
+    else if video.count > limit { why = "even shrunk the picture copy was \(video.count / 1_000_000) MB and Google takes about \(limit / 1_000_000) MB at a time" }
+    else {
+     let seen = await askGoogleForWords(VoiceOverPlan.videoBody(prompt:question,video:video),doing:"watch that video")
+     return (seen.text,seen.problem,nil)
+    }
+   } catch { why = "the small picture copy couldn't be made (\(error.localizedDescription))" }
+  }
+  let sound = fm.temporaryDirectory.appendingPathComponent("friday-lab-\(UUID().uuidString).m4a")
+  defer { try? fm.removeItem(at:sound) }
+  do { try await VoiceMix.audioOnly(file,to:sound) } catch { return (nil,"The picture couldn't go to Google (\(why)), and the sound couldn't be pulled out either: \(error.localizedDescription)",nil) }
+  guard let audio = try? Data(contentsOf:sound), !audio.isEmpty else { return (nil,"The picture couldn't go to Google (\(why)), and the sound copy came out empty.",nil) }
+  guard audio.count <= limit else { return (nil,"The picture couldn't go to Google (\(why)), and even the sound alone is \(audio.count / 1_000_000) MB, over Google's limit of about \(limit / 1_000_000) MB.",nil) }
+  let heard = await askGoogleForWords(VoiceOverPlan.audioBody(prompt:audioQuestion,audio:audio,mime:"audio/m4a"),doing:"listen to that video")
+  guard let text = heard.text else { return (nil,heard.problem,nil) }
+  return (text,nil,"Sound only: only the video's sound went to Google (\(why)). The words spoken, the music and the sound effects are covered; nothing here describes the picture.")
+ }
+
+ private func askGoogleForWords(_ body: Data?,doing: String) async -> (text: String?,problem: String?) {
+  let answer = await call(body,doing:doing,timeout:300)
+  guard let json = answer.json else { return (nil,answer.problem ?? "Couldn't \(doing).") }
   guard let text = VoiceOverPlan.replyText(json) else { return (nil,"Google answered but sent back no words. The video may have no usable picture or sound.") }
   return (String(text.prefix(6000)),nil)
  }

@@ -18,6 +18,7 @@ import UniformTypeIdentifiers
 @MainActor final class VideoLab: ObservableObject {
  @Published var working = false
  @Published var status = ""
+ @Published var notice = ""   // the amber line: why the play-by-play is missing or only covers the sound
  @Published var words = ""
  @Published var sheets: [URL] = []
  @Published var videoName = ""
@@ -45,6 +46,7 @@ import UniformTypeIdentifiers
   working = true
   defer { working = false }
   words = ""
+  notice = ""
   sheets = []
   videoName = url.lastPathComponent
   status = "Opening the video…"
@@ -102,19 +104,28 @@ import UniformTypeIdentifiers
   var report = "\(made.count) contact sheet\(made.count == 1 ? "" : "s") ready (\(frames.count) pictures, each stamped with its time). Sheet 1 is on your clipboard: paste it into the chat with Claude."
   if left > 0 { report += " (\(left) later pictures didn't fit on the sheets.)" }
   // The words: Google watches and listens to a small copy.
-  if duration > VideoLabPlan.maxWordSeconds {
-   status = report + " The video is longer than \(Int(VideoLabPlan.maxWordSeconds / 60)) minutes, so I didn't send it to Google for the words."
+  let mode = VideoLabPlan.wordsMode(duration:duration)
+  if mode == .none {
+   status = report
+   notice = "No play-by-play: the video is longer than \(Int(VideoLabPlan.maxAudioSeconds / 60)) minutes, which is too long to send to Google. The sheets are ready."
    return
   }
-  guard let voice = reader else { status = report; return }
-  status = "Sheets done. Now Google is watching and listening… (a minute or two)"
-  let result = await voice.readVideoFile(url,question:VideoLabPlan.question)
+  guard let voice = reader else {
+   status = report
+   notice = "No play-by-play: the helper that talks to Google isn't connected. Quit and reopen Game Companion, then choose the video again."
+   return
+  }
+  status = report + (mode == .video ? " Now Google is watching and listening… (a minute or two)" : " Now Google is listening… (a minute or two)")
+  let result = await voice.readVideoFile(url,question:VideoLabPlan.question,audioQuestion:VideoLabPlan.audioQuestion,audioOnly:mode == .audioOnly)
   if let text = result.text {
-   words = text
-   try? text.write(to:target.appendingPathComponent("play-by-play.txt"),atomically:true,encoding:.utf8)
+   // The note goes at the top of the words, so it travels with them when they are pasted into the chat.
+   words = (result.note.map { "[\($0)]\n\n" } ?? "") + text
+   try? words.write(to:target.appendingPathComponent("play-by-play.txt"),atomically:true,encoding:.utf8)
    status = report + " The play-by-play is below; the copy button puts it on your clipboard too."
+   notice = result.note ?? ""
   } else {
-   status = report + " The play-by-play didn't work: \(result.problem ?? "no answer")."
+   status = report
+   notice = "The play-by-play didn't work: \(result.problem ?? "no answer")."
   }
  }
 
@@ -198,6 +209,9 @@ extension CompanionInterfaceView {
    }
    if !lab.status.isEmpty {
     Text(lab.status).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.75)).textSelection(.enabled)
+   }
+   if !lab.notice.isEmpty {
+    Text(lab.notice).font(.system(size:12.5,weight:.semibold,design:.rounded)).foregroundStyle(Color.orange).textSelection(.enabled)
    }
    if !lab.words.isEmpty {
     Text(lab.words).font(.system(size:12.5,design:.rounded)).foregroundStyle(Noir.crimsonLight).textSelection(.enabled)

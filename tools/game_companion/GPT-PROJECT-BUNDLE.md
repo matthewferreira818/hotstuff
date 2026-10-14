@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-13 from commit 213a592. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-14 from commit 770513f. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -6371,8 +6371,16 @@ enum VoiceOverPlan {
 
  // MARK: requests
 
+ // Google's docs (ai.google.dev video-understanding, checked 2026-10-13) put the question AFTER the video in the list.
  static func videoBody(prompt: String,video: Data) -> Data? {
-  let input: [[String:Any]] = [["type":"text","text":prompt],["type":"video","data":video.base64EncodedString(),"mime_type":"video/mp4"]]
+  let input: [[String:Any]] = [["type":"video","data":video.base64EncodedString(),"mime_type":"video/mp4"],["type":"text","text":prompt]]
+  return try? JSONSerialization.data(withJSONObject:["model":model,"input":input] as [String:Any])
+ }
+
+ // Sound only (the Video lab's fallback when the picture is too big to send). Google lists audio/m4a, audio/mp3, audio/wav, audio/aac and more
+ // (ai.google.dev audio page, checked 2026-10-13); the whole request, base64 included, must stay under 20 MB.
+ static func audioBody(prompt: String,audio: Data,mime: String) -> Data? {
+  let input: [[String:Any]] = [["type":"audio","data":audio.base64EncodedString(),"mime_type":mime],["type":"text","text":prompt]]
   return try? JSONSerialization.data(withJSONObject:["model":model,"input":input] as [String:Any])
  }
 
@@ -6501,6 +6509,18 @@ enum VoiceMix {
   guard let session = AVAssetExportSession(asset:asset,presetName:AVAssetExportPreset640x480) else { throw ClipEditError.noExporter }
   try? FileManager.default.removeItem(at:destination)
   try await session.export(to:destination,as:.mp4)
+ }
+
+ // Just the sound of a video, as a small .m4a (for when the picture is too big to send). Fails if the video has no sound.
+ static func audioOnly(_ source: URL,to destination: URL) async throws {
+  let asset = AVURLAsset(url:source)
+  let soundTracks = try await asset.loadTracks(withMediaType:.audio)
+  guard !soundTracks.isEmpty else {
+   throw NSError(domain:"voiceover",code:3,userInfo:[NSLocalizedDescriptionKey:"The video has no sound track."])
+  }
+  guard let session = AVAssetExportSession(asset:asset,presetName:AVAssetExportPresetAppleM4A) else { throw ClipEditError.noExporter }
+  try? FileManager.default.removeItem(at:destination)
+  try await session.export(to:destination,as:.m4a)
  }
 
  // The clip with her speech laid over it from `start` seconds in, and the game's own sound turned down while she talks.
@@ -6647,20 +6667,43 @@ enum VoiceMix {
  }
 
  // For the Video lab: Google watches AND listens to a video file the player chose (their own recording, or a TikTok they saved). A small
- // shrunken copy goes up with the question; the answer comes back as words (or the plain reason it couldn't).
- func readVideoFile(_ file: URL,question: String) async -> (text: String?,problem: String?) {
-  if reading { return (nil,"Friday is already reading something. One at a time.") }
+ // shrunken copy goes up with the question; the answer comes back as words (or the plain reason it couldn't). Google takes at most 20 MB in
+ // one request, so when the picture copy comes out too big (a 2 to 3 minute video usually does) or `audioOnly` is set (a long video), only the
+ // video's SOUND goes, with a question that doesn't ask about the picture, and `note` says so plainly so nobody takes it for a full description.
+ func readVideoFile(_ file: URL,question: String,audioQuestion: String,audioOnly: Bool) async -> (text: String?,problem: String?,note: String?) {
+  if reading { return (nil,"Friday is already reading something. One at a time.",nil) }
   reading = true
   defer { reading = false }
   let fm = FileManager.default
-  let small = fm.temporaryDirectory.appendingPathComponent("friday-lab-\(UUID().uuidString).mp4")
-  defer { try? fm.removeItem(at:small) }
-  do { try await VoiceMix.shrink(file,to:small) } catch { return (nil,"Couldn't prepare the video to send: \(error.localizedDescription)") }
-  guard let video = try? Data(contentsOf:small), !video.isEmpty else { return (nil,"Couldn't read the prepared copy of the video.") }
-  guard video.count <= VoiceOverPlan.maxVideoBytes else { return (nil,"That video is too big to send to Google in one go, even shrunk (over \(VoiceOverPlan.maxVideoBytes / 1_000_000) MB).") }
-  let body = VoiceOverPlan.videoBody(prompt:question,video:video)
-  let answer = await call(body,doing:"watch that video",timeout:300)
-  guard let json = answer.json else { return (nil,answer.problem ?? "Couldn't watch that video.") }
+  let limit = VoiceOverPlan.maxVideoBytes
+  var why = "it is a long video"
+  if !audioOnly {
+   let small = fm.temporaryDirectory.appendingPathComponent("friday-lab-\(UUID().uuidString).mp4")
+   defer { try? fm.removeItem(at:small) }
+   do {
+    try await VoiceMix.shrink(file,to:small)
+    let video = try Data(contentsOf:small)
+    if video.isEmpty { why = "the small picture copy came out empty" }
+    else if video.count > limit { why = "even shrunk the picture copy was \(video.count / 1_000_000) MB and Google takes about \(limit / 1_000_000) MB at a time" }
+    else {
+     let seen = await askGoogleForWords(VoiceOverPlan.videoBody(prompt:question,video:video),doing:"watch that video")
+     return (seen.text,seen.problem,nil)
+    }
+   } catch { why = "the small picture copy couldn't be made (\(error.localizedDescription))" }
+  }
+  let sound = fm.temporaryDirectory.appendingPathComponent("friday-lab-\(UUID().uuidString).m4a")
+  defer { try? fm.removeItem(at:sound) }
+  do { try await VoiceMix.audioOnly(file,to:sound) } catch { return (nil,"The picture couldn't go to Google (\(why)), and the sound couldn't be pulled out either: \(error.localizedDescription)",nil) }
+  guard let audio = try? Data(contentsOf:sound), !audio.isEmpty else { return (nil,"The picture couldn't go to Google (\(why)), and the sound copy came out empty.",nil) }
+  guard audio.count <= limit else { return (nil,"The picture couldn't go to Google (\(why)), and even the sound alone is \(audio.count / 1_000_000) MB, over Google's limit of about \(limit / 1_000_000) MB.",nil) }
+  let heard = await askGoogleForWords(VoiceOverPlan.audioBody(prompt:audioQuestion,audio:audio,mime:"audio/m4a"),doing:"listen to that video")
+  guard let text = heard.text else { return (nil,heard.problem,nil) }
+  return (text,nil,"Sound only: only the video's sound went to Google (\(why)). The words spoken, the music and the sound effects are covered; nothing here describes the picture.")
+ }
+
+ private func askGoogleForWords(_ body: Data?,doing: String) async -> (text: String?,problem: String?) {
+  let answer = await call(body,doing:doing,timeout:300)
+  guard let json = answer.json else { return (nil,answer.problem ?? "Couldn't \(doing).") }
   guard let text = VoiceOverPlan.replyText(json) else { return (nil,"Google answered but sent back no words. The video may have no usable picture or sound.") }
   return (String(text.prefix(6000)),nil)
  }
@@ -7187,7 +7230,17 @@ enum VideoLabPlan {
  static let labelHeight = 30
  static let headerHeight = 44    // the title line across the top of each sheet
  static let maxSheets = 3
- static let maxWordSeconds = 300.0   // longer than this is too big to send to Google in one go
+ static let maxWordSeconds = 300.0   // a video up to this long goes to Google with its picture (shrunk); if it is still too big, only its sound goes
+ static let maxAudioSeconds = 900.0   // up to this long, only the sound goes (about 15 minutes of speech fits well under Google's 20 MB)
+
+ enum WordsMode: Equatable { case video, audioOnly, none }
+
+ // What goes to Google for the written play-by-play, by how long the video is.
+ static func wordsMode(duration: Double) -> WordsMode {
+  guard duration.isFinite, duration > 0 else { return .none }
+  if duration <= maxWordSeconds { return .video }
+  return duration <= maxAudioSeconds ? .audioOnly : .none
+ }
 
  // How many pictures to take: enough to follow a short clip, capped so a long video still fits in a few sheets.
  static func frameCount(duration: Double) -> Int {
@@ -7281,6 +7334,9 @@ enum VideoLabPlan {
 
  // What Google is asked about the video. It can hear it, so the words spoken are part of the answer.
  static let question = "This is a short social video someone saved as a reference. Describe it for a founder who cannot watch it, in plain words: (1) what happens, scene by scene with rough times; (2) every word spoken or sung, as close to exact as you can, and say clearly if there is no speech; (3) any text shown on screen; (4) the look: colors, style, camera, editing speed, and any music or sound effects; (5) the hook in the first three seconds and why it might keep people watching. Say what you could not tell. Describe only what is really in the video."
+
+ // The same ask when only the sound can be sent: Google cannot see the picture, so it must not guess at it.
+ static let audioQuestion = "This is only the SOUND of a short social video someone saved as a reference; you cannot see the picture. Describe it for a founder who cannot listen, in plain words: (1) every word spoken or sung, as close to exact as you can, with rough times, and say clearly if there is no speech; (2) how many voices you hear and how they sound (you cannot tell who is speaking); (3) any music and sound effects, the pace and the energy; (4) what the sound alone suggests about the video, labelled as a guess. Say what you could not tell. Describe only what you really hear, and do not describe any picture."
 }
 ```
 
@@ -7307,6 +7363,7 @@ import UniformTypeIdentifiers
 @MainActor final class VideoLab: ObservableObject {
  @Published var working = false
  @Published var status = ""
+ @Published var notice = ""   // the amber line: why the play-by-play is missing or only covers the sound
  @Published var words = ""
  @Published var sheets: [URL] = []
  @Published var videoName = ""
@@ -7334,6 +7391,7 @@ import UniformTypeIdentifiers
   working = true
   defer { working = false }
   words = ""
+  notice = ""
   sheets = []
   videoName = url.lastPathComponent
   status = "Opening the video…"
@@ -7391,19 +7449,28 @@ import UniformTypeIdentifiers
   var report = "\(made.count) contact sheet\(made.count == 1 ? "" : "s") ready (\(frames.count) pictures, each stamped with its time). Sheet 1 is on your clipboard: paste it into the chat with Claude."
   if left > 0 { report += " (\(left) later pictures didn't fit on the sheets.)" }
   // The words: Google watches and listens to a small copy.
-  if duration > VideoLabPlan.maxWordSeconds {
-   status = report + " The video is longer than \(Int(VideoLabPlan.maxWordSeconds / 60)) minutes, so I didn't send it to Google for the words."
+  let mode = VideoLabPlan.wordsMode(duration:duration)
+  if mode == .none {
+   status = report
+   notice = "No play-by-play: the video is longer than \(Int(VideoLabPlan.maxAudioSeconds / 60)) minutes, which is too long to send to Google. The sheets are ready."
    return
   }
-  guard let voice = reader else { status = report; return }
-  status = "Sheets done. Now Google is watching and listening… (a minute or two)"
-  let result = await voice.readVideoFile(url,question:VideoLabPlan.question)
+  guard let voice = reader else {
+   status = report
+   notice = "No play-by-play: the helper that talks to Google isn't connected. Quit and reopen Game Companion, then choose the video again."
+   return
+  }
+  status = report + (mode == .video ? " Now Google is watching and listening… (a minute or two)" : " Now Google is listening… (a minute or two)")
+  let result = await voice.readVideoFile(url,question:VideoLabPlan.question,audioQuestion:VideoLabPlan.audioQuestion,audioOnly:mode == .audioOnly)
   if let text = result.text {
-   words = text
-   try? text.write(to:target.appendingPathComponent("play-by-play.txt"),atomically:true,encoding:.utf8)
+   // The note goes at the top of the words, so it travels with them when they are pasted into the chat.
+   words = (result.note.map { "[\($0)]\n\n" } ?? "") + text
+   try? words.write(to:target.appendingPathComponent("play-by-play.txt"),atomically:true,encoding:.utf8)
    status = report + " The play-by-play is below; the copy button puts it on your clipboard too."
+   notice = result.note ?? ""
   } else {
-   status = report + " The play-by-play didn't work: \(result.problem ?? "no answer")."
+   status = report
+   notice = "The play-by-play didn't work: \(result.problem ?? "no answer")."
   }
  }
 
@@ -7487,6 +7554,9 @@ extension CompanionInterfaceView {
    }
    if !lab.status.isEmpty {
     Text(lab.status).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.75)).textSelection(.enabled)
+   }
+   if !lab.notice.isEmpty {
+    Text(lab.notice).font(.system(size:12.5,weight:.semibold,design:.rounded)).foregroundStyle(Color.orange).textSelection(.enabled)
    }
    if !lab.words.isEmpty {
     Text(lab.words).font(.system(size:12.5,design:.rounded)).foregroundStyle(Noir.crimsonLight).textSelection(.enabled)
@@ -11141,6 +11211,13 @@ import Foundation
   precondition(VideoLabPlan.sheetRanges(total:30,aspect:16.0 / 9.0) == [0..<20,20..<30] && VideoLabPlan.sheetRanges(total:0,aspect:1).isEmpty)
   precondition(VideoLabPlan.label(7) == "0:07" && VideoLabPlan.label(65) == "1:05" && VideoLabPlan.label(3723) == "1:02:03" && VideoLabPlan.label(-5) == "0:00" && VideoLabPlan.label(.nan) == "0:00")
   precondition(VideoLabPlan.folderName(for:"My TikTok (final) #2.mp4",stamp:"20261013-101500") == "My-TikTok-final-2-20261013-101500" && VideoLabPlan.folderName(for:"../../etc/passwd.mp4",stamp:"s") == "etc-passwd-s" && VideoLabPlan.folderName(for:"日本語.mov",stamp:"s") == "video-s")
+  precondition(VideoLabPlan.wordsMode(duration:45) == .video && VideoLabPlan.wordsMode(duration:300) == .video && VideoLabPlan.wordsMode(duration:301) == .audioOnly && VideoLabPlan.wordsMode(duration:900) == .audioOnly && VideoLabPlan.wordsMode(duration:901) == .none && VideoLabPlan.wordsMode(duration:0) == .none && VideoLabPlan.wordsMode(duration:.nan) == .none)
+  precondition(VideoLabPlan.audioQuestion.contains("SOUND") && VideoLabPlan.audioQuestion.contains("cannot see the picture") && VideoLabPlan.audioQuestion.contains("do not describe any picture"))
+  func bodyItems(_ data: Data?) -> [[String:Any]] { ((try? JSONSerialization.jsonObject(with:data ?? Data())) as? [String:Any])?["input"] as? [[String:Any]] ?? [] }
+  let videoItems = bodyItems(VoiceOverPlan.videoBody(prompt:"q",video:Data([1,2,3])))
+  precondition(videoItems.count == 2 && videoItems[0]["type"] as? String == "video" && videoItems[0]["mime_type"] as? String == "video/mp4" && videoItems[0]["data"] as? String == "AQID" && videoItems[1]["type"] as? String == "text" && videoItems[1]["text"] as? String == "q")
+  let audioItems = bodyItems(VoiceOverPlan.audioBody(prompt:"q",audio:Data([1,2,3]),mime:"audio/m4a"))
+  precondition(audioItems.count == 2 && audioItems[0]["type"] as? String == "audio" && audioItems[0]["mime_type"] as? String == "audio/m4a" && audioItems[0]["data"] as? String == "AQID" && audioItems[1]["text"] as? String == "q")
   precondition(VideoLabPlan.folderName(for:String(repeating:"a",count:90) + ".mp4",stamp:"s").count == 42 && VideoLabPlan.question.contains("every word spoken") && VideoLabPlan.question.contains("Describe only what is really in the video"))
   print("All data checks passed.")
  }
@@ -11884,9 +11961,15 @@ Download video when the creator allows it). The lab then:
 3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 5 minutes) to Google with his free Gemini key and
    asks for a scene-by-scene play-by-play that includes **every word spoken**, the on-screen text, the look and sound, and the hook. It is shown on the
    card, saved as `play-by-play.txt`, and **Copy the play-by-play** puts it on the clipboard. Google's reader hears the audio, which pictures alone can't give.
+   Google takes at most 20 MB per request (base64 included), and a 2 to 3 minute phone video usually comes out bigger than 14 MB even shrunk. So
+   (2026-10-14) when the picture copy is too big, or the video is 5 to 15 minutes long, **only the sound** (a small .m4a) goes, with a question that
+   asks for the words, voices, music and sound effects and says plainly that the picture can't be seen. The play-by-play then starts with a bracketed
+   "Sound only: …" note (so it travels with the words when pasted) and the card shows the same note in orange. Any failure shows in an orange line under the
+   status ("The play-by-play didn't work: …"), never silently. Request shape checked against ai.google.dev (video-understanding and audio pages) on
+   2026-10-14: `input` list with `{"type":"video"|"audio","data":<base64>,"mime_type":…}` first, then the text; model `gemini-3.8-flash`. Not yet run with a real key.
 
 What stays on the Mac: the pictures and sheets. What leaves: only the shrunken copy for step 3 (Google's free tier may use it to improve its products; he
-accepted that for Friday's other Google features). If there is no Google key, or the video is longer than 5 minutes or too big, step 3 is skipped with the
+accepted that for Friday's other Google features). If there is no Google key, or the video is longer than 15 minutes, step 3 is skipped with the
 reason and the sheets still work. Nothing is posted anywhere. It is for his own recordings and videos he saved as a reference.
 Honest limits: Google can get things wrong and can't say who is speaking; the sheets show only some moments (one picture per slice of the video).
 Tested here: the picture times, the sheet layout maths, the folder names (DataChecks). Not yet run on his Mac: the picture grabbing and drawing.
@@ -11971,6 +12054,7 @@ _Last updated: 2026-10-05 by Claude and GPT_
 - [Claude] Friday hearing herself on speakers: new Sound output setting (Auto / Headphones / Speakers) with CoreAudio detection, and the mic pauses while she talks on speakers (new file AudioRoute.swift). GPT: please compile-check at your next room check. Matthew: rebuild and tell me if she still cuts herself off. Status: waiting
 - [Claude] 2026-10-13: Video lab for Matthew ("we need to find a way for you to analyze videos"): a card under the OBS card on the Stream page. He chooses a video file; it makes contact sheets (pictures with time stamps, sheet 1 copied to the clipboard to paste into the chat with Claude) and a play-by-play from Google that includes the spoken words (small shrunken copy sent with his own key). New files VideoLabData.swift (tested) and VideoLab.swift; readVideoFile added to VoiceOver.swift. GPT: please compile-check VideoLab.swift (AVAssetImageGenerator.image(at:) async, NSImage drawing handler, NSOpenPanel with UTType.movie) and VoiceOver.swift. Matthew: update, then try it on a short video. Status: waiting
 - [Claude] 2026-10-13: The Crew page (findhotstuff.com/crew/, noindex for now): one pixel desk per bot (Pack, Courier, Cards, Fresh, Watch, Smoke, Count, the three practice robots, Claude, GPT, Friday) with live status read from GitHub's public record, the robots' public snapshots and the feed counter. Matthew's reference: two TikToks from @androoagi showing a pixel-art agent roster and station. Honest by design: WORKING only while a run is in progress (real timer), DONE TODAY only if the last run finished OK on today's Moncton date, practice robots shown next to just holding SPY and labelled pretend money, Friday's status private, UNKNOWN when GitHub can't be read. Original characters (the videos use Pikachu and other famous ones; we don't). GPT: please review the wording on the page against rule 1. Status: waiting
+- [Claude] 2026-10-13: Crew v2 (same page): three rooms (Engine room, Trading floor, The bridge) with a camera that glides between them, a Tour button (open findhotstuff.com/crew/?tour=1 to autoplay it for a screen recording), a run counter over each desk ("N RUNS" from GitHub's public run count; "N TRADES" from each robot's public snapshot), a Work log of the newest real things the crew did, and visual polish (floor light and room glow only when a real run is in progress; mug steam; hover ring). Every light, counter and glow is read from the same public records as v1. Status: waiting on Matthew's OK before the noindex comes off
 - [Claude] 2026-10-10: OBS link for Friday (Matthew's plan: stream the PlayStation through OBS on the Mac with a camera that isn't plugged into the console). New files ObsData.swift (tested: SHA-256 login, messages, scene matching) and ObsBridge.swift (short connections to OBS on this Mac only, plus the OBS card at the top of the Stream page); Live.swift gains obs_status, obs_scene, obs_replay, obs_mute, obs_stream. Going live or ending the stream needs his press on the Allow box every time; the OBS password lives in a private file. Update 2026-10-10 night: Matthew rebuilt, installed OBS 32.2.2 and the OBS card says LINKED, so the app compiled and the real login and test worked. Not yet seen: Friday's OBS voice tools on a real stream, and Remote Play captured in OBS (the window capture works, game sound and the iPhone camera are next). Setup guide: tools/game_companion/OBS-SETUP.md. Status: waiting
 - [Claude] 2026-10-07: Friday app, since 10-06: hands scroll the page not herself and the hands switch is remembered; Google Search no longer switches her other tools off; tools she has are shown on the Friday page; listening fixes (audio padding, stream-end after pauses, words kept during reconnects); fresh pictures after her actions; new tools read_link (pages, YouTube, latest clip) and watch_screen (a video playing on his screens, no sound); game notes hold 2000 characters. Matthew's own rebuilds compile through 182f864 (he is running it), so GPT: compile-check only what came after (63327e0, 5feafcb, af5d153: Live.swift, VoiceOver.swift, WebData.swift, CompanionInterface.swift). No reply from GPT since 10-05 22:22.
 - [Claude] 2026-10-06: Friday can open searches and links in Matthew's browser (search_site, open_link; WebData.swift tested) because she told him she couldn't search TikTok/X/YouTube; the app window can shrink to 440x400 with a compact layout. GPT: both are in the same compile-check ask (WebData.swift is new; Hub.swift has a GeometryReader in hubShell).

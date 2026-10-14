@@ -11,7 +11,17 @@ enum VideoLabPlan {
  static let labelHeight = 30
  static let headerHeight = 44    // the title line across the top of each sheet
  static let maxSheets = 3
- static let maxWordSeconds = 300.0   // longer than this is too big to send to Google in one go
+ static let maxWordSeconds = 300.0   // a video up to this long goes to Google with its picture (shrunk); if it is still too big, only its sound goes
+ static let maxAudioSeconds = 900.0   // up to this long, only the sound goes (about 15 minutes of speech fits well under Google's 20 MB)
+
+ enum WordsMode: Equatable { case video, audioOnly, none }
+
+ // What goes to Google for the written play-by-play, by how long the video is.
+ static func wordsMode(duration: Double) -> WordsMode {
+  guard duration.isFinite, duration > 0 else { return .none }
+  if duration <= maxWordSeconds { return .video }
+  return duration <= maxAudioSeconds ? .audioOnly : .none
+ }
 
  // How many pictures to take: enough to follow a short clip, capped so a long video still fits in a few sheets.
  static func frameCount(duration: Double) -> Int {
@@ -105,4 +115,7 @@ enum VideoLabPlan {
 
  // What Google is asked about the video. It can hear it, so the words spoken are part of the answer.
  static let question = "This is a short social video someone saved as a reference. Describe it for a founder who cannot watch it, in plain words: (1) what happens, scene by scene with rough times; (2) every word spoken or sung, as close to exact as you can, and say clearly if there is no speech; (3) any text shown on screen; (4) the look: colors, style, camera, editing speed, and any music or sound effects; (5) the hook in the first three seconds and why it might keep people watching. Say what you could not tell. Describe only what is really in the video."
+
+ // The same ask when only the sound can be sent: Google cannot see the picture, so it must not guess at it.
+ static let audioQuestion = "This is only the SOUND of a short social video someone saved as a reference; you cannot see the picture. Describe it for a founder who cannot listen, in plain words: (1) every word spoken or sung, as close to exact as you can, with rough times, and say clearly if there is no speech; (2) how many voices you hear and how they sound (you cannot tell who is speaking); (3) any music and sound effects, the pace and the energy; (4) what the sound alone suggests about the video, labelled as a guess. Say what you could not tell. Describe only what you really hear, and do not describe any picture."
 }

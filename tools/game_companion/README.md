@@ -732,9 +732,15 @@ Download video when the creator allows it). The lab then:
 3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 5 minutes) to Google with his free Gemini key and
    asks for a scene-by-scene play-by-play that includes **every word spoken**, the on-screen text, the look and sound, and the hook. It is shown on the
    card, saved as `play-by-play.txt`, and **Copy the play-by-play** puts it on the clipboard. Google's reader hears the audio, which pictures alone can't give.
+   Google takes at most 20 MB per request (base64 included), and a 2 to 3 minute phone video usually comes out bigger than 14 MB even shrunk. So
+   (2026-10-14) when the picture copy is too big, or the video is 5 to 15 minutes long, **only the sound** (a small .m4a) goes, with a question that
+   asks for the words, voices, music and sound effects and says plainly that the picture can't be seen. The play-by-play then starts with a bracketed
+   "Sound only: …" note (so it travels with the words when pasted) and the card shows the same note in orange. Any failure shows in an orange line under the
+   status ("The play-by-play didn't work: …"), never silently. Request shape checked against ai.google.dev (video-understanding and audio pages) on
+   2026-10-14: `input` list with `{"type":"video"|"audio","data":<base64>,"mime_type":…}` first, then the text; model `gemini-3.8-flash`. Not yet run with a real key.
 
 What stays on the Mac: the pictures and sheets. What leaves: only the shrunken copy for step 3 (Google's free tier may use it to improve its products; he
-accepted that for Friday's other Google features). If there is no Google key, or the video is longer than 5 minutes or too big, step 3 is skipped with the
+accepted that for Friday's other Google features). If there is no Google key, or the video is longer than 15 minutes, step 3 is skipped with the
 reason and the sheets still work. Nothing is posted anywhere. It is for his own recordings and videos he saved as a reference.
 Honest limits: Google can get things wrong and can't say who is speaking; the sheets show only some moments (one picture per slice of the video).
 Tested here: the picture times, the sheet layout maths, the folder names (DataChecks). Not yet run on his Mac: the picture grabbing and drawing.

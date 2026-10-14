@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 453.4,
+ "cash": 9.28,
  "spy_at_start": 777.22,
  "positions": {
   "RIOT": {
    "qty": 29.173211683976838,
    "avg_entry_price": 15.1783,
    "fill": 15.1101
+  },
+  "AMC": {
+   "qty": 153.09820162506475,
+   "avg_entry_price": 2.9009,
+   "fill": 2.8879
   }
  },
  "orders": [
@@ -240,6 +245,16 @@
    "price": 1.4585,
    "dollars": 453.4,
    "fee": 3.1
+  },
+  {
+   "time": "2026-10-14T19:35:18+00:00",
+   "symbol": "AMC",
+   "side": "buy",
+   "status": "filled",
+   "qty": 153.098202,
+   "price": 2.8879,
+   "dollars": 444.12,
+   "fee": 1.99
   }
  ],
  "deposited": 1000.0,

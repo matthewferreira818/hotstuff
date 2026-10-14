@@ -10,7 +10,7 @@
 <style>
 :root {
   --bg: #070b1c; --panel: #0c1330; --panel-2: #101940; --line: #2a3f9c; --line-dim: #1b2a6b;
-  --ink: #e8ecff; --ink-2: #9aa8e0; --ink-3: #6877b8;
+  --ink: #e8ecff; --ink-2: #9aa8e0; --ink-3: #8593d0;
   --amber: #ffb000; --green: #3ddc84; --red: #ff5a5a; --blue: #4aa3ff; --grey: #7b86ad; --violet: #a98bff;
 }
 * { box-sizing: border-box; }
@@ -97,9 +97,22 @@ canvas#station { width: 100%; display: block; image-rendering: pixelated; backgr
 .foot { margin-top: 16px; padding: 12px 14px; border: 2px solid var(--line-dim); background: #0a1028; color: var(--ink-2); font-size: 12px; line-height: 1.55; }
 .foot b { color: var(--ink); }
 .foot a { color: var(--blue); }
+h1.logo { margin: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.layout > .roster { grid-column: 1; grid-row: 1; }
+.layout > .floor { grid-column: 2; grid-row: 1; }
+details.card { min-height: 0; }
+details.card summary { cursor: pointer; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; color: var(--ink-2); }
+details.card summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.gallist { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.gallist p { margin: 0; color: var(--ink-2); }
+.gallist button { font: inherit; font-size: 12px; text-align: left; color: var(--ink-2); background: var(--panel); border: 2px solid var(--line-dim); padding: 8px 10px; cursor: pointer; }
+.gallist button:hover { border-color: var(--line); color: var(--ink); }
+.gallist button[aria-pressed="true"] { border-color: var(--amber); color: var(--amber); }
+.gallist button:focus-visible { outline: 2px solid var(--amber); outline-offset: 1px; }
 @media (max-width: 860px) {
   .layout { grid-template-columns: 1fr; }
-  .roster { order: 2; }
+  .layout > .roster, .layout > .floor { grid-column: 1; grid-row: auto; }
   .clock { text-align: left; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } .dot.on { animation: none; } .floor { transition: none; } }
@@ -108,7 +121,7 @@ canvas#station { width: 100%; display: block; image-rendering: pixelated; backgr
 <body>
 <div class="shell">
   <header class="hud">
-    <div class="logo">THE CREW<small>HOTSTUFF STATION</small></div>
+    <h1 class="logo">THE CREW<small>HOTSTUFF STATION</small></h1>
     <div class="stat"><b id="hCrew">–</b><span>on the crew</span></div>
     <div class="stat"><b id="hWork">–</b><span>working now</span></div>
     <div class="stat"><b id="hDone">–</b><span>done today</span></div>
@@ -118,12 +131,8 @@ canvas#station { width: 100%; display: block; image-rendering: pixelated; backgr
   </header>
   <div class="banner" id="banner">Connecting to the record…</div>
   <main class="layout">
-    <aside class="roster" aria-label="Crew list">
-      <div class="roster-head">Crew &middot; <b id="rWork">0</b> working &middot; <b id="rDone">0</b> done today</div>
-      <ul id="rosterList"></ul>
-    </aside>
     <section class="floor" id="floor">
-      <div class="toolbar" role="toolbar" aria-label="Camera">
+      <div class="toolbar" role="group" aria-label="Camera">
         <button type="button" data-view="all">All</button>
         <button type="button" data-view="engine">Engine room</button>
         <button type="button" data-view="trading">Trading floor</button>
@@ -131,17 +140,28 @@ canvas#station { width: 100%; display: block; image-rendering: pixelated; backgr
         <button type="button" data-view="gallery">The gallery</button>
         <button type="button" id="tourBtn">▶ Tour</button>
       </div>
-      <div class="stage"><canvas id="station" aria-label="The station: three rooms, one desk for each bot"></canvas></div>
+      <div class="stage"><canvas id="station" role="img" aria-label="The station: desks for each bot in three rooms, and a gallery of the latest feed cards."></canvas></div>
       <div class="card" id="card"><h2>Tap a desk</h2><p>Pick any bot to see what it does, when it last ran, and the proof.</p></div>
+      <div class="sr-only" id="announce" role="status" aria-live="polite"></div>
+      <details class="card" id="galDetails"><summary>Gallery cards as a list</summary><div class="gallist" id="galList"><p>Reading the feed…</p></div></details>
       <div class="card log"><h2>Work log</h2><ul id="logList"><li>Reading the public record…</li></ul></div>
     </section>
+    <aside class="roster" aria-label="Crew list">
+      <div class="roster-head">Crew &middot; <b id="rWork">0</b> working &middot; <b id="rDone">0</b> done today</div>
+      <ul id="rosterList"></ul>
+    </aside>
   </main>
   <div class="foot">
-    <b>How to read this.</b> <b>Working</b> means a run is going right now, and its timer is real. <b>Done today</b> means its last run finished OK today (Moncton time).
-    <b>Not yet today</b> means a daily bot hasn't finished one yet. The practice robots trade <b>pretend money</b>, and their desks show how they're doing next to
-    simply holding the S&amp;P 500 fund. Bots with nothing running get up and wander; working ones stay at their desks. The glow, steam, camera blur and picture lamps are decoration. Friday lives on Matthew's Mac, so her live status stays private. The gallery shows the real cards from the site feed.
+    <b>How to read this.</b> <b>Working</b> means GitHub showed a run in progress at my last check (every few minutes), and its timer is real.
+    <b>Done today</b> means its last run finished OK today (Moncton time); that says the run succeeded, not that every file it was meant to make exists.
+    <b>Not yet today</b> means a daily bot hasn't finished one yet. If I can't confirm whether a bot is running, its desk says <b>Unknown</b> and the totals show a dash.
+    For Claude and GPT, <b>Recent</b> means a public commit or board message in the last 15 minutes; it isn't proof that anything is running right now.
+    The practice robots trade <b>pretend money</b>, and their desks show how they're doing next to simply holding the S&amp;P 500 fund.
+    Bots with nothing running get up and wander; working ones stay at their desks. The glow, steam, camera blur and picture lamps are decoration.
+    Friday lives on Matthew's Mac, so her live status stays private. The gallery shows the real cards from the site feed.
     Nothing here is made up: it is read live from this project's public record on GitHub, the robots' public snapshots and the feed counter, and if any of it can't be reached,
-    the page says so. (Your browser asks GitHub directly; nothing about you is stored here.) <span id="feedLine"></span> East Coast Social is built on that same engine, built on our own store first:
+    the page says so. This page counts anonymous visits with GoatCounter (no cookies, nothing that identifies you); your browser asks GitHub and raw.githubusercontent.com directly
+    and keeps a short-lived copy of the answers in its own storage (<a href="../privacy/">privacy</a>). <span id="feedLine"></span> East Coast Social is built on that same engine, built on our own store first:
     <a href="../automation/">findhotstuff.com/automation</a>.
   </div>
 </div>
@@ -159,6 +179,8 @@ const RAW = "https://raw.githubusercontent.com/" + REPO + "/";
 const TZ = "America/Moncton";
 const CACHE_MS = 20 * 60 * 1000;    // last-run answers are reused for 20 minutes so a reload doesn't spend GitHub's free hourly limit
 const POLL_MS = 4 * 60 * 1000;      // re-check "who is working" every 4 minutes while the tab is open
+const STALE_RUNS_MS = 2 * POLL_MS + 60 * 1000;   // a "who is running" reading older than this is not trusted: desks show UNKNOWN instead
+const AUTO_COMMIT = /^ECS daily card/i;          // the Cards workflow commits under the name Claude; those commits belong to the CARDS desk, not Claude's
 
 /* The crew. wf = the GitHub workflow file that is this bot's job. look = how its character is drawn (all original). */
 const CREW = [
@@ -193,7 +215,7 @@ const CREW = [
 const state = {
   api: { ok: null, note: "", remaining: null, reset: null },
   stats: null, runsNow: {}, lastRun: {}, runCount: {}, snaps: {}, commits: null, comments: null,
-  fetchedAt: null, selected: null, selectedFrame: null, started: Date.now()
+  fetchedAt: null, runsAt: null, commitsOk: null, commentsOk: null, pollN: 0, cardSig: "", selected: null, selectedFrame: null, started: Date.now()
 };
 const $ = id => document.getElementById(id);
 
@@ -218,7 +240,7 @@ function timer(ms) {
 }
 
 /* ---------- reading the public record ---------- */
-function note(text, kind) { const b = $("banner"); b.textContent = text; b.className = "banner" + (kind ? " " + kind : ""); }
+function note(text, kind) { const b = $("banner"); if (b.textContent !== text) b.textContent = text; const c = "banner" + (kind ? " " + kind : ""); if (b.className !== c) b.className = c; }
 
 /* allowStale: when GitHub can't be asked, an older reading of something that doesn't change by the minute (a finished run, a commit) is
    still shown, with its age. "Who is working right now" is never served stale: a stale "working" would be a false claim. */
@@ -268,6 +290,7 @@ async function loadRunsNow() {
   for (const run of (b.workflow_runs || [])) now[fileOf(run)] = { run, queued: true };
   for (const run of (a.workflow_runs || [])) now[fileOf(run)] = { run, queued: false };
   state.runsNow = now;
+  state.runsAt = Date.now();
 }
 async function loadLast(file, ttl) {
   const d = await gh("/actions/workflows/" + file + "/runs?per_page=3", ttl, true);
@@ -284,13 +307,13 @@ async function loadAll() {
   for (const bot of CREW) if (bot.live) jobs.push(loadSnap(bot).catch(() => { state.snaps[bot.id] = null; }));
   let apiError = null;
   const apiJobs = [loadRunsNow()];
-  for (const bot of CREW) if (bot.type === "action") apiJobs.push(loadLast(bot.wf));
+  for (const bot of CREW) if (bot.type === "action" || bot.type === "robot") apiJobs.push(loadLast(bot.wf));
   const settled = await Promise.allSettled(apiJobs);
   for (const s of settled) if (s.status === "rejected") apiError = s.reason;
   // The two extras are nice to have: when GitHub's free limit is nearly used, they come from the saved reading instead.
   const roomy = state.api.remaining == null || state.api.remaining > 12;
-  jobs.push(gh("/commits?per_page=20", null, true, !roomy).then(c => { state.commits = c; }).catch(() => { state.commits = null; }));
-  jobs.push(gh("/issues/comments?sort=created&direction=desc&per_page=30", null, true, !roomy).then(c => { state.comments = c; }).catch(() => { state.comments = null; }));
+  jobs.push(gh("/commits?per_page=20", null, true, !roomy).then(c => { state.commits = c; state.commitsOk = true; }).catch(() => { state.commits = null; state.commitsOk = false; }));
+  jobs.push(gh("/issues/comments?sort=created&direction=desc&per_page=30", null, true, !roomy).then(c => { state.comments = c; state.commentsOk = true; }).catch(() => { state.comments = null; state.commentsOk = false; }));
   await Promise.allSettled(jobs);
   state.fetchedAt = Date.now();
   if (typeof renderLog === "function") renderLog();
@@ -308,21 +331,53 @@ async function loadAll() {
   }
   render();
 }
-async function poll() {
-  if (document.hidden) return;
-  if (state.api.remaining != null && state.api.remaining < 14) return;
-  const before = Object.assign({}, state.runsNow);
-  try { await loadRunsNow(); } catch (e) { return; }
-  for (const bot of CREW) {
-    if (bot.type === "action" && before[bot.wf] && !state.runsNow[bot.wf]) { try { await loadLast(bot.wf, 0); } catch (e) { /* keep old */ } }
-  }
-  for (const bot of CREW) if (bot.live) { try { await loadSnap(bot); } catch (e) { /* keep old */ } }
-  state.fetchedAt = Date.now();
-  render();
+let polling = false;
+async function poll(force) {
+  if (polling || (document.hidden && !force)) return;
+  const t0 = Date.now();
+  // Wait out GitHub's free limit (its reset time is known); the desks go UNKNOWN on their own as the last reading ages.
+  if (state.api.remaining != null && state.api.remaining < 14 && state.api.reset && t0 < state.api.reset) return;
+  polling = true;
+  try {
+    state.pollN++;
+    const before = Object.assign({}, state.runsNow);
+    try { await loadRunsNow(); } catch (e) {
+      state.api.ok = false;
+      state.api.note = e.status === 403 || e.status === 429
+        ? "GitHub's free look-up limit is used up for now. Desks that need it show UNKNOWN until I can read again; nothing is guessed."
+        : "Can't reach GitHub right now (" + e.message + "). Desks that need it show UNKNOWN until I can read again.";
+      render(); return;
+    }
+    const retry = [];
+    for (const bot of CREW) {
+      if (!bot.wf) continue;
+      const last = state.lastRun[bot.wf];
+      const justFinished = before[bot.wf] && !state.runsNow[bot.wf];
+      const neverRead = last === undefined;
+      // A short run can start and finish between two checks, so a daily bot that isn't done today gets a fresh look every third check.
+      const lastToday = last && dayKey(Date.parse(last.updated_at)) === dayKey(t0);
+      const maybeNew = bot.daily && !lastToday && state.pollN % 3 === 0 && !state.runsNow[bot.wf];
+      if (justFinished || neverRead || maybeNew) retry.push(bot);
+    }
+    for (const bot of retry.slice(0, 4)) { try { await loadLast(bot.wf, 0); } catch (e) { /* keep the old reading */ } }
+    for (const bot of CREW) if (bot.live) { try { await loadSnap(bot); } catch (e) { /* keep old */ } }
+    if (state.pollN % 3 === 0 && (state.api.remaining == null || state.api.remaining > 20)) {   // these change slowly: every third check
+      try { state.commits = await gh("/commits?per_page=20", 0); state.commitsOk = true; } catch (e) { /* keep old */ }
+      try { state.comments = await gh("/issues/comments?sort=created&direction=desc&per_page=30", 0); state.commentsOk = true; } catch (e) { /* keep old */ }
+      try { state.stats = await plain("../automation/feed/stats.json?nc=" + Date.now()); } catch (e) { /* keep old */ }
+    }
+    state.api.ok = true; state.api.note = "";
+    state.fetchedAt = Date.now();
+    render();
+  } finally { polling = false; }
 }
+document.addEventListener("visibilitychange", () => { if (!document.hidden) poll(true); });
+window.addEventListener("online", () => poll(true));
 
 /* ---------- what each bot is doing right now ---------- */
 const pretty = n => "$" + Number(n).toLocaleString("en-US", { maximumFractionDigits: 0 });
+const runsFresh = now => state.runsAt != null && now - state.runsAt < STALE_RUNS_MS;
+const BAD_RUN = { failure: 1, timed_out: 1, startup_failure: 1 };
 function statusOf(bot) {
   const now = Date.now();
   const out = { state: "unknown", label: "Unknown", since: null, time: "", lines: [], link: null, linkText: "" };
@@ -333,6 +388,14 @@ function statusOf(bot) {
     return out;
   }
   if (state.fetchedAt == null && !running) { out.label = "Checking"; out.lines.push("Reading the public record…"); return out; }
+  if ((bot.type === "action" || bot.type === "robot") && state.fetchedAt != null && !runsFresh(now)) {
+    // Whether it is running right now can't be confirmed, so nothing is claimed: no working, idle, done or market state.
+    out.label = "Unknown";
+    out.lines.push("I couldn't confirm in the last " + Math.round(STALE_RUNS_MS / 60000) + " minutes whether this is running" + (state.runsAt ? " (my last good reading was at " + clockStr(state.runsAt) + ")" : " (I have no good reading yet)") + ", so I'm not guessing.");
+    const old = state.lastRun[bot.wf];
+    if (old) { out.link = old.html_url; out.linkText = "See its last finished run on GitHub"; out.lines.push("Its last finished run, as last read, ended " + String(old.conclusion || "unknown").replace(/_/g, " ") + " " + ago(now - Date.parse(old.updated_at)) + "."); }
+    return out;
+  }
   if (running) {
     out.state = running.queued ? "queued" : "working";
     out.label = running.queued ? "In line" : "Working";
@@ -343,14 +406,13 @@ function statusOf(bot) {
   if (bot.type === "action") {
     const last = state.lastRun[bot.wf];
     if (!running) {
-      if (!state.api.ok && last === undefined) { out.lines.push("Can't read GitHub right now."); return out; }
+      if (last === undefined) { out.lines.push("Can't read this bot's last run right now."); return out; }
       if (!last) { out.lines.push("No finished run found."); return out; }
-      const at = Date.parse(last.updated_at);
+      const at = Date.parse(last.updated_at), c = last.conclusion;
       out.link = last.html_url; out.linkText = "See the last run on GitHub";
       out.time = ago(now - at);
-      const bad = last.conclusion === "failure" || last.conclusion === "timed_out";
-      if (bad) { out.state = "failed"; out.label = "Failed"; out.lines.push("Its last run ended in " + last.conclusion.replace("_", " ") + " " + ago(now - at) + ". Someone should look."); }
-      else if (last.conclusion === "cancelled") { out.state = "idle"; out.label = "Idle"; out.lines.push("Its last run was cancelled " + ago(now - at) + "."); }
+      if (BAD_RUN[c]) { out.state = "failed"; out.label = "Failed"; out.lines.push("Its last run ended in " + String(c).replace(/_/g, " ") + " " + ago(now - at) + ". Someone should look."); }
+      else if (c !== "success") { out.state = "idle"; out.label = "Idle"; out.lines.push("Its last run ended as \u201C" + String(c || "unknown").replace(/_/g, " ") + "\u201D " + ago(now - at) + ", not as a finished OK run."); }
       else if (bot.daily && dayKey(at) === dayKey(now)) { out.state = "done"; out.label = "Done today"; out.lines.push("Last run finished OK at " + clockStr(at) + "."); }
       else if (bot.daily) { out.state = "waiting"; out.label = "Not yet today"; out.lines.push("Its last good run was " + ago(now - at) + ". Today's isn't in yet."); }
       else { out.state = "idle"; out.label = "Idle"; out.lines.push("Last ran OK " + ago(now - at) + "."); }
@@ -361,37 +423,45 @@ function statusOf(bot) {
   }
   if (bot.type === "robot") {
     const snap = state.snaps[bot.id];
-    if (snap) {
-      const age = now - Date.parse(snap.updated);
-      const a = snap.account || {};
-      const spyTxt = a.spy_value != null ? " Just holding the S&P 500 fund would be " + pretty(a.spy_value) + "." : "";
+    const upd = snap ? Date.parse(snap.updated) : NaN, a = (snap && snap.account) || {};
+    if (snap && isFinite(upd) && isFinite(+a.value)) {
+      const age = now - upd;
+      const spyTxt = isFinite(+a.spy_value) && a.spy_value != null ? " Just holding the S&P 500 fund would be " + pretty(a.spy_value) + "." : "";
       const today = (snap.orders || []).filter(o => dayKey(o.time) === dayKey(now)).length;
-      out.lines.push("Pretend money: the robot's account is " + pretty(a.value) + " (it has had " + pretty(a.start_cash) + " put in, all pretend)." + spyTxt);
+      out.lines.push("Pretend money: the robot's account is " + pretty(a.value) + (isFinite(+a.start_cash) ? " (it has had " + pretty(a.start_cash) + " put in, all pretend)." : ".") + spyTxt);
       out.lines.push(today + " pretend order" + (today === 1 ? "" : "s") + " today, " + (a.trades != null ? a.trades + " in all, " : "") + "fees included in the numbers.");
       out.lines.push("Snapshot taken " + ago(age) + ".");
       out.link = "../stock_bot/live/"; out.linkText = "Open the Practice Desk";
       if (!running) {
         out.time = ago(age);
-        if (snap.market_open && age < 45 * 60 * 1000) { out.state = "watching"; out.label = "Watching the market"; }
-        else { out.state = "closed"; out.label = "Market closed"; }
+        const last = state.lastRun[bot.wf];
+        if (last && BAD_RUN[last.conclusion]) { out.state = "failed"; out.label = "Failed"; out.lines.unshift("Its last run ended in " + String(last.conclusion).replace(/_/g, " ") + " " + ago(now - Date.parse(last.updated_at)) + ". Someone should look."); }
+        else if (snap.market_open && age < 45 * 60 * 1000) { out.state = "watching"; out.label = "Watching the market"; }
+        else if (snap.market_open) { out.label = "Snapshot old"; out.lines.unshift("The snapshot says the market was open, but it is " + ago(age) + ", so I can't tell what the robot is doing now."); }
+        else { out.state = "closed"; out.label = "Market closed"; out.lines.unshift("Its last snapshot says the market is closed."); }
       } else { out.time = timer(now - out.since); }
-    } else if (!running) { out.lines.push("Can't read this robot's snapshot right now."); }
+    } else if (!running) { out.lines.push(snap ? "This robot's snapshot is unreadable right now." : "Can't read this robot's snapshot right now."); }
     return out;
   }
   if (bot.type === "claude" || bot.type === "gpt") {
     let at = null, text = "", link = null;
     if (bot.type === "claude" && Array.isArray(state.commits)) {
-      const c = state.commits.find(x => /^claude/i.test((x.commit && x.commit.author && x.commit.author.name) || ""));
+      const c = state.commits.find(x => /^claude/i.test((x.commit && x.commit.author && x.commit.author.name) || "") && !AUTO_COMMIT.test(String((x.commit && x.commit.message) || "")));
       if (c) { at = Date.parse(c.commit.author.date); text = String(c.commit.message || "").split("\n")[0].slice(0, 110); link = c.html_url; }
     }
     if (bot.type === "gpt" && Array.isArray(state.comments)) {
       const c = state.comments.find(x => /^\*\*\[GPT/.test(x.body || ""));
       if (c) { at = Date.parse(c.created_at); text = "last message on the team board"; link = c.html_url; }
     }
-    if (at == null) { out.lines.push(state.api.ok === false ? "Can't read GitHub right now." : "No recent activity found in the public record."); return out; }
+    if (at == null) {
+      const failed = bot.type === "claude" ? state.commitsOk === false : state.commentsOk === false;
+      out.lines.push(failed ? "Can't read GitHub right now." : "No recent activity found in the public record.");
+      return out;
+    }
     out.time = ago(now - at); out.link = link; out.linkText = bot.type === "claude" ? "See that commit" : "See that message";
     out.lines.push((bot.type === "claude" ? "Last commit " : "Last message ") + ago(now - at) + (text ? ": " + text : "") + ".");
-    if (now - at < 15 * 60 * 1000) { out.state = "active"; out.label = "Active now"; } else { out.state = "quiet"; out.label = "Quiet"; }
+    // "Recent" only means a public commit or board message in the last 15 minutes; it is not proof that anything is running right now.
+    if (now - at < 15 * 60 * 1000) { out.state = "active"; out.label = bot.type === "claude" ? "Recent commit" : "Recent message"; } else { out.state = "quiet"; out.label = "Quiet"; }
     return out;
   }
   return out;
@@ -457,7 +527,7 @@ const STATE_COLOR = { working: "#3ddc84", done: "#6fe3a3", failed: "#ff5a5a", wa
   active: "#3ddc84", quiet: "#7b86ad", away: "#a98bff", idle: "#7b86ad", unknown: "#4b5578" };
 /* A bot with nothing running gets up and strolls in front of its desk now and then; a working, waiting, failed or private bot never does.
    Walking means "nothing running right now", so it follows the same real state as everything else. */
-const WANDER_STATES = { idle: 1, quiet: 1, closed: 1 };
+const WANDER_STATES = { idle: 1, closed: 1 };
 const WANDER_CYCLE = 26000, WANDER_WALK = 10000;
 function wanderOf(i, t, st) {
   if (reduced || !WANDER_STATES[st]) return null;
@@ -521,22 +591,26 @@ function viewTarget(id) {
 }
 function goView(id, instant) {
   view = id;
-  if (id !== "gallery" && state.selectedFrame != null) { state.selectedFrame = null; renderCard(); }
+  if (id !== "gallery" && state.selectedFrame != null) { state.selectedFrame = null; renderCard(); renderGalleryList(); }
   camTarget = viewTarget(id);
-  if (instant || reduced) Object.assign(cam, camTarget);
+  if (instant || reduced) { Object.assign(cam, camTarget); drawWorld(performance.now()); }
   syncButtons();
 }
 function sizeCanvas() {
-  cvsW = Math.max(240, Math.floor(cvs.parentElement.clientWidth));
-  cvsH = cvsW < 700 ? Math.max(260, Math.min(520, Math.round(cvsW * 0.78))) : Math.max(430, Math.min(720, Math.round(cvsW * 0.56)));
-  dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(1, Math.floor(cvs.parentElement.clientWidth));
+  const h = w < 700 ? Math.max(260, Math.min(520, Math.round(w * 0.78))) : Math.max(430, Math.min(720, Math.round(w * 0.56)));
+  const d = Math.min(2, window.devicePixelRatio || 1);
+  if (w === cvsW && h === cvsH && d === dpr && cvs.width === Math.floor(w * d)) return;   // nothing changed: leave the camera where it is
+  cvsW = w; cvsH = h; dpr = d;
   cvs.style.height = cvsH + "px";
   cvs.width = Math.floor(cvsW * dpr); cvs.height = Math.floor(cvsH * dpr);
   camTarget = viewTarget(view);
   Object.assign(cam, camTarget);
 }
-function text(s, x, y, color, size, align) {
-  ctx.fillStyle = color; ctx.font = "800 " + size + "px ui-monospace, Menlo, Consolas, monospace"; ctx.textAlign = align || "left"; ctx.textBaseline = "middle";
+/* minPx: when the camera is zoomed far out, small labels grow (up to 1.5x) so they stay about this many screen pixels tall */
+function text(s, x, y, color, size, align, minPx) {
+  const px = minPx ? Math.min(size * 1.5, Math.max(size, minPx / cam.z)) : size;
+  ctx.fillStyle = color; ctx.font = "800 " + px + "px ui-monospace, Menlo, Consolas, monospace"; ctx.textAlign = align || "left"; ctx.textBaseline = "middle";
   ctx.fillText(s, x, y);
 }
 function chamfer(x, y, w, h, c) {
@@ -551,6 +625,7 @@ function counterOf(bot) {
   return null;
 }
 function drawMonitor(x, y, st, t) {
+  if (reduced) t = 0;     // still pictures only: no scrolling lines, no flashing
   ctx.fillStyle = "#0b0e1a"; ctx.fillRect(x, y, 38, 29);
   ctx.fillStyle = "#1a2040"; ctx.fillRect(x + 15, y + 29, 8, 4); ctx.fillRect(x + 11, y + 33, 16, 2);
   const sx = x + 3, sy = y + 3, sw = 32, sh = 21;
@@ -579,13 +654,14 @@ function drawMonitor(x, y, st, t) {
     ctx.fillStyle = "#3ddc84"; ctx.fillRect(sx + 3, sy + 4, 20, 2); ctx.fillRect(sx + 3, sy + 9, 14, 2); ctx.fillRect(sx + 3, sy + 14, 24, 2);
   } else if (st.state === "unknown") {
     ctx.fillStyle = "#151a2e"; ctx.fillRect(sx, sy, sw, sh);
-    text("?", sx + sw / 2, sy + sh / 2 + 1, "#6877b8", 16, "center");
+    text("?", sx + sw / 2, sy + sh / 2 + 1, "#8f9ddb", 16, "center");
   } else {
     ctx.fillStyle = "#0f1530"; ctx.fillRect(sx, sy, sw, sh);
     ctx.fillStyle = "#2a3566"; ctx.fillRect(sx + 3, sy + 5, 16, 2); ctx.fillRect(sx + 3, sy + 10, 10, 2);
   }
 }
 function drawDesk(d, i, t) {
+  if (reduced) t = 0;     // no hopping, shivering, pulsing, blinking or typing frames
   const bot = d.bot, st = bot._st, x = d.x, y = d.y, w = d.w, h = d.h;
   const cx = x + w / 2;
   const glow = GLOW[st.state];
@@ -616,7 +692,7 @@ function drawDesk(d, i, t) {
   ctx.fillStyle = "#cfd6ff"; ctx.fillRect(Math.round(cx - 11), dy + 2, 22, 4);
   drawMonitor(dx + 8, dy - 28, st, t);
   ctx.fillStyle = "#e8ecff"; ctx.fillRect(dx + dw - 22, dy - 6, 8, 7); ctx.fillStyle = "#8a93aa"; ctx.fillRect(dx + dw - 14, dy - 4, 2, 3);
-  if (st.state === "working" || st.state === "active") {   // steam off the mug
+  if (!reduced && (st.state === "working" || st.state === "active")) {   // steam off the mug
     for (let k = 0; k < 3; k++) {
       const u = ((t / 110 + k * 6) % 16) / 16;
       ctx.globalAlpha = 0.65 * (1 - u); ctx.fillStyle = "#dfe6ff";
@@ -646,11 +722,11 @@ function drawDesk(d, i, t) {
     const pw = count.length * 6.6 + 10;
     ctx.fillStyle = "#04200f"; ctx.fillRect(x + 8, y + 4, pw, 15);
     ctx.fillStyle = "#2fae66"; ctx.fillRect(x + 8, y + 4, pw, 2);
-    text(count, x + 13, y + 12.5, "#9dffc4", 10);
+    text(count, x + 13, y + 12.5, "#9dffc4", 10, "left", 7.5);
   }
   ctx.fillStyle = "#070b1c"; ctx.fillRect(Math.round(cx - 46), y + h - 24, 92, 18);
   ctx.fillStyle = STATE_COLOR[st.state]; ctx.fillRect(Math.round(cx - 46), y + h - 24, 3, 18);
-  text(bot.name.toUpperCase(), Math.round(cx + 2), y + h - 15, "#e8ecff", 12, "center");
+  text(bot.name.toUpperCase(), Math.round(cx + 2), y + h - 15, "#e8ecff", 12, "center", 7.5);
   if (state.selected === bot.id) { ctx.strokeStyle = "#ffb000"; ctx.lineWidth = 3; ctx.strokeRect(x + 3, y + 3, w - 6, h - 6); }
   else if (hoverId === bot.id) { ctx.strokeStyle = "rgba(154, 168, 224, .8)"; ctx.lineWidth = 2; ctx.strokeRect(x + 3, y + 3, w - 6, h - 6); }
 }
@@ -681,9 +757,17 @@ function drawRoom(r) {
     ctx.fillStyle = "#070b1c"; ctx.fillRect(r.x + 16 + tw + 14 + k * 13, r.y + HEAD / 2 - 9, 9, 9);
     ctx.fillStyle = c; ctx.fillRect(r.x + 16 + tw + 15 + k * 13, r.y + HEAD / 2 - 8, 7, 7);
   });
-  text(r.blurb, r.x + r.w - 16, r.y + HEAD / 2 - 4, "#6877b8", 11, "right");
+  text(r.blurb, r.x + r.w - 16, r.y + HEAD / 2 - 4, "#8f9ddb", 11, "right");
 }
 const shortDate = d => new Date(d + "T12:00:00Z").toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric" }).toUpperCase();
+const frameKey = it => it.date + "|" + it.image;
+const galPicture = it => {
+  const e = it && GAL.imgs[it.image];
+  if (!e) return null;
+  if (e.bm) return e.bm;
+  if (e.failed) return null;
+  return e.img.complete && e.img.naturalWidth ? e.img : null;
+};
 function loadGallery() {
   return fetch(new URL("../automation/feed/index.json?nc=" + Date.now(), location.href))
     .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
@@ -692,17 +776,42 @@ function loadGallery() {
       GAL.items = list.filter(x => x && /^\d{4}-\d{2}-\d{2}$/.test(x.date) && /^[\w.-]+\.(png|jpe?g|webp)$/i.test(x.image || ""))
         .sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, FRAMES);
       GAL.ok = true;
+      const keep = new Set(GAL.items.map(it => it.image));
+      for (const name of Object.keys(GAL.imgs)) if (!keep.has(name) || GAL.imgs[name].failed) delete GAL.imgs[name];   // drop pictures no longer on the wall; failed ones get another try
       for (const it of GAL.items) {
         if (GAL.imgs[it.image]) continue;
-        const im = new Image();
-        im.onload = () => drawWorld(performance.now());
-        im.onerror = () => { im.failed = true; drawWorld(performance.now()); };
-        im.src = new URL("../automation/feed/" + it.image, location.href).href;
-        GAL.imgs[it.image] = im;
+        const entry = { img: new Image(), bm: null, failed: false };
+        GAL.imgs[it.image] = entry;
+        entry.img.onload = () => {
+          // Keep a small copy: the full 1080 px picture is far more than a 92 px frame needs.
+          if (typeof createImageBitmap === "function") createImageBitmap(entry.img, { resizeWidth: 360, resizeHeight: 360, resizeQuality: "high" })
+            .then(bm => { entry.bm = bm; entry.img.removeAttribute("src"); drawWorld(performance.now()); }).catch(() => {});
+          drawWorld(performance.now());
+        };
+        entry.img.onerror = () => { if (!entry.bm) entry.failed = true; drawWorld(performance.now()); };
+        entry.img.src = new URL("../automation/feed/" + it.image, location.href).href;
       }
+      if (state.selectedFrame != null && !GAL.items.some(it => frameKey(it) === state.selectedFrame)) { state.selectedFrame = null; renderCard(); }
+      renderGalleryList();
+      plain("../automation/feed/stats.json?nc=" + Date.now()).then(st => { state.stats = st; }).catch(() => {}).then(() => drawWorld(performance.now()));
       drawWorld(performance.now());
     })
-    .catch(() => { GAL.ok = false; drawWorld(performance.now()); });
+    .catch(() => { GAL.ok = false; renderGalleryList(); drawWorld(performance.now()); });
+}
+/* The same cards as a plain list of buttons (for keyboards and screen readers, and handy on a phone). */
+function renderGalleryList() {
+  const box = $("galList");
+  if (!box) return;
+  box.textContent = "";
+  if (!GAL.items.length) { const p = document.createElement("p"); p.textContent = GAL.ok === false ? "Can't reach the feed right now." : "Reading the feed…"; box.appendChild(p); return; }
+  for (const it of GAL.items) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = shortDate(it.date) + ": " + String(it.message || "card");
+    b.setAttribute("aria-pressed", String(state.selectedFrame === frameKey(it)));
+    b.addEventListener("click", () => selectFrame(frameKey(it)));
+    box.appendChild(b);
+  }
 }
 /* The gallery: the real cards from the site feed, newest first. Nothing here is drawn up; the pictures are the files the site itself serves. */
 function drawGallery(r, t) {
@@ -722,9 +831,9 @@ function drawGallery(r, t) {
     ctx.fillStyle = "#b88a45"; ctx.fillRect(fx, fy, FRAME, 2); ctx.fillRect(fx, fy, 2, FRAME);
     ctx.fillStyle = "#4a3418"; ctx.fillRect(fx, fy + FRAME - 2, FRAME, 2); ctx.fillRect(fx + FRAME - 2, fy, 2, FRAME);
     ctx.fillStyle = "#0b0f24"; ctx.fillRect(fx + 5, fy + 5, FRAME - 10, FRAME - 10);
-    const im = it && GAL.imgs[it.image];
-    if (im && im.complete && im.naturalWidth && !im.failed) {
-      ctx.imageSmoothingEnabled = true; ctx.drawImage(im, fx + 7, fy + 7, FRAME - 14, FRAME - 14); ctx.imageSmoothingEnabled = false;
+    const pic = galPicture(it);
+    if (pic) {
+      ctx.imageSmoothingEnabled = true; ctx.drawImage(pic, fx + 7, fy + 7, FRAME - 14, FRAME - 14); ctx.imageSmoothingEnabled = false;
     } else {
       ctx.fillStyle = "#121a3d"; ctx.fillRect(fx + 7, fy + 7, FRAME - 14, FRAME - 14);
       text(GAL.ok === null ? "…" : "?", fx + FRAME / 2, fy + FRAME / 2, "#4b5578", 22, "center");
@@ -732,15 +841,15 @@ function drawGallery(r, t) {
     const isToday = it && it.date === today;
     ctx.fillStyle = "#070b1c"; ctx.fillRect(fx + 6, fy + FRAME + 5, FRAME - 12, 16);
     ctx.fillStyle = isToday ? "#ffb000" : "#2a3f9c"; ctx.fillRect(fx + 6, fy + FRAME + 5, 3, 16);
-    text(it ? (isToday ? "TODAY" : shortDate(it.date)) : "—", fx + FRAME / 2 + 2, fy + FRAME + 13.5, isToday ? "#ffb000" : "#9aa8e0", 10, "center");
-    if (state.selectedFrame === f.i) { ctx.strokeStyle = "#ffb000"; ctx.lineWidth = 3; ctx.strokeRect(fx - 3, fy - 3, FRAME + 6, FRAME + 28); }
+    text(it ? (isToday ? "TODAY" : shortDate(it.date)) : "—", fx + FRAME / 2 + 2, fy + FRAME + 13.5, isToday ? "#ffb000" : "#9aa8e0", 10, "center", 7.5);
+    if (it && state.selectedFrame === frameKey(it)) { ctx.strokeStyle = "#ffb000"; ctx.lineWidth = 3; ctx.strokeRect(fx - 3, fy - 3, FRAME + 6, FRAME + 28); }
     else if (hoverFrame === f.i && it) { ctx.strokeStyle = "rgba(154, 168, 224, .85)"; ctx.lineWidth = 2; ctx.strokeRect(fx - 3, fy - 3, FRAME + 6, FRAME + 28); }
   }
   const s = state.stats;
   const note = GAL.ok === false ? "CAN'T REACH THE FEED RIGHT NOW"
     : GAL.ok === null ? "HANGING THE WALL…"
-    : (s && s.total != null && s.since ? s.total + " CARDS ON THE FEED SINCE " + shortDate(s.since) + " · THE LATEST " + GAL.items.length + " ARE ON THE WALL" : "THE LATEST CARDS FROM THE SITE FEED");
-  text(note, r.x + r.w / 2, r.y + r.h - 24, GAL.ok === false ? "#ffb000" : "#6877b8", 10, "center");
+    : (s && s.total != null && s.since ? s.total + " CARDS PUBLISHED SINCE " + shortDate(s.since) + " · THE LATEST " + GAL.items.filter(galPicture).length + " SHOWN" : "THE LATEST CARDS FROM THE SITE FEED");
+  text(note, r.x + r.w / 2, r.y + r.h - 24, GAL.ok === false ? "#ffb000" : "#8f9ddb", 10, "center");
 }
 function drawCorridor(c) {
   ctx.fillStyle = "#262f57"; ctx.fillRect(c.x - 4, c.y - 4, c.w + 8, c.h + 8);
@@ -750,14 +859,14 @@ function drawCorridor(c) {
   else for (let k = c.y + 8; k < c.y + c.h - 8; k += 22) ctx.fillRect(c.x + c.w / 2 - 1, k, 2, 10);
 }
 const TOUR = [
-  { view: "all",     ms: 4200, cap: "THE CREW: every bot on the project, live" },
+  { view: "all",     ms: 4200, cap: "THE CREW: the main bots, live" },
   { view: "engine",  ms: 8000, cap: "ENGINE ROOM: the machines that make and send the daily posts" },
   { view: "trading", ms: 6500, cap: "TRADING FLOOR: three practice robots, pretend money" },
   { view: "bridge",  ms: 6500, cap: "THE BRIDGE: Claude, GPT and Friday" },
   { view: "gallery", ms: 6500, cap: "THE GALLERY: the real cards the crew published, newest first" },
   { view: "all",     ms: 3600, cap: "All of it is read live from the public record" }
 ];
-const tour = { on: false, step: 0, at: 0 };
+const tour = { on: false, step: 0, at: 0, steps: TOUR };
 function drawWorld(t) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.imageSmoothingEnabled = false;
@@ -769,11 +878,11 @@ function drawWorld(t) {
   ctx.fillStyle = grad; ctx.fillRect(-400, -400, WORLD.w + 800, WORLD.h + 800);
   ctx.save(); ctx.translate(cam.x * 0.14, cam.y * 0.14);   // the stars drift slower than the rooms: depth
   stars.forEach(s => {
-    ctx.fillStyle = (Math.floor(t / 700) + s[2]) % 6 === 0 ? "#6877b8" : "#cfd6ff";
+    ctx.fillStyle = !reduced && (Math.floor(t / 700) + s[2]) % 6 === 0 ? "#8f9ddb" : "#cfd6ff";
     ctx.fillRect(-300 + s[0] * (WORLD.w + 600), -300 + s[1] * (WORLD.h + 600), s[2] % 2 + 1.5, s[2] % 2 + 1.5);
   });
   const sh = (t % 11000) / 11000;   // an occasional shooting star
-  if (sh < 0.06) {
+  if (!reduced && sh < 0.06) {
     const u = sh / 0.06, sx = WORLD.w * 0.1 + u * WORLD.w * 0.5, sy = -40 + u * WORLD.h * 0.35;
     for (let k = 0; k < 8; k++) { ctx.globalAlpha = (1 - k / 8) * (1 - u * 0.5); ctx.fillStyle = "#e8ecff"; ctx.fillRect(sx - k * 7, sy - k * 3, 3, 2); }
     ctx.globalAlpha = 1;
@@ -792,12 +901,24 @@ function drawWorld(t) {
     ctx.restore();
   }
   if (tour.on) {
-    const cap = TOUR[tour.step].cap;
-    ctx.font = "800 13px ui-monospace, Menlo, Consolas, monospace";
-    const w = Math.min(cvsW - 24, ctx.measureText(cap).width + 28);
-    ctx.fillStyle = "rgba(4, 8, 24, .86)"; ctx.fillRect(Math.round((cvsW - w) / 2), cvsH - 46, Math.round(w), 30);
-    ctx.fillStyle = "#ffb000"; ctx.fillRect(Math.round((cvsW - w) / 2), cvsH - 46, 3, 30);
-    text(cap, Math.round(cvsW / 2), cvsH - 31, "#e8ecff", 13, "center");
+    const cap = tour.steps[tour.step].cap;
+    let fs = 13;
+    const setFont = () => { ctx.font = "800 " + fs + "px ui-monospace, Menlo, Consolas, monospace"; };
+    setFont();
+    const maxW = cvsW - 28;
+    while (fs > 10 && ctx.measureText(cap).width > maxW) { fs--; setFont(); }
+    let lines = [cap];
+    if (ctx.measureText(cap).width > maxW) {   // still too wide: two lines, split at the space nearest the middle
+      let cut = -1, best = Infinity;
+      for (let k = 0; k < cap.length; k++) if (cap[k] === " " && Math.abs(k - cap.length / 2) < best) { best = Math.abs(k - cap.length / 2); cut = k; }
+      if (cut > 0) lines = [cap.slice(0, cut), cap.slice(cut + 1)];
+    }
+    const lh = fs + 6, boxH = 10 + lines.length * lh;
+    const boxW = Math.min(cvsW - 12, Math.max(...lines.map(l => ctx.measureText(l).width)) + 28);
+    const bx = Math.round((cvsW - boxW) / 2), by = cvsH - 14 - boxH;
+    ctx.fillStyle = "rgba(4, 8, 24, .86)"; ctx.fillRect(bx, by, Math.round(boxW), boxH);
+    ctx.fillStyle = "#ffb000"; ctx.fillRect(bx, by, 3, boxH);
+    lines.forEach((l, k) => text(l, Math.round(cvsW / 2), by + 5 + lh / 2 + k * lh, "#e8ecff", fs, "center"));
   }
 }
 const blur = { x: 0, y: 0 };   // how far the picture slid on screen this frame: the camera's whip-pan smear
@@ -812,12 +933,15 @@ function stepCamera(dt) {
   blur.y = moving && !reduced ? (cam.y - oy) * cam.z : 0;
   return moving;
 }
-function startTour() { tour.on = true; tour.step = 0; tour.at = performance.now(); goView(TOUR[0].view); }
+function startTour() {
+  tour.steps = cvsW < 700 ? TOUR.filter(k => k.view !== "all") : TOUR;   // on a phone the whole-station view is too small to read, so the tour skips it
+  tour.on = true; tour.step = 0; tour.at = performance.now(); goView(tour.steps[0].view);
+}
 function stopTour() { tour.on = false; syncButtons(); }
 function syncButtons() {
-  document.querySelectorAll(".toolbar button[data-view]").forEach(b => b.classList.toggle("on", !tour.on && b.dataset.view === view));
+  document.querySelectorAll(".toolbar button[data-view]").forEach(b => { const on = !tour.on && b.dataset.view === view; b.classList.toggle("on", on); b.setAttribute("aria-pressed", String(on)); });
   const tb = $("tourBtn");
-  if (tb) { tb.classList.toggle("on", tour.on); tb.textContent = tour.on ? "■ Stop tour" : "▶ Tour"; }
+  if (tb) { tb.classList.toggle("on", tour.on); tb.setAttribute("aria-pressed", String(tour.on)); tb.textContent = tour.on ? "■ Stop tour" : "▶ Tour"; }
 }
 
 /* The site-feed counter: "every day since" only when the numbers really say so (one post per day, last one today or yesterday). */
@@ -853,7 +977,7 @@ function buildRoster() {
     const tm = document.createElement("div"); tm.className = "tm";
     const rl = document.createElement("div"); rl.className = "rl"; rl.textContent = bot.role;
     b.append(c, nm, tm, rl);
-    b.addEventListener("click", () => select(bot.id));
+    b.addEventListener("click", () => { select(bot.id); if (window.matchMedia("(max-width: 860px)").matches) $("card").scrollIntoView({ block: "nearest", behavior: reduced ? "auto" : "smooth" }); });
     li.appendChild(b); ul.appendChild(li);
     rowEls[bot.id] = { b, c, chip, tm };
   }
@@ -880,20 +1004,27 @@ function refreshText() {
     el.chip.className = "chip " + st.state; el.chip.textContent = st.label.toUpperCase();
     el.tm.textContent = st.state === "working" && st.since ? timer(now - st.since) : st.time;
     el.b.classList.toggle("sel", state.selected === bot.id);
+    el.b.setAttribute("aria-pressed", String(state.selected === bot.id));
   }
-  $("hCrew").textContent = CREW.length; $("hWork").textContent = work; $("hDone").textContent = done;
-  $("rWork").textContent = work; $("rDone").textContent = done;
-  $("floor").classList.toggle("busy", work > 0);
-  $("liveDot").className = "dot " + (state.fetchedAt && state.api.ok !== false ? "on" : "off");
+  const fresh = state.fetchedAt != null && runsFresh(now);
+  const shownWork = fresh ? work : "–", shownDone = fresh ? done : "–";   // never a hard 0 when nothing could be read
+  $("hCrew").textContent = CREW.length; $("hWork").textContent = shownWork; $("hDone").textContent = shownDone;
+  $("rWork").textContent = shownWork; $("rDone").textContent = shownDone;
+  $("floor").classList.toggle("busy", work > 0 && fresh);
+  $("liveDot").className = "dot " + (fresh && state.api.ok !== false ? "on" : "off");
   feedText();
   if (state.api.ok === false) note(state.api.note, "warn");
-  else if (state.fetchedAt) note("Live from the public record · checked " + clockStr(state.fetchedAt) + " · busy bots update every few minutes while this page is open.");
+  else if (state.fetchedAt && !fresh) note("I haven't been able to check who is running for a few minutes, so desks that need it show UNKNOWN. Last good reading: " + (state.runsAt ? clockStr(state.runsAt) : "none yet") + ".", "warn");
+  else if (state.fetchedAt) note("Live from the public record · who-is-running checked " + clockStr(state.runsAt || state.fetchedAt) + " · busy bots update every few minutes while this page is open.");
+  const sel = CREW.find(b => b.id === state.selected);
+  if (sel && sigOf(sel._st) !== state.cardSig) renderCard();   // an open card follows its desk
 }
+const sigOf = st => st.state + "|" + st.label + "|" + st.lines.join("|") + "|" + (st.link || "");
 function renderCard() {
   const card = $("card");
   const bot = CREW.find(b => b.id === state.selected);
   card.textContent = "";
-  const frame = state.selectedFrame != null ? GAL.items[state.selectedFrame] : null;
+  const frame = state.selectedFrame != null ? GAL.items.find(it => frameKey(it) === state.selectedFrame) || null : null;
   if (frame) {
     const h = document.createElement("h2"); h.textContent = "Card · " + shortDate(frame.date);
     const msg = document.createElement("p"); msg.className = "big"; msg.textContent = "\u201C" + String(frame.message || "") + "\u201D";
@@ -913,6 +1044,7 @@ function renderCard() {
     card.append(h, p); return;
   }
   const st = bot._st || statusOf(bot);
+  state.cardSig = sigOf(st);
   const h = document.createElement("h2"); h.textContent = bot.name;
   const chip = document.createElement("span"); chip.className = "chip " + st.state; chip.textContent = st.label.toUpperCase(); h.appendChild(chip);
   const role = document.createElement("p"); role.className = "big"; role.textContent = bot.role;
@@ -924,18 +1056,22 @@ function renderCard() {
     p.appendChild(a); card.appendChild(p);
   }
 }
-function selectFrame(i) {
-  state.selectedFrame = state.selectedFrame === i ? null : i;
+function selectFrame(key) {
+  state.selectedFrame = state.selectedFrame === key ? null : key;
   state.selected = null;
   if (state.selectedFrame != null && !tour.on && view !== "gallery") goView("gallery");
-  refreshText(); renderCard(); drawWorld(performance.now());
+  refreshText(); renderCard(); renderGalleryList(); drawWorld(performance.now());
+  const it = GAL.items.find(x => frameKey(x) === state.selectedFrame);
+  announce(it ? "Card " + shortDate(it.date) + ": " + String(it.message || "") : "Card closed");
 }
+function announce(msg) { const a = $("announce"); if (a) a.textContent = msg; }
 function select(id) {
-  state.selectedFrame = null;
+  if (state.selectedFrame != null) { state.selectedFrame = null; renderGalleryList(); }
   state.selected = state.selected === id ? null : id;
   if (state.selected && !tour.on) { const room = roomOf(id); if (room && view !== room.id) goView(room.id); }
   refreshText(); renderCard(); drawWorld(performance.now());
-  if (state.selected) rowEls[id].b.scrollIntoView({ block: "nearest" });
+  const b = CREW.find(x => x.id === state.selected);
+  announce(b ? b.name + ": " + b._st.label + ". " + (b._st.lines[0] || "") : "Closed");
 }
 
 /* ---------- the work log: the newest things the crew really did, from the same public records ---------- */
@@ -949,7 +1085,7 @@ function buildLog() {
   for (const bot of CREW) {
     if (bot.type === "action") {
       const last = state.lastRun[bot.wf];
-      if (last) items.push({ t: Date.parse(last.updated_at), who: bot.name, text: last.conclusion === "success" ? "finished a run" : "ended a run: " + String(last.conclusion || "unknown").replace("_", " "), bad: last.conclusion === "failure" || last.conclusion === "timed_out" });
+      if (last) items.push({ t: Date.parse(last.updated_at), who: bot.name, text: last.conclusion === "success" ? "finished a run" : "ended a run: " + String(last.conclusion || "unknown").replace("_", " "), bad: !!BAD_RUN[last.conclusion] });
     }
     if (bot.type === "robot") {
       const s = state.snaps[bot.id];
@@ -960,7 +1096,8 @@ function buildLog() {
     for (const c of state.commits.slice(0, 20)) {
       const who = (c.commit && c.commit.author && c.commit.author.name) || "someone";
       if (/^stock-bot$/i.test(who)) continue;   // the robots' trades are already listed from their own snapshots
-      items.push({ t: Date.parse(c.commit.author.date), who: who, text: String(c.commit.message || "").split("\n")[0].slice(0, 90) });
+      const msg = String(c.commit.message || "").split("\n")[0].slice(0, 90);
+      items.push({ t: Date.parse(c.commit.author.date), who: AUTO_COMMIT.test(msg) ? "Cards" : who, text: msg });
     }
   }
   return items.filter(x => isFinite(x.t)).sort((a, b) => b.t - a.t).slice(0, 16);
@@ -969,7 +1106,12 @@ function renderLog() {
   const ul = $("logList");
   const items = buildLog();
   ul.textContent = "";
-  if (!items.length) { const li = document.createElement("li"); li.textContent = state.fetchedAt ? "Nothing to show yet." : "Reading the public record…"; ul.appendChild(li); return; }
+  if (!items.length) {
+    const li = document.createElement("li");
+    li.textContent = !state.fetchedAt ? "Reading the public record…" : (state.commitsOk === false ? "Couldn't read the project's recent commits right now." : "Nothing to show yet.");
+    ul.appendChild(li); return;
+  }
+  if (state.commitsOk === false) { const li = document.createElement("li"); li.textContent = "Note: the project's recent commits couldn't be read right now, so this log may be missing items."; ul.appendChild(li); }
   for (const it of items) {
     const li = document.createElement("li");
     const tm = document.createElement("span"); tm.className = "lt"; tm.textContent = logTime(it.t);
@@ -993,7 +1135,7 @@ cvs.addEventListener("click", e => {
   const d = WORLD.desks.find(k => wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
   if (d) { select(d.bot.id); return; }
   const fr = WORLD.frames.find(k => wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
-  if (fr && GAL.items[fr.i]) { selectFrame(fr.i); return; }
+  if (fr && GAL.items[fr.i]) { selectFrame(frameKey(GAL.items[fr.i])); return; }
   const room = ROOMS.find(k => wx >= k.x && wx <= k.x + k.w && wy >= k.y && wy <= k.y + k.h);
   if (room && view === "all") { stopTour(); goView(room.id); }
 });
@@ -1015,6 +1157,7 @@ $("tourBtn").addEventListener("click", () => { if (tour.on) stopTour(); else sta
 let resizeTimer = null;
 window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { sizeCanvas(); drawWorld(performance.now()); }, 120); });
 buildRoster();
+cvs.setAttribute("aria-label", "The station: " + CREW.length + " desks in three rooms, plus a gallery of the latest feed cards. The crew list and the gallery list give the same information as text.");
 CREW.forEach(b => { b._st = statusOf(b); });
 view = cvs.parentElement.clientWidth < 700 ? "engine" : "all";
 sizeCanvas();
@@ -1027,7 +1170,7 @@ function frame(now) {
   requestAnimationFrame(frame);
   if (document.hidden) return;
   const dt = Math.min(0.25, (now - lastFrame) / 1000); lastFrame = now;
-  if (tour.on && now - tour.at > TOUR[tour.step].ms) { tour.step = (tour.step + 1) % TOUR.length; tour.at = now; goView(TOUR[tour.step].view); }
+  if (tour.on && now - tour.at > tour.steps[tour.step].ms) { tour.step = (tour.step + 1) % tour.steps.length; tour.at = now; goView(tour.steps[tour.step].view); }
   const moving = stepCamera(dt);
   if (moving || now - lastDraw > (reduced ? 1000 : 80)) { lastDraw = now; drawWorld(now); }
 }

@@ -30,7 +30,7 @@ date. Last post > 1 month ago = 🎯 prime prospect. Then send the DM._
 ## Sackville NB — services
 | Business | Type | Feed check |
 |---|---|---|
-| Carlos Barber Shop (22 Lansdowne St) | barber | 📞 CALLED 08-04 — voicemail left (touch 1). Call back once in a few days; if no answer, walk-in prospect. ⚠️ IG @carlos.barbershop is a DIFFERENT shop (Dominican Republic), do not DM |
+| Carlos Barber Shop (22 Lansdowne St) | barber | ⚠️ POSSIBLY WRONG PROVINCE (see end of this row) 📞 CALLED 08-04 — voicemail left (touch 1). Call back once in a few days; if no answer, walk-in prospect. ⚠️ IG @carlos.barbershop is a DIFFERENT shop (Dominican Republic), do not DM ⚠️ 10-14 (Claude): (902) is a Nova Scotia area code, and a web search finds no Carlos Barber Shop at 22 Lansdowne St in Sackville NB (a Carlos Barbershop exists in Bedford NS). Probably the wrong province: verify the shop is in NB before any more calls. |
 | Steel Clippers Barbershop (80 Main St) | barber | ✅ active (posted Jul 28, checked 07-29) — one-person shop (Tammy), walk-in only |
 | 150 Bridge Salon | salon | 🎯 DM SENT 07-29, no reply. Still quiet: last post Apr 14 (C.C 09-26). Follow-up DM with sample link prepped (send sheet 09-26). fb.com/150bridgesalon · C.C check 10-05: page now has NO Message button (messaging off). Rest; no other route to message it. Walk-in or phone only. |
 | Looking Good Hair Design | salon | ❌ NOT local — fb match is Maroochydore, Australia; no NB page found (07-29). Drop. |

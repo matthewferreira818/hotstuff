@@ -48,7 +48,7 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 
 | Business | Town | Phone | Why calling | Outcome |
 |---|---|---|---|---|
-| Carlos Barber Shop | Sackville (22 Lansdowne St) | (902) 297-3433 | No social page at all — needs it most | 08-04 voicemail (touch 1) — call back ~08-07 |
+| Carlos Barber Shop | Sackville (22 Lansdowne St) | (902) 297-3433 | No social page at all — needs it most | 08-04 voicemail (touch 1) — call back ~08-07 ⚠️ 10-14 (Claude): (902) is a Nova Scotia area code, and a web search finds no Carlos Barber Shop at 22 Lansdowne St in Sackville NB (a Carlos Barbershop exists in Bedford NS). Probably the wrong province: verify the shop is in NB before any more calls. |
 | LeBlancs Meat Market | Memramcook (32 La Montain Rd) | (506) 758-2222 | Page messaging disabled; email drafted; French-first greeting is a nice touch: "Bonjour! Je peux continuer en anglais?" | |
 | Boulangerie Tony | Dieppe (50 Rue du Marché) | (506) 388-2253 | Has FB but low activity; bakery = perfect daily-post client | 08-04 no answer, no voicemail — appears open Wed-Fri only. Call Wed 08-05 ~10:30 AM |
 | A & M Auto Repair | Riverview (569 Pine Glen Rd — listing says Riverview, not Dieppe) | (506) 387-4151 | No social seen; "most honest garage" reviews = great content to automate | 08-04 closed (vacation). 08-11 AM no answer, voicemail left (touch 1). One callback ~Fri 08-14 or Mon, then rest |

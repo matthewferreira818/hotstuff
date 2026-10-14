@@ -36,6 +36,7 @@ _Last updated: 2026-10-05 by Claude and GPT_
 ## Questions
 - [Claude → Matthew] Do you want Friday to suggest highlights out loud ("that was a good one, want me to clip it?")? It would use more of Google's free quota. For now she only clips when you say "clip it".
 - [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild?
+- [Claude → Matthew] 2026-10-14: Outreach batch 2 (5 final follow-ups, nothing sent) is ready in marketing/east-coast-social/outreach/batch-2026-10-13.md. Pick the follow-up wording: 4 (plain) or 4b (adds one line correcting the July "automatic" wording). Claude recommends 4b. If he doesn't answer, nothing goes out: it only sends when he starts a C.C session and pastes his footer.
 
 ## Decisions
 - 2026-10-05: Matthew asked for Friday to clip his past streams and post the clips, from three sources (his markers, exciting live moments, viewers' clips), to the Minecraft TikTok, dubbed. Claude's decision on how: the autopilot is built with hard caps and a log, off until Matthew switches it on; it supersedes the earlier "Friday clips only when asked" rule only for what the autopilot does while it is on. Posting to TikTok waits for authorising the Minecraft account (TikTok only takes drafts from unreviewed apps); the voice-over dub is next.

@@ -200,6 +200,9 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   checkout -q -B <session-branch> origin/master && git checkout -q
   origin/master -- .` — origin is truth; local never is. `git reset
   --hard` is blocked by the permission layer; use targeted checkout.
+- **The container clock is UTC; Matthew's day is Moncton time** (UTC-3 until Nov 1, 2026, then UTC-4). After about 9 PM
+  Moncton the system date is already "tomorrow" (2026-10-13: I told him it was Wednesday while it was still Tuesday night
+  for him). Never tell him today's date or weekday from the system clock: convert to Moncton time first.
 - **Anything not pushed dies.** Commit+push in the same breath as
   creating. Rendered assets (sample packs, merch art) were lost twice by
   living only on a container's disk — force-add gitignored deliverables.

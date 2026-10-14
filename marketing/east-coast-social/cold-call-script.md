@@ -37,9 +37,9 @@ teenager.)*
 Stop. Let them say okay. That pause is what separates you from a robocall.
 
 > **"I noticed [your page has been quiet since April / you don't have a
-> Facebook page at all]. I run a little local thing that puts a post on a
-> business's page every single day, automatically — you approve the look
-> once and then never touch it."**
+> Facebook page at all]. I run a little local thing that takes care of a
+> business's daily posts — you approve the look once and I handle the rest,
+> the way I do on my own store's feed."**
 
 > **"My own store's feed has published a new post every single day since
 > August 7th. You can go look at it right now — findhotstuff.com/automation.
@@ -73,11 +73,9 @@ Then log the date you'll be back. A "send me something" you don't follow
 up on is a no you gave yourself.
 
 **"How much again?"**
-> **"Seventy-nine a month, and setup's free. For scale — an agency charges
-> a thousand-plus for the same daily posting, because someone there is
-> writing and designing it by hand every morning. A post a day is about
-> five hours a month of somebody's time. I built the tool that does the
-> making, so I'm not charging you for the hours."**
+> **"Seventy-nine a month, and setup's free, no contract. And the first
+> sample week is on me, with your own name and photos, so you see it before
+> you decide anything."**
 
 **"I'm not interested."**
 > **"No problem at all — thanks for the thirty seconds. If the page ever
@@ -109,18 +107,17 @@ and don't add conditions to it on the phone.**
 Say yes to the true part, plainly. Do not get defensive and do not
 over-deny — the page fact-checks both.
 
-> **"The posting is automated, yeah — that's exactly why it's seventy-nine
-> and not a thousand. It's not writing your posts out of thin air, it's a
-> system I built that puts your specials and your photos out on a schedule.
-> You approve the style once before anything goes live. And you're talking
-> to the guy who built it, who lives ten minutes away."**
+> **"Part of it is automated, yeah. It's a system I built that turns your
+> specials and your photos into daily posts, the way it does on my own
+> store's feed, not something writing out of thin air. You approve the style once before anything goes live. And
+> you're talking to the guy who built it, who lives ten minutes away."**
 
 ---
 
 ## Voicemail (15 seconds, and mean it)
 
 > **"Hi, this is Matthew from Memramcook. I help local businesses keep their
-> Facebook page posting every day, automatically — setup's free and the
+> Facebook page posting every day — setup's free and the
 > first week of samples is free to look at. Have a peek at
 > findhotstuff.com/automation if you're curious. Or text me, (506) 889-9737.
 > Thanks!"**

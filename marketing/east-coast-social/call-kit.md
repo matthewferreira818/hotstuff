@@ -16,8 +16,8 @@ Log every outcome in prospects.md after the call._
 
 > Hi — is this the owner? My name's Matthew, I'm calling from Memramcook —
 > so, basically a neighbour. I'll keep it to twenty seconds: I run a little
-> local service that makes a business's Facebook page post every single day,
-> automatically — you'd approve the look once and never touch it again.
+> local service that takes care of a business's daily social posts —
+> you approve the look once and I handle the rest, the way I do on my own store's feed.
 > I noticed [you don't have a page / your page's been quiet since MONTH],
 > and honestly that's money left on the table. Setup's free, it's $79 a
 > month, and I'll build your first week of sample posts for nothing so you
@@ -29,7 +29,7 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 ## Voicemail version (15 seconds)
 
 > Hi, this is Matthew from Memramcook. I help local businesses keep their
-> Facebook pages posting every day, automatically — free setup, and the
+> Facebook pages posting every day — free setup, and the
 > first week of sample posts is free to look at. I'll try you another time,
 > or you can text me at (506) 889-9737. Thanks!
 
@@ -39,7 +39,7 @@ If they're busy: "When's a better time? I'll call back — 30 seconds, promise."
 |---|---|
 | "Too busy right now" | "That's literally why this exists — it runs so you don't have to. When's a good 20 minutes this week?" |
 | "My niece/kid does our page" | "Perfect — keep them! This runs underneath: it never misses a day, and they can post on top whenever they want. It makes them look better, not replaced." |
-| "How much?" | "Free to set up, $79 a month, cancel any month. For scale — agencies charge a thousand-plus for the same daily posting." |
+| "How much?" | "Free to set up, $79 a month, cancel any month. And the first sample week is free, so you see it with your own shop before you decide." |
 | "Is this one of those AI things?" | "The posting engine is automated, yes — that's why it's $79 and not $1,000. But you're talking to the human who runs it, and I'm 10 minutes away. You approve everything before it starts." |
 | "Send me something" | "Will do — what's the best email? I'll send the one-pager and a link to my own store running on it, live." (→ send flyer PDF + findhotstuff.com/automation from ceohotstuff@yahoo.com) |
 | "Not interested" | "No worries at all — thanks for the twenty seconds. If the page ever goes quiet and it bugs you, I'm around." (Mark ❌ in ledger, never call again.) |
@@ -83,7 +83,7 @@ Twenty seconds, I promise." Get a NAME even if they're out.
 **The pitch (Hôtel Shediac / Bistro Blonde version):** "Your hotel page is
 actually great — but Bistro Blonde hasn't posted in about two years, and
 that's a restaurant in the middle of Shediac's tourist season. I run a
-local service that gives it its own daily voice, automatically — free
+local service that gives it its own daily voice — free
 setup, $79 a month, and I'll build the first week of sample posts free so
 you can see it before deciding." Show the store feed scrolling. Hand over
 flyer + card.

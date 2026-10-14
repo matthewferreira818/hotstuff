@@ -23,6 +23,9 @@ page-message flow below describes. Read the rules first and follow them exactly.
 - Open its Facebook page. Read the date of its most recent post.
 - If it posted within the last month: do NOT send. Note "active" and move on.
 - If messaging is turned off: do NOT send. Note it and move on.
+- If the batch row is a FINAL FOLLOW-UP: open the existing conversation first. If Matthew's earlier message is not in it, do NOT send (the
+  message says "I messaged a while back"). If there is any reply from the business (a "no thanks", "stop", a question, anything), do NOT
+  send: stop and tell me.
 - Otherwise send ONE message with the Message button on the page, using the template the batch names. Fill in the real business
   name and the real month of the last post. Add my footer. Do not change the offer, the prices, or any claim. Do not add
   anything that isn't in the template. Send it.

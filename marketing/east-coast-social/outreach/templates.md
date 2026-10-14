@@ -45,8 +45,20 @@ posted within the last month, do not send.
 > {FOOTER}
 
 ## 4. Follow-up without a sample (final touch)
-> Hi again! Matthew here. I messaged a few weeks ago about [Business]'s page. If you'd like to see what a week of posts would look
+> Hi again! Matthew here. I messaged a while back about [Business]'s page. If you'd like to see what a week of posts would look
 > like, I'm happy to put one together, free. If it's not for you, no worries at all. I won't keep messaging.
+>
+> {FOOTER}
+
+## 4b. Follow-up with a correction (final touch; ONLY if Matthew picks it)
+The first round of DMs (2026-07-28 to 08-03) used scripts that said the page would post "automatically" and, in one, "3x a day". The
+public record later ruled those claims false, and the exact text sent to each business was not kept. This variant fixes that in one
+line that is true whatever was sent. Matthew decides whether final touches use 4 or 4b.
+> Hi again! Matthew here. I messaged a while back about [Business]'s page. If my first message made it sound like the posting
+> happens entirely by itself, to be exact: I take care of the daily posts, the way I do on my own store's feed, and you approve the look once.
+>
+> If you'd like to see what a week of posts would look like, I'm happy to put one together, free. If it's not for you, no worries
+> at all. I won't keep messaging.
 >
 > {FOOTER}
 

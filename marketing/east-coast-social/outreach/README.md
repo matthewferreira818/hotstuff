@@ -32,3 +32,7 @@ Matthew will have a business advisor check this as we go. Until then:
    similar messages, so if Facebook shows any warning, checkpoint or "message limit" notice, C.C stops and tells Matthew.
 8. **Replies outrank new outreach.** Any reply, or any talk of price or the offer, goes to Matthew straight away.
 9. Messages to clients or officials are not covered by this and still go through Matthew.
+10. **A final follow-up says "I messaged a while back", so it must be true.** Before sending one, C.C opens the existing conversation with that
+   page and confirms (a) Matthew's earlier message is really there, (b) there is no reply, "no thanks" or annoyed message. If (a) fails, do not
+   send. If (b) fails, stop, never contact that business again, mark it 🚫 and tell Matthew. "No reply recorded" in the ledger only means nobody
+   looked.

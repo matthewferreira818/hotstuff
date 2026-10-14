@@ -116,7 +116,7 @@ import Darwin
   busy = false; speechTokens.removeAll(); speaker.stopSpeaking(at:.immediate)
   let e = error as NSError
   if e.domain == SCStreamErrorDomain && e.code == -3801 {
-   status = "Screen access denied by macOS. Quit this app, refresh GameCompanion in Privacy & Security → Screen & System Audio Recording, then reopen and choose the window again. No AI request was sent."
+   status = "Screen access denied by macOS. Quit this app, refresh Friday in Privacy & Security → Screen & System Audio Recording, then reopen and choose the window again. No AI request was sent."
   } else {
    status = "Could not capture the selected window: \(error.localizedDescription). Choose the window again. No AI request was sent."
   }
@@ -250,7 +250,7 @@ import Darwin
   let token = generation
   AVCaptureDevice.requestAccess(for:.audio) { granted in Task { @MainActor in
    guard token == self.generation else { return }
-   if granted { self.beginMic() } else { self.status = "Microphone permission denied. Enable Game Companion in System Settings > Privacy & Security > Microphone." }
+   if granted { self.beginMic() } else { self.status = "Microphone permission denied. Enable Friday in System Settings > Privacy & Security > Microphone." }
   }}
  }
  func beginMic() {
@@ -351,7 +351,7 @@ struct LegacyContentView: View {
  @StateObject var clips = TwitchClips()
  var body: some View {
   VStack(alignment:.leading,spacing:16) {
-   Text("Game Companion").font(.largeTitle.bold())
+   Text("Friday").font(.largeTitle.bold())
    Picker("Brain",selection:$c.tab) {
     Text("Live buddy (Google, free)").tag(0)
     Text("Local (on this Mac)").tag(1)

@@ -22,6 +22,7 @@ struct CompanionInterfaceView: View {
  @StateObject var voiceover = VoiceOver()
  @StateObject var obs = ObsHub()
  @StateObject var lab = VideoLab()
+ @StateObject var helper = FridayHelper()
  @StateObject var corner = FridayCornerController()
  @StateObject var conversation = ConversationStore(fileURL:DesignPreview.enabled ? URL(fileURLWithPath:NSTemporaryDirectory()).appendingPathComponent("GameCompanion-DesignPreviewMemory.json") : nil,load: !DesignPreview.enabled)
  private let heartbeat = Timer.publish(every:60,on:.main,in:.common).autoconnect()
@@ -36,7 +37,7 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; vods.attach(clips,stream:stream); autopilot.attach(clips:clips,stream:stream,vods:vods,live:live,feed:feed); live.vods = vods; voiceover.attach(clips:clips,live:live,feed:feed); live.voiceover = voiceover; live.meeting = meeting; hands.attach(live); lab.attach(voiceover); live.obs = obs; obs.approve = { [hands] title,detail in await hands.approval.ask(title,detail:detail) }; chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; vods.attach(clips,stream:stream); autopilot.attach(clips:clips,stream:stream,vods:vods,live:live,feed:feed); live.vods = vods; voiceover.attach(clips:clips,live:live,feed:feed); live.voiceover = voiceover; live.meeting = meeting; hands.attach(live); lab.attach(voiceover); helper.attach(hands:hands,voice:voiceover); live.obs = obs; obs.approve = { [hands] title,detail in await hands.approval.ask(title,detail:detail) }; chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
   .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
   .onDisappear { stopAll(); autopilot.pause() }
@@ -119,7 +120,7 @@ struct CompanionInterfaceView: View {
    if !clips.lastClipURL.isEmpty { Button("Open last clip") { if let url = URL(string:clips.lastClipURL) { NSWorkspace.shared.open(url) } }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
    if c.tab == 0 && live.running && !live.toolNames.isEmpty { Text("Tools on: " + live.toolNames.joined(separator:", ")).font(.system(size:10,design:.rounded)).foregroundStyle(Color.white.opacity(0.3)).multilineTextAlignment(.center).lineLimit(4).textSelection(.enabled) }
    if hands.enabled && hands.hasAccess && !hands.status.isEmpty { Text("Hands: \(hands.status)").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45)).multilineTextAlignment(.center).lineLimit(3) }
-   if hands.enabled && !hands.hasAccess { Button { hands.openSettings() } label: { Text("Her hands need macOS permission: tap to open Accessibility settings, switch Game Companion on, then restart Friday.").multilineTextAlignment(.center) }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
+   if hands.enabled && !hands.hasAccess { Button { hands.openSettings() } label: { Text("Her hands need macOS permission: tap to open Accessibility settings, switch Friday on, then restart Friday.").multilineTextAlignment(.center) }.buttonStyle(.plain).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(Noir.crimsonLight) }
    if !currentReply.isEmpty { Text(currentReply).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(Color.white.opacity(0.90)).multilineTextAlignment(.center).lineLimit(6).textSelection(.enabled) }
   }
   .frame(maxWidth:.infinity,minHeight:hub.compact ? 30 : 120,alignment:.top)

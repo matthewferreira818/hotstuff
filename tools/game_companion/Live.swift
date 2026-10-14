@@ -746,7 +746,7 @@ enum GeminiKey {
     send(["realtimeInput":["video":["data":jpeg.base64EncodedString(),"mimeType":"image/jpeg"]]])
    } catch {
     guard current == session else { return }
-    status = "Can't see your screens: \(error.localizedDescription). After an app update macOS often forgets the permission: open System Settings, Privacy & Security, Screen & System Audio Recording, switch Game Companion off and on, then start Friday again."
+    status = "Can't see your screens: \(error.localizedDescription). After an app update macOS often forgets the permission: open System Settings, Privacy & Security, Screen & System Audio Recording, switch Friday off and on, then start Friday again."
    }
   }
  }

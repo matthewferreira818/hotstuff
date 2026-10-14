@@ -16,7 +16,7 @@ enum HubColor {
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper
  var id: Int { rawValue }
  var title: String {
   switch self {
@@ -31,6 +31,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .accounts: return "Accounts"
   case .meeting: return "Meeting Room"
   case .stream: return "Stream"
+  case .helper: return "Helper"
   }
  }
  var icon: String {
@@ -46,6 +47,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .accounts: return "key.fill"
   case .meeting: return "person.3.fill"
   case .stream: return "dot.radiowaves.left.and.right"
+  case .helper: return "hand.raised.fill"
   }
  }
  var tint: Color {
@@ -61,6 +63,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .accounts: return HubColor.slate
   case .meeting: return HubColor.violet
   case .stream: return HubColor.violet
+  case .helper: return HubColor.green
   }
  }
  var blurb: String {
@@ -76,6 +79,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .accounts: return "What's connected, and what's not."
   case .meeting: return "Claude, GPT and Friday on one shared board."
   case .stream: return "Your Twitch channel: go-live checks, title, category and clips."
+  case .helper: return "Tell Friday a job; she does it with her hands, and asks before anything risky."
   }
  }
 }
@@ -526,6 +530,7 @@ extension CompanionInterfaceView {
   case .accounts: hubAccounts
   case .meeting: hubMeeting
   case .stream: hubStream
+  case .helper: hubHelper
   }
  }
 

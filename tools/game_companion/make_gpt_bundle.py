@@ -49,6 +49,8 @@ FILES = [
     ("ObsData.swift", "Friday's link to OBS Studio: the remote-control login (SHA-256 in plain Swift), the message shapes, scene matching, plain-words answers. No Mac frameworks; tested."),
     ("VideoLabData.swift", "The Video lab's rules: how many pictures, when, how the contact sheets are laid out, folder names, what Google is asked. No Mac frameworks; tested."),
     ("VideoLab.swift", "The Video lab: picture grabbing, contact sheets, the play-by-play from Google, and its card on the Stream page."),
+    ("HelperData.swift", "The Helper's rules: what a brain's answer may look like, the numbered control list she is shown, what she may tell C.C, what she may type in a posting job. No Mac frameworks; tested."),
+    ("Helper.swift", "The Helper (another set of hands): the loop (look, ask a brain, do one step), telling C.C, teaching C.C's box, and the Helper page."),
     ("ObsBridge.swift", "The short visits to OBS on this Mac (scenes, replay, mute, go live with the Allow box) and the OBS card on the Stream page."),
     ("AutopilotData.swift", "Clip autopilot rules: which viewer clips to take, live-clip caps, the hype detector and the TikTok caption. No Mac frameworks; tested."),
     ("ClipAutopilot.swift", "Clip autopilot: clips from markers, exciting live moments and viewers' best clips, with caps, a log and a TikTok caption for each."),

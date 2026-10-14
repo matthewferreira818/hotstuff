@@ -112,7 +112,7 @@ import UniformTypeIdentifiers
   }
   guard let voice = reader else {
    status = report
-   notice = "No play-by-play: the helper that talks to Google isn't connected. Quit and reopen Game Companion, then choose the video again."
+   notice = "No play-by-play: the helper that talks to Google isn't connected. Quit and reopen Friday, then choose the video again."
    return
   }
   status = report + (mode == .video ? " Now Google is watching and listening… (a minute or two)" : " Now Google is listening… (a minute or two)")

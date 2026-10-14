@@ -123,7 +123,7 @@ The weekday routine "Start stock robots" dispatches all three workflows.
 
 ## Game Companion, and the chassis dream (as of 2026-10-05)
 
-**"GC" = the Game Companion** (he also says "gaming companion"; the app is named Game Companion).
+**"GC" = the Game Companion** (he also says "gaming companion"). **Since 2026-10-14 the Mac app's display name is "Friday"** (new icon too; the file name `GameCompanion.app`, app ID and saved data are unchanged on purpose).
 `tools/game_companion/` is the Mac app Matthew talks to while he plays: a
 live buddy (Google's free Gemini Live key, saved privately on his Mac as
 a file only his account can read, never in the repo or chat; since
@@ -155,6 +155,7 @@ login pages or private videos); `watch_screen` has Google study a few seconds of
 pictures of his screens for videos playing there (no sound). Google Search inside her voice session failed on his free key (quota); since
 2026-10-06 it can be on together with her tools (Google's Live docs allow it)
 and is dropped automatically if it won't start.
+**The Helper (2026-10-14, his words: "another set of hands"):** a page in the app where he gives Friday a job in plain words; she reads the window's controls as text, asks a brain for one step at a time and does it with the same hands and the same off-limits list. Free brains only for now: a model on his Mac through Ollama, or Google's free tier. She can give C.C commands (vetted, full words in the Allow box) and, in a posting job, types only words he gave her exactly. Logins, passwords, payments, banks and Moomoo stay off-limits; anything that could send or buy needs his Allow. Details: tools/game_companion/README.md, last section.
 This does not loosen the real-money rule: Moomoo trading stays his own
 hands, and the app never wires into it.
 

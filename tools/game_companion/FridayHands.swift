@@ -159,15 +159,17 @@ struct FridayCursorView: View {
 @MainActor final class FridayApproval: ObservableObject {
  @Published var title = ""
  @Published var detail = ""
+ @Published var words = ""   // the full words of what she is about to say or type, when they matter (a command for C.C)
  @Published var pending = false
  private var panel: NSPanel?
  private var continuation: CheckedContinuation<Bool,Never>?
  private var token = 0
 
- func ask(_ title: String,detail: String) async -> Bool {
+ func ask(_ title: String,detail: String,words: String = "") async -> Bool {
   if pending { return false }
   self.title = title
   self.detail = detail
+  self.words = words
   pending = true
   token += 1
   let mine = token
@@ -205,7 +207,8 @@ struct FridayCursorView: View {
    panel = made
   }
   let area = screen.visibleFrame
-  panel?.setFrame(NSRect(x:area.midX - 230,y:area.maxY - 170,width:460,height:150),display:true)
+  let tall: CGFloat = words.isEmpty ? 150 : 330
+  panel?.setFrame(NSRect(x:area.midX - 230,y:area.maxY - tall - 20,width:460,height:tall),display:true)
   panel?.orderFrontRegardless()
  }
 }
@@ -220,7 +223,11 @@ struct FridayApprovalView: View {
     Text("Friday is asking").font(.system(size:11,weight:.bold,design:.rounded)).tracking(1.2).foregroundStyle(Noir.crimsonLight)
    }
    Text(model.title).font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white).lineLimit(2)
-   Text(model.detail).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.65)).lineLimit(2)
+   Text(model.detail).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.65)).lineLimit(model.words.isEmpty ? 2 : 4)
+   if !model.words.isEmpty {
+    ScrollView { Text(model.words).font(.system(size:12,design:.monospaced)).foregroundStyle(Color.white.opacity(0.9)).frame(maxWidth:.infinity,alignment:.leading).padding(8) }
+     .frame(maxHeight:140).background(RoundedRectangle(cornerRadius:10,style:.continuous).fill(Color.white.opacity(0.08)))
+   }
    HStack(spacing:10) {
     Spacer()
     Button { model.answer(false) } label: { Text("Deny").frame(width:84) }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.14)))
@@ -250,6 +257,9 @@ struct FridayApprovalView: View {
  @Published var status = ""
  let cursor = FridayCursorModel()
  let approval = FridayApproval()
+ // The Helper (Helper.swift) uses these same hands, with the same switches and off-limits list, even when Friday isn't live.
+ @Published var helperRunning = false
+ private var returnPreApproved = false
  private var live: LiveBuddy?
  private var panel: NSPanel?
  private var recent: [Date] = []
@@ -521,7 +531,7 @@ struct FridayApprovalView: View {
  // MARK: checks every tool shares
 
  private func gate(needsAccess: Bool) -> String? {
-  guard let live = live, live.running else { return "I'm not live right now, so I can't use my hands." }
+  guard (live?.running ?? false) || helperRunning else { return "I'm not live right now, so I can't use my hands." }
   guard enabled else { return "My hands are switched off. Matthew can turn them on in Settings: Let Friday use her hands." }
   if approval.pending { return "I'm waiting for Matthew to answer the Allow box, so I'm not doing anything else until he does." }
   if busy { return "I'm still in the middle of another move. One thing at a time." }
@@ -534,7 +544,7 @@ struct FridayApprovalView: View {
 
  // The same switches, checked again after anything that takes time (the glide, the wait for Allow, a long typing job).
  private func stillAllowed() -> String? {
-  guard let live = live, live.running, enabled else { return "I'm not live any more, or my hands were switched off, so I stopped." }
+  guard (live?.running ?? false) || helperRunning, enabled else { return "I'm not live any more, or my hands were switched off, so I stopped." }
   guard hasAccess, AXIsProcessTrusted() else { return "macOS no longer lets this app control the Mac, so I stopped." }
   return nil
  }
@@ -658,10 +668,15 @@ struct FridayApprovalView: View {
 
  private func clickInner(x: Double,y: Double,what: String,button: String,double: Bool) async -> String {
   if let problem = gate(needsAccess:true) { return problem }
+  guard let area = pictureArea() else { return "I can't tell where my picture is on the desk, so I didn't click." }
+  return await clickAt(HandsPlan.desk(x,y,in:area),what:what,button:button,double:double)
+ }
+
+ // The same click, at an exact spot on the desk (what the Helper reads from the window's controls). Every check below still applies.
+ private func clickAt(_ spot: CGPoint,what: String,button: String,double: Bool) async -> String {
+  if let problem = gate(needsAccess:true) { return problem }
   busy = true
   defer { busy = false }
-  guard let area = pictureArea() else { return "I can't tell where my picture is on the desk, so I didn't click." }
-  let spot = HandsPlan.desk(x,y,in:area)
   let named = what.trimmingCharacters(in:.whitespacesAndNewlines)
   let first: Aim
   switch aim(at:spot,named:named) {
@@ -778,7 +793,7 @@ struct FridayApprovalView: View {
   guard let front = checked.win else { return checked.problem ?? "I couldn't tell where to press keys, so I didn't." }
   await pace()
   noteAction()
-  let returnNeedsAllow = HandsPlan.needsAllow(press,owner:front.owner,focusedRole:focusedRole())
+  let returnNeedsAllow = HandsPlan.needsAllow(press,owner:front.owner,focusedRole:focusedRole()) && !returnPreApproved
   if returnNeedsAllow || HandsPlan.riskyWindow(title:front.title) {
    let why = returnNeedsAllow ? "Return can send or submit something." : "This window looks like a checkout or payment page."
    if let refusal = await needAllow("Press \(press.label)? \(why)",detail:"in \(front.owner)\(front.title.isEmpty ? "" : " — \(String(front.title.prefix(60)))")") { return refusal }
@@ -799,6 +814,118 @@ struct FridayApprovalView: View {
  func click(x: Double,y: Double,what: String,button: String,double: Bool) async -> String { let r = await clickInner(x:x,y:y,what:what,button:button,double:double); status = r; return r }
  func type(_ raw: String) async -> String { let r = await typeInner(raw); status = r; return r }
  func press(_ spec: String) async -> String { let r = await pressInner(spec); status = r; return r }
+ func clickDesk(at spot: CGPoint,what: String) async -> String { let r = await clickAt(spot,what:what,button:"left",double:false); status = r; return r }
+ // Return, when Matthew has just allowed the exact words it will send (a command for C.C). Every other check still applies.
+ func pressApprovedReturn() async -> String { returnPreApproved = true; defer { returnPreApproved = false }; let r = await pressInner("return"); status = r; return r }
+
+ // MARK: the Helper's eyes: the controls of the window Matthew means, as plain data (no pictures)
+
+ struct HelperItem { var element: HelperElement; var center: CGPoint; var frame: CGRect }
+ struct HelperLook { var app: String; var title: String; var rect: CGRect; var items: [HelperItem]; var problem: String?; var pid: Int = 0 }
+
+ private static let helperRoles: Set<String> = ["AXButton","AXLink","AXTextField","AXTextArea","AXSecureTextField","AXCheckBox","AXRadioButton","AXPopUpButton","AXMenuButton","AXTab","AXTabButton","AXComboBox","AXMenuItem","AXSlider"]
+
+ private func axString(_ node: AXUIElement,_ attribute: String) -> String? {
+  var value: CFTypeRef?
+  guard AXUIElementCopyAttributeValue(node,attribute as CFString,&value) == .success, let text = value as? String, !text.isEmpty else { return nil }
+  return text
+ }
+
+ private func axFrame(_ node: AXUIElement) -> CGRect? {
+  var position: CFTypeRef?
+  var size: CFTypeRef?
+  guard AXUIElementCopyAttributeValue(node,kAXPositionAttribute as CFString,&position) == .success,
+        AXUIElementCopyAttributeValue(node,kAXSizeAttribute as CFString,&size) == .success, let p = position, let s = size else { return nil }
+  var point = CGPoint.zero
+  var extent = CGSize.zero
+  guard AXValueGetValue(p as! AXValue,.cgPoint,&point), AXValueGetValue(s as! AXValue,.cgSize,&extent) else { return nil }
+  return CGRect(origin:point,size:extent)
+ }
+
+ // The buttons, links, boxes and tabs of the top-most ordinary window that isn't hers, top to bottom. Password boxes are marked and never
+ // read; typed text is never read at all. Refuses where she would refuse to act.
+ func helperLook() -> HelperLook {
+  let none = CGRect.zero
+  guard AXIsProcessTrusted() else { return HelperLook(app:"",title:"",rect:none,items:[],problem:"macOS hasn't let this app read the screen's controls yet. Allow it in System Settings, Privacy & Security, Accessibility.") }
+  guard let win = pageWindow() else { return HelperLook(app:"",title:"",rect:none,items:[],problem:"I can't find an app window to look at.") }
+  if let why = refusal(for:win) { return HelperLook(app:win.owner,title:win.title,rect:win.rect,items:[],problem:"I won't look there: \(why).") }
+  let application = AXUIElementCreateApplication(pid_t(win.pid))
+  var windowsValue: CFTypeRef?
+  var top: AXUIElement?
+  if AXUIElementCopyAttributeValue(application,kAXWindowsAttribute as CFString,&windowsValue) == .success, let list = windowsValue as? [AXUIElement] {
+   top = list.first(where: { node in
+    guard let frame = axFrame(node) else { return false }
+    return abs(frame.minX - win.rect.minX) < 8 && abs(frame.minY - win.rect.minY) < 8 && abs(frame.width - win.rect.width) < 12
+   }) ?? list.first
+  }
+  guard let root = top else { return HelperLook(app:win.owner,title:win.title,rect:win.rect,items:[],problem:"I couldn't read that window's controls.") }
+  var items: [HelperItem] = []
+  var visited = 0
+  let area = win.rect.insetBy(dx:-2,dy:-2)
+  func walk(_ node: AXUIElement,_ depth: Int) {
+   guard depth <= 12, visited < 1500, items.count < 400 else { return }
+   visited += 1
+   if let role = axString(node,kAXRoleAttribute), Self.helperRoles.contains(role), let frame = axFrame(node), frame.width >= 6, frame.height >= 6,
+      area.contains(CGPoint(x:frame.midX,y:frame.midY)) {
+    let secure = role == "AXSecureTextField" || axString(node,kAXSubroleAttribute) == "AXSecureTextField"
+    var label = axString(node,kAXTitleAttribute) ?? ""
+    if label.isEmpty { label = axString(node,kAXDescriptionAttribute) ?? "" }
+    if label.isEmpty { label = axString(node,"AXPlaceholderValue") ?? "" }
+    if label.isEmpty { label = axString(node,kAXHelpAttribute) ?? "" }
+    var enabledValue: CFTypeRef?
+    let enabled = AXUIElementCopyAttributeValue(node,kAXEnabledAttribute as CFString,&enabledValue) == .success ? ((enabledValue as? Bool) ?? true) : true
+    items.append(HelperItem(element:HelperElement(role:role,label:label,enabled:enabled,secure:secure),center:CGPoint(x:frame.midX,y:frame.midY),frame:frame))
+   }
+   var kids: CFTypeRef?
+   if AXUIElementCopyAttributeValue(node,kAXChildrenAttribute as CFString,&kids) == .success, let list = kids as? [AXUIElement] {
+    for kid in list { walk(kid,depth + 1) }
+   }
+  }
+  walk(root,0)
+  items.sort {
+   let a = Int(($0.center.y / 8).rounded()), b = Int(($1.center.y / 8).rounded())
+   return a != b ? a < b : $0.center.x < $1.center.x
+  }
+  return HelperLook(app:win.owner,title:win.title,rect:win.rect,items:items,problem:nil,pid:win.pid)
+ }
+
+ // C.C's box, taught by Matthew once: he hovers the real mouse over it and she remembers what it is called and where it sits in Chrome's
+ // window. Later she only uses a box that matches (same kind, same name if it has one, nearly the same place), never a guess.
+ struct TaughtBox: Codable, Equatable { var role: String; var label: String; var relX: Double; var relY: Double }
+
+ func teachBoxUnderMouse() -> String {
+  guard AXIsProcessTrusted() else { return "macOS hasn't let this app read the screen's controls yet (System Settings, Privacy & Security, Accessibility)." }
+  let spot = CGEvent(source:nil)?.location ?? .zero
+  guard let hit = hitWindow(at:spot), hit.owner.lowercased().contains("chrome") else { return "The mouse isn't over a Chrome window. Open C.C's panel in Chrome, put the mouse on its message box, and try again." }
+  var element: AXUIElement?
+  guard AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(),Float(spot.x),Float(spot.y),&element) == .success, let found = element,
+        let role = axString(found,kAXRoleAttribute), role == "AXTextArea" || role == "AXTextField", let frame = axFrame(found) else {
+   return "I couldn't see a text box under the mouse. Put the mouse right on C.C's message box and try again."
+  }
+  if axString(found,kAXSubroleAttribute) == "AXSecureTextField" { return "That's a password box. I won't use it." }
+  var label = axString(found,kAXTitleAttribute) ?? ""
+  if label.isEmpty { label = axString(found,kAXDescriptionAttribute) ?? "" }
+  if label.isEmpty { label = axString(found,"AXPlaceholderValue") ?? "" }
+  let box = TaughtBox(role:role,label:HelperPlan.cleanLabel(label),relX:Double((frame.midX - hit.rect.minX) / hit.rect.width),relY:Double((frame.midY - hit.rect.minY) / hit.rect.height))
+  if let data = try? JSONEncoder().encode(box) { UserDefaults.standard.set(data,forKey:"helper.ccbox") }
+  return "Got it: I'll remember that box (\(box.label.isEmpty ? "no name" : box.label))."
+ }
+
+ var taughtBox: TaughtBox? {
+  guard let data = UserDefaults.standard.data(forKey:"helper.ccbox") else { return nil }
+  return try? JSONDecoder().decode(TaughtBox.self,from:data)
+ }
+
+ func forgetTaughtBox() { UserDefaults.standard.removeObject(forKey:"helper.ccbox") }
+
+ // The item in a look that matches the taught box, or nil.
+ func matchTaughtBox(_ taught: TaughtBox,in look: HelperLook) -> HelperItem? {
+  guard look.rect.width > 0, look.rect.height > 0 else { return nil }
+  let wanted = CGPoint(x:look.rect.minX + CGFloat(taught.relX) * look.rect.width,y:look.rect.minY + CGFloat(taught.relY) * look.rect.height)
+  let near = look.items.filter { $0.element.role == taught.role && !$0.element.secure && hypot($0.center.x - wanted.x,$0.center.y - wanted.y) < max(60,look.rect.width * 0.08) }
+  let named = taught.label.isEmpty ? near : near.filter { HelperPlan.cleanLabel($0.element.label) == taught.label }
+  return named.min { hypot($0.center.x - wanted.x,$0.center.y - wanted.y) < hypot($1.center.x - wanted.x,$1.center.y - wanted.y) }
+ }
 
  // MARK: sending the actual events
 

@@ -235,11 +235,19 @@ enum VoiceMix {
    let spent = Date().timeIntervalSince(started)
    if index < count - 1 && spent < 1 { try? await Task.sleep(nanoseconds:UInt64((1 - spent) * 1_000_000_000)) }
   }
-  guard frames.count >= 2 else { return "I couldn't capture the screens. macOS may have forgotten the Screen Recording permission after the update: switch Game Companion off and on in Privacy & Security, Screen & System Audio Recording." }
+  guard frames.count >= 2 else { return "I couldn't capture the screens. macOS may have forgotten the Screen Recording permission after the update: switch Friday off and on in Privacy & Security, Screen & System Audio Recording." }
   let answer = await call(WebPlan.screenWatchBody(question:question,frames:frames),doing:"study the screens",timeout:240)
   guard let json = answer.json else { return answer.problem ?? "Couldn't study the screens." }
   guard let text = VoiceOverPlan.replyText(json) else { return "Google sent back no words about the screens." }
   return "From Google's reader, about \(frames.count) seconds of the player's screens (pictures one second apart, no sound): " + String(text.prefix(2500)) + " (Say it came from pictures only, with no sound, so it can miss fast action and anything that was spoken.)"
+ }
+
+ // For the Helper's "smarter brain" option: one plain-text question to Google's free tier, same key and endpoint as the rest.
+ func helperThink(_ prompt: String) async -> (text: String?,problem: String?) {
+  let answer = await call(VoiceOverPlan.textBody(prompt:prompt),doing:"think about the next step",timeout:90)
+  guard let json = answer.json else { return (nil,answer.problem ?? "Google didn't answer.") }
+  guard let text = VoiceOverPlan.replyText(json) else { return (nil,"Google answered with no words.") }
+  return (text,nil)
  }
 
  // MARK: talking to Google

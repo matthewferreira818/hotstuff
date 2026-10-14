@@ -1,6 +1,6 @@
 import SwiftUI
 
-// Noir look for Game Companion: near-black background, one crimson accent, and Friday as the orb in the middle.
+// Noir look for Friday: near-black background, one crimson accent, and Friday as the orb in the middle.
 enum Noir {
  // A mellow crimson (softer and dustier than the first version): rosewood, not neon.
  static let crimson = Color(red:0.74,green:0.21,blue:0.31)

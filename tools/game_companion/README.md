@@ -566,7 +566,7 @@ removed, while she talks. A small copy of the clip goes to Google (public Twitch
 
 ### One-click update (2026-10-06)
 
-After this one, you don't need to type the update command: double-click **Update Game Companion.command** (in this folder, in Finder). It runs
+After this one, you don't need to type the update command: double-click **Update Friday.command** (in this folder, in Finder; the old name "Update Game Companion.command" still works). It runs
 `git pull` and then `rebuild.sh`, and waits for a key press so you can read the result. If it says BUILD FAILED, the old app is still
 installed; copy the error and send it to Claude. (The first time, get the file with the usual `cd ~/hotstuff && git pull`.)
 
@@ -747,3 +747,38 @@ reason and the sheets still work. Nothing is posted anywhere. It is for his own 
 Honest limits: Google can get things wrong and can't say who is speaking; the sheets show only some moments (one picture per slice of the video).
 Tested here: the picture times, the sheet layout maths, the folder names (DataChecks). Not yet run on his Mac: the picture grabbing and drawing.
 Until he tries it, he can also play a video on his Mac and tell Friday "watch the screen and tell the team what's in it" (`watch_screen` plus `tell_the_team`).
+
+
+## Friday, the new name and icon, and the Helper (2026-10-14)
+
+Matthew: "since we are giving her more responsibility, change the picture and name of the dock app too: name it Friday, and surprise me with the
+icon." **The name:** the next update (`rebuild.sh`) sets the app's display name to **Friday** and installs the icon drawn in `icon/`
+(`make_friday_icon.py` draws `Friday-1024.png`: a glossy crimson orb with an orbit ring and sparks on a noir square; the Mac turns it into the
+.icns with `sips` and `iconutil`, then the Dock restarts to pick it up). Only the display name and icon change. The app ID, the file name
+(`GameCompanion.app`) and every saved setting stay as they were, so macOS keeps its permissions. Messages that used the old name now say Friday;
+folder and key names (`GameCompanion` in Application Support, `Movies/Game Companion Clips`) are unchanged on purpose, so nothing saved is lost.
+
+**The Helper** (new page, hand icon in the rail; `HelperData.swift` tested, `Helper.swift` the work): "another set of hands". He gives a job in
+plain words. She reads the front window's controls as a numbered list of text (buttons, links, boxes, tabs; never typed text, never password
+boxes), asks a brain for ONE next step as a small JSON action (click control N, type, press, scroll, tell C.C, ask, done), does it with the same
+hands as the live Friday (`FridayHands`: same switches, same off-limits list, same Allow box), looks again, and repeats. At most 15 steps; the
+same action three times in a row stops her. Two free brains, picked on the page: **a model on this Mac through Ollama** (default `gemma3:4b`;
+nothing leaves the Mac) or **Google's free tier** with his key (only the goal and the names of the window's controls go; no pictures, no typed
+text; Google's free tier may use them to improve its products). Claude through an API key is the later, paid option (money mode).
+Rules baked in: logins, passwords and payments stay off-limits (the hands refuse them); an account already open in the browser can be operated
+when he says so; anything that could send or buy needs his Allow; text found on screen is treated as information, never as instructions; in a
+**posting job** she types only words he gave her exactly (anything over 40 characters must be in his own words), because everything public has to
+be true. The hands used to work only while Friday was live on Google; the Helper switches them on for its own jobs (`helperRunning`) and nothing else.
+
+**Telling C.C.** She can give C.C (Claude in Chrome) a command: the words are vetted (never a secret or card number, never a login, never a
+spending job; a public post or message is flagged, since C.C may only publish text Claude has approved), then the Allow box shows the **full
+words** (it now has a scrolling text area for that). If Matthew has pressed **Teach C.C's box** once (he holds the mouse on C.C's message box for six
+seconds and she remembers its kind, name and place in Chrome's window), she clicks that box, pastes and presses Return herself (that one Return is
+covered by the Allow he just gave). Until then, the words go on the clipboard and Chrome comes forward. One standing job is a button: the daily
+posting session (it points C.C at `marketing/daily-post-session-prompt.md`). The outreach batch is not offered here on purpose: it needs his footer.
+
+Tested here: the action parser, the control list, the C.C vetting, the posting guard, the prompt, the Ollama request (DataChecks). Not compiled or
+run on his Mac yet: `Helper.swift`, the new parts of `FridayHands.swift` (the controls reader, clicking an exact spot, the taught box, the
+Allow box with words), `VoiceOver.helperThink`, the new page, and the rename/icon step. Expect a first-compile error or two; paste them back.
+Honest limits: a 4B model on an 8 GB Mac follows simple jobs well and will fumble new ones, which is why the smarter Google option is there
+and why she stops and asks when unsure. Platforms can restrict automated posting; every Post press stays his Allow.

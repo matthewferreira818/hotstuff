@@ -729,15 +729,17 @@ Download video when the creator allows it). The lab then:
 2. Lays them out as **contact sheets** (JPEGs about 2000 pixels wide: 6 across for a phone-shaped video, 4 for a wide one; 24 pictures per sheet for a phone-shaped video, so a video up to 45 seconds needs one sheet; up to 3 sheets) in
    `Movies / Game Companion Clips / Video Lab / <name>-<date>/`. **Sheet 1 goes on the clipboard** so he can paste it straight into the chat with Claude;
    **Copy sheet 2 / 3** buttons do the rest.
-3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 5 minutes) to Google with his free Gemini key and
+3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 60 seconds) to Google with his free Gemini key and
    asks for a scene-by-scene play-by-play that includes **every word spoken**, the on-screen text, the look and sound, and the hook. It is shown on the
    card, saved as `play-by-play.txt`, and **Copy the play-by-play** puts it on the clipboard. Google's reader hears the audio, which pictures alone can't give.
-   Google takes at most 20 MB per request (base64 included), and a 2 to 3 minute phone video usually comes out bigger than 14 MB even shrunk. So
-   (2026-10-14) when the picture copy is too big, or the video is 5 to 15 minutes long, **only the sound** (a small .m4a) goes, with a question that
+   Google takes at most 20 MB per request (base64 included), and the shrunken copy runs about 0.3 MB a second (measured on his Mac 2026-10-14: a 2:53
+   TikTok came out at 52 MB), so only videos up to about 45 seconds fit with their picture. So (2026-10-14) when the picture copy is too big, or the
+   video is over 60 seconds (up to 15 minutes), **only the sound** (a small .m4a) goes, with a question that
    asks for the words, voices, music and sound effects and says plainly that the picture can't be seen. The play-by-play then starts with a bracketed
    "Sound only: …" note (so it travels with the words when pasted) and the card shows the same note in orange. Any failure shows in an orange line under the
    status ("The play-by-play didn't work: …"), never silently. Request shape checked against ai.google.dev (video-understanding and audio pages) on
-   2026-10-14: `input` list with `{"type":"video"|"audio","data":<base64>,"mime_type":…}` first, then the text; model `gemini-3.8-flash`. Not yet run with a real key.
+   2026-10-14: `input` list with `{"type":"video"|"audio","data":<base64>,"mime_type":…}` first, then the text; model `gemini-3.8-flash`. **Confirmed on his Mac 2026-10-14:** the sound-only path returned a full transcript (words with times, voices, sound effects) for a 2:53 video, so the
+   endpoint, the model and the audio request shape work with his key. The picture-and-sound path (videos up to 60 seconds) has not been run yet.
 
 What stays on the Mac: the pictures and sheets. What leaves: only the shrunken copy for step 3 (Google's free tier may use it to improve its products; he
 accepted that for Friday's other Google features). If there is no Google key, or the video is longer than 15 minutes, step 3 is skipped with the

@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-14 from commit 770513f. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-14 from commit d9e2488. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -7230,7 +7230,7 @@ enum VideoLabPlan {
  static let labelHeight = 30
  static let headerHeight = 44    // the title line across the top of each sheet
  static let maxSheets = 3
- static let maxWordSeconds = 300.0   // a video up to this long goes to Google with its picture (shrunk); if it is still too big, only its sound goes
+ static let maxWordSeconds = 60.0    // a video up to this long goes to Google with its picture (shrunk). Measured on his Mac 2026-10-14: a 2:53 video shrank to 52 MB (about 0.3 MB a second), so past about 45 seconds the picture copy can't fit under Google's limit; if it is still too big, only the sound goes
  static let maxAudioSeconds = 900.0   // up to this long, only the sound goes (about 15 minutes of speech fits well under Google's 20 MB)
 
  enum WordsMode: Equatable { case video, audioOnly, none }
@@ -11211,7 +11211,7 @@ import Foundation
   precondition(VideoLabPlan.sheetRanges(total:30,aspect:16.0 / 9.0) == [0..<20,20..<30] && VideoLabPlan.sheetRanges(total:0,aspect:1).isEmpty)
   precondition(VideoLabPlan.label(7) == "0:07" && VideoLabPlan.label(65) == "1:05" && VideoLabPlan.label(3723) == "1:02:03" && VideoLabPlan.label(-5) == "0:00" && VideoLabPlan.label(.nan) == "0:00")
   precondition(VideoLabPlan.folderName(for:"My TikTok (final) #2.mp4",stamp:"20261013-101500") == "My-TikTok-final-2-20261013-101500" && VideoLabPlan.folderName(for:"../../etc/passwd.mp4",stamp:"s") == "etc-passwd-s" && VideoLabPlan.folderName(for:"日本語.mov",stamp:"s") == "video-s")
-  precondition(VideoLabPlan.wordsMode(duration:45) == .video && VideoLabPlan.wordsMode(duration:300) == .video && VideoLabPlan.wordsMode(duration:301) == .audioOnly && VideoLabPlan.wordsMode(duration:900) == .audioOnly && VideoLabPlan.wordsMode(duration:901) == .none && VideoLabPlan.wordsMode(duration:0) == .none && VideoLabPlan.wordsMode(duration:.nan) == .none)
+  precondition(VideoLabPlan.wordsMode(duration:45) == .video && VideoLabPlan.wordsMode(duration:60) == .video && VideoLabPlan.wordsMode(duration:61) == .audioOnly && VideoLabPlan.wordsMode(duration:173) == .audioOnly && VideoLabPlan.wordsMode(duration:300) == .audioOnly && VideoLabPlan.wordsMode(duration:301) == .audioOnly && VideoLabPlan.wordsMode(duration:900) == .audioOnly && VideoLabPlan.wordsMode(duration:901) == .none && VideoLabPlan.wordsMode(duration:0) == .none && VideoLabPlan.wordsMode(duration:.nan) == .none)
   precondition(VideoLabPlan.audioQuestion.contains("SOUND") && VideoLabPlan.audioQuestion.contains("cannot see the picture") && VideoLabPlan.audioQuestion.contains("do not describe any picture"))
   func bodyItems(_ data: Data?) -> [[String:Any]] { ((try? JSONSerialization.jsonObject(with:data ?? Data())) as? [String:Any])?["input"] as? [[String:Any]] ?? [] }
   let videoItems = bodyItems(VoiceOverPlan.videoBody(prompt:"q",video:Data([1,2,3])))
@@ -11958,15 +11958,17 @@ Download video when the creator allows it). The lab then:
 2. Lays them out as **contact sheets** (JPEGs about 2000 pixels wide: 6 across for a phone-shaped video, 4 for a wide one; 24 pictures per sheet for a phone-shaped video, so a video up to 45 seconds needs one sheet; up to 3 sheets) in
    `Movies / Game Companion Clips / Video Lab / <name>-<date>/`. **Sheet 1 goes on the clipboard** so he can paste it straight into the chat with Claude;
    **Copy sheet 2 / 3** buttons do the rest.
-3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 5 minutes) to Google with his free Gemini key and
+3. Sends a small shrunken copy (the same 640x480 copy the voice-over uses, at most 14 MB, video up to 60 seconds) to Google with his free Gemini key and
    asks for a scene-by-scene play-by-play that includes **every word spoken**, the on-screen text, the look and sound, and the hook. It is shown on the
    card, saved as `play-by-play.txt`, and **Copy the play-by-play** puts it on the clipboard. Google's reader hears the audio, which pictures alone can't give.
-   Google takes at most 20 MB per request (base64 included), and a 2 to 3 minute phone video usually comes out bigger than 14 MB even shrunk. So
-   (2026-10-14) when the picture copy is too big, or the video is 5 to 15 minutes long, **only the sound** (a small .m4a) goes, with a question that
+   Google takes at most 20 MB per request (base64 included), and the shrunken copy runs about 0.3 MB a second (measured on his Mac 2026-10-14: a 2:53
+   TikTok came out at 52 MB), so only videos up to about 45 seconds fit with their picture. So (2026-10-14) when the picture copy is too big, or the
+   video is over 60 seconds (up to 15 minutes), **only the sound** (a small .m4a) goes, with a question that
    asks for the words, voices, music and sound effects and says plainly that the picture can't be seen. The play-by-play then starts with a bracketed
    "Sound only: …" note (so it travels with the words when pasted) and the card shows the same note in orange. Any failure shows in an orange line under the
    status ("The play-by-play didn't work: …"), never silently. Request shape checked against ai.google.dev (video-understanding and audio pages) on
-   2026-10-14: `input` list with `{"type":"video"|"audio","data":<base64>,"mime_type":…}` first, then the text; model `gemini-3.8-flash`. Not yet run with a real key.
+   2026-10-14: `input` list with `{"type":"video"|"audio","data":<base64>,"mime_type":…}` first, then the text; model `gemini-3.8-flash`. **Confirmed on his Mac 2026-10-14:** the sound-only path returned a full transcript (words with times, voices, sound effects) for a 2:53 video, so the
+   endpoint, the model and the audio request shape work with his key. The picture-and-sound path (videos up to 60 seconds) has not been run yet.
 
 What stays on the Mac: the pictures and sheets. What leaves: only the shrunken copy for step 3 (Google's free tier may use it to improve its products; he
 accepted that for Friday's other Google features). If there is no Google key, or the video is longer than 15 minutes, step 3 is skipped with the

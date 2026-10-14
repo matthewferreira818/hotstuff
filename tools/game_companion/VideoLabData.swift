@@ -11,7 +11,7 @@ enum VideoLabPlan {
  static let labelHeight = 30
  static let headerHeight = 44    // the title line across the top of each sheet
  static let maxSheets = 3
- static let maxWordSeconds = 300.0   // a video up to this long goes to Google with its picture (shrunk); if it is still too big, only its sound goes
+ static let maxWordSeconds = 60.0    // a video up to this long goes to Google with its picture (shrunk). Measured on his Mac 2026-10-14: a 2:53 video shrank to 52 MB (about 0.3 MB a second), so past about 45 seconds the picture copy can't fit under Google's limit; if it is still too big, only the sound goes
  static let maxAudioSeconds = 900.0   // up to this long, only the sound goes (about 15 minutes of speech fits well under Google's 20 MB)
 
  enum WordsMode: Equatable { case video, audioOnly, none }

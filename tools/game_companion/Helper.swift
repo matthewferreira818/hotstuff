@@ -298,6 +298,9 @@ extension CompanionInterfaceView {
       }
      }
      Text(HelperPlan.privacy(helper.brain)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+     if helper.brain == .local {
+      Text("On an 8 GB Mac the local model uses about 3 GB while she works and lets go a minute and a half after the last step. While you're gaming or streaming, the Google option is kinder to your memory.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+     }
      TextField("What should I do? For a post, give me the exact words in quotes.",text:$helper.goal,axis:.vertical).lineLimit(2...5).noirField().disabled(helper.running)
      HStack(spacing:10) {
       Button { helper.start() } label: { Label("Start",systemImage:"play.fill") }.buttonStyle(PillButtonStyle()).disabled(helper.running || helper.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)

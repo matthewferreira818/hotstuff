@@ -212,7 +212,8 @@ enum HelperPlan {
 
  static func ollamaBody(model: String,system: String = systemLine,user: String) -> Data? {
   let body: [String:Any] = [
-   "model":model,"stream":false,"format":"json","keep_alive":600,
+   "model":model,"stream":false,"format":"json","keep_alive":90,   // on an 8 GB Mac the model should let go of memory soon after a job ends
+   
    "options":["num_ctx":4096,"temperature":0.2],
    "messages":[["role":"system","content":system],["role":"user","content":user]]
   ]

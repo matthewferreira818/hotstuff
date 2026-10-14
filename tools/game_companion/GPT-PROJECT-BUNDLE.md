@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-14 from commit 435fdf7. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-14 from commit 14bc320. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -7796,7 +7796,8 @@ enum HelperPlan {
 
  static func ollamaBody(model: String,system: String = systemLine,user: String) -> Data? {
   let body: [String:Any] = [
-   "model":model,"stream":false,"format":"json","keep_alive":600,
+   "model":model,"stream":false,"format":"json","keep_alive":90,   // on an 8 GB Mac the model should let go of memory soon after a job ends
+   
    "options":["num_ctx":4096,"temperature":0.2],
    "messages":[["role":"system","content":system],["role":"user","content":user]]
   ]
@@ -8203,6 +8204,9 @@ extension CompanionInterfaceView {
       }
      }
      Text(HelperPlan.privacy(helper.brain)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+     if helper.brain == .local {
+      Text("On an 8 GB Mac the local model uses about 3 GB while she works and lets go a minute and a half after the last step. While you're gaming or streaming, the Google option is kinder to your memory.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+     }
      TextField("What should I do? For a post, give me the exact words in quotes.",text:$helper.goal,axis:.vertical).lineLimit(2...5).noirField().disabled(helper.running)
      HStack(spacing:10) {
       Button { helper.start() } label: { Label("Start",systemImage:"play.fill") }.buttonStyle(PillButtonStyle()).disabled(helper.running || helper.goal.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
@@ -12893,6 +12897,8 @@ run on his Mac yet: `Helper.swift`, the new parts of `FridayHands.swift` (the co
 Allow box with words), `VoiceOver.helperThink`, the new page, and the rename/icon step. Expect a first-compile error or two; paste them back.
 Honest limits: a 4B model on an 8 GB Mac follows simple jobs well and will fumble new ones, which is why the smarter Google option is there
 and why she stops and asks when unsure. Platforms can restrict automated posting; every Post press stays his Allow.
+
+**His Mac (2026-10-14):** he says "a 18 pro and 8 gigs", which reads as an Apple A18 Pro chip with 8 GB of memory (to be confirmed). That leaves roughly 4 to 5 GB for a model after macOS, so a model of about 4B in 4-bit form is the ceiling: `gemma3:4b` (already used by local mode) is the right size, and `qwen3:4b` or `qwen2.5:3b` are the things to try in the Model box if its JSON answers are shaky (the Helper sends text only, so a text-tuned small model suits it). Don't run the local model while gaming or streaming on this Mac: use the Google brain then. The Helper asks Ollama to unload 90 seconds after the last step.
 ```
 
 ## FILE: meeting-room/README.md
@@ -12974,6 +12980,7 @@ _Last updated: 2026-10-05 by Claude and GPT_
 - [Claude] 2026-10-13: Video lab for Matthew ("we need to find a way for you to analyze videos"): a card under the OBS card on the Stream page. He chooses a video file; it makes contact sheets (pictures with time stamps, sheet 1 copied to the clipboard to paste into the chat with Claude) and a play-by-play from Google that includes the spoken words (small shrunken copy sent with his own key). New files VideoLabData.swift (tested) and VideoLab.swift; readVideoFile added to VoiceOver.swift. GPT: please compile-check VideoLab.swift (AVAssetImageGenerator.image(at:) async, NSImage drawing handler, NSOpenPanel with UTType.movie) and VoiceOver.swift. Matthew: update, then try it on a short video. Status: waiting
 - [Claude] 2026-10-13: The Crew page (findhotstuff.com/crew/, noindex for now): one pixel desk per bot (Pack, Courier, Cards, Fresh, Watch, Smoke, Count, the three practice robots, Claude, GPT, Friday) with live status read from GitHub's public record, the robots' public snapshots and the feed counter. Matthew's reference: two TikToks from @androoagi showing a pixel-art agent roster and station. Honest by design: WORKING only while a run is in progress (real timer), DONE TODAY only if the last run finished OK on today's Moncton date, practice robots shown next to just holding SPY and labelled pretend money, Friday's status private, UNKNOWN when GitHub can't be read. Original characters (the videos use Pikachu and other famous ones; we don't). GPT: please review the wording on the page against rule 1. Status: waiting
 - [Claude] 2026-10-13: Crew v2 (same page): three rooms (Engine room, Trading floor, The bridge) with a camera that glides between them, a Tour button (open findhotstuff.com/crew/?tour=1 to autoplay it for a screen recording), a run counter over each desk ("N RUNS" from GitHub's public run count; "N TRADES" from each robot's public snapshot), a Work log of the newest real things the crew did, and visual polish (floor light and room glow only when a real run is in progress; mug steam; hover ring). Every light, counter and glow is read from the same public records as v1. Status: waiting on Matthew's OK before the noindex comes off
+- [Claude] 2026-10-14: Friday's app is renamed "Friday" with a new icon (applied by the next Update; file name and app ID unchanged), and there is a new Helper page ("another set of hands"): Friday does jobs in any window with her hands, free brains only (a model on his Mac, or Google's free tier), can give C.C vetted commands, and only types words Matthew gave her exactly in a posting job. HelperData.swift is tested; Helper.swift and the new FridayHands parts are NOT compiled on a Mac yet. GPT: please compile-check Helper.swift, FridayHands.swift (helperLook, clickAt, taught box, Allow box with words), VoiceOver.swift (helperThink), Hub.swift and CompanionInterface.swift, and review HelperData.swift's C.C and posting rules against rule 1. Status: waiting
 - [Claude] 2026-10-14: Crew v3 on the same page: idle bots wander (only when GitHub confirms nothing is running), whip-pan blur, and a Gallery room with the real cards from the site feed. A 48-agent review (honesty, bugs, accessibility) found 36 real issues; all fixed in e8341e7. Biggest: whenever the page can't confirm who is running (tab backgrounded, GitHub limit, offline) desks now say UNKNOWN and the totals show a dash instead of keeping WORKING/IDLE. GPT: please re-read the footer wording against rule 1. Status: waiting
 - [Claude] 2026-10-14: Video lab CONFIRMED working on Matthew's Mac: it made 2 contact sheets for the 2:53 StarNet TikTok and the sound-only fallback returned a full transcript from Google (the shrunken picture copy was 52 MB, over Google's ~14 MB, so only sound went; picture+sound now only for videos up to 60 s). GPT: please still compile-check VideoLab.swift, VoiceOver.swift (readVideoFile) and ObsBridge.swift. Status: waiting
 - [Claude] 2026-10-10: OBS link for Friday (Matthew's plan: stream the PlayStation through OBS on the Mac with a camera that isn't plugged into the console). New files ObsData.swift (tested: SHA-256 login, messages, scene matching) and ObsBridge.swift (short connections to OBS on this Mac only, plus the OBS card at the top of the Stream page); Live.swift gains obs_status, obs_scene, obs_replay, obs_mute, obs_stream. Going live or ending the stream needs his press on the Allow box every time; the OBS password lives in a private file. Update 2026-10-10 night: Matthew rebuilt, installed OBS 32.2.2 and the OBS card says LINKED, so the app compiled and the real login and test worked. Not yet seen: Friday's OBS voice tools on a real stream, and Remote Play captured in OBS (the window capture works, game sound and the iPhone camera are next). Setup guide: tools/game_companion/OBS-SETUP.md. Status: waiting

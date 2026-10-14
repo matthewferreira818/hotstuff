@@ -782,3 +782,5 @@ run on his Mac yet: `Helper.swift`, the new parts of `FridayHands.swift` (the co
 Allow box with words), `VoiceOver.helperThink`, the new page, and the rename/icon step. Expect a first-compile error or two; paste them back.
 Honest limits: a 4B model on an 8 GB Mac follows simple jobs well and will fumble new ones, which is why the smarter Google option is there
 and why she stops and asks when unsure. Platforms can restrict automated posting; every Post press stays his Allow.
+
+**His Mac (2026-10-14):** he says "a 18 pro and 8 gigs", which reads as an Apple A18 Pro chip with 8 GB of memory (to be confirmed). That leaves roughly 4 to 5 GB for a model after macOS, so a model of about 4B in 4-bit form is the ceiling: `gemma3:4b` (already used by local mode) is the right size, and `qwen3:4b` or `qwen2.5:3b` are the things to try in the Model box if its JSON answers are shaky (the Helper sends text only, so a text-tuned small model suits it). Don't run the local model while gaming or streaming on this Mac: use the Google brain then. The Helper asks Ollama to unload 90 seconds after the last step.

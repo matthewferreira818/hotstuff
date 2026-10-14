@@ -1,16 +1,12 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 17.29,
+ "cash": 203.18,
  "spy_at_start": 764.32,
  "positions": {
   "ABNB": {
    "qty": 1.2534788880005112,
    "avg_entry_price": 159.5559
-  },
-  "HOOD": {
-   "qty": 1.8272643668077861,
-   "avg_entry_price": 114.3622
   },
   "MU": {
    "qty": 0.09773108993353104,
@@ -322,6 +318,16 @@
    "qty": 6.115683,
    "price": 16.026,
    "dollars": 100.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-14T15:09:12+00:00",
+   "symbol": "HOOD",
+   "side": "sell",
+   "status": "filled",
+   "qty": 1.827264,
+   "price": 102.8221,
+   "dollars": 185.89,
    "fee": 1.99
   }
  ],

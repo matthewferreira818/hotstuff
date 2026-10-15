@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 442.16,
+ "cash": 1.53,
  "spy_at_start": 777.22,
  "positions": {
   "RIOT": {
    "qty": 31.68085516788687,
    "avg_entry_price": 13.9567,
    "fill": 13.8939
+  },
+  "SMR": {
+   "qty": 80.25673959739895,
+   "avg_entry_price": 5.4903,
+   "fill": 5.4655
   }
  },
  "orders": [
@@ -279,6 +284,16 @@
    "qty": 31.680855,
    "price": 13.8939,
    "dollars": 442.16,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-15T13:54:14+00:00",
+   "symbol": "SMR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 80.25674,
+   "price": 5.4655,
+   "dollars": 440.63,
    "fee": 1.99
   }
  ],

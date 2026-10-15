@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:28+00:00",
  "start_cash": 1000.0,
- "cash": 732.73,
+ "cash": 821.34,
  "spy_at_start": 764.384,
  "positions": {
   "PLTR": {
@@ -9,12 +9,6 @@
    "avg_entry_price": 201.9471,
    "peak": 208.6051025390625,
    "trail": 9.19
-  },
-  "SNOW": {
-   "qty": 0.2842871414299986,
-   "avg_entry_price": 374.8675,
-   "peak": 367.5,
-   "trail": 11.81
   },
   "AI": {
    "qty": 8.898786915102933,
@@ -72,6 +66,16 @@
    "qty": 0.096568,
    "price": 932.8662,
    "dollars": 88.09,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-15T13:30:05+00:00",
+   "symbol": "SNOW",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.284287,
+   "price": 318.701,
+   "dollars": 88.61,
    "fee": 1.99
   }
  ],

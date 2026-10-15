@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 152.31,
+ "cash": 52.31,
  "spy_at_start": 764.32,
  "positions": {
   "ABNB": {
@@ -27,6 +27,10 @@
   "HOOD": {
    "qty": 1.0012484703148372,
    "avg_entry_price": 99.8753
+  },
+  "MU": {
+   "qty": 0.11220961229098003,
+   "avg_entry_price": 891.1892
   }
  },
  "orders": [
@@ -408,6 +412,16 @@
    "qty": 15.225018,
    "price": 5.9051,
    "dollars": 87.92,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-15T13:31:58+00:00",
+   "symbol": "MU",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.11221,
+   "price": 873.4546,
+   "dollars": 100.0,
    "fee": 1.99
   }
  ],

@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 52.31,
+ "cash": 139.11,
  "spy_at_start": 764.32,
  "positions": {
   "ABNB": {
@@ -15,10 +15,6 @@
   "ARM": {
    "qty": 0.39838099038587294,
    "avg_entry_price": 251.016
-  },
-  "CRWD": {
-   "qty": 0.3901812700728777,
-   "avg_entry_price": 256.2911
   },
   "ASTS": {
    "qty": 2.3690318875414453,
@@ -422,6 +418,16 @@
    "qty": 0.11221,
    "price": 873.4546,
    "dollars": 100.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-16T15:16:05+00:00",
+   "symbol": "CRWD",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.390181,
+   "price": 227.5522,
+   "dollars": 86.8,
    "fee": 1.99
   }
  ],

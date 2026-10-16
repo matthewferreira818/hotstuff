@@ -1,14 +1,9 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 0.0,
+ "cash": 427.35,
  "spy_at_start": 777.22,
  "positions": {
-  "QBTS": {
-   "qty": 36.405846516820624,
-   "avg_entry_price": 12.2318,
-   "fill": 12.1772
-  },
   "LCID": {
    "qty": 133.3987833202904,
    "avg_entry_price": 3.2031,
@@ -354,6 +349,16 @@
    "qty": 133.398783,
    "price": 3.1882,
    "dollars": 427.29,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-16T18:49:26+00:00",
+   "symbol": "QBTS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 36.405847,
+   "price": 11.7932,
+   "dollars": 427.35,
    "fee": 1.99
   }
  ],

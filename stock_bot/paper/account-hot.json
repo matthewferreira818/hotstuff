@@ -1,18 +1,13 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 1.48,
+ "cash": 383.57,
  "spy_at_start": 777.22,
  "positions": {
   "MARA": {
    "qty": 55.77910523403744,
    "avg_entry_price": 7.5652,
    "fill": 7.5295
-  },
-  "SMR": {
-   "qty": 71.6609687585941,
-   "avg_entry_price": 5.7185,
-   "fill": 5.6907
   }
  },
  "orders": [
@@ -454,6 +449,16 @@
    "qty": 71.660969,
    "price": 5.6907,
    "dollars": 409.79,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-20T13:30:07+00:00",
+   "symbol": "SMR",
+   "side": "sell",
+   "status": "filled",
+   "qty": 71.660969,
+   "price": 5.3596,
+   "dollars": 382.09,
    "fee": 1.99
   }
  ],

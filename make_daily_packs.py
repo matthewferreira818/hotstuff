@@ -135,14 +135,19 @@ AGENT_STORIES = [
                     "#smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick"),
     },
     {
-        "hook": ("I haven't touched", "this store in days."),
-        "sub": "it restocked and posted anyway.",
-        "hint": "here's what it did →",
-        "receipts": "while I was at work",
+        # Reworded 2026-10-20 (rule 1): "while I was at work" stopped being
+        # true when the day job ended, and "I haven't touched it in days" is
+        # a claim about Matthew that nothing here can check. The feed's run
+        # is the checkable part: it has published every day since Aug 7.
+        "hook": ("This store's feed", "never stopped."),
+        "sub": "the engine builds it every day.",
+        "hint": "here's the proof \u2192",
+        "receipts": "what the engine ran",
         "cta": ("imagine your page", "doing this daily"),
-        "caption": ("I haven't opened this store in days and it still posted every day \u2699\ufe0f "
-                    "the whole thing runs on an engine I built — now setting it up for local "
-                    "businesses #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
+        "caption": ("this store's feed hasn't stopped since August 7 \u2699\ufe0f the engine builds "
+                    "and publishes a new post every day on its own \u2014 the whole thing runs on an "
+                    "engine I built, now setting it up for local businesses "
+                    "#smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
     },
     {
         "hook": ("Zero employees.", "A post every single day."),

@@ -117,10 +117,10 @@ def fmt_automation(p, alt=None):
     b = _bits(p)
     lines = [
         (f"Nobody wrote this tweet.\n\n"
-         f"The store picked {b['name']} ({b['price']}), built the card, and posted it — "
-         f"while I was at work. \U0001F916\n{b['link']}"),
-        (f"This store restocks itself every 3 days, posts 3x a day, and has never "
-         f"asked for a day off. \U0001F916\n\n"
+         f"The store picked {b['name']} ({b['price']}), built the card, and posted it "
+         f"on its own. \U0001F916\n{b['link']}"),
+        (f"This store refreshes its products every 3 days, and my own store's feed publishes "
+         f"a post every day. \U0001F916\n\n"
          f"Today it picked: {b['name']} — {b['price']}\n{b['link']}"),
         (f"Running a shop with zero employees. \U0001F916\n\n"
          f"Today's pick, chosen and posted automatically: {b['name']} at {b['price']}.\n"

@@ -13,7 +13,7 @@ today's heat check 🔥 bags + phone accessories and more — all under one link
 ## 🗼 Agent post (agent/) — caption
 
 ```
-I haven't opened this store in days and it still posted every day ⚙️ the whole thing runs on an engine I built — now setting it up for local businesses #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton
+this store's feed hasn't stopped since August 7 ⚙️ the engine builds and publishes a new post every day on its own — the whole thing runs on an engine I built, now setting it up for local businesses #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton
 ```
 
 > 🎵 Add a trending sound to each in-app. Product post: upbeat. Agent post: something calm/lofi reads as 'systems humming'.

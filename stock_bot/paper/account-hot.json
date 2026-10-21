@@ -1,9 +1,20 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 784.46,
+ "cash": 0.0,
  "spy_at_start": 777.22,
- "positions": {},
+ "positions": {
+  "LCID": {
+   "qty": 117.60185515841626,
+   "avg_entry_price": 3.3352,
+   "fill": 3.3183
+  },
+  "RIOT": {
+   "qty": 28.04072141625188,
+   "avg_entry_price": 13.9879,
+   "fill": 13.9169
+  }
+ },
  "orders": [
   {
    "time": "2026-10-08T15:10:24+00:00",
@@ -463,6 +474,26 @@
    "qty": 55.779105,
    "price": 7.2228,
    "dollars": 400.89,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-21T13:45:06+00:00",
+   "symbol": "LCID",
+   "side": "buy",
+   "status": "filled",
+   "qty": 117.601855,
+   "price": 3.3183,
+   "dollars": 392.23,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-21T13:45:06+00:00",
+   "symbol": "RIOT",
+   "side": "buy",
+   "status": "filled",
+   "qty": 28.040721,
+   "price": 13.9169,
+   "dollars": 392.23,
    "fee": 1.99
   }
  ],

@@ -1,14 +1,9 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 5.67,
+ "cash": 396.7,
  "spy_at_start": 777.22,
  "positions": {
-  "RIOT": {
-   "qty": 28.04072141625188,
-   "avg_entry_price": 13.9879,
-   "fill": 13.9169
-  },
   "ACHR": {
    "qty": 98.22835392455646,
    "avg_entry_price": 3.9742,
@@ -514,6 +509,16 @@
    "qty": 98.228354,
    "price": 3.9539,
    "dollars": 390.38,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-21T14:43:55+00:00",
+   "symbol": "RIOT",
+   "side": "sell",
+   "status": "filled",
+   "qty": 28.040721,
+   "price": 14.016,
+   "dollars": 391.03,
    "fee": 1.99
   }
  ],

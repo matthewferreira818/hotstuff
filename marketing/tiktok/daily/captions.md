@@ -13,7 +13,7 @@ today's heat check 🔥 kitchen + pet and more — all under one link #tiktokmad
 ## 🗼 Agent post (agent/) — caption
 
 ```
-zero employees and this store still posts every single day ⚙️ the engine picks, designs and publishes on its own — building this for local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick
+zero employees, and my own store's feed has published a new post every day since August 7 ⚙️ the engine picks, designs and publishes on its own — building this for local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick
 ```
 
 > 🎵 Add a trending sound to each in-app. Product post: upbeat. Agent post: something calm/lofi reads as 'systems humming'.

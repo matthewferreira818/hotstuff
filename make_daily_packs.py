@@ -150,14 +150,18 @@ AGENT_STORIES = [
                     "#smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
     },
     {
-        "hook": ("Zero employees.", "A post every single day."),
+        # Reworded 2026-10-21 (rule 1): the claims checker (UNCLEAR_FEED) caught
+        # "a post every single day" / "this store still posts every single day"
+        # naming no channel. On TikTok that reads as the TikTok page posting
+        # daily; only the store's feed is on record doing that (since Aug 7).
+        "hook": ("Zero employees.", "The feed never stopped."),
         "sub": "that's the whole business model.",
         "hint": "the math →",
         "receipts": "the numbers",
         "cta": ("your shop could", "post this often"),
-        "caption": ("zero employees and this store still posts every single day \u2699\ufe0f "
-                    "the engine picks, designs and publishes on its own — building this for "
-                    "local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick"),
+        "caption": ("zero employees, and my own store's feed has published a new post every day since "
+                    "August 7 \u2699\ufe0f the engine picks, designs and publishes on its own — building "
+                    "this for local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick"),
     },
     {
         # Reworded 2026-09-28 (rule 1): it said a page posted "before you
@@ -188,8 +192,10 @@ AGENT_STORIES = [
         "hint": "seriously →",
         "receipts": "made without me",
         "cta": ("your page, same deal", "you approve it once"),
-        "caption": ("nobody designed this post \u2699\ufe0f the engine picked it and built it, "
-                    "like it does every day — I just hit post. setting it up for "
+        # 2026-10-21: dropped "I just hit post" (claims a daily posting habit
+        # nobody can check); the feed record is the checkable part.
+        "caption": ("nobody designed this post \u2699\ufe0f the engine picked it and built it, the same way "
+                    "my own store's feed has published a new post every day since August 7. setting it up for "
                     "local businesses #smallbusinesstips #localbusiness #socialmediamanager #automation #moncton"),
     },
 ]

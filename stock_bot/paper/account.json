@@ -1,13 +1,9 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 122.92,
+ "cash": 213.76,
  "spy_at_start": 764.32,
  "positions": {
-  "NVDA": {
-   "qty": 0.43700998844939937,
-   "avg_entry_price": 228.8277
-  },
   "ASTS": {
    "qty": 2.3690318875414453,
    "avg_entry_price": 42.2113
@@ -522,6 +518,16 @@
    "qty": 6.871024,
    "price": 13.0819,
    "dollars": 87.9,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-22T14:56:02+00:00",
+   "symbol": "NVDA",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.43701,
+   "price": 212.4224,
+   "dollars": 90.84,
    "fee": 1.99
   }
  ],

@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 101.66,
+ "cash": 1.66,
  "spy_at_start": 764.32,
  "positions": {
   "HOOD": {
@@ -31,6 +31,10 @@
   "NVDA": {
    "qty": 0.4639943508297219,
    "avg_entry_price": 215.5199
+  },
+  "RIOT": {
+   "qty": 7.703547436041536,
+   "avg_entry_price": 12.981
   }
  },
  "orders": [
@@ -561,6 +565,16 @@
    "status": "filled",
    "qty": 0.463994,
    "price": 211.231,
+   "dollars": 100.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-23T13:30:35+00:00",
+   "symbol": "RIOT",
+   "side": "buy",
+   "status": "filled",
+   "qty": 7.703547,
+   "price": 12.7227,
    "dollars": 100.0,
    "fee": 1.99
   }

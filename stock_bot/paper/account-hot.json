@@ -1,9 +1,15 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 750.46,
+ "cash": 375.23,
  "spy_at_start": 777.22,
- "positions": {},
+ "positions": {
+  "AMC": {
+   "qty": 129.46775446775447,
+   "avg_entry_price": 2.8983,
+   "fill": 2.8829
+  }
+ },
  "orders": [
   {
    "time": "2026-10-08T15:10:24+00:00",
@@ -703,6 +709,16 @@
    "qty": 51.221001,
    "price": 7.3227,
    "dollars": 373.08,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-23T14:45:31+00:00",
+   "symbol": "AMC",
+   "side": "buy",
+   "status": "filled",
+   "qty": 129.467754,
+   "price": 2.8829,
+   "dollars": 375.23,
    "fee": 1.99
   }
  ],

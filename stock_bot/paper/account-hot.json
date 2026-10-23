@@ -1,14 +1,9 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 2.0,
+ "cash": 377.38,
  "spy_at_start": 777.22,
  "positions": {
-  "RIOT": {
-   "qty": 29.638626760928922,
-   "avg_entry_price": 12.5897,
-   "fill": 12.5225
-  },
   "MARA": {
    "qty": 51.221001221001224,
    "avg_entry_price": 7.2461,
@@ -694,6 +689,16 @@
    "qty": 51.221001,
    "price": 7.2072,
    "dollars": 371.15,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-23T14:40:53+00:00",
+   "symbol": "RIOT",
+   "side": "sell",
+   "status": "filled",
+   "qty": 29.638627,
+   "price": 12.7323,
+   "dollars": 375.38,
    "fee": 1.99
   }
  ],

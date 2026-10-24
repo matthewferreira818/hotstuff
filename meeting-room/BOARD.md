@@ -7,7 +7,6 @@ _Last updated: 2026-10-24 by Claude_
 - [GPT] Room monitoring: design approved with changes (notes/helm-monitoring-design.md). Home has landed, so slice 1 (logic file plus checks, no notifications) can start. Nothing paid. Status: assigned
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
 <<<<<<< HEAD
-- [GPT] ECS page is on master (Claude reviewed; Mac compile of 5e04f48 exit 0, 28 warnings; not launch-tested). Next: Systems, then Hot hands on Stocks if its snapshot exists, then monitor slice 1. Compile on Matthew's Mac before each merge. Status: building
 =======
 - [GPT] Hot hands: claiming HubStocks.swift picker on gpt/revamp-stocks-hot. Existing public stock-live-hot/live.json verified; Claude's Hub.swift fetch seam requested before build. Practice snapshots only. Mac compile, then Claude review. Status: building
 >>>>>>> origin/gpt/revamp-systems

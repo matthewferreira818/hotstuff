@@ -46,6 +46,34 @@ enum RoomPost {
  case failed(String)
 }
 
+// What is waiting on Matthew right now: the questions put to him, the board items he owns, and recent messages for him that he
+// hasn't answered. The Meeting Room opens on this so he doesn't have to scroll the whole board to find his own part.
+struct MatthewNeeds {
+ var questions: [BoardItem] = []
+ var tasks: [BoardItem] = []
+ var messages: [RoomMessage] = []
+ var count: Int { questions.count + tasks.count + messages.count }
+}
+
+// One of the crew (Claude, GPT, Friday) on their own tab: their board items sorted into categories, and the messages they
+// wrote or were sent. Empty categories are left out.
+struct CrewGroup: Identifiable {
+ var title: String
+ var status: String     // a status word, so the page can colour the category like the status pills
+ var items: [BoardItem]
+ var id: String { title }
+}
+
+struct CrewView {
+ var name: String
+ var groups: [CrewGroup] = []
+ var messages: [RoomMessage] = []
+ // Everything not done: in progress, up next, waiting, blocked and questions put to Matthew.
+ var open: Int { groups.filter { $0.status != "done" }.reduce(0) { $0 + $1.items.count } }
+ // When this one last wrote in the room (within the part of the thread that was loaded).
+ var lastPost: Date? { messages.filter { $0.author.lowercased() == name.lowercased() }.compactMap { $0.date }.max() }
+}
+
 enum MeetingData {
  static let issue = 15
  static let owner = "matthewferreira818"
@@ -132,6 +160,101 @@ enum MeetingData {
    let parsed = parseMessage(body:body)
    return RoomMessage(id:id,author:parsed.author,to:parsed.to,text:parsed.text,date:iso.date(from:(row["created_at"] as? String) ?? ""),url:(row["html_url"] as? String) ?? "")
   }
+ }
+
+ // A list line: the text as it is when short, otherwise the end of the last sentence that fits (if that leaves a useful amount),
+ // otherwise cut at a word. A cut line ends with "…", which is how the page knows there is more to open.
+ static let briefLimit = 140
+
+ static func oneLine(_ text: String) -> String {
+  text.replacingOccurrences(of:"\n",with:" ").trimmingCharacters(in:.whitespacesAndNewlines)
+ }
+
+ // True when brief() would cut the text, which is when the page offers to open the rest.
+ static func isCut(_ text: String,limit: Int? = nil) -> Bool { oneLine(text).count > (limit ?? briefLimit) }
+
+ // "Claude → Matthew" is Claude's: the name before the arrow.
+ static func who(_ owner: String) -> String {
+  (owner.components(separatedBy:"→").first ?? owner).trimmingCharacters(in:.whitespaces)
+ }
+
+ // How many lines of a board list show before "Show all": the long ones are the history, not the live work.
+ static func shownByDefault(_ section: String) -> Int {
+  switch section.lowercased() {
+  case "decisions": return 3
+  case "on the table": return 6
+  default: return 99
+  }
+ }
+
+ static func brief(_ text: String,limit: Int? = nil) -> String {
+  let limit = limit ?? briefLimit
+  let flat = oneLine(text)
+  guard flat.count > limit else { return flat }
+  let head = String(flat.prefix(limit))
+  var stop: String.Index?
+  for mark in [". ","? ","! "] {
+   if let found = head.range(of:mark,options:.backwards), head.distance(from:head.startIndex,to:found.lowerBound) >= limit / 3 {
+    if stop == nil || found.lowerBound > stop! { stop = found.lowerBound }
+   }
+  }
+  if stop == nil, let space = head.range(of:" ",options:.backwards) { stop = space.lowerBound }
+  let cut = String(head[..<(stop ?? head.endIndex)]).trimmingCharacters(in:CharacterSet(charactersIn:" ,;:.-–—"))
+  return cut + "…"
+ }
+
+ // Questions put to Matthew and open board items he owns (not marked done), plus messages tagged for him in the last few days
+ // with no later message from him. The thread has no "read" mark, so a reply from him is what clears one.
+ static func needs(board: Board?,messages: [RoomMessage],now: Date = Date(),days: Double = 7) -> MatthewNeeds {
+  var result = MatthewNeeds()
+  for section in board?.sections ?? [] {
+   let name = section.title.lowercased()
+   for item in section.items where !item.isDone {
+    let owner = item.owner.lowercased()
+    if name == "questions" && (owner.isEmpty || owner.hasSuffix("matthew")) { result.questions.append(item) }
+    if name == "on the table" && owner.hasPrefix("matthew") { result.tasks.append(item) }
+   }
+  }
+  var waiting: [RoomMessage] = []
+  for message in messages {
+   if message.author.lowercased() == "matthew" { waiting = [] }
+   else if message.to.lowercased() == "matthew" { waiting.append(message) }
+  }
+  result.messages = waiting.filter { message in
+   guard let date = message.date else { return true }
+   return now.timeIntervalSince(date) < days * 86400
+  }
+  return result
+ }
+
+ // One crew member's tab: their board items (On the table and Questions) sorted by status, and the messages they wrote or got.
+ static func crew(_ name: String,board: Board?,messages: [RoomMessage]) -> CrewView {
+  let mine = name.lowercased()
+  var progress: [BoardItem] = [], next: [BoardItem] = [], waiting: [BoardItem] = []
+  var blocked: [BoardItem] = [], asking: [BoardItem] = [], done: [BoardItem] = []
+  for section in board?.sections ?? [] {
+   let title = section.title.lowercased()
+   guard title == "on the table" || title == "questions" else { continue }
+   for item in section.items where who(item.owner).lowercased() == mine {
+    if item.isDone { done.append(item) }
+    else if title == "questions" { asking.append(item) }
+    else if item.status.hasPrefix("blocked") { blocked.append(item) }
+    else if item.status.hasPrefix("building") { progress.append(item) }
+    else if item.status.hasPrefix("assigned") { next.append(item) }
+    else { waiting.append(item) }
+   }
+  }
+  var view = CrewView(name:name)
+  view.groups = [
+   CrewGroup(title:"In progress",status:"building",items:progress),
+   CrewGroup(title:"Up next",status:"assigned",items:next),
+   CrewGroup(title:"Waiting",status:"waiting",items:waiting),
+   CrewGroup(title:"Blocked",status:"blocked",items:blocked),
+   CrewGroup(title:"Asking Matthew",status:"asking",items:asking),
+   CrewGroup(title:"Done",status:"done",items:done)
+  ].filter { !$0.items.isEmpty }
+  view.messages = messages.filter { $0.author.lowercased() == mine || $0.to.lowercased() == mine }
+  return view
  }
 
  // The message as it is posted: **[Matthew → GPT]** words (the "to" part left out when it is for everyone).

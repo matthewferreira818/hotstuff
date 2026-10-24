@@ -49,6 +49,43 @@ import Foundation
   precondition(MeetingData.formatted(from:"Matthew",to:"Everyone",text:"hi") == "**[Matthew]** hi")
   precondition(MeetingData.tokenProblem("ghp_abc") != nil && MeetingData.tokenProblem("github_pat_abc") == nil)
 
+  // The Meeting Room's short views. A long line is cut at the end of a sentence if that leaves enough, else at a word, and ends
+  // with "…"; a short line is left alone.
+  precondition(MeetingData.brief("Short one.") == "Short one." && MeetingData.brief("one two\nthree") == "one two three")
+  let longLine = "First sentence is here and is long enough to matter. Second sentence goes on and on and on, far past the limit of the line."
+  precondition(MeetingData.brief(longLine,limit:80) == "First sentence is here and is long enough to matter…")
+  let noStops = MeetingData.brief("alpha beta gamma delta epsilon zeta eta theta iota kappa",limit:30)
+  precondition(noStops == "alpha beta gamma delta…")
+  precondition(MeetingData.brief("A. Then a very long second part that goes on and on and on and on past the limit.",limit:40).hasSuffix("…"))
+  // What waits on Matthew: questions put to him, his open table items, and messages for him from the last week that he hasn't
+  // answered (a later message from him clears the ones before it; a message with no date is kept).
+  let waitBoard = MeetingData.parse("## On the table\n- [Matthew] Do the thing. Status: waiting\n- [Matthew] Old thing. Status: done\n- [Claude] Mine. Status: building\n- [Matthew → Claude] Mixed. Status: waiting\n## Questions\n- [Claude → Matthew] A question?\n- [GPT → Claude] Not for him?\n- [Claude → Matthew] Answered. Status: done\n## Decisions\n- [Matthew] A decision.\n")
+  let clock = ISO8601DateFormatter()
+  func note(_ id: Int,_ author: String,_ to: String,_ when: String) -> RoomMessage { RoomMessage(id:id,author:author,to:to,text:"t",date:clock.date(from:when),url:"") }
+  let wait = MeetingData.needs(board:waitBoard,messages:[
+   note(1,"Claude","Matthew","2026-10-10T12:00:00Z"), note(2,"Matthew","Claude","2026-10-11T12:00:00Z"),
+   note(3,"Claude","Matthew","2026-10-12T12:00:00Z"), note(4,"GPT","Matthew","2026-10-20T12:00:00Z"),
+   note(5,"Claude","Matthew","2026-10-23T12:00:00Z"), note(6,"Claude","GPT","2026-10-23T13:00:00Z")],now:clock.date(from:"2026-10-24T12:00:00Z")!)
+  precondition(wait.questions.count == 1 && wait.tasks.count == 2 && wait.messages.map { $0.id } == [4,5] && wait.count == 5)
+  precondition(MeetingData.needs(board:nil,messages:[RoomMessage(id:1,author:"Claude",to:"matthew",text:"x",date:nil,url:"")]).count == 1)
+  precondition(MeetingData.needs(board:nil,messages:[]).count == 0)
+  precondition(MeetingData.who("Claude → Matthew") == "Claude" && MeetingData.who("GPT") == "GPT" && MeetingData.who("") == "")
+  precondition(!MeetingData.isCut("short") && MeetingData.isCut(String(repeating:"word ",count:40)) && MeetingData.isCut("x y z",limit:3))
+  precondition(MeetingData.shownByDefault("Decisions") == 3 && MeetingData.shownByDefault("Questions") > 50)
+  // A crew member's tab: their items sorted by status (empty groups left out), questions they put to Matthew, and the messages
+  // they wrote or were sent.
+  let crewBoard = MeetingData.parse("## On the table\n- [Claude] A. Status: building\n- [Claude] B. Status: waiting\n- [GPT] C. Status: assigned\n- [Claude] D. Status: done\n- [Claude] E. Status: blocked\n- [Matthew] Not crew. Status: waiting\n## Questions\n- [Claude → Matthew] Q?\n- [GPT → Matthew] Q2?\n## Decisions\n- [Claude] Not counted.\n")
+  let crewThread = [note(1,"Claude","GPT","2026-10-20T12:00:00Z"), note(2,"GPT","Claude","2026-10-21T12:00:00Z"), note(3,"Claude","Matthew","2026-10-22T12:00:00Z"), note(4,"Matthew","Everyone","2026-10-23T12:00:00Z")]
+  let claudeTab = MeetingData.crew("Claude",board:crewBoard,messages:crewThread)
+  precondition(claudeTab.groups.map { $0.title } == ["In progress","Waiting","Blocked","Asking Matthew","Done"])
+  precondition(claudeTab.open == 4 && claudeTab.messages.map { $0.id } == [1,2,3])
+  precondition(claudeTab.lastPost == clock.date(from:"2026-10-22T12:00:00Z"))
+  let gptTab = MeetingData.crew("GPT",board:crewBoard,messages:crewThread)
+  precondition(gptTab.groups.map { $0.title } == ["Up next","Asking Matthew"] && gptTab.open == 2 && gptTab.messages.map { $0.id } == [1,2])
+  let fridayTab = MeetingData.crew("Friday",board:crewBoard,messages:crewThread)
+  precondition(fridayTab.groups.isEmpty && fridayTab.open == 0 && fridayTab.messages.isEmpty && fridayTab.lastPost == nil)
+  precondition(MeetingData.crew("Claude",board:nil,messages:[]).open == 0)
+
   // Stripe: only a restricted read-only key is accepted.
   precondition(StripeData.keyProblem("sk_live_abc") != nil && StripeData.keyProblem("pk_live_abc") != nil)
   precondition(StripeData.keyProblem("rk_live_abc") == nil && StripeData.keyProblem("rk_test_abc") == nil)

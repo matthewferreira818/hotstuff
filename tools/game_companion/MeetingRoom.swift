@@ -6,8 +6,15 @@ import Cocoa
 @MainActor final class MeetingHub: ObservableObject {
  static let tokenService = "GameCompanion.GitHubIssuesToken"
  static let targets = ["Claude","GPT","Everyone"]
- // Which channel the Meeting Room page shows: 0 the team board and thread, 1 Friday's private feed.
- @Published var channel = 0
+ // Which tab of the Meeting Room is showing: 0 You, 1 Claude, 2 GPT, 3 Friday, 4 Board, 5 Thread.
+ @Published var tab = 0
+ // The writing box opens on top of whichever tab is showing; Friday's private chat (this Mac only) replaces her tab while open.
+ @Published var composing = false
+ @Published var fridayPrivate = false
+ // Lines Matthew has tapped open (each shows short until then), lists he asked to see in full, and how many messages are showing.
+ @Published var opened: Set<String> = []
+ @Published var expanded: Set<String> = []
+ @Published var messageCount = 8
  @Published var board: Board?
  @Published var messages: [RoomMessage] = []
  @Published var loading = false
@@ -41,6 +48,30 @@ import Cocoa
   if let fresh = fresh { board = fresh; failed = false } else { failed = (board == nil) }
   if let thread = thread { messages = thread }
   lastRefresh = Date()
+ }
+
+ var needs: MatthewNeeds { MeetingData.needs(board:board,messages:messages) }
+
+ func crew(_ name: String) -> CrewView { MeetingData.crew(name,board:board,messages:messages) }
+
+ // Opens the writing box addressed to Claude (0), GPT (1) or everyone (2).
+ func compose(to index: Int) {
+  to = index
+  sendNote = ""
+  composing = true
+ }
+
+ var updatedLine: String {
+  guard let board = board, !board.updated.isEmpty else { return "Shared board" }
+  return "Board updated \(board.updated)"
+ }
+
+ func toggleOpen(_ id: String) {
+  if opened.contains(id) { opened.remove(id) } else { opened.insert(id) }
+ }
+
+ func toggleList(_ key: String) {
+  if expanded.contains(key) { expanded.remove(key) } else { expanded.insert(key) }
  }
 
  func savedToken() -> String? {
@@ -140,76 +171,320 @@ import Cocoa
  }
 }
 
+// A button on a crew member's header: a label, an icon and what it does.
+struct HubAction: Identifiable {
+ var label: String
+ var icon: String
+ var run: () -> Void
+ var id: String { label }
+}
+
 extension CompanionInterfaceView {
- // The Meeting Room has two channels: the team board and thread (public, on GitHub) and Friday (private, this Mac only).
+ // The Meeting Room is one tab each: You (what needs Matthew), Claude, GPT and Friday (their own work sorted into categories,
+ // and their messages), the whole Board, and the Thread. Long lines show short and open on a tap, so it isn't one long scroll.
  var hubMeeting: some View {
   VStack(spacing:0) {
-   Picker("Channel",selection:$meeting.channel) { Text("Team board").tag(0); Text("Friday · private").tag(1) }
-    .pickerStyle(.segmented).labelsHidden().frame(maxWidth:340)
-    .frame(maxWidth:.infinity,alignment:.leading)
-    .padding(.horizontal,32).padding(.bottom,12)
-   if meeting.channel == 0 { hubMeetingBoard } else { hubFeed }
-  }
- }
-
- var hubMeetingBoard: some View {
-  ScrollView {
-   VStack(alignment:.leading,spacing:18) {
-    HStack(spacing:10) {
-     hubPill("THE SHARED BOARD · FROM GITHUB",tint:HubColor.indigo)
-     if let board = meeting.board, !board.updated.isEmpty {
-      Text("Updated \(board.updated)").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
-     }
-     Spacer()
-     Button { if let url = URL(string:MeetingData.page) { NSWorkspace.shared.open(url) } } label: { Label("Open on GitHub",systemImage:"arrow.up.right.square") }
-      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-     Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
-      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-      .disabled(meeting.loading)
-    }
-    hubCrew
-    hubMessages
-    if let board = meeting.board {
-     ForEach(board.sections) { section in hubBoardSection(section) }
-    } else if meeting.failed {
-     hubOffline("the board")
-    } else {
-     ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(40)
-    }
-    hubComposer
-    Text("Your chats can't see each other, so this board is the shared page. The repo is public: never put keys, customer details or anything private on it. The app only reads the board; Claude edits it.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   hubMeetingHeader.padding(.horizontal,32).padding(.bottom,10)
+   Picker("View",selection:$meeting.tab) {
+    Text(meeting.needs.count > 0 ? "You · \(meeting.needs.count)" : "You").tag(0)
+    Text("Claude").tag(1)
+    Text("GPT").tag(2)
+    Text("Friday").tag(3)
+    Text("Board").tag(4)
+    Text("Thread").tag(5)
    }
-   .padding(.horizontal,32).padding(.bottom,30)
+   .pickerStyle(.segmented).labelsHidden()
+   .padding(.horizontal,32).padding(.bottom,12)
+   if meeting.tab == 3 && meeting.fridayPrivate {
+    HStack {
+     Button { meeting.fridayPrivate = false } label: { Label("Back to Friday",systemImage:"chevron.left") }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+     Spacer()
+    }
+    .padding(.horizontal,32).padding(.bottom,10)
+    hubFeed
+   } else {
+    ScrollView {
+     VStack(alignment:.leading,spacing:14) { hubMeetingPage }
+      .padding(.horizontal,32).padding(.bottom,30)
+    }
+    .scrollIndicators(.hidden)
+   }
   }
-  .scrollIndicators(.hidden)
   .onAppear { Task { await meeting.refresh(minGap:60) } }
  }
 
- var hubCrew: some View {
-  HStack(alignment:.top,spacing:14) {
-   hubCrewCard("Claude","Builds the app, runs the automations and keeps the repo. Reads the board at the start of a job.","hammer.fill",HubColor.amber,"Open Claude","https://claude.ai/code")
-   hubCrewCard("GPT","A second opinion and notes, in your ChatGPT Project. It can read the app but can't push to GitHub.","brain.head.profile",HubColor.green,"Open ChatGPT","https://chatgpt.com/")
-   hubCrewCard("Friday","Lives in this app: she hears you and sees your screens. When you ask, she can pass a message to Claude or GPT here (needs the posting key) and read what they left for her.","waveform",Noir.crimson,"Talk to Friday",nil)
+ var hubMeetingHeader: some View {
+  HStack(spacing:10) {
+   Text(meeting.updatedLine).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   Spacer()
+   Button { if let url = URL(string:MeetingData.page) { NSWorkspace.shared.open(url) } } label: { Label("Open on GitHub",systemImage:"arrow.up.right.square") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    .disabled(meeting.loading)
   }
  }
 
- func hubCrewCard(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ button: String,_ url: String?) -> some View {
-  VStack(alignment:.leading,spacing:10) {
-   ZStack {
-    RoundedRectangle(cornerRadius:14,style:.continuous).fill(LinearGradient(colors:[tint,tint.opacity(0.55)],startPoint:.topLeading,endPoint:.bottomTrailing)).frame(width:40,height:40)
-    Image(systemName:icon).font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white)
+ @ViewBuilder var hubMeetingPage: some View {
+  if meeting.board == nil && meeting.tab != 5 {
+   if meeting.failed { hubOffline("the board") } else { ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(40) }
+  } else {
+   switch meeting.tab {
+   case 1: hubClaudeTab
+   case 2: hubGPTTab
+   case 3: hubFridayTab
+   case 4: hubBoardTab
+   case 5: hubThread
+   default: hubNeeds
    }
-   Text(name).font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
-   Text(job).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(4).multilineTextAlignment(.leading)
-   Spacer(minLength:4)
-   Button {
-    if let url = url, let target = URL(string:url) { NSWorkspace.shared.open(target) } else { hubSelect(.friday) }
-   } label: { Label(button,systemImage:url == nil ? "waveform" : "arrow.up.right") }
-    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
   }
-  .padding(16)
-  .frame(maxWidth:.infinity,minHeight:170,alignment:.topLeading)
+ }
+
+ // MARK: You
+
+ // Everything waiting on Matthew, so he doesn't have to hunt for his own part: questions first, then messages that still need a
+ // reply from him, then his to-dos.
+ @ViewBuilder var hubNeeds: some View {
+  let needs = meeting.needs
+  hubComposerOrButton
+  if needs.count == 0 {
+   VStack(spacing:8) {
+    Image(systemName:"checkmark.circle").font(.system(size:34)).foregroundStyle(Color.white.opacity(0.3))
+    Text("Nothing needs you right now").font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    Text("Questions, messages and to-dos for you show up here first.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+   }
+   .frame(maxWidth:.infinity).padding(40).hubCard()
+  } else {
+   if !needs.questions.isEmpty {
+    hubGroup("Questions for you",needs.questions.count,HubColor.sky) {
+     ForEach(needs.questions) { item in hubLine(item.id,owner:item.owner,text:item.text,status:"") }
+    }
+   }
+   if !needs.messages.isEmpty {
+    hubGroup("Waiting for your reply",needs.messages.count,HubColor.amber) {
+     ForEach(needs.messages) { message in hubMessageRow(message) }
+    }
+   }
+   if !needs.tasks.isEmpty {
+    hubGroup("Your to-dos",needs.tasks.count,HubColor.slate) {
+     ForEach(needs.tasks) { item in hubLine(item.id,owner:"",text:item.text,status:"") }
+    }
+   }
+  }
+ }
+
+ // A card with a small coloured category title and a count, around whatever lines go in it.
+ func hubGroup<Content: View>(_ title: String,_ count: Int,_ tint: Color,@ViewBuilder _ content: () -> Content) -> some View {
+  VStack(alignment:.leading,spacing:12) {
+   HStack(spacing:8) {
+    Circle().fill(tint).frame(width:8,height:8)
+    Text(title.uppercased()).font(.system(size:11,weight:.bold,design:.rounded)).tracking(1).foregroundStyle(tint)
+    Text(String(count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+   content()
+  }
+  .padding(18)
+  .frame(maxWidth:.infinity,alignment:.leading)
   .hubCard()
+ }
+
+ // MARK: Claude, GPT and Friday
+
+ var hubClaudeTab: some View {
+  hubCrewPage("Claude","Builds the app, runs the automations and keeps the repo. Reads the board at the start of a job.","hammer.fill",HubColor.amber,[
+   HubAction(label:"Message Claude",icon:"paperplane.fill") { meeting.compose(to:0) },
+   HubAction(label:"Open Claude",icon:"arrow.up.right") { if let url = URL(string:"https://claude.ai/code") { NSWorkspace.shared.open(url) } }
+  ])
+ }
+
+ var hubGPTTab: some View {
+  hubCrewPage("GPT","A second opinion and notes, in your ChatGPT Project. Works only on the files the board gives it.","brain.head.profile",HubColor.green,[
+   HubAction(label:"Message GPT",icon:"paperplane.fill") { meeting.compose(to:1) },
+   HubAction(label:"Open ChatGPT",icon:"arrow.up.right") { if let url = URL(string:"https://chatgpt.com/") { NSWorkspace.shared.open(url) } }
+  ])
+ }
+
+ var hubFridayTab: some View {
+  hubCrewPage("Friday","Lives in this app: she hears you and sees your screens. When you ask, she can pass a message to Claude or GPT here (needs the posting key) and read what they left for her.","waveform",Noir.crimson,[
+   HubAction(label:"Talk to Friday",icon:"waveform") { hubSelect(.friday) },
+   HubAction(label:"Private chat",icon:"lock.fill") { meeting.fridayPrivate = true }
+  ])
+ }
+
+ // One crew member's page: who they are, their work in categories, then their messages.
+ func hubCrewPage(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ actions: [HubAction]) -> some View {
+  let crew = meeting.crew(name)
+  return VStack(alignment:.leading,spacing:14) {
+   hubComposerIfOpen
+   hubCrewHeader(name,job,icon,tint,crew,actions)
+   ForEach(crew.groups) { group in hubCrewGroup(name,group) }
+   if crew.groups.isEmpty {
+    Text("Nothing of \(name)'s is on the board right now.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   hubCrewMessages(name,crew)
+  }
+ }
+
+ func hubCrewHeader(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ crew: CrewView,_ actions: [HubAction]) -> some View {
+  let lastLine: String = crew.lastPost.map { "Last post in the room: \(hubAgo($0))" } ?? "Nothing from \(name) in the recent thread."
+  return HStack(alignment:.center,spacing:14) {
+   ZStack {
+    RoundedRectangle(cornerRadius:14,style:.continuous).fill(LinearGradient(colors:[tint,tint.opacity(0.55)],startPoint:.topLeading,endPoint:.bottomTrailing)).frame(width:46,height:46)
+    Image(systemName:icon).font(.system(size:19,weight:.semibold)).foregroundStyle(Color.white)
+   }
+   VStack(alignment:.leading,spacing:4) {
+    HStack(spacing:8) {
+     Text(name).font(.system(size:18,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     hubPill(crew.open == 0 ? "NOTHING OPEN" : "\(crew.open) OPEN",tint:tint)
+    }
+    Text(job).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(3).multilineTextAlignment(.leading)
+    Text(lastLine).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+   Spacer(minLength:8)
+   VStack(alignment:.trailing,spacing:8) {
+    ForEach(actions) { action in
+     Button { action.run() } label: { Label(action.label,systemImage:action.icon) }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    }
+   }
+  }
+  .padding(18)
+  .frame(maxWidth:.infinity,alignment:.leading)
+  .hubCard()
+ }
+
+ // One category of a crew member's work (In progress, Up next, Waiting, Blocked, Asking Matthew, Done). The Done pile starts short.
+ func hubCrewGroup(_ name: String,_ group: CrewGroup) -> some View {
+  let key = "list-\(name)-\(group.title)"
+  let all = meeting.expanded.contains(key)
+  let cap = group.status == "done" ? 2 : 6
+  let shown = all ? group.items : Array(group.items.prefix(cap))
+  return hubGroup(group.title,group.items.count,hubStatusTint(group.status)) {
+   ForEach(shown) { item in hubLine(item.id,owner:"",text:item.text,status:"") }
+   if group.items.count > cap {
+    Button { meeting.toggleList(key) } label: { Label(all ? "Show fewer" : "Show all \(group.items.count)",systemImage:all ? "chevron.up" : "chevron.down") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+ }
+
+ func hubCrewMessages(_ name: String,_ crew: CrewView) -> some View {
+  let key = "list-\(name)-messages"
+  let all = meeting.expanded.contains(key)
+  let recent = Array(crew.messages.suffix(all ? 30 : 3).reversed())
+  return hubGroup("Messages",crew.messages.count,HubColor.sky) {
+   if recent.isEmpty {
+    Text("No messages with \(name) in the recent thread.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   ForEach(recent) { message in hubMessageRow(message) }
+   if crew.messages.count > 3 {
+    Button { meeting.toggleList(key) } label: { Label(all ? "Show fewer" : "Show earlier",systemImage:all ? "chevron.up" : "chevron.down") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+ }
+
+ // MARK: Board and Thread
+
+ @ViewBuilder var hubBoardTab: some View {
+  if let board = meeting.board {
+   ForEach(board.sections) { section in hubBoardSection(section) }
+   Text("The app only reads the board; Claude edits it. The repo is public, so nothing private goes on it.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+  }
+ }
+
+ func hubBoardSection(_ section: BoardSection) -> some View {
+  let key = "list-board-\(section.title)"
+  let all = meeting.expanded.contains(key)
+  let cap = MeetingData.shownByDefault(section.title)
+  let shown = all ? section.items : Array(section.items.prefix(cap))
+  return hubGroup(section.title,section.items.count,Color.white.opacity(0.7)) {
+   if section.items.isEmpty {
+    Text("Nothing here.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   ForEach(shown) { item in hubLine(item.id,owner:item.owner,text:item.text,status:item.status) }
+   if section.items.count > cap {
+    Button { meeting.toggleList(key) } label: { Label(all ? "Show fewer" : "Show all \(section.items.count)",systemImage:all ? "chevron.up" : "chevron.down") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+ }
+
+ @ViewBuilder var hubThread: some View {
+  hubComposerOrButton
+  hubMessages
+ }
+
+ // The whole thread, newest first. Each message shows short and opens on a tap.
+ var hubMessages: some View {
+  hubGroup("Messages",meeting.messages.count,HubColor.sky) {
+   HStack {
+    Spacer()
+    Button { if let url = URL(string:MeetingData.threadPage) { NSWorkspace.shared.open(url) } } label: { Label("Open the thread",systemImage:"arrow.up.right.square") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+   if meeting.messages.isEmpty {
+    Text("No messages yet. Write the first one.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   ForEach(Array(meeting.messages.suffix(meeting.messageCount).reversed())) { message in hubMessageRow(message) }
+   if meeting.messages.count > meeting.messageCount {
+    Button { meeting.messageCount += 8 } label: { Label("Show 8 earlier",systemImage:"chevron.down") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+ }
+
+ // MARK: Lines
+
+ // A board line: who (optional), the words short with a chevron when there is more, and the status (optional). Tap to open it.
+ @ViewBuilder func hubLine(_ id: String,owner: String,text: String,status: String) -> some View {
+  let open = meeting.opened.contains(id)
+  let cut = MeetingData.isCut(text)
+  let row = HStack(alignment:.top,spacing:10) {
+   if !owner.isEmpty { hubPill(MeetingData.who(owner).uppercased(),tint:hubOwnerTint(owner)) }
+   Text(open ? text : MeetingData.brief(text)).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(status.hasPrefix("done") ? 0.5 : 0.85)).multilineTextAlignment(.leading)
+   Spacer(minLength:8)
+   if !status.isEmpty { hubPill(status.uppercased(),tint:hubStatusTint(status)) }
+   if cut { Image(systemName:open ? "chevron.up" : "chevron.down").font(.system(size:11,weight:.semibold)).foregroundStyle(Color.white.opacity(0.4)).padding(.top,4) }
+  }
+  if cut {
+   row.contentShape(Rectangle())
+    .onTapGesture { withAnimation(.easeOut(duration:0.18)) { meeting.toggleOpen(id) } }
+    .accessibilityAddTraits(.isButton)
+  } else {
+   row
+  }
+ }
+
+ // A message: who, to whom, how long ago; the words short until tapped. Open, it can be selected and has a Reply button.
+ func hubMessageRow(_ message: RoomMessage) -> some View {
+  let id = "m\(message.id)"
+  let open = meeting.opened.contains(id)
+  let forMatthew = message.to.lowercased() == "matthew"
+  return VStack(alignment:.leading,spacing:8) {
+   VStack(alignment:.leading,spacing:5) {
+    HStack(spacing:8) {
+     hubPill(message.author.uppercased(),tint:hubOwnerTint(message.author))
+     if !message.to.isEmpty { Text("→ \(message.to)").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
+     Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+     Spacer(minLength:0)
+     Image(systemName:open ? "chevron.up" : "chevron.down").font(.system(size:11,weight:.semibold)).foregroundStyle(Color.white.opacity(0.4))
+    }
+    if open {
+     Text(message.text).font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.88)).multilineTextAlignment(.leading).textSelection(.enabled)
+    } else {
+     Text(MeetingData.brief(message.text,limit:200)).font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.88)).multilineTextAlignment(.leading)
+    }
+   }
+   .contentShape(Rectangle())
+   .onTapGesture { withAnimation(.easeOut(duration:0.18)) { meeting.toggleOpen(id) } }
+   .accessibilityAddTraits(.isButton)
+   if open && message.author.lowercased() != "matthew" {
+    Button { meeting.compose(to:message.author.lowercased() == "gpt" ? 1 : 0) } label: { Label("Reply",systemImage:"arrowshape.turn.up.left") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
  }
 
  func hubOwnerTint(_ owner: String) -> Color {
@@ -225,65 +500,36 @@ extension CompanionInterfaceView {
   if status.hasPrefix("done") { return HubColor.green }
   if status.hasPrefix("blocked") { return Noir.crimsonLight }
   if status.hasPrefix("building") { return HubColor.amber }
+  if status.hasPrefix("assigned") { return HubColor.violet }
+  if status.hasPrefix("asking") { return HubColor.sky }
   return HubColor.slate
  }
 
- func hubBoardSection(_ section: BoardSection) -> some View {
-  VStack(alignment:.leading,spacing:12) {
-   HStack(spacing:8) {
-    Text(section.title).font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
-    Text(String(section.items.count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
-   }
-   if section.items.isEmpty {
-    Text("Nothing here.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
-   }
-   ForEach(section.items) { item in
-    HStack(alignment:.top,spacing:10) {
-     if !item.owner.isEmpty { hubPill(item.owner.uppercased(),tint:hubOwnerTint(item.owner)) }
-     Text(item.text).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(item.isDone ? 0.5 : 0.85)).lineLimit(5).multilineTextAlignment(.leading)
-     Spacer(minLength:8)
-     if !item.status.isEmpty { hubPill(item.status.uppercased(),tint:hubStatusTint(item.status)) }
-    }
-   }
-  }
-  .padding(18)
-  .frame(maxWidth:.infinity,alignment:.leading)
-  .hubCard()
- }
-
- var hubMessages: some View {
-  VStack(alignment:.leading,spacing:12) {
-   HStack(spacing:8) {
-    Text("Messages").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
-    Text(String(meeting.messages.count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+ // The writing box when it is open, otherwise a button that opens it.
+ @ViewBuilder var hubComposerOrButton: some View {
+  if meeting.composing {
+   hubComposer
+  } else {
+   HStack {
     Spacer()
-    Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
-     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))).disabled(meeting.loading)
-    Button { if let url = URL(string:MeetingData.threadPage) { NSWorkspace.shared.open(url) } } label: { Label("Open the thread",systemImage:"arrow.up.right.square") }
+    Button { meeting.compose(to:0) } label: { Label("Write a message",systemImage:"square.and.pencil") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
-   if meeting.messages.isEmpty {
-    Text("No messages yet. Say hello below.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
-   }
-   ForEach(meeting.messages.suffix(12)) { message in
-    VStack(alignment:.leading,spacing:5) {
-     HStack(spacing:8) {
-      hubPill(message.author.uppercased(),tint:hubOwnerTint(message.author))
-      if !message.to.isEmpty { Text("→ \(message.to)").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)) }
-      Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
-     }
-     Text(message.text).font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.88)).textSelection(.enabled)
-    }
-   }
   }
-  .padding(18)
-  .frame(maxWidth:.infinity,alignment:.leading)
-  .hubCard()
+ }
+
+ @ViewBuilder var hubComposerIfOpen: some View {
+  if meeting.composing { hubComposer }
  }
 
  var hubComposer: some View {
   VStack(alignment:.leading,spacing:12) {
-   Text("Send a message").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+   HStack {
+    Text("Send a message").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    Spacer()
+    Button { meeting.composing = false } label: { Label("Close",systemImage:"xmark") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
    Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To GPT").tag(1); Text("To everyone").tag(2) }
     .pickerStyle(.segmented).labelsHidden().frame(maxWidth:440)
    TextEditor(text:$meeting.draft)
@@ -300,10 +546,6 @@ extension CompanionInterfaceView {
     Button { meeting.copy() } label: { Label(meeting.copied.isEmpty ? "Copy for a chat" : meeting.copied,systemImage:meeting.copied.isEmpty ? "doc.on.doc" : "checkmark") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
      .disabled(meeting.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
-    Button { if let url = URL(string:"https://claude.ai/code") { NSWorkspace.shared.open(url) } } label: { Label("Open Claude",systemImage:"arrow.up.right") }
-     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-    Button { if let url = URL(string:"https://chatgpt.com/") { NSWorkspace.shared.open(url) } } label: { Label("Open ChatGPT",systemImage:"arrow.up.right") }
-     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
    if !meeting.sendNote.isEmpty { Text(meeting.sendNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
    Text("Posting puts your message on the public thread for Claude and GPT to read, so keep it free of keys and private details. Copy for a chat puts the same message on your clipboard for pasting straight into a chat.")

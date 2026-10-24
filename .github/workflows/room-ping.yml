@@ -28,12 +28,12 @@ jobs:
           # Code word (Matthew, 2026-10-24): a message to him containing URGENT goes out at top priority.
           PRIO=default; TITLE="Meeting Room: a message for you"; TAGS=speech_balloon
           if printf '%s' "$BODY" | grep -q 'URGENT'; then PRIO=urgent; TITLE="URGENT: Meeting Room needs you"; TAGS=rotating_light; fi
-          curl -sS -o /dev/null -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
+          code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
             -H "Title: ${TITLE}" \
             -H "Priority: ${PRIO}" \
             -H "Tags: ${TAGS}" \
             -H "Click: https://github.com/matthewferreira818/hotstuff/issues/15" \
-            -d "$MSG" || true
+            -d "$MSG" || true); echo "ntfy answered HTTP ${code:-none}"
 
   # Every other new room message (Matthew's choice, 2026-10-24: "can we add it to ntfy as well?"): a quiet, low-priority
   # push so he knows the room moved, even with the Mac closed. Skips his own posts and the ones already pinged above.
@@ -48,9 +48,9 @@ jobs:
         run: |
           if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC not set; no push sent"; exit 0; fi
           MSG=$(printf '%s' "$BODY" | head -n 1 | cut -c1-160)
-          curl -sS -o /dev/null -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
+          code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
             -H "Title: Meeting Room update" \
             -H "Priority: low" \
             -H "Tags: memo" \
             -H "Click: https://github.com/matthewferreira818/hotstuff/issues/15" \
-            -d "$MSG" || true
+            -d "$MSG" || true); echo "ntfy answered HTTP ${code:-none}"

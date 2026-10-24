@@ -30,3 +30,23 @@ jobs:
             -H "Tags: speech_balloon" \
             -H "Click: https://github.com/matthewferreira818/hotstuff/issues/15" \
             -d "$MSG" || true
+
+  # Every other new room message (Matthew's choice, 2026-10-24: "can we add it to ntfy as well?"): a quiet, low-priority
+  # push so he knows the room moved, even with the Mac closed. Skips his own posts and the ones already pinged above.
+  room-update:
+    if: ${{ github.event.issue.number == 15 && github.event.comment.user.login == 'matthewferreira818' && !contains(github.event.comment.body, '→ Matthew]') && !startsWith(github.event.comment.body, '**[Matthew') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Quiet room update
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          BODY: ${{ github.event.comment.body }}
+        run: |
+          if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC not set; no push sent"; exit 0; fi
+          MSG=$(printf '%s' "$BODY" | head -n 1 | cut -c1-160)
+          curl -sS -o /dev/null -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
+            -H "Title: Meeting Room update" \
+            -H "Priority: low" \
+            -H "Tags: memo" \
+            -H "Click: https://github.com/matthewferreira818/hotstuff/issues/15" \
+            -d "$MSG" || true

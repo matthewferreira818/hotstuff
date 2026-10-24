@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-24 from commit 2bba252. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit 3e00ea9. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -11342,10 +11342,11 @@ enum HubSection: Int, CaseIterable, Identifiable {
 @MainActor final class StockHub: ObservableObject {
  @Published var dip: StockRobot?
  @Published var momentum: StockRobot?
+ @Published var hot: StockRobot?
  @Published var loading = false
  @Published var failed = false
  @Published var robot = 0
- var current: StockRobot? { robot == 0 ? dip : momentum }
+ var current: StockRobot? { robot == 0 ? dip : (robot == 1 ? momentum : hot) }
 
  func refresh() async {
   guard !loading else { return }
@@ -11353,10 +11354,12 @@ enum HubSection: Int, CaseIterable, Identifiable {
   defer { loading = false }
   async let first = StockData.fetch(branch:"stock-live",name:"Dip robot")
   async let second = StockData.fetch(branch:"stock-live-momentum",name:"Momentum robot")
-  let (a,b) = await (first,second)
+  async let third = StockData.fetch(branch:"stock-live-hot",name:"Hot hands robot")
+  let (a,b,c) = await (first,second,third)
   if let a = a { dip = a }
   if let b = b { momentum = b }
-  failed = (a == nil && b == nil && dip == nil && momentum == nil)
+  if let c = c { hot = c }
+  failed = (a == nil && b == nil && c == nil && dip == nil && momentum == nil && hot == nil)
  }
 }
 
@@ -12112,8 +12115,9 @@ extension CompanionInterfaceView {
       .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
     }
     HStack(spacing:8) {
-     hubStockChoice("Dip robot",index:0)
-     hubStockChoice("Momentum robot",index:1)
+     hubStockChoice("Dip",index:0).accessibilityLabel("Dip robot")
+     hubStockChoice("Momentum",index:1).accessibilityLabel("Momentum robot")
+     hubStockChoice("Hot hands",index:2).accessibilityLabel("Hot hands robot")
     }
     .accessibilityElement(children:.contain).accessibilityLabel("Choose a practice robot")
     if let robot = stocks.current {
@@ -12123,7 +12127,7 @@ extension CompanionInterfaceView {
       if stocks.loading { ProgressView().controlSize(.small) }
       Text(stocks.loading ? "Loading this robot's snapshot…" : "This robot's snapshot is unavailable")
        .font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
-      Text(stocks.loading ? "Reading the public practice account." : "Use Refresh to try again. The other robot may still have a snapshot.")
+      Text(stocks.loading ? "Reading the public practice account." : "Use Refresh to try again. Other robots may still have snapshots.")
        .font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.subtext)
      }
      .padding(20).frame(maxWidth:.infinity,minHeight:140,alignment:.leading)
@@ -15284,7 +15288,7 @@ _Last updated: 2026-10-24 by Claude_
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [GPT] Room monitoring: design approved with changes (notes/helm-monitoring-design.md). Home has landed, so slice 1 (logic file plus checks, no notifications) can start. Nothing paid. Status: assigned
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
-- [GPT] Systems page is on master (Claude reviewed; Mac compile of 4b6d051 exit 0, 28 warnings; not launch-tested). All four business pages are done. Next: Hot hands on Stocks, then monitor slice 1. Compile on Matthew's Mac before each merge. Status: building
+- [GPT] All app pages are on master: Home, Stocks (now with Hot hands), Store, ECS, Systems (Claude reviewed each; Mac compiles exit 0, 28 warnings; not launch-tested). Next: monitor slice 1 on gpt/helm-monitor-slice-1. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
 - [Claude] Voice for the room, Call a board meeting, Roxy as GPT's name on screen, send times on messages: on master, compile-verified on Matthew's Mac (voice and foundation, 93177cd); the send-times change (351633a) is not compiled yet. Live on his Mac after Update Friday. Status: waiting

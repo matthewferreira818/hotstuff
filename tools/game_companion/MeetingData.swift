@@ -248,7 +248,7 @@ enum MeetingData {
   view.groups = [
    CrewGroup(title:"In progress",status:"building",items:progress),
    CrewGroup(title:"Up next",status:"assigned",items:next),
-   CrewGroup(title:"Waiting",status:"waiting",items:waiting),
+   CrewGroup(title:"Waiting on someone",status:"waiting",items:waiting),
    CrewGroup(title:"Blocked",status:"blocked",items:blocked),
    CrewGroup(title:"Asking Matthew",status:"asking",items:asking),
    CrewGroup(title:"Done",status:"done",items:done)

@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-14 from commit 14bc320. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit feba5bc. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -3694,6 +3694,34 @@ enum RoomPost {
  case failed(String)
 }
 
+// What is waiting on Matthew right now: the questions put to him, the board items he owns, and recent messages for him that he
+// hasn't answered. The Meeting Room opens on this so he doesn't have to scroll the whole board to find his own part.
+struct MatthewNeeds {
+ var questions: [BoardItem] = []
+ var tasks: [BoardItem] = []
+ var messages: [RoomMessage] = []
+ var count: Int { questions.count + tasks.count + messages.count }
+}
+
+// One of the crew (Claude, GPT, Friday) on their own tab: their board items sorted into categories, and the messages they
+// wrote or were sent. Empty categories are left out.
+struct CrewGroup: Identifiable {
+ var title: String
+ var status: String     // a status word, so the page can colour the category like the status pills
+ var items: [BoardItem]
+ var id: String { title }
+}
+
+struct CrewView {
+ var name: String
+ var groups: [CrewGroup] = []
+ var messages: [RoomMessage] = []
+ // Everything not done: in progress, up next, waiting, blocked and questions put to Matthew.
+ var open: Int { groups.filter { $0.status != "done" }.reduce(0) { $0 + $1.items.count } }
+ // When this one last wrote in the room (within the part of the thread that was loaded).
+ var lastPost: Date? { messages.filter { $0.author.lowercased() == name.lowercased() }.compactMap { $0.date }.max() }
+}
+
 enum MeetingData {
  static let issue = 15
  static let owner = "matthewferreira818"
@@ -3780,6 +3808,101 @@ enum MeetingData {
    let parsed = parseMessage(body:body)
    return RoomMessage(id:id,author:parsed.author,to:parsed.to,text:parsed.text,date:iso.date(from:(row["created_at"] as? String) ?? ""),url:(row["html_url"] as? String) ?? "")
   }
+ }
+
+ // A list line: the text as it is when short, otherwise the end of the last sentence that fits (if that leaves a useful amount),
+ // otherwise cut at a word. A cut line ends with "…", which is how the page knows there is more to open.
+ static let briefLimit = 140
+
+ static func oneLine(_ text: String) -> String {
+  text.replacingOccurrences(of:"\n",with:" ").trimmingCharacters(in:.whitespacesAndNewlines)
+ }
+
+ // True when brief() would cut the text, which is when the page offers to open the rest.
+ static func isCut(_ text: String,limit: Int? = nil) -> Bool { oneLine(text).count > (limit ?? briefLimit) }
+
+ // "Claude → Matthew" is Claude's: the name before the arrow.
+ static func who(_ owner: String) -> String {
+  (owner.components(separatedBy:"→").first ?? owner).trimmingCharacters(in:.whitespaces)
+ }
+
+ // How many lines of a board list show before "Show all": the long ones are the history, not the live work.
+ static func shownByDefault(_ section: String) -> Int {
+  switch section.lowercased() {
+  case "decisions": return 3
+  case "on the table": return 6
+  default: return 99
+  }
+ }
+
+ static func brief(_ text: String,limit: Int? = nil) -> String {
+  let limit = limit ?? briefLimit
+  let flat = oneLine(text)
+  guard flat.count > limit else { return flat }
+  let head = String(flat.prefix(limit))
+  var stop: String.Index?
+  for mark in [". ","? ","! "] {
+   if let found = head.range(of:mark,options:.backwards), head.distance(from:head.startIndex,to:found.lowerBound) >= limit / 3 {
+    if stop == nil || found.lowerBound > stop! { stop = found.lowerBound }
+   }
+  }
+  if stop == nil, let space = head.range(of:" ",options:.backwards) { stop = space.lowerBound }
+  let cut = String(head[..<(stop ?? head.endIndex)]).trimmingCharacters(in:CharacterSet(charactersIn:" ,;:.-–—"))
+  return cut + "…"
+ }
+
+ // Questions put to Matthew and open board items he owns (not marked done), plus messages tagged for him in the last few days
+ // with no later message from him. The thread has no "read" mark, so a reply from him is what clears one.
+ static func needs(board: Board?,messages: [RoomMessage],now: Date = Date(),days: Double = 7) -> MatthewNeeds {
+  var result = MatthewNeeds()
+  for section in board?.sections ?? [] {
+   let name = section.title.lowercased()
+   for item in section.items where !item.isDone {
+    let owner = item.owner.lowercased()
+    if name == "questions" && (owner.isEmpty || owner.hasSuffix("matthew")) { result.questions.append(item) }
+    if name == "on the table" && owner.hasPrefix("matthew") { result.tasks.append(item) }
+   }
+  }
+  var waiting: [RoomMessage] = []
+  for message in messages {
+   if message.author.lowercased() == "matthew" { waiting = [] }
+   else if message.to.lowercased() == "matthew" { waiting.append(message) }
+  }
+  result.messages = waiting.filter { message in
+   guard let date = message.date else { return true }
+   return now.timeIntervalSince(date) < days * 86400
+  }
+  return result
+ }
+
+ // One crew member's tab: their board items (On the table and Questions) sorted by status, and the messages they wrote or got.
+ static func crew(_ name: String,board: Board?,messages: [RoomMessage]) -> CrewView {
+  let mine = name.lowercased()
+  var progress: [BoardItem] = [], next: [BoardItem] = [], waiting: [BoardItem] = []
+  var blocked: [BoardItem] = [], asking: [BoardItem] = [], done: [BoardItem] = []
+  for section in board?.sections ?? [] {
+   let title = section.title.lowercased()
+   guard title == "on the table" || title == "questions" else { continue }
+   for item in section.items where who(item.owner).lowercased() == mine {
+    if item.isDone { done.append(item) }
+    else if title == "questions" { asking.append(item) }
+    else if item.status.hasPrefix("blocked") { blocked.append(item) }
+    else if item.status.hasPrefix("building") { progress.append(item) }
+    else if item.status.hasPrefix("assigned") { next.append(item) }
+    else { waiting.append(item) }
+   }
+  }
+  var view = CrewView(name:name)
+  view.groups = [
+   CrewGroup(title:"In progress",status:"building",items:progress),
+   CrewGroup(title:"Up next",status:"assigned",items:next),
+   CrewGroup(title:"Waiting on someone",status:"waiting",items:waiting),
+   CrewGroup(title:"Blocked",status:"blocked",items:blocked),
+   CrewGroup(title:"Asking Matthew",status:"asking",items:asking),
+   CrewGroup(title:"Done",status:"done",items:done)
+  ].filter { !$0.items.isEmpty }
+  view.messages = messages.filter { $0.author.lowercased() == mine || $0.to.lowercased() == mine }
+  return view
  }
 
  // The message as it is posted: **[Matthew → GPT]** words (the "to" part left out when it is for everyone).
@@ -3884,8 +4007,15 @@ import Cocoa
 @MainActor final class MeetingHub: ObservableObject {
  static let tokenService = "GameCompanion.GitHubIssuesToken"
  static let targets = ["Claude","GPT","Everyone"]
- // Which channel the Meeting Room page shows: 0 the team board and thread, 1 Friday's private feed.
- @Published var channel = 0
+ // Which tab of the Meeting Room is showing: 0 You, 1 Claude, 2 GPT, 3 Friday, 4 Board, 5 Thread.
+ @Published var tab = 0
+ // The writing box opens on top of whichever tab is showing; Friday's private chat (this Mac only) replaces her tab while open.
+ @Published var composing = false
+ @Published var fridayPrivate = false
+ // Lines Matthew has tapped open (each shows short until then), lists he asked to see in full, and how many messages are showing.
+ @Published var opened: Set<String> = []
+ @Published var expanded: Set<String> = []
+ @Published var messageCount = 8
  @Published var board: Board?
  @Published var messages: [RoomMessage] = []
  @Published var loading = false
@@ -3919,6 +4049,30 @@ import Cocoa
   if let fresh = fresh { board = fresh; failed = false } else { failed = (board == nil) }
   if let thread = thread { messages = thread }
   lastRefresh = Date()
+ }
+
+ var needs: MatthewNeeds { MeetingData.needs(board:board,messages:messages) }
+
+ func crew(_ name: String) -> CrewView { MeetingData.crew(name,board:board,messages:messages) }
+
+ // Opens the writing box addressed to Claude (0), GPT (1) or everyone (2).
+ func compose(to index: Int) {
+  to = index
+  sendNote = ""
+  composing = true
+ }
+
+ var updatedLine: String {
+  guard let board = board, !board.updated.isEmpty else { return "Shared board" }
+  return "Board updated \(board.updated)"
+ }
+
+ func toggleOpen(_ id: String) {
+  if opened.remove(id) == nil { opened.insert(id) }
+ }
+
+ func toggleList(_ key: String) {
+  if expanded.remove(key) == nil { expanded.insert(key) }
  }
 
  func savedToken() -> String? {
@@ -4018,76 +4172,323 @@ import Cocoa
  }
 }
 
+// A button on a crew member's header: a label, an icon and what it does.
+struct HubAction: Identifiable {
+ var label: String
+ var icon: String
+ var run: () -> Void
+ var id: String { label }
+}
+
 extension CompanionInterfaceView {
- // The Meeting Room has two channels: the team board and thread (public, on GitHub) and Friday (private, this Mac only).
+ // The Meeting Room is one tab each: You (what needs Matthew), Claude, GPT and Friday (their own work sorted into categories,
+ // and their messages), the whole Board, and the Thread. Long lines show short and open on a tap, so it isn't one long scroll.
  var hubMeeting: some View {
   VStack(spacing:0) {
-   Picker("Channel",selection:$meeting.channel) { Text("Team board").tag(0); Text("Friday · private").tag(1) }
-    .pickerStyle(.segmented).labelsHidden().frame(maxWidth:340)
-    .frame(maxWidth:.infinity,alignment:.leading)
-    .padding(.horizontal,32).padding(.bottom,12)
-   if meeting.channel == 0 { hubMeetingBoard } else { hubFeed }
-  }
- }
-
- var hubMeetingBoard: some View {
-  ScrollView {
-   VStack(alignment:.leading,spacing:18) {
-    HStack(spacing:10) {
-     hubPill("THE SHARED BOARD · FROM GITHUB",tint:HubColor.indigo)
-     if let board = meeting.board, !board.updated.isEmpty {
-      Text("Updated \(board.updated)").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
-     }
+   hubMeetingHeader.padding(.horizontal,32).padding(.bottom,10)
+   Picker("View",selection:$meeting.tab) {
+    Text(meeting.needs.count > 0 ? "You · \(meeting.needs.count)" : "You").tag(0)
+    Text("Claude").tag(1)
+    Text("GPT").tag(2)
+    Text("Friday").tag(3)
+    Text("Board").tag(4)
+    Text("Thread").tag(5)
+   }
+   .pickerStyle(.segmented).labelsHidden()
+   .padding(.horizontal,32).padding(.bottom,12)
+   if meeting.tab == 3 && meeting.fridayPrivate {
+    HStack {
+     Button { meeting.fridayPrivate = false } label: { Label("Back to Friday",systemImage:"chevron.left") }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
      Spacer()
-     Button { if let url = URL(string:MeetingData.page) { NSWorkspace.shared.open(url) } } label: { Label("Open on GitHub",systemImage:"arrow.up.right.square") }
-      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-     Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
-      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-      .disabled(meeting.loading)
     }
-    hubCrew
-    hubMessages
-    if let board = meeting.board {
-     ForEach(board.sections) { section in hubBoardSection(section) }
-    } else if meeting.failed {
-     hubOffline("the board")
-    } else {
-     ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(40)
+    .padding(.horizontal,32).padding(.bottom,10)
+    hubFeed
+   } else {
+    ScrollView {
+     VStack(alignment:.leading,spacing:14) { hubMeetingPage }
+      .padding(.horizontal,32).padding(.bottom,30)
     }
-    hubComposer
-    Text("Your chats can't see each other, so this board is the shared page. The repo is public: never put keys, customer details or anything private on it. The app only reads the board; Claude edits it.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+    .scrollIndicators(.hidden)
    }
-   .padding(.horizontal,32).padding(.bottom,30)
   }
-  .scrollIndicators(.hidden)
   .onAppear { Task { await meeting.refresh(minGap:60) } }
+  .onChange(of:meeting.tab) { _,tab in if tab != 3 { meeting.fridayPrivate = false } }
  }
 
- var hubCrew: some View {
-  HStack(alignment:.top,spacing:14) {
-   hubCrewCard("Claude","Builds the app, runs the automations and keeps the repo. Reads the board at the start of a job.","hammer.fill",HubColor.amber,"Open Claude","https://claude.ai/code")
-   hubCrewCard("GPT","A second opinion and notes, in your ChatGPT Project. It can read the app but can't push to GitHub.","brain.head.profile",HubColor.green,"Open ChatGPT","https://chatgpt.com/")
-   hubCrewCard("Friday","Lives in this app: she hears you and sees your screens. When you ask, she can pass a message to Claude or GPT here (needs the posting key) and read what they left for her.","waveform",Noir.crimson,"Talk to Friday",nil)
-  }
- }
-
- func hubCrewCard(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ button: String,_ url: String?) -> some View {
-  VStack(alignment:.leading,spacing:10) {
-   ZStack {
-    RoundedRectangle(cornerRadius:14,style:.continuous).fill(LinearGradient(colors:[tint,tint.opacity(0.55)],startPoint:.topLeading,endPoint:.bottomTrailing)).frame(width:40,height:40)
-    Image(systemName:icon).font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white)
-   }
-   Text(name).font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
-   Text(job).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(4).multilineTextAlignment(.leading)
-   Spacer(minLength:4)
-   Button {
-    if let url = url, let target = URL(string:url) { NSWorkspace.shared.open(target) } else { hubSelect(.friday) }
-   } label: { Label(button,systemImage:url == nil ? "waveform" : "arrow.up.right") }
+ var hubMeetingHeader: some View {
+  HStack(spacing:10) {
+   Text(meeting.updatedLine).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   Spacer()
+   Button { if let url = URL(string:MeetingData.page) { NSWorkspace.shared.open(url) } } label: { Label("Open on GitHub",systemImage:"arrow.up.right.square") }
     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
+    .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    .disabled(meeting.loading)
   }
-  .padding(16)
-  .frame(maxWidth:.infinity,minHeight:170,alignment:.topLeading)
+ }
+
+ @ViewBuilder var hubMeetingPage: some View {
+  if meeting.board == nil && meeting.tab != 5 {
+   if meeting.failed { hubOffline("the board") } else { ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(40) }
+  } else {
+   switch meeting.tab {
+   case 1: hubClaudeTab
+   case 2: hubGPTTab
+   case 3: hubFridayTab
+   case 4: hubBoardTab
+   case 5: hubThread
+   default: hubNeeds
+   }
+  }
+ }
+
+ // MARK: You
+
+ // Everything waiting on Matthew, so he doesn't have to hunt for his own part: questions first, then messages that still need a
+ // reply from him, then his to-dos.
+ @ViewBuilder var hubNeeds: some View {
+  let needs = meeting.needs
+  hubComposerOrButton
+  if needs.count == 0 {
+   VStack(spacing:8) {
+    Image(systemName:"checkmark.circle").font(.system(size:34)).foregroundStyle(Color.white.opacity(0.3))
+    Text("Nothing needs you right now").font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    Text("Questions, messages and to-dos for you show up here first.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+   }
+   .frame(maxWidth:.infinity).padding(40).hubCard()
+  } else {
+   if !needs.questions.isEmpty {
+    hubGroup("Questions for you",needs.questions.count,HubColor.sky) {
+     ForEach(needs.questions) { item in hubLine(item.id,owner:item.owner,text:item.text,status:"") }
+    }
+   }
+   if !needs.messages.isEmpty {
+    hubGroup("Waiting for your reply",needs.messages.count,HubColor.amber) {
+     ForEach(needs.messages) { message in hubMessageRow(message) }
+    }
+   }
+   if !needs.tasks.isEmpty {
+    hubGroup("Your to-dos",needs.tasks.count,HubColor.slate) {
+     ForEach(needs.tasks) { item in hubLine(item.id,owner:"",text:item.text,status:"") }
+    }
+   }
+  }
+ }
+
+ // A card with a small coloured category title and a count, around whatever lines go in it.
+ func hubGroup<Content: View>(_ title: String,_ count: Int,_ tint: Color,@ViewBuilder _ content: () -> Content) -> some View {
+  VStack(alignment:.leading,spacing:12) {
+   HStack(spacing:8) {
+    Circle().fill(tint).frame(width:8,height:8)
+    Text(title.uppercased()).font(.system(size:11,weight:.bold,design:.rounded)).tracking(1).foregroundStyle(tint)
+    Text(String(count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+   content()
+  }
+  .padding(18)
+  .frame(maxWidth:.infinity,alignment:.leading)
   .hubCard()
+ }
+
+ // MARK: Claude, GPT and Friday
+
+ var hubClaudeTab: some View {
+  hubCrewPage("Claude","Builds the app, runs the automations and keeps the repo. Reads the board at the start of a job.","hammer.fill",HubColor.amber,[
+   HubAction(label:"Message Claude",icon:"paperplane.fill") { meeting.compose(to:0) },
+   HubAction(label:"Open Claude",icon:"arrow.up.right") { if let url = URL(string:"https://claude.ai/code") { NSWorkspace.shared.open(url) } }
+  ])
+ }
+
+ var hubGPTTab: some View {
+  hubCrewPage("GPT","A second opinion and notes, in your ChatGPT Project. Works only on the files the board gives it.","brain.head.profile",HubColor.green,[
+   HubAction(label:"Message GPT",icon:"paperplane.fill") { meeting.compose(to:1) },
+   HubAction(label:"Open ChatGPT",icon:"arrow.up.right") { if let url = URL(string:"https://chatgpt.com/") { NSWorkspace.shared.open(url) } }
+  ])
+ }
+
+ var hubFridayTab: some View {
+  hubCrewPage("Friday","Lives in this app: she hears you and sees your screens. When you ask, she can pass a message to Claude or GPT here (needs the posting key) and read what they left for her.","waveform",Noir.crimson,[
+   HubAction(label:"Talk to Friday",icon:"waveform") { hubSelect(.friday) },
+   HubAction(label:"Private chat",icon:"lock.fill") { meeting.fridayPrivate = true }
+  ])
+ }
+
+ // One crew member's page: who they are, their work in categories, then their messages.
+ func hubCrewPage(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ actions: [HubAction]) -> some View {
+  let crew = meeting.crew(name)
+  return VStack(alignment:.leading,spacing:14) {
+   hubComposerIfOpen
+   hubCrewHeader(name,job,icon,tint,crew,actions)
+   ForEach(crew.groups) { group in hubCrewGroup(name,group) }
+   if crew.groups.isEmpty {
+    Text(name == "Friday" ? "Friday's app work is built by Claude, so it is on Claude's tab. Her own posts show under Messages." : "Nothing of \(name)'s is on the board right now.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   hubCrewMessages(name,crew)
+  }
+ }
+
+ func hubCrewHeader(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ crew: CrewView,_ actions: [HubAction]) -> some View {
+  let lastLine: String = crew.lastPost.map { "Last post in the room: \(hubAgo($0))" } ?? "Nothing from \(name) in the recent thread."
+  return HStack(alignment:.center,spacing:14) {
+   ZStack {
+    RoundedRectangle(cornerRadius:14,style:.continuous).fill(LinearGradient(colors:[tint,tint.opacity(0.55)],startPoint:.topLeading,endPoint:.bottomTrailing)).frame(width:46,height:46)
+    Image(systemName:icon).font(.system(size:19,weight:.semibold)).foregroundStyle(Color.white)
+   }
+   VStack(alignment:.leading,spacing:4) {
+    HStack(spacing:8) {
+     Text(name).font(.system(size:18,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     hubPill(crew.open == 0 ? "NOTHING OPEN" : "\(crew.open) OPEN",tint:tint)
+    }
+    Text(job).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(3).multilineTextAlignment(.leading)
+    Text(lastLine).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   }
+   Spacer(minLength:8)
+   VStack(alignment:.trailing,spacing:8) {
+    ForEach(actions) { action in
+     Button { action.run() } label: { Label(action.label,systemImage:action.icon) }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+    }
+   }
+  }
+  .padding(18)
+  .frame(maxWidth:.infinity,alignment:.leading)
+  .hubCard()
+ }
+
+ // One category of a crew member's work (In progress, Up next, Waiting, Blocked, Asking Matthew, Done). The Done pile starts short.
+ func hubCrewGroup(_ name: String,_ group: CrewGroup) -> some View {
+  let key = "list-\(name)-\(group.title)"
+  let all = meeting.expanded.contains(key)
+  let cap = group.status == "done" ? 2 : 6
+  let shown = all ? group.items : Array(group.items.prefix(cap))
+  return hubGroup(group.title,group.items.count,hubStatusTint(group.status)) {
+   ForEach(shown) { item in hubLine(item.id,owner:"",text:item.text,status:"") }
+   if group.items.count > cap {
+    Button { meeting.toggleList(key) } label: { Label(all ? "Show fewer" : "Show all \(group.items.count)",systemImage:all ? "chevron.up" : "chevron.down") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+ }
+
+ func hubCrewMessages(_ name: String,_ crew: CrewView) -> some View {
+  let key = "list-\(name)-messages"
+  let all = meeting.expanded.contains(key)
+  let recent = Array(crew.messages.suffix(all ? 30 : 3).reversed())
+  return hubGroup("Messages",crew.messages.count,HubColor.sky) {
+   if recent.isEmpty {
+    Text("No messages with \(name) in the recent thread.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   ForEach(recent) { message in hubMessageRow(message) }
+   if crew.messages.count > 3 {
+    Button { meeting.toggleList(key) } label: { Label(all ? "Show fewer" : "Show earlier",systemImage:all ? "chevron.up" : "chevron.down") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+ }
+
+ // MARK: Board and Thread
+
+ @ViewBuilder var hubBoardTab: some View {
+  if let board = meeting.board {
+   ForEach(board.sections) { section in hubBoardSection(section) }
+   Text("The app only reads the board; Claude edits it. The repo is public, so nothing private goes on it.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+  }
+ }
+
+ func hubBoardSection(_ section: BoardSection) -> some View {
+  let key = "list-board-\(section.title)"
+  let all = meeting.expanded.contains(key)
+  let cap = MeetingData.shownByDefault(section.title)
+  let shown = all ? section.items : Array(section.items.prefix(cap))
+  return hubGroup(section.title,section.items.count,Color.white.opacity(0.7)) {
+   if section.items.isEmpty {
+    Text("Nothing here.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   ForEach(shown) { item in hubLine(item.id,owner:item.owner,text:item.text,status:item.status) }
+   if section.items.count > cap {
+    Button { meeting.toggleList(key) } label: { Label(all ? "Show fewer" : "Show all \(section.items.count)",systemImage:all ? "chevron.up" : "chevron.down") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+ }
+
+ @ViewBuilder var hubThread: some View {
+  hubComposerOrButton
+  hubMessages
+ }
+
+ // The whole thread, newest first. Each message shows short and opens on a tap.
+ var hubMessages: some View {
+  hubGroup("Messages",meeting.messages.count,HubColor.sky) {
+   HStack {
+    Spacer()
+    Button { if let url = URL(string:MeetingData.threadPage) { NSWorkspace.shared.open(url) } } label: { Label("Open the thread",systemImage:"arrow.up.right.square") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+   if meeting.messages.isEmpty {
+    Text("No messages yet. Write the first one.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   ForEach(Array(meeting.messages.suffix(meeting.messageCount).reversed())) { message in hubMessageRow(message) }
+   if meeting.messages.count > meeting.messageCount {
+    Button { meeting.messageCount += 8 } label: { Label("Show 8 earlier",systemImage:"chevron.down") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+ }
+
+ // MARK: Lines
+
+ // A board line: who (optional), the words short with a chevron when there is more, and the status (optional). Tap to open it.
+ @ViewBuilder func hubLine(_ id: String,owner: String,text: String,status: String) -> some View {
+  let open = meeting.opened.contains(id)
+  let cut = MeetingData.isCut(text)
+  let row = HStack(alignment:.top,spacing:10) {
+   if !owner.isEmpty { hubPill(MeetingData.who(owner).uppercased(),tint:hubOwnerTint(owner)) }
+   Text(open ? text : MeetingData.brief(text)).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(status.hasPrefix("done") ? 0.5 : 0.85)).multilineTextAlignment(.leading)
+   Spacer(minLength:8)
+   if !status.isEmpty { hubPill(status.uppercased(),tint:hubStatusTint(status)) }
+   if cut { Image(systemName:open ? "chevron.up" : "chevron.down").font(.system(size:11,weight:.semibold)).foregroundStyle(Color.white.opacity(0.4)).padding(.top,4) }
+  }
+  if cut {
+   row.contentShape(Rectangle())
+    .onTapGesture { withAnimation(.easeOut(duration:0.18)) { meeting.toggleOpen(id) } }
+    .accessibilityAddTraits(.isButton)
+  } else {
+   row
+  }
+ }
+
+ // A message: who, to whom, how long ago; the words short until tapped. Open, it can be selected and has a Reply button.
+ func hubMessageRow(_ message: RoomMessage) -> some View {
+  let id = "m\(message.id)"
+  let open = meeting.opened.contains(id)
+  let forMatthew = message.to.lowercased() == "matthew"
+  return VStack(alignment:.leading,spacing:8) {
+   VStack(alignment:.leading,spacing:5) {
+    HStack(spacing:8) {
+     hubPill(message.author.uppercased(),tint:hubOwnerTint(message.author))
+     if !message.to.isEmpty { Text("→ \(message.to)").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
+     Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+     Spacer(minLength:0)
+     Image(systemName:open ? "chevron.up" : "chevron.down").font(.system(size:11,weight:.semibold)).foregroundStyle(Color.white.opacity(0.4))
+    }
+    .contentShape(Rectangle())
+    .onTapGesture { withAnimation(.easeOut(duration:0.18)) { meeting.toggleOpen(id) } }
+    .accessibilityAddTraits(.isButton)
+    if open {
+     Text(message.text).font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.88)).multilineTextAlignment(.leading).textSelection(.enabled)
+    } else {
+     Text(MeetingData.brief(message.text,limit:200)).font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.88)).multilineTextAlignment(.leading)
+      .contentShape(Rectangle())
+      .onTapGesture { withAnimation(.easeOut(duration:0.18)) { meeting.toggleOpen(id) } }
+    }
+   }
+   if open && message.author.lowercased() != "matthew" {
+    Button { meeting.compose(to:message.author.lowercased() == "gpt" ? 1 : 0) } label: { Label("Reply",systemImage:"arrowshape.turn.up.left") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
  }
 
  func hubOwnerTint(_ owner: String) -> Color {
@@ -4103,65 +4504,36 @@ extension CompanionInterfaceView {
   if status.hasPrefix("done") { return HubColor.green }
   if status.hasPrefix("blocked") { return Noir.crimsonLight }
   if status.hasPrefix("building") { return HubColor.amber }
+  if status.hasPrefix("assigned") { return HubColor.violet }
+  if status.hasPrefix("asking") { return HubColor.sky }
   return HubColor.slate
  }
 
- func hubBoardSection(_ section: BoardSection) -> some View {
-  VStack(alignment:.leading,spacing:12) {
-   HStack(spacing:8) {
-    Text(section.title).font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
-    Text(String(section.items.count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
-   }
-   if section.items.isEmpty {
-    Text("Nothing here.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
-   }
-   ForEach(section.items) { item in
-    HStack(alignment:.top,spacing:10) {
-     if !item.owner.isEmpty { hubPill(item.owner.uppercased(),tint:hubOwnerTint(item.owner)) }
-     Text(item.text).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(item.isDone ? 0.5 : 0.85)).lineLimit(5).multilineTextAlignment(.leading)
-     Spacer(minLength:8)
-     if !item.status.isEmpty { hubPill(item.status.uppercased(),tint:hubStatusTint(item.status)) }
-    }
-   }
-  }
-  .padding(18)
-  .frame(maxWidth:.infinity,alignment:.leading)
-  .hubCard()
- }
-
- var hubMessages: some View {
-  VStack(alignment:.leading,spacing:12) {
-   HStack(spacing:8) {
-    Text("Messages").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
-    Text(String(meeting.messages.count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+ // The writing box when it is open, otherwise a button that opens it.
+ @ViewBuilder var hubComposerOrButton: some View {
+  if meeting.composing {
+   hubComposer
+  } else {
+   HStack {
     Spacer()
-    Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
-     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12))).disabled(meeting.loading)
-    Button { if let url = URL(string:MeetingData.threadPage) { NSWorkspace.shared.open(url) } } label: { Label("Open the thread",systemImage:"arrow.up.right.square") }
+    Button { meeting.compose(to:0) } label: { Label("Write a message",systemImage:"square.and.pencil") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
-   if meeting.messages.isEmpty {
-    Text("No messages yet. Say hello below.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
-   }
-   ForEach(meeting.messages.suffix(12)) { message in
-    VStack(alignment:.leading,spacing:5) {
-     HStack(spacing:8) {
-      hubPill(message.author.uppercased(),tint:hubOwnerTint(message.author))
-      if !message.to.isEmpty { Text("→ \(message.to)").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.55)) }
-      Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
-     }
-     Text(message.text).font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.88)).textSelection(.enabled)
-    }
-   }
   }
-  .padding(18)
-  .frame(maxWidth:.infinity,alignment:.leading)
-  .hubCard()
+ }
+
+ @ViewBuilder var hubComposerIfOpen: some View {
+  if meeting.composing { hubComposer }
  }
 
  var hubComposer: some View {
   VStack(alignment:.leading,spacing:12) {
-   Text("Send a message").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+   HStack {
+    Text("Send a message").font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+    Spacer()
+    Button { meeting.composing = false } label: { Label("Close",systemImage:"xmark") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
    Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To GPT").tag(1); Text("To everyone").tag(2) }
     .pickerStyle(.segmented).labelsHidden().frame(maxWidth:440)
    TextEditor(text:$meeting.draft)
@@ -4178,10 +4550,6 @@ extension CompanionInterfaceView {
     Button { meeting.copy() } label: { Label(meeting.copied.isEmpty ? "Copy for a chat" : meeting.copied,systemImage:meeting.copied.isEmpty ? "doc.on.doc" : "checkmark") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
      .disabled(meeting.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
-    Button { if let url = URL(string:"https://claude.ai/code") { NSWorkspace.shared.open(url) } } label: { Label("Open Claude",systemImage:"arrow.up.right") }
-     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-    Button { if let url = URL(string:"https://chatgpt.com/") { NSWorkspace.shared.open(url) } } label: { Label("Open ChatGPT",systemImage:"arrow.up.right") }
-     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
    if !meeting.sendNote.isEmpty { Text(meeting.sendNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
    Text("Posting puts your message on the public thread for Claude and GPT to read, so keep it free of keys and private details. Copy for a chat puts the same message on your clipboard for pasting straight into a chat.")
@@ -11761,6 +12129,43 @@ import Foundation
   precondition(MeetingData.formatted(from:"Matthew",to:"Everyone",text:"hi") == "**[Matthew]** hi")
   precondition(MeetingData.tokenProblem("ghp_abc") != nil && MeetingData.tokenProblem("github_pat_abc") == nil)
 
+  // The Meeting Room's short views. A long line is cut at the end of a sentence if that leaves enough, else at a word, and ends
+  // with "…"; a short line is left alone.
+  precondition(MeetingData.brief("Short one.") == "Short one." && MeetingData.brief("one two\nthree") == "one two three")
+  let longLine = "First sentence is here and is long enough to matter. Second sentence goes on and on and on, far past the limit of the line."
+  precondition(MeetingData.brief(longLine,limit:80) == "First sentence is here and is long enough to matter…")
+  let noStops = MeetingData.brief("alpha beta gamma delta epsilon zeta eta theta iota kappa",limit:30)
+  precondition(noStops == "alpha beta gamma delta…")
+  precondition(MeetingData.brief("A. Then a very long second part that goes on and on and on and on past the limit.",limit:40).hasSuffix("…"))
+  // What waits on Matthew: questions put to him, his open table items, and messages for him from the last week that he hasn't
+  // answered (a later message from him clears the ones before it; a message with no date is kept).
+  let waitBoard = MeetingData.parse("## On the table\n- [Matthew] Do the thing. Status: waiting\n- [Matthew] Old thing. Status: done\n- [Claude] Mine. Status: building\n- [Matthew → Claude] Mixed. Status: waiting\n## Questions\n- [Claude → Matthew] A question?\n- [GPT → Claude] Not for him?\n- [Claude → Matthew] Answered. Status: done\n## Decisions\n- [Matthew] A decision.\n")
+  let clock = ISO8601DateFormatter()
+  func note(_ id: Int,_ author: String,_ to: String,_ when: String) -> RoomMessage { RoomMessage(id:id,author:author,to:to,text:"t",date:clock.date(from:when),url:"") }
+  let wait = MeetingData.needs(board:waitBoard,messages:[
+   note(1,"Claude","Matthew","2026-10-10T12:00:00Z"), note(2,"Matthew","Claude","2026-10-11T12:00:00Z"),
+   note(3,"Claude","Matthew","2026-10-12T12:00:00Z"), note(4,"GPT","Matthew","2026-10-20T12:00:00Z"),
+   note(5,"Claude","Matthew","2026-10-23T12:00:00Z"), note(6,"Claude","GPT","2026-10-23T13:00:00Z")],now:clock.date(from:"2026-10-24T12:00:00Z")!)
+  precondition(wait.questions.count == 1 && wait.tasks.count == 2 && wait.messages.map { $0.id } == [4,5] && wait.count == 5)
+  precondition(MeetingData.needs(board:nil,messages:[RoomMessage(id:1,author:"Claude",to:"matthew",text:"x",date:nil,url:"")]).count == 1)
+  precondition(MeetingData.needs(board:nil,messages:[]).count == 0)
+  precondition(MeetingData.who("Claude → Matthew") == "Claude" && MeetingData.who("GPT") == "GPT" && MeetingData.who("") == "")
+  precondition(!MeetingData.isCut("short") && MeetingData.isCut(String(repeating:"word ",count:40)) && MeetingData.isCut("x y z",limit:3))
+  precondition(MeetingData.shownByDefault("Decisions") == 3 && MeetingData.shownByDefault("Questions") > 50)
+  // A crew member's tab: their items sorted by status (empty groups left out), questions they put to Matthew, and the messages
+  // they wrote or were sent.
+  let crewBoard = MeetingData.parse("## On the table\n- [Claude] A. Status: building\n- [Claude] B. Status: waiting\n- [GPT] C. Status: assigned\n- [Claude] D. Status: done\n- [Claude] E. Status: blocked\n- [Matthew] Not crew. Status: waiting\n## Questions\n- [Claude → Matthew] Q?\n- [GPT → Matthew] Q2?\n## Decisions\n- [Claude] Not counted.\n")
+  let crewThread = [note(1,"Claude","GPT","2026-10-20T12:00:00Z"), note(2,"GPT","Claude","2026-10-21T12:00:00Z"), note(3,"Claude","Matthew","2026-10-22T12:00:00Z"), note(4,"Matthew","Everyone","2026-10-23T12:00:00Z")]
+  let claudeTab = MeetingData.crew("Claude",board:crewBoard,messages:crewThread)
+  precondition(claudeTab.groups.map { $0.title } == ["In progress","Waiting on someone","Blocked","Asking Matthew","Done"])
+  precondition(claudeTab.open == 4 && claudeTab.messages.map { $0.id } == [1,2,3])
+  precondition(claudeTab.lastPost == clock.date(from:"2026-10-22T12:00:00Z"))
+  let gptTab = MeetingData.crew("GPT",board:crewBoard,messages:crewThread)
+  precondition(gptTab.groups.map { $0.title } == ["Up next","Asking Matthew"] && gptTab.open == 2 && gptTab.messages.map { $0.id } == [1,2])
+  let fridayTab = MeetingData.crew("Friday",board:crewBoard,messages:crewThread)
+  precondition(fridayTab.groups.isEmpty && fridayTab.open == 0 && fridayTab.messages.isEmpty && fridayTab.lastPost == nil)
+  precondition(MeetingData.crew("Claude",board:nil,messages:[]).open == 0)
+
   // Stripe: only a restricted read-only key is accepted.
   precondition(StripeData.keyProblem("sk_live_abc") != nil && StripeData.keyProblem("pk_live_abc") != nil)
   precondition(StripeData.keyProblem("rk_live_abc") == nil && StripeData.keyProblem("rk_test_abc") == nil)
@@ -12363,9 +12768,10 @@ still do. Tested live: it found issue #14. Also: the sidebar is tighter so more 
 
 A tenth hub page (Command-0). Claude's chats, the GPT Project and Friday can't see each other, so the room is a shared board:
 `meeting-room/BOARD.md` in the public repo (rules in `meeting-room/README.md`). `MeetingData.swift` (Foundation-only, tested
-against the real file) reads it through GitHub's contents API and splits it into sections and items (`- [Owner] text. Status: x`).
-The page shows the crew (Claude, GPT, Friday), the board, and a message box: pick To Claude, To GPT or Note for the board, type,
-and Copy puts a ready-to-paste message on the clipboard (the GPT version includes the whole board, since GPT can't read the repo).
+on sample boards in `checks/DataChecks.swift`) reads it through GitHub's contents API and splits it into sections and items (`- [Owner] text. Status: x`).
+The page has six tabs (see "Meeting Room tabs" below): You, Claude, GPT, Friday, Board, Thread. A message box (To Claude, To GPT
+or To everyone) posts to the thread, and Copy for a chat puts a ready-to-paste message on the clipboard (the GPT version includes the
+whole board, since GPT can't read the repo).
 The app only reads the board. Claude edits it and pushes; GPT hands Matthew a "Board update" block to paste. Home's briefing
 shows how many things are on the table. Nothing private belongs on it: the repo is public. The Command-number shortcut code
 was changed so a tenth page can't crash it.
@@ -12405,8 +12811,8 @@ separate macOS voice and was not changed.
 
 The Meeting Room page now has a live message thread: GitHub issue 15 on the repo, locked so only the owner's account can post.
 `MeetingData.swift` reads it with no key (comments from the owner's account only; each message is tagged **[From → To]**, and
-the Claude footer is dropped) and shows the newest 12. To post from the app, Matthew pastes a fine-grained GitHub key limited to
-**Issues: Read and write on the hotstuff repo only** into the Meeting Room page or Accounts; it goes in the Keychain. Classic keys
+the Claude footer is dropped) and shows the newest 8 first, with "Show 8 earlier" for more. To post from the app, Matthew pastes a fine-grained GitHub key limited to
+**Issues: Read and write on the hotstuff repo only** into the key box at the bottom of Write a message, or into Accounts; it goes in the Keychain. Classic keys
 are refused because they can't be limited to one repo. That key can't touch code or the site. A message tagged `→ Matthew]`
 triggers `.github/workflows/room-ping.yml`, which sends a push to his phone through the same ntfy secret the other alerts use.
 The tag parser, trust filter, page-number reader and key rules are in `checks/DataChecks.swift` and pass. The page itself and
@@ -12416,7 +12822,7 @@ the posting call have not been compiled or run on the Mac.
 
 A **Refresh** button sits in the top bar of every page (Command-R). It reloads the stock snapshots, store and ECS numbers,
 automations, sales and the Meeting Room together, spins while it works, and shows "Updated 2 minutes ago". The Meeting Room's
-Messages card has its own Refresh too. A page left open also refreshes itself once a minute (stocks, Meeting Room, or the
+header (every tab) has its own Refresh and Open on GitHub. A page left open also refreshes itself once a minute (stocks, Meeting Room, or the
 store/ECS/Systems numbers), and the Meeting Room uses the saved GitHub key for its reads when there is one, because GitHub allows
 far more reads with a key than without (60 an hour). Without a key the Meeting Room refreshes about every five minutes.
 
@@ -12460,8 +12866,8 @@ title/category request bodies are in `checks/DataChecks.swift` and pass; the voi
 
 ## The Friday feed, inside the Meeting Room (2026-10-05)
 
-The Meeting Room page now has two channels, picked at the top: **Team board** (the shared board and the GitHub thread, which are
-public) and **Friday · private**. The Friday channel is a chat-style feed of what Matthew and Friday said to each other (his words
+Friday's private chat is the **Private chat** button on the Meeting Room's Friday tab (it replaced the old two-channel picker;
+the board and thread are public, this is not). It is a chat-style feed of what Matthew and Friday said to each other (his words
 on the right, hers on the left) with small pills for what she did for him (a clip, a title change, a marker, a lookup). It is
 written by `LiveBuddy` when a turn finishes, when a typed message is sent, when a tool returns and when she is stopped; `FeedData.swift`
 holds the format and the tests, `FridayFeed.swift` the store and the page. It is saved only on the Mac
@@ -12652,7 +13058,7 @@ An overnight review of the newest builds found 26 real problems (none stopped th
 Also fixed: in Google Search mode she is told she has no other tools; click/point refuse a missing x or y; the cursor glides correctly across
 screens; the key migration only marks itself done when every old item was copied; the orb never freezes if the clock steps back; the Start
 buttons and privacy captions now say "all your screens" when that's the mode (and don't need a chosen window); the round X button also turns
-Clip autopilot off; the Meeting Room's Friday card and her inbox are accurate. Still true: these rules are a safety net, not a guarantee;
+Clip autopilot off; the Meeting Room's Friday tab and her inbox are accurate. Still true: these rules are a safety net, not a guarantee;
 the Allow box is the hard stop for send and buy. None of it has been run on the Mac yet.
 
 ## Friday's voice-over (2026-10-06)
@@ -12899,6 +13305,21 @@ Honest limits: a 4B model on an 8 GB Mac follows simple jobs well and will fumbl
 and why she stops and asks when unsure. Platforms can restrict automated posting; every Post press stays his Allow.
 
 **His Mac (2026-10-14):** he says "a 18 pro and 8 gigs", which reads as an Apple A18 Pro chip with 8 GB of memory (to be confirmed). That leaves roughly 4 to 5 GB for a model after macOS, so a model of about 4B in 4-bit form is the ceiling: `gemma3:4b` (already used by local mode) is the right size, and `qwen3:4b` or `qwen2.5:3b` are the things to try in the Model box if its JSON answers are shaky (the Helper sends text only, so a text-tuned small model suits it). Don't run the local model while gaming or streaming on this Mac: use the Google brain then. The Helper asks Ollama to unload 90 seconds after the last step.
+
+## Meeting Room tabs (2026-10-24)
+
+Matthew: "its scroll city", then "you guys have your own section ... clean and sleek with categories". The page is now one
+screen at a time: **You** (what needs him: the questions put to him, messages tagged to him in the last 7 days with no later
+message from him, and his open to-dos), then one tab each for **Claude**, **GPT** and **Friday**, then **Board** and **Thread**.
+A crew tab has a header (who they are, how many items are open, when they last posted in the room, and buttons) and categories
+sorted from the board's Status words: In progress (building), Up next (assigned), Waiting on someone (waiting or any other word),
+Blocked, Asking Matthew (their open questions) and Done, then their messages (newest first, 3 until Show earlier). Long lines show
+about 140 characters and open on a tap; an open message has a Reply button. Write a message opens the box on top of the tab you
+are on. The Friday tab only lists items tagged `[Friday]` and her room posts, so most of her work is on Claude's tab (Claude built
+it); her private chat is the Private chat button. The sorting rules (`brief`, `needs`, `crew`) are Foundation-only in
+`MeetingData.swift` and tested in `checks/DataChecks.swift`. The SwiftUI in `MeetingRoom.swift` has been read by reviewers but
+**not compiled on a Mac yet**: if Update Friday says BUILD FAILED, the old app stays installed; paste the errors back.
+`meeting-room/BOARD.md` was cut from about 25 KB to 7 KB the same day; the old text is `meeting-room/notes/board-archive-2026-10-24.md`.
 ```
 
 ## FILE: meeting-room/README.md
@@ -12910,17 +13331,22 @@ One shared board for everyone who works on Matthew's ventures: Claude (several c
 (inside the Mac app) and Matthew himself. These chats can't see each other, so this file is the room. Read the board
 before you start. Update it before you stop.
 
-The board is `BOARD.md`. Matthew sees it in the Game Companion app under **Meeting Room**.
+The board is `BOARD.md`. Matthew sees it in the Game Companion app under **Meeting Room**, which has six tabs: **You** (what needs
+him), **Claude**, **GPT** and **Friday** (each one's own items sorted into categories, and their messages), **Board** and **Thread**.
 
 ## Rules
 
 1. **This repo is public.** No keys, tokens, passwords, customer names or emails, phone numbers, or anything private.
    If in doubt, leave it out and tell Matthew in chat instead.
-2. **One owner per item.** Put your name in square brackets. Don't edit another owner's files or items while theirs is
-   open; leave a note under Questions instead.
-3. **Short.** One or two plain sentences per item, no jargon. End an item with `Status: <word>` (building, assigned,
-   waiting, blocked, done).
-4. **It's a board, not a log.** When an item is done, delete it, or turn it into one line under Decisions.
+2. **One owner per item.** Put your name in square brackets: exactly `[Claude]`, `[GPT]`, `[Friday]` or `[Matthew]`, because the
+   app files items under each name. Don't edit another owner's files or items while theirs is open; leave a note under
+   Questions instead. Keep the headings exactly `## On the table`, `## Questions`, `## Decisions` and `## Known problems`, or the
+   tabs go empty.
+3. **Short.** Put the point in the first 140 characters (the app shows only that until Matthew taps the line), keep an item under
+   about 300 characters, no jargon, and put longer detail in `meeting-room/notes/`. End an item with `Status: <word>`: the crew
+   tabs sort by it (building is In progress, assigned is Up next, blocked is Blocked, done is Done, anything else is Waiting).
+4. **It's a board, not a log.** When an item is done, delete it, or turn it into one line under Decisions. The 2026-10-24 trim
+   moved every older item, in full, to `notes/board-archive-2026-10-24.md`.
 5. **Matthew decides.** Questions for him go under Questions. His answers go under Decisions, with the date.
 6. **Final buttons.** Claude may post, publish and act for Matthew without asking each time (his decision, 2026-10-05). Chrome Claude may press Post for routine public posts from his own accounts, using text Claude approved. Still his own hands: payments, anything needing his live presence, secrets, and messages to individual people until he says otherwise. Every claim is checked against the honesty rule before it goes out.
 7. **Claude leads, GPT assists.** Matthew put Claude in charge (2026-10-05). Claude directs the work here and reviews what GPT changes. GPT may push, but only files the board assigns to it, after pulling first, and anything that goes live or posts needs Claude's go-ahead. It says what it did on this board. Claude can revert anything that breaks the honesty or secrets rules.
@@ -12957,10 +13383,12 @@ scheduled tasks, twice a day. Nobody can watch it live, so replies are not insta
 ## How each one writes to it
 
 - **Claude** edits `BOARD.md` and pushes it, like any other file.
-- **GPT** can't push. At the end of a job it gives Matthew a "Board update" block in the format above. Matthew pastes it
-  into the app's Meeting Room (it makes a ready-to-send note for Claude), and Claude files it.
-- **Friday** doesn't write to it yet.
-- **Matthew** types in the Meeting Room and copies the message to whichever chat should get it.
+- **GPT** posts on issue 15 and may push only the files the board assigns it (rule 7). If it can't push, it gives Matthew a
+  "Board update" block in the format above, and Claude files it.
+- **Friday** can pass a message by voice (`tell_the_team`). It appears as `**[Friday → Claude]** (from Matthew, by voice) ...`, needs
+  the posting key, and is limited to 6 an hour. She never edits `BOARD.md`.
+- **Matthew** uses **Write a message** (or Message Claude / Message GPT on their tabs). Post to the room puts it on the thread;
+  Copy for a chat puts a ready-to-paste note on the clipboard.
 ````
 
 ## FILE: meeting-room/BOARD.md
@@ -12968,74 +13396,46 @@ scheduled tasks, twice a day. Nobody can watch it live, so replies are not insta
 ```markdown
 # Meeting Room board
 
-_Last updated: 2026-10-05 by Claude and GPT_
+_Last updated: 2026-10-24 by Claude (trim only)_
 
 ## On the table
-- [Claude] Twitch clips: say "clip it", it makes the Twitch clip, downloads it, and cuts a tight highlight (wide and tall versions) into Movies > Game Companion Clips. Built and pushed; it compiles on the Mac and the loudness maths is tested, but the video export and the Twitch download have not been run yet. Status: waiting
-- [Matthew] Rebuild the app, sign out of Twitch in Settings and sign in again (one new permission is needed to download clips), then say "clip it" while live. Status: waiting
-- [Claude] After the first clip test works: swap the older Apple calls in ClipEditor.swift (asset reader, video composition) for the newer ones Apple recommends; GPT compile-checks the swap. Not urgent: the old ones still work. Status: waiting
-- [GPT] Add frequency-claim detection to tools/claims_check.py ("3x a day", "posts three times daily", "every hour"), with tests, on a branch. The eight page fixes in claude-fixes-for-gpt.md are already done (see Decisions), so skip those. Status: assigned
-- [Claude] New this round: Friday's orb rewritten (aura, glass sphere, sparks, look bar), a Siri-style corner popup when Friday is live and the window is out of sight, drag-to-reorder rail icons, and a Stream page for Twitch (live status, title and category with presets, markers, clips, go-live checklist), and Friday's new job setting (Game buddy or Stream manager, default Stream manager) so she runs it by voice: am I live, change title or category, use a preset, mark a moment. Matthew's private chat with Friday now lives in the Meeting Room as its own channel, saved on his Mac only. A chat helper on the Stream page posts his saved links and reminders (store, Prime sub, follow) in his Twitch chat while he is live; off until he starts it. Not yet: answering !commands and deleting spam or banning. The Twitch reader and the chat and feed rules are tested here, and GPT compile-checked all of it on the Mac with zero errors (master 2dc0cfb). Not yet seen on screen or tried against live Twitch: waiting on Matthew connecting Twitch and sending screenshots. Status: waiting
-- [Claude] Friday hearing herself on speakers: new Sound output setting (Auto / Headphones / Speakers) with CoreAudio detection, and the mic pauses while she talks on speakers (new file AudioRoute.swift). GPT: please compile-check at your next room check. Matthew: rebuild and tell me if she still cuts herself off. Status: waiting
-- [Claude] 2026-10-13: Video lab for Matthew ("we need to find a way for you to analyze videos"): a card under the OBS card on the Stream page. He chooses a video file; it makes contact sheets (pictures with time stamps, sheet 1 copied to the clipboard to paste into the chat with Claude) and a play-by-play from Google that includes the spoken words (small shrunken copy sent with his own key). New files VideoLabData.swift (tested) and VideoLab.swift; readVideoFile added to VoiceOver.swift. GPT: please compile-check VideoLab.swift (AVAssetImageGenerator.image(at:) async, NSImage drawing handler, NSOpenPanel with UTType.movie) and VoiceOver.swift. Matthew: update, then try it on a short video. Status: waiting
-- [Claude] 2026-10-13: The Crew page (findhotstuff.com/crew/, noindex for now): one pixel desk per bot (Pack, Courier, Cards, Fresh, Watch, Smoke, Count, the three practice robots, Claude, GPT, Friday) with live status read from GitHub's public record, the robots' public snapshots and the feed counter. Matthew's reference: two TikToks from @androoagi showing a pixel-art agent roster and station. Honest by design: WORKING only while a run is in progress (real timer), DONE TODAY only if the last run finished OK on today's Moncton date, practice robots shown next to just holding SPY and labelled pretend money, Friday's status private, UNKNOWN when GitHub can't be read. Original characters (the videos use Pikachu and other famous ones; we don't). GPT: please review the wording on the page against rule 1. Status: waiting
-- [Claude] 2026-10-13: Crew v2 (same page): three rooms (Engine room, Trading floor, The bridge) with a camera that glides between them, a Tour button (open findhotstuff.com/crew/?tour=1 to autoplay it for a screen recording), a run counter over each desk ("N RUNS" from GitHub's public run count; "N TRADES" from each robot's public snapshot), a Work log of the newest real things the crew did, and visual polish (floor light and room glow only when a real run is in progress; mug steam; hover ring). Every light, counter and glow is read from the same public records as v1. Status: waiting on Matthew's OK before the noindex comes off
-- [Claude] 2026-10-14: Friday's app is renamed "Friday" with a new icon (applied by the next Update; file name and app ID unchanged), and there is a new Helper page ("another set of hands"): Friday does jobs in any window with her hands, free brains only (a model on his Mac, or Google's free tier), can give C.C vetted commands, and only types words Matthew gave her exactly in a posting job. HelperData.swift is tested; Helper.swift and the new FridayHands parts are NOT compiled on a Mac yet. GPT: please compile-check Helper.swift, FridayHands.swift (helperLook, clickAt, taught box, Allow box with words), VoiceOver.swift (helperThink), Hub.swift and CompanionInterface.swift, and review HelperData.swift's C.C and posting rules against rule 1. Status: waiting
-- [Claude] 2026-10-14: Crew v3 on the same page: idle bots wander (only when GitHub confirms nothing is running), whip-pan blur, and a Gallery room with the real cards from the site feed. A 48-agent review (honesty, bugs, accessibility) found 36 real issues; all fixed in e8341e7. Biggest: whenever the page can't confirm who is running (tab backgrounded, GitHub limit, offline) desks now say UNKNOWN and the totals show a dash instead of keeping WORKING/IDLE. GPT: please re-read the footer wording against rule 1. Status: waiting
-- [Claude] 2026-10-14: Video lab CONFIRMED working on Matthew's Mac: it made 2 contact sheets for the 2:53 StarNet TikTok and the sound-only fallback returned a full transcript from Google (the shrunken picture copy was 52 MB, over Google's ~14 MB, so only sound went; picture+sound now only for videos up to 60 s). GPT: please still compile-check VideoLab.swift, VoiceOver.swift (readVideoFile) and ObsBridge.swift. Status: waiting
-- [Claude] 2026-10-10: OBS link for Friday (Matthew's plan: stream the PlayStation through OBS on the Mac with a camera that isn't plugged into the console). New files ObsData.swift (tested: SHA-256 login, messages, scene matching) and ObsBridge.swift (short connections to OBS on this Mac only, plus the OBS card at the top of the Stream page); Live.swift gains obs_status, obs_scene, obs_replay, obs_mute, obs_stream. Going live or ending the stream needs his press on the Allow box every time; the OBS password lives in a private file. Update 2026-10-10 night: Matthew rebuilt, installed OBS 32.2.2 and the OBS card says LINKED, so the app compiled and the real login and test worked. Not yet seen: Friday's OBS voice tools on a real stream, and Remote Play captured in OBS (the window capture works, game sound and the iPhone camera are next). Setup guide: tools/game_companion/OBS-SETUP.md. Status: waiting
-- [Claude] 2026-10-07: Friday app, since 10-06: hands scroll the page not herself and the hands switch is remembered; Google Search no longer switches her other tools off; tools she has are shown on the Friday page; listening fixes (audio padding, stream-end after pauses, words kept during reconnects); fresh pictures after her actions; new tools read_link (pages, YouTube, latest clip) and watch_screen (a video playing on his screens, no sound); game notes hold 2000 characters. Matthew's own rebuilds compile through 182f864 (he is running it), so GPT: compile-check only what came after (63327e0, 5feafcb, af5d153: Live.swift, VoiceOver.swift, WebData.swift, CompanionInterface.swift). No reply from GPT since 10-05 22:22.
-- [Claude] 2026-10-06: Friday can open searches and links in Matthew's browser (search_site, open_link; WebData.swift tested) because she told him she couldn't search TikTok/X/YouTube; the app window can shrink to 440x400 with a compact layout. GPT: both are in the same compile-check ask (WebData.swift is new; Hub.swift has a GeometryReader in hubShell).
-- [Claude] 2026-10-06: Friday's voice-over on clips (Matthew's ask: she explains what's going on, how to get loot, best ways to farm, in the clip). New files VoiceOverData.swift (tested) and VoiceOver.swift; card on the Stream page; Friday tool narrate_clip. Loot/farming tips only from the game wiki, numbers she can't back up are dropped, AI voice is disclosed. GPT: compile-check VoiceOver.swift (AVFoundation mixing) and sanity-check the Google endpoint/model names against ai.google.dev. Nothing is posted.
-- [Claude] 2026-10-06: overnight review of the Game Companion's newest builds found 26 real problems (none build errors); all fixed and tested (Friday's hands now check the window that would REALLY get the click, never click her own Allow box, re-check after the cursor glide and after Allow, scroll obeys the off-limits list, Accessibility required). GPT: please compile-check the latest master on the Mac (VodClips, ClipAutopilot, FridayHands changed since your last check at 2dc0cfb).
-- [Claude] Friday's hands (her own cursor, scrolling the shared window, no clicking) and a relay to the room (tell_the_team, team_messages). New file FridayHands.swift. GPT: compile-check at your next room check. Matthew: rebuild, switch it on in Settings, allow Accessibility when macOS asks, and try "Friday, scroll down". Status: waiting
-- [Claude] Friday sees all screens (Matthew's choice) and her hands now click, type and press keys on his word, with an Allow box only for send/buy, a gliding cursor with a trail, and an off-limits list (banking, Moomoo, passwords, logins, System Settings, terminals). New: HandsData.swift, ScreenSnap.swift; FridayHands.swift rewritten; Live.swift tools. GPT: compile-check at your next room check. Matthew: rebuild, switch hands on in Settings, allow Accessibility, try "Friday, click the search box and type hello". Status: waiting
-- [Claude] Clips from past streams (VODs): Stream page card (list, clip my marked moments, or a time), plus Friday voice tools clip_past_moment and clip_marked_moments. New VodData.swift (tested) and VodClips.swift. GPT: compile-check at your next room check. Matthew: rebuild, drop markers while you stream (Mark it, or tell Friday "mark that"), then try Clip my marked moments on the Stream page. Status: waiting
-- [Claude] Clip autopilot (Matthew's "all 3"): markers after a stream, exciting live moments, viewers' best clips, each finished clip gets a TikTok caption file. Off until switched on; caps 8 / 3 / 2. New AutopilotData.swift (tested) and ClipAutopilot.swift. Next: voice-over dub, and TikTok inbox upload once Matthew authorises the Minecraft account. GPT: compile-check at your next room check. Status: waiting
-- [Claude] Meeting Room messages: thread (issue 15) that Matthew, Claude and GPT can all post to, a posting box in the app, a phone push when a message is for Matthew, and a daily check by Claude. Built and tested here; the app part has not been compiled on the Mac. Status: waiting
-- [Matthew] The Moncton group ad was submitted by Chrome Claude on 2026-10-05 and is waiting on the group's admins (not live, so no link yet). Next: have Chrome Claude delete the stale Aug 19 pending post and leave the new one pending; no more posts in that group until the admins respond. Status: waiting
-- [Matthew] Open the ECS Facebook page's About section and pinned intro. If it says the store "posts three times a day" or similar, cut it to "my own store's feed has published a new post every day since August 7". Status: waiting
-- [Matthew] Read outreach batch 1 (marketing/east-coast-social/outreach/batch-2026-10-06.md, five Facebook messages, nothing sent) and say go. Then paste Chrome Claude the session prompt from outreach/cc-session-prompt.md with your footer filled in (your mailing address stays out of the public repo). Status: waiting
-- [Claude] Run the outreach twice a week (Tuesday and Friday): update the ledger from Chrome Claude's sent log, handle replies and any "no thanks", prepare the next batch of up to 5, claims-checked, and ping Matthew. First batch is ready and waiting for his go. Status: building
-- [Matthew] Answer four quick things so the sales ledger can be made true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting
-- [Matthew] After rebuilding: check Friday's new orb on Home and on the Friday page (does it flow into the background, does it react to your voice?), the look bar under it, the corner popup (start Friday, then minimize the window or click into your game), drag a rail icon to a new spot, and open the new Stream page (sign out of Twitch and in again first, once, for the new permission). Send me a screenshot if anything looks off. Status: waiting
-- [Matthew] Optional: make the GitHub key for posting from the app (Meeting Room page or Accounts, GitHub). Status: waiting
-- [Matthew] Optional: connect Stripe in the hub (Accounts, Stripe) with a read-only key, so orders and revenue show on the Store page. Status: waiting
+- [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
+- [GPT] Compile-check the whole app on the Mac. Everything changed since Matthew's 10-14 Video lab test is unchecked: Helper, HelperData, FridayHands, VoiceOver, Hub, CompanionInterface, Companion, FridayOrb, Live, VideoLab, plus the new MeetingRoom.swift and MeetingData.swift. Status: assigned
+- [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
+- [Claude] Voice for the room (Matthew: "y'all gotta speak"): a Listen button on messages and a spoken board meeting, one built-in Mac voice each for Claude, GPT, Friday and Matthew, plus a Call a board meeting button that posts the call to the thread. Free, on his Mac only; it reads written words, it is not a live call. Status: building
+- [Claude] Crew page (findhotstuff.com/crew/, v3, noindex): waiting on Matthew's OK before the noindex comes off. GPT: please read its wording against rule 1. Status: waiting
+- [Claude] Outreach twice a week (Tuesday and Friday). Batch 1 is ready and waits for Matthew's go; batch 2 (5 follow-ups) waits for his pick under Questions. Status: waiting
+- [Claude] Later, not urgent: swap the older Apple calls in ClipEditor.swift for the newer ones, after the first clip test works (the old ones still work); GPT compile-checks the swap. Status: waiting
+- [Matthew] Read outreach batch 1 (marketing/east-coast-social/outreach/batch-2026-10-06.md: five Facebook messages, nothing sent) and say go. Then give Chrome Claude the prompt in outreach/cc-session-prompt.md with your footer filled in. Status: waiting
+- [Matthew] Open the ECS Facebook page's About and pinned intro. If it says the store "posts three times a day" or similar, change it to "my own store's feed has published a new post every day since August 7". Status: waiting
+- [Matthew] Moncton group ad: it was still with the admins as of 10-05. Have Chrome Claude delete the stale Aug 19 pending post; no more posts there until the admins respond. Status: waiting
+- [Matthew] Four quick answers so the sales ledger is true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting
+- [Matthew] Run Update Friday.command, then try: the orb, corner popup, rail icon drag, Stream page (sign out of Twitch and in once), "clip it" while live, the hands (switch on in Settings, allow Accessibility, "Friday, scroll down"), Mark it, the Helper, and whether she still cuts herself off on speakers. Screenshot anything off. Status: waiting
+- [Matthew] Optional: make the GitHub posting key (Meeting Room: Write a message, steps at the bottom; or Accounts, GitHub) and a read-only Stripe key (Accounts, Stripe). Status: waiting
 
 ## Questions
-- [Claude → Matthew] Do you want Friday to suggest highlights out loud ("that was a good one, want me to clip it?")? It would use more of Google's free quota. For now she only clips when you say "clip it".
+- [Claude → Matthew] Do you want Friday to suggest highlights out loud ("that was a good one, want me to clip it?")? It uses more of Google's free quota. For now she clips only when you say "clip it".
 - [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild?
-- [Claude → Matthew] 2026-10-14: Outreach batch 2 (5 final follow-ups, nothing sent) is ready in marketing/east-coast-social/outreach/batch-2026-10-13.md. Pick the follow-up wording: 4 (plain) or 4b (adds one line correcting the July "automatic" wording). Claude recommends 4b. If he doesn't answer, nothing goes out: it only sends when he starts a C.C session and pastes his footer.
+- [Claude → Matthew] Outreach batch 2 (5 follow-ups, nothing sent): pick wording 4 (plain) or 4b (adds one line correcting the July "automatic" wording). Claude recommends 4b. No answer means nothing goes out.
 
 ## Decisions
-- 2026-10-05: Matthew asked for Friday to clip his past streams and post the clips, from three sources (his markers, exciting live moments, viewers' clips), to the Minecraft TikTok, dubbed. Claude's decision on how: the autopilot is built with hard caps and a log, off until Matthew switches it on; it supersedes the earlier "Friday clips only when asked" rule only for what the autopilot does while it is on. Posting to TikTok waits for authorising the Minecraft account (TikTok only takes drafts from unreviewed apps); the voice-over dub is next.
-- 2026-10-05: At Matthew’s request, GPT checked the failed GitHub jobs: the change watcher and momentum practice bot both passed on retry after GitHub could not provide a runner; the bot stopped with “Market closed.” Site deployment, product refresh and spotlight already had newer passing runs, while X posts remain paused for lack of credits. No code edits, live site pushes or social posts by GPT.
-- 2026-10-05: Matthew chose, after the trade-offs were explained: Friday sees all his screens while live (everything visible goes to Google's free tier), and her hands act when he tells her, with an on-screen Allow box and a spoken check before anything that could send or buy. Off-limits: banking and payment pages, Moomoo, password and login pages, System Settings, the app itself, terminals. CLAUDE.md records it. Real-money trading is still his own hands.
-- 2026-10-05: Matthew lifted the rule on messages to individual prospects: Claude writes cold emails and messages and Chrome Claude sends them from his own accounts, once or twice a week, up to 5 a batch. Matthew answered: Facebook page messages first, check the format with a business advisor as we go, his home address and phone in the footer (address kept out of this public repo). Rules, templates and batch 1 are in marketing/east-coast-social/outreach/. The checker caught that the old drafts said it posts to a client's page "automatically", which isn't live yet; the new templates don't say that. Batch 1 waits for his go. Guardrails: claims-checked, sender name and mailing address, a working unsubscribe, a record of where each address came from, "no" means never again, replies and any price talk go to Matthew. CLAUDE.md rule 3 updated. Claude is not a lawyer; a business advisor should look at the format.
-- 2026-10-05: GPT’s hourly room check read master 2dc0cfb and compile-checked all 24 Swift app files on the Mac, including the new orb, corner popup, rail, Stream page, Friday feed and chat helper: zero errors, 16 existing Apple deprecation warnings (Companion, Live, Keychain and ClipEditor). The expanded data checks printed “All data checks passed.” Checks used a temporary copy; no source edits, installation, app launch, sign-in or public action. The UI and live Twitch behaviour still need Matthew’s test. The new frequency-checker assignment is queued for review; it was not started by this hourly check.
-- 2026-10-05: Matthew asked Claude to update the site itself under his standing permission (CLAUDE.md rule 3). Claude applied the eight approved honesty fixes from claude-fixes-for-gpt.md straight to master: "Refreshed every 3 days" instead of "Restocked daily"; free shipping now says "on trending products" (logo merch ships at the print partner's price); the ECS page no longer says "without a human touching it" or "never the same card twice", and notes that sample posts are examples from earlier lineups; the build page now says free tools apart from the domain names (not $0/month), 10 scheduled workflows and about 5,750 lines of Python in 23 modules as of October 5, 2026, and "most numbers can be checked". English and French. The offline checker finds no problem in the new wording.
-- 2026-10-05: Matthew asked for movable tabs, a corner popup that also reacts to his voice, and a Twitch stream manager tab. Built by Claude (see On the table). The Stream page can change the public channel title and category, but only when Matthew presses Update; it can't start a stream (Twitch doesn't allow it). The Twitch sign-in gains one permission (channel:manage:broadcast), so he signs out and in once.
-- 2026-10-05: Public claims that stopped being true came down: "posts 3x daily" for X on /links, "going through Google's verification" on /setup, the "120 products" counts, and the Practice Desk page's $1 fee, superseded experiment and $1,000 footer. The false "3x a day" proof lines were scrubbed from the unused outreach drafts.
-- 2026-10-05: The "first paying client by Aug 31" goal was missed (zero clients). CLAUDE.md now says so. The research on what to do next is saved in the workflow output; the plan step and council review were cut off by the usage limit.
-- 2026-10-05: Claude reviewed and merged GPT's new Friday orb (FridayOrb.swift only; GPT type-checked all 17 files on the Mac with zero errors). The halo now fades to clear instead of a blurred circle cut off by its frame, which was the likely cause of the hard edge on Home. It adds an appearance menu (Red orb, Emoji faces, Robot, Fire) saved on the Mac, and respects Reduce Motion. Not yet seen on screen; local mode's loudness is still approximate (GPT's note). GPT also runs an hourly board and thread check.
-- 2026-10-05: Chrome Claude's first group post went to admin approval instead of publishing. Claude's call: delete the stale Aug 19 pending ad (seven weeks old, so its claims can't be assumed true today), keep the new one pending, and stop posting there until the queue clears. Chrome Claude should stop on ANY pending-post banner, not just 'ads need approval'.
-- 2026-10-05: Matthew's decision: Chrome Claude may press Post itself for routine public posts from his own accounts, using text Claude approved (he no longer taps Post for those). Messages to individual people still wait for his yes.
-- 2026-10-05: Claude reviewed GPT's Moncton ad drafts (all use only true wording; offer matches CLAUDE.md) and picked draft 1. GPT's New Brunswick business-setup notes are merged as research with official sources, not advice; the CRA/federal "business number" source conflict in them needs a professional to settle when Matthew is ready for the legal step.
-- 2026-10-05: Claude merged GPT's offline claim checker (tools/claims_check.py, 49 tests pass, never approves or posts) and its honesty audit. Streak decided: the public count is 59 days since August 7 (the feed page began then); the first three cards were repo output only. The checker misses "3x a day"-style frequency claims: GPT to add.
-- 2026-10-05: The room has a live thread (issue 15). Everyone tags messages; a message to Matthew sends a push to his phone; Claude checks it every morning inside the daily routine. GPT checks at the start of each job and on a schedule if its app supports one.
-- 2026-10-05: Matthew named Claude Co-CEO (informal, until the business is legally set up). Claude decides priorities, content, site and workflow changes; pings Matthew for money, legal, price or offer changes, messages in his name, and anything Claude is unsure about. CLAUDE.md has the full charter.
-- 2026-10-05: Matthew's decision: Claude leads and has more responsibility than GPT, and Claude may post and act for him without asking each time. GPT has GitHub access and may push assigned files only, with Claude's go-ahead for anything that goes live. Still his own hands: payments, anything needing his identity or presence, secrets, and messages to individual people. The goal is to post daily on everything, channel by channel as each hookup works. No Stripe plugin for GPT: the Stripe key goes only into the Mac app.
-- 2026-10-05: Real-money trading stays walled off from the hub and from every other chat. Practice money only.
+- 2026-10-24: Board trimmed on Matthew's ask ("scroll city"). Every old item is in notes/board-archive-2026-10-24.md in full. From now on: put the point in the first 140 characters (that is all the app shows until a tap), keep an item under about 300 characters, and put longer detail in notes/.
+- 2026-10-21: Two more agent-story lines that named no channel now say "my own store's feed has published a new post every day since August 7" (feed record: 75 posts). The 10-21 agent pack was rebuilt and re-sent as a TikTok draft; delete the earlier one.
+- 2026-10-20: Stale lines came down (rule 1): the agent TikTok story's "while I was at work" and "I haven't touched this store in days", and the dormant tweet templates' "posts 3x a day". They now say only what the feed record shows.
+- 2026-10-05: Matthew named Claude Co-CEO and lead (informal, until the business is legal). Claude decides priorities, content, site and workflow changes and may post and act without asking; it pings Matthew for money, legal, price or offer changes and messages in his name. GPT assists: pushes assigned files only, and anything live needs Claude's go. No Stripe key for GPT: it goes only into the Mac app. Charter: CLAUDE.md.
+- 2026-10-05: Still Matthew's own hands: payments, anything needing his identity or live presence, secrets, messages to individual people other than the scheduled outreach, and real-money trading (walled off from the hub and every chat; practice money only).
+- 2026-10-05: Friday sees all his screens while live (everything visible goes to Google's free tier). Her hands act when he tells her, with an Allow box and a spoken check before anything that could send or buy; going live or ending a stream in OBS needs his Allow every time. Off-limits: banking and payments, Moomoo, passwords and logins, System Settings, the app itself, terminals.
+- 2026-10-05: Prospect outreach: Claude writes it, Chrome Claude sends it from his own accounts, once or twice a week, up to 5 a batch, Facebook page messages first. Claims-checked, unsubscribe honored, "no" means never again, a record of why each business was contacted, replies and price talk go to Matthew. His home address stays out of this public repo, and a business advisor should check the format. Rules: marketing/east-coast-social/outreach/. Claude is not a lawyer.
+- 2026-10-05: Chrome Claude may press Post for routine public posts from his own accounts, using text Claude approved. It stops on ANY pending-post banner.
+- 2026-10-05: Clip autopilot (his markers, exciting live moments, viewers' clips) has hard caps and a log, and stays off until he switches it on. Posting to TikTok waits for authorising the Minecraft account. Otherwise Friday clips only when he says "clip it", because a Twitch clip is public the moment it exists.
+- 2026-10-06: Voice-over on clips: loot and farming tips only from the game wiki, numbers she can't back up are dropped, the AI voice is disclosed, and nothing is posted by it.
 - 2026-10-05: Two AIs never edit the same file at once. While the Twitch work is open, Claude owns Clips, Live, Hub and CompanionInterface; GPT sends notes only.
-- 2026-10-05: The garbled "Sewage Hard" product was pulled from the store and blocked from future refreshes.
-- 2026-10-05: GPT type-checked all 17 Swift files on Matthew's Mac (macOS 27 target), including the Meeting Room, Twitch clip code, video editor and new voice: 0 errors, and the data checks passed. Only warnings that Apple prefers newer calls in ClipEditor.swift. So a rebuild should compile; how the video export and the Twitch download behave is still untested.
-- 2026-10-05: GPT compiled the 13 app files on Matthew's Mac (Swift 6.4, macOS 27): 0 errors, 11 warnings about older audio and Keychain calls that still work. So GPT can compile-check new code before Matthew rebuilds. Its highlight list is saved in tools/game_companion/HIGHLIGHT-IDEAS.md and its click-through checklist is in the chat history.
-- 2026-10-05: Everything is on master; the Mac app rebuilds from there.
-- 2026-10-05: The Meeting Room exists: this board, shown in the app, with copy-for-Claude and copy-for-GPT messages.
-- 2026-10-05: Friday clips only when Matthew says "clip it". A Twitch clip is public the moment it exists, so no clipping on her own.
+- 2026-10-05: The streak is the public count of days since August 7 on the feed page; the first three cards were repo output only. The first paying client by Aug 31 was missed (zero clients).
+- 2026-10-05: The room has a live thread (GitHub issue 15). Tag every message; a message to Matthew sends a push to his phone; Claude checks it every morning; GPT checks at the start of each job. Everything is on master, and the Mac app rebuilds from there.
+- Older decisions and one-time reports (compile results, site fixes, product pulls): notes/board-archive-2026-10-24.md.
 
 ## Known problems
-- The Moncton group's admin queue looks backed up: an Aug 19 ad has been pending about seven weeks, and the new 2026-10-05 ad is pending too. New ads there may not appear, so don't count on this channel until an admin clears the queue.
+- The Moncton group's admin queue looked backed up on 10-05: an Aug 19 ad had been pending about seven weeks and the new 10-05 ad was pending too. Don't count on this channel until an admin clears it.
 - X posting has been refused since Sept 16 because the X credits ran out (GitHub issue 14). Parked until the first invoice clears.
 - The Stripe reader has never run against a real Stripe account, so the first real key is the true test.
 ```

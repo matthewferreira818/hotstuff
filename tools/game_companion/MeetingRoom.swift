@@ -67,11 +67,11 @@ import Cocoa
  }
 
  func toggleOpen(_ id: String) {
-  if opened.contains(id) { opened.remove(id) } else { opened.insert(id) }
+  if opened.remove(id) == nil { opened.insert(id) }
  }
 
  func toggleList(_ key: String) {
-  if expanded.contains(key) { expanded.remove(key) } else { expanded.insert(key) }
+  if expanded.remove(key) == nil { expanded.insert(key) }
  }
 
  func savedToken() -> String? {
@@ -212,6 +212,7 @@ extension CompanionInterfaceView {
    }
   }
   .onAppear { Task { await meeting.refresh(minGap:60) } }
+  .onChange(of:meeting.tab) { _,tab in if tab != 3 { meeting.fridayPrivate = false } }
  }
 
  var hubMeetingHeader: some View {
@@ -320,7 +321,7 @@ extension CompanionInterfaceView {
    hubCrewHeader(name,job,icon,tint,crew,actions)
    ForEach(crew.groups) { group in hubCrewGroup(name,group) }
    if crew.groups.isEmpty {
-    Text("Nothing of \(name)'s is on the board right now.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+    Text(name == "Friday" ? "Friday's app work is built by Claude, so it is on Claude's tab. Her own posts show under Messages." : "Nothing of \(name)'s is on the board right now.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
    }
    hubCrewMessages(name,crew)
   }
@@ -471,15 +472,17 @@ extension CompanionInterfaceView {
      Spacer(minLength:0)
      Image(systemName:open ? "chevron.up" : "chevron.down").font(.system(size:11,weight:.semibold)).foregroundStyle(Color.white.opacity(0.4))
     }
+    .contentShape(Rectangle())
+    .onTapGesture { withAnimation(.easeOut(duration:0.18)) { meeting.toggleOpen(id) } }
+    .accessibilityAddTraits(.isButton)
     if open {
      Text(message.text).font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.88)).multilineTextAlignment(.leading).textSelection(.enabled)
     } else {
      Text(MeetingData.brief(message.text,limit:200)).font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.88)).multilineTextAlignment(.leading)
+      .contentShape(Rectangle())
+      .onTapGesture { withAnimation(.easeOut(duration:0.18)) { meeting.toggleOpen(id) } }
     }
    }
-   .contentShape(Rectangle())
-   .onTapGesture { withAnimation(.easeOut(duration:0.18)) { meeting.toggleOpen(id) } }
-   .accessibilityAddTraits(.isButton)
    if open && message.author.lowercased() != "matthew" {
     Button { meeting.compose(to:message.author.lowercased() == "gpt" ? 1 : 0) } label: { Label("Reply",systemImage:"arrowshape.turn.up.left") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))

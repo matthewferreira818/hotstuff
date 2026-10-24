@@ -77,7 +77,7 @@ import Foundation
   let crewBoard = MeetingData.parse("## On the table\n- [Claude] A. Status: building\n- [Claude] B. Status: waiting\n- [GPT] C. Status: assigned\n- [Claude] D. Status: done\n- [Claude] E. Status: blocked\n- [Matthew] Not crew. Status: waiting\n## Questions\n- [Claude → Matthew] Q?\n- [GPT → Matthew] Q2?\n## Decisions\n- [Claude] Not counted.\n")
   let crewThread = [note(1,"Claude","GPT","2026-10-20T12:00:00Z"), note(2,"GPT","Claude","2026-10-21T12:00:00Z"), note(3,"Claude","Matthew","2026-10-22T12:00:00Z"), note(4,"Matthew","Everyone","2026-10-23T12:00:00Z")]
   let claudeTab = MeetingData.crew("Claude",board:crewBoard,messages:crewThread)
-  precondition(claudeTab.groups.map { $0.title } == ["In progress","Waiting","Blocked","Asking Matthew","Done"])
+  precondition(claudeTab.groups.map { $0.title } == ["In progress","Waiting on someone","Blocked","Asking Matthew","Done"])
   precondition(claudeTab.open == 4 && claudeTab.messages.map { $0.id } == [1,2,3])
   precondition(claudeTab.lastPost == clock.date(from:"2026-10-22T12:00:00Z"))
   let gptTab = MeetingData.crew("GPT",board:crewBoard,messages:crewThread)

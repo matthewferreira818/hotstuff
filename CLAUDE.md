@@ -219,8 +219,7 @@ money mode still applies. Don't promise abilities Claude doesn't have.
 - **ntfy on Matthew's iPhone (fixed 2026-10-24):** messages reached the app for weeks but never buzzed;
   deleting and reinstalling the ntfy app fixed it (settings and restarts did not). NTFY_TOPIC is the bare
   topic name only (no https:// or ntfy.sh/); it was renewed 10-24, so Cloudflare's NTFY_TOPIC needs his
-  update too. Backup: room-ping and ntfy-relay also @mention him in issue 24 (the GitHub app buzzes);
-  store alerts there use fixed wording only, never lead details.
+  update too. A GitHub-app backup (@mention in issue 24) was tried the same night and removed: it never buzzed.
 - ntfy.sh from Cloudflare Workers gets rate-limited (shared egress IPs) —
   that's why worker alerts hop through a GitHub repository_dispatch relay.
 - raw.githubusercontent caches ~5 min — cache-bust paste links; GitHub

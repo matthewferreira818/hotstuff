@@ -82,40 +82,45 @@ private enum StockSnapshotTab: String,CaseIterable {
 }
 
 // UI state stays local to this page. No engines, credentials, posting, or extra data requests.
+// StateObject works with this Mac's command-line Swift toolchain; @State requires Xcode's macro plugin.
+@MainActor private final class StockSnapshotPageState: ObservableObject {
+ @Published var tab = StockSnapshotTab.overview
+ @Published var allHoldings = false
+ @Published var allEvents = false
+ @Published var allTrades = false
+}
+
 private struct StockSnapshotDashboard: View {
  let robot: StockRobot
  let money: (Double) -> String
  let signed: (Double) -> String
  let ago: (Date?) -> String
- @State private var tab = StockSnapshotTab.overview
- @State private var allHoldings = false
- @State private var allEvents = false
- @State private var allTrades = false
+ @StateObject private var page = StockSnapshotPageState()
 
  var body: some View {
   VStack(alignment:.leading,spacing:16) {
    snapshotHeader
    HStack(spacing:6) {
     ForEach(StockSnapshotTab.allCases,id:\.self) { option in
-     Button { tab = option } label: {
-      Text(option.rawValue).font(.system(size:12.5,weight:tab == option ? .semibold : .medium,design:.rounded))
-       .foregroundStyle(tab == option ? HubTheme.text : HubTheme.subtext)
+     Button { page.tab = option } label: {
+      Text(option.rawValue).font(.system(size:12.5,weight:page.tab == option ? .semibold : .medium,design:.rounded))
+       .foregroundStyle(page.tab == option ? HubTheme.text : HubTheme.subtext)
        .frame(maxWidth:.infinity,minHeight:44)
-       .background(tab == option ? HubTheme.control : HubTheme.card,in:RoundedRectangle(cornerRadius:11))
-       .overlay(RoundedRectangle(cornerRadius:11).stroke(tab == option ? HubTheme.controlOutline : HubTheme.line,lineWidth:1))
+       .background(page.tab == option ? HubTheme.control : HubTheme.card,in:RoundedRectangle(cornerRadius:11))
+       .overlay(RoundedRectangle(cornerRadius:11).stroke(page.tab == option ? HubTheme.controlOutline : HubTheme.line,lineWidth:1))
      }
-     .buttonStyle(.plain).accessibilityAddTraits(tab == option ? .isSelected : [])
+     .buttonStyle(.plain).accessibilityAddTraits(page.tab == option ? .isSelected : [])
     }
    }
    .accessibilityElement(children:.contain).accessibilityLabel("Snapshot details")
-   switch tab {
+   switch page.tab {
    case .overview: overview
    case .holdings: holdings
    case .activity: activity
    }
   }
   .onChange(of:robot.name) { _,_ in
-   allHoldings = false; allEvents = false; allTrades = false
+   page.allHoldings = false; page.allEvents = false; page.allTrades = false
   }
  }
 
@@ -166,7 +171,7 @@ private struct StockSnapshotDashboard: View {
  }
 
  private var holdings: some View {
-  let shown = allHoldings ? robot.holdings : Array(robot.holdings.prefix(6))
+  let shown = page.allHoldings ? robot.holdings : Array(robot.holdings.prefix(6))
   return VStack(alignment:.leading,spacing:14) {
    heading("Holdings",detail:"Positions listed in this snapshot")
    if shown.isEmpty {
@@ -190,7 +195,7 @@ private struct StockSnapshotDashboard: View {
       .padding(.vertical,14).accessibilityElement(children:.combine)
      }
      if robot.holdings.count > 6 {
-      showAll(allHoldings,kind:"holdings",count:robot.holdings.count) { allHoldings.toggle() }
+      showAll(page.allHoldings,kind:"holdings",count:robot.holdings.count) { page.allHoldings.toggle() }
      }
     }
     .padding(.horizontal,18).stockSnapshotCard()
@@ -206,11 +211,11 @@ private struct StockSnapshotDashboard: View {
     if robot.events.isEmpty {
      empty("No bot notes are included in this snapshot.")
     } else {
-     ForEach(Array((allEvents ? robot.events : Array(robot.events.prefix(3))).enumerated()),id:\.offset) { _,line in
+     ForEach(Array((page.allEvents ? robot.events : Array(robot.events.prefix(3))).enumerated()),id:\.offset) { _,line in
       Text(line).font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.text)
        .fixedSize(horizontal:false,vertical:true)
      }
-     if robot.events.count > 3 { showAll(allEvents,kind:"notes",count:robot.events.count) { allEvents.toggle() } }
+     if robot.events.count > 3 { showAll(page.allEvents,kind:"notes",count:robot.events.count) { page.allEvents.toggle() } }
     }
    }
    .padding(18).frame(maxWidth:.infinity,alignment:.leading).stockSnapshotCard()
@@ -219,7 +224,7 @@ private struct StockSnapshotDashboard: View {
     if robot.recentTrades.isEmpty {
      empty("No recent orders are included in this snapshot.")
     } else {
-     ForEach(Array((allTrades ? robot.recentTrades : Array(robot.recentTrades.prefix(3))).enumerated()),id:\.offset) { _,trade in
+     ForEach(Array((page.allTrades ? robot.recentTrades : Array(robot.recentTrades.prefix(3))).enumerated()),id:\.offset) { _,trade in
       VStack(alignment:.leading,spacing:4) {
        HStack(spacing:10) {
         Text("\(trade.side.capitalized) \(trade.symbol)").font(.system(size:13,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
@@ -231,7 +236,7 @@ private struct StockSnapshotDashboard: View {
       }
       .padding(.vertical,4).accessibilityElement(children:.combine)
      }
-     if robot.recentTrades.count > 3 { showAll(allTrades,kind:"supplied orders",count:robot.recentTrades.count) { allTrades.toggle() } }
+     if robot.recentTrades.count > 3 { showAll(page.allTrades,kind:"supplied orders",count:robot.recentTrades.count) { page.allTrades.toggle() } }
     }
    }
    .padding(18).frame(maxWidth:.infinity,alignment:.leading).stockSnapshotCard()

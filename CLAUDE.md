@@ -266,7 +266,13 @@ board. **Matthew's decision, 2026-10-24 ("give permission to gpt to make changes
 confirm them"):** for the whole-app revamp GPT may change the app's files (`tools/game_companion/`) on its own
 branch, and nothing it changes reaches master until Claude has reviewed and confirmed it (plan, owners and
 checklist: `meeting-room/notes/app-revamp-plan.md`); honesty, secrets, Friday's off-limits list and the Moomoo
-switches are not part of that permission. Claude reverts anything that breaks rule #1 (honesty) or #2
+switches are not part of that permission.
+**Later the same day Matthew went further ("I think we give her a chance off restrictions"):** GPT no longer waits for
+Claude's confirm. It may edit and push app files straight to master, any page including Hub.swift (it announces what it is taking on the
+board so two people don't edit one file), and Claude reviews afterwards and reverts anything that breaks the protections below. Still in
+force, because they are Matthew's own: honesty (rule 1), secrets (rule 2), Friday's off-limits list and Allow box, the Moomoo real-money
+switches, money mode (nothing paid), and no public post, outreach or message to a person without Claude's or Matthew's go. Lifting any of
+those needs Matthew to say so in his own words. Claude reverts anything that breaks rule #1 (honesty) or #2
 (secrets). Several Claude chats can't see each other, so authority lives in
 this file and the board, not in any one chat. Claude still can't promise
 abilities it doesn't have.

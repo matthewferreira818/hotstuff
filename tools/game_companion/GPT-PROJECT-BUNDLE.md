@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-24 from commit 59b6812. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit fcc63f3. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -11548,13 +11548,13 @@ extension CompanionInterfaceView {
       .fill(RadialGradient(colors:[HubTheme.crimson,HubTheme.hex(0x6C1C38),HubTheme.hex(0x17080E)],center:UnitPoint(x:0.3,y:0.25),startRadius:2,endRadius:24))
       .frame(width:30,height:30)
      if !hub.compact {
-      Text("MoneyHub").font(.system(size:18,weight:.bold,design:.rounded))
+      Text("The Helm").font(.system(size:18,weight:.bold,design:.rounded))
        .foregroundStyle(HubTheme.text)
      }
     }
     .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
    }
-   .buttonStyle(.plain).accessibilityLabel("MoneyHub Home")
+   .buttonStyle(.plain).accessibilityLabel("The Helm Home")
    .padding(.horizontal,hub.compact ? 4 : 12)
 
    Button { hub.jumpQuery = ""; hub.jumpPresented = true } label: {
@@ -12726,7 +12726,7 @@ EXE=$(defaults read "$APP/Contents/Info" CFBundleExecutable)
 MACOS=$(sw_vers -productVersion | cut -d. -f1)
 TMP=$(mktemp -d)
 
-echo "Building Friday (takes a minute)…"
+echo "Building The Helm (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
 SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,SpeechData,ThreadData,MeetingVoice,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,Helper,FridayHands,Hub,HubTheme,HubShell,HubHome,HubStocks,HubVentures,HubLaunchpad,HubGame,HubAccounts,HubHelpers}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
@@ -12751,13 +12751,13 @@ ditto -c -k --keepParent "$APP" "$PROJECT/outputs/GameCompanion-backup.zip"
 cp "$TMP/$EXE" "$APP/Contents/MacOS/$EXE"
 cp "${SOURCES[@]}" "$PROJECT/outputs/"
 
-# Branding (Matthew, 2026-10-14: "name it Friday, and surprise me with the icon"): the app is called Friday, with the icon drawn in icon/.
+# Branding (Matthew, 2026-10-14: "name it Friday, and surprise me with the icon"; renamed 2026-10-24: the app is now called The Helm, and Friday is the voice inside it). The icon is still the one drawn in icon/.
 # Only the display name and the icon change. The app ID, the file name and the saved data stay exactly as they were, so macOS keeps its
 # permissions and nothing is lost. This runs before signing, so the signature covers it.
 PLIST="$APP/Contents/Info.plist"
-setkey() { /usr/libexec/PlistBuddy -c "Set :$1 $2" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Add :$1 string $2" "$PLIST"; }
-setkey CFBundleName Friday || true
-setkey CFBundleDisplayName Friday || true
+setkey() { /usr/libexec/PlistBuddy -c "Set :$1 \"$2\"" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Add :$1 string \"$2\"" "$PLIST"; }
+setkey CFBundleName "The Helm" || true
+setkey CFBundleDisplayName "The Helm" || true
 if [ -f "$DIR/icon/Friday-1024.png" ]; then
  SET="$TMP/Friday.iconset"
  mkdir -p "$SET"
@@ -12790,7 +12790,7 @@ fi
 
 touch "$APP"
 killall Dock 2>/dev/null || true   # the Dock restarts at once; it picks up the new name and icon
-echo "Done. Open Friday from the Desktop icon, then redo the screen permission."
+echo "Done. Open The Helm from the Desktop icon, then redo the screen permission."
 echo "(If anything is wrong, the old app is saved as outputs/GameCompanion-backup.zip)"
 ```
 
@@ -14301,7 +14301,7 @@ _Last updated: 2026-10-24 by Claude_
 
 ## On the table
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
-- [GPT] MoneyHub redesign: piece 1 (grouped sidebar, Jump to…) is on master since 4:31 PM Moncton; Mac compile exit 0, not launch-tested. Next: Home, then business pages. Compile on Matthew's Mac before each merge. Status: building
+- [GPT] The Helm redesign (Matthew named the hub and the app The Helm, 10-24): sidebar, 5-minute room checks and the new name are on master (Mac compile exit 0, not launch-tested). Next: Home, then business pages. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
 - [Claude] Voice for the room, Call a board meeting, Roxy as GPT's name on screen, send times on messages: on master, compile-verified on Matthew's Mac (voice and foundation, 93177cd); the send-times change (351633a) is not compiled yet. Live on his Mac after Update Friday. Status: waiting

@@ -262,7 +262,11 @@ on `meeting-room/BOARD.md` and reviews what GPT changes; if they disagree,
 Claude's call stands unless Matthew says otherwise. GPT may push to the repo
 but only files the board assigns to it, after pulling first, and anything
 that goes live or posts needs Claude's go-ahead; it logs what it did on the
-board. Claude reverts anything that breaks rule #1 (honesty) or #2
+board. **Matthew's decision, 2026-10-24 ("give permission to gpt to make changes as long as you
+confirm them"):** for the whole-app revamp GPT may change the app's files (`tools/game_companion/`) on its own
+branch, and nothing it changes reaches master until Claude has reviewed and confirmed it (plan, owners and
+checklist: `meeting-room/notes/app-revamp-plan.md`); honesty, secrets, Friday's off-limits list and the Moomoo
+switches are not part of that permission. Claude reverts anything that breaks rule #1 (honesty) or #2
 (secrets). Several Claude chats can't see each other, so authority lives in
 this file and the board, not in any one chat. Claude still can't promise
 abilities it doesn't have.

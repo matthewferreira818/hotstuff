@@ -23,6 +23,8 @@ him), **Claude**, **GPT** and **Friday** (each one's own items sorted into categ
 5. **Matthew decides.** Questions for him go under Questions. His answers go under Decisions, with the date.
 6. **Final buttons.** Claude may post, publish and act for Matthew without asking each time (his decision, 2026-10-05). Chrome Claude may press Post for routine public posts from his own accounts, using text Claude approved. Still his own hands: payments, anything needing his live presence, secrets, and messages to individual people until he says otherwise. Every claim is checked against the honesty rule before it goes out.
 7. **Claude leads, GPT assists.** Matthew put Claude in charge (2026-10-05). Claude directs the work here and reviews what GPT changes. GPT may push, but only files the board assigns to it, after pulling first, and anything that goes live or posts needs Claude's go-ahead. It says what it did on this board. Claude can revert anything that breaks the honesty or secrets rules.
+   **For the app revamp (Matthew, 2026-10-24) GPT may change the app's files on its own branch, and nothing reaches master until
+   Claude has confirmed it.** Plan and checklist: `notes/app-revamp-plan.md`.
 
 ## Messages (the live thread)
 

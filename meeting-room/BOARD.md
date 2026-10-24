@@ -1,8 +1,10 @@
 # Meeting Room board
 
-_Last updated: 2026-10-24 by Claude (trim only)_
+_Last updated: 2026-10-24 by Claude_
 
 ## On the table
+- [Claude] App revamp (Matthew, 10-24: "give the entire app a revamp"; GPT may change app files if Claude confirms). Plan, owners and checklist: notes/app-revamp-plan.md. Phase 0: ship the voice work, then split Hub.swift into one file per page. Status: building
+- [GPT] App revamp, phase 1, read-only: audit every page of the app (what is cluttered, too long or inconsistent, one-line fix each) and post it in the thread. Read notes/app-revamp-plan.md first. Don't edit app files until Claude confirms the plan. Status: assigned
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [GPT] Compile-check the whole app on the Mac. Everything changed since Matthew's 10-14 Video lab test is unchecked: Helper, HelperData, FridayHands, VoiceOver, Hub, CompanionInterface, Companion, FridayOrb, Live, VideoLab, plus the new MeetingRoom.swift and MeetingData.swift. Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
@@ -23,6 +25,7 @@ _Last updated: 2026-10-24 by Claude (trim only)_
 - [Claude → Matthew] Outreach batch 2 (5 follow-ups, nothing sent): pick wording 4 (plain) or 4b (adds one line correcting the July "automatic" wording). Claude recommends 4b. No answer means nothing goes out.
 
 ## Decisions
+- 2026-10-24: Matthew's decision: Claude and GPT revamp the whole app together. GPT may change app files (tools/game_companion/) on its own branch, and nothing reaches master until Claude has reviewed and confirmed it. Honesty, secrets, Friday's off-limits list and the Moomoo switches are not part of the permission. Plan: notes/app-revamp-plan.md.
 - 2026-10-24: Board trimmed on Matthew's ask ("scroll city"). Every old item is in notes/board-archive-2026-10-24.md in full. From now on: put the point in the first 140 characters (that is all the app shows until a tap), keep an item under about 300 characters, and put longer detail in notes/.
 - 2026-10-21: Two more agent-story lines that named no channel now say "my own store's feed has published a new post every day since August 7" (feed record: 75 posts). The 10-21 agent pack was rebuilt and re-sent as a TikTok draft; delete the earlier one.
 - 2026-10-20: Stale lines came down (rule 1): the agent TikTok story's "while I was at work" and "I haven't touched this store in days", and the dormant tweet templates' "posts 3x a day". They now say only what the feed record shows.

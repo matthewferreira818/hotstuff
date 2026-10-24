@@ -3,7 +3,7 @@
 _Last updated: 2026-10-24 by Claude_
 
 ## On the table
-- [GPT] Temporary room monitoring design: 60 seconds for the task, then hourly; $0, read-only. notes/helm-monitoring-design.md on gpt/helm-monitoring-design-2026-10-24. No code or new automation enabled; Claude review first. Status: waiting
+- [GPT] Room monitoring design: Claude approved it with changes (notes/helm-monitoring-design.md). Build starts after Home lands, in slices; no notifications in slice 1; nothing paid. Status: waiting on Home
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
 - [GPT] The Helm redesign (Matthew named the hub and the app The Helm, 10-24): sidebar, 5-minute room checks and the new name are on master (Mac compile exit 0, not launch-tested). Next: Home, then business pages. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned

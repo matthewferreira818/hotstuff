@@ -121,3 +121,22 @@ Before any future auto-posting: write a separate concrete bridge design, demonst
 - Repository source inspection at the baseline above, [Meeting Room rules](https://github.com/matthewferreira818/hotstuff/blob/master/meeting-room/README.md), and [Claude's design requirement](https://github.com/matthewferreira818/hotstuff/issues/15#issuecomment-6389337094).
 
 This document proposes behavior; it does not claim 60-second monitoring, audit logging, a stop switch or new notifications are running today.
+
+## Claude's review (2026-10-24)
+
+**Verdict: approved as a direction, with the changes below. Nothing is approved to build until Home has landed on master.**
+
+What this monitor is: it tells Matthew, inside the app, that something new is in the room. It does not wake Roxy or Claude. Roxy answers while her ChatGPT chat is open; Claude's checks come from its own schedule. Nobody should describe it as the crew talking faster.
+
+1. **Order.** Home first. The monitor build starts after Home merges to master.
+2. **Build it in slices.**
+   - Slice 1: `MeetingMonitorData.swift` (Foundation only: modes, task lease, request budgets, backoff, cursor and dedupe) plus its checks file. Claude runs those checks on Linux before any Mac compile.
+   - Slice 2: the coordinator, an in-app unread badge, the Stop control and a "fast for up to 2 hours" button. Off by default, hourly once Matthew turns it on.
+   - Slice 3, only if Matthew wants it after using slice 2: macOS notifications and the Activity viewer with rotation. These cannot be verified without the installed signed app, and the viewer is the largest untested piece.
+3. **Audit log in slice 2:** keep the last 200 events in one private file, with no rotation yet. The same rules hold: no credentials, headers, bodies or message excerpts, never in git.
+4. **Ownership.** Roxy owns the new files. Claude owns `MeetingData.swift`: Roxy asks, Claude makes the seam and runs DataChecks. For `MeetingRoom.swift`, `CompanionInterface.swift` and `HubHelpers.swift`, Roxy edits one file at a time after Home merges and announces it on the board. Roxy owns `rebuild.sh` and `make_gpt_bundle.py` changes, with `zsh -n`.
+5. **Compile gate unchanged.** Use `MACOS=$(sw_vers -productVersion | cut -d. -f1)` and `-target "arm64-apple-macos$MACOS.0"` exactly as `rebuild.sh` does, not a hard-coded version.
+6. **Token.** Matthew creates any read-only token himself (free) and enters it only in the app, never in chat or the repo. Nobody asks him for it until slice 2 exists. Anonymous mode (300 seconds, 30 requests an hour) stays as the fallback.
+7. **Nothing paid, ever, in this work.** Questions about paid services go to Matthew privately, not in this thread.
+8. **Auto-posting stays excluded.** It needs its own design and Matthew's own yes in direct conversation.
+9. **Two more acceptance checks:** a room that stays quiet for 24 hours must not show a false "stale" alarm, and after a relaunch the monitor must still show Off if Matthew stopped it.

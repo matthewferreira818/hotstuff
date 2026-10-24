@@ -61,9 +61,9 @@ struct MatthewNeeds {
 struct BoardMeeting {
  var call: RoomMessage
  var replies: [RoomMessage]
- func called(_ name: String) -> Bool { call.author.lowercased() == name.lowercased() }
+ func called(_ name: String) -> Bool { MeetingData.same(call.author,name) }
  // True when this person posted anything in the thread after the call.
- func posted(_ name: String) -> Bool { replies.contains { $0.author.lowercased() == name.lowercased() } }
+ func posted(_ name: String) -> Bool { replies.contains { MeetingData.same($0.author,name) } }
 }
 
 // One of the crew (Claude, GPT, Friday) on their own tab: their board items sorted into categories, and the messages they
@@ -82,7 +82,7 @@ struct CrewView {
  // Everything not done: in progress, up next, waiting, blocked and questions put to Matthew.
  var open: Int { groups.filter { $0.status != "done" }.reduce(0) { $0 + $1.items.count } }
  // When this one last wrote in the room (within the part of the thread that was loaded).
- var lastPost: Date? { messages.filter { $0.author.lowercased() == name.lowercased() }.compactMap { $0.date }.max() }
+ var lastPost: Date? { messages.filter { MeetingData.same($0.author,name) }.compactMap { $0.date }.max() }
 }
 
 enum MeetingData {
@@ -184,6 +184,25 @@ enum MeetingData {
  // True when brief() would cut the text, which is when the page offers to open the rest.
  static func isCut(_ text: String,limit: Int? = nil) -> Bool { oneLine(text).count > (limit ?? briefLimit) }
 
+ // The names shown in the Meeting Room. The tags stay Claude, GPT, Friday and Matthew (the board and the thread are public and the
+ // tags are how the app files things), but Matthew picks what each is called on screen. Roxy is GPT's name since 2026-10-24.
+ static let displayNames: [String:String] = ["GPT":"Roxy"]
+ static func display(_ name: String) -> String { displayNames[name] ?? name }
+
+ // A tag can carry a nickname, as in "GPT (Roxy)" or "Carrie (GPT)". This maps any such tag to Claude, GPT, Friday or Matthew, or nil
+ // for anyone else ("Chrome Claude" is a different helper, so it is not Claude).
+ static func canonical(_ raw: String) -> String? {
+  let text = raw.lowercased()
+  if text.contains("matthew") { return "Matthew" }
+  if text.contains("gpt") || text.contains("roxy") || text.contains("carrie") { return "GPT" }
+  if text.contains("friday") { return "Friday" }
+  if text.contains("claude") && !text.contains("chrome") { return "Claude" }
+  return nil
+ }
+
+ // True when two tags are the same person, nicknames included.
+ static func same(_ a: String,_ b: String) -> Bool { (canonical(a) ?? a.lowercased()) == (canonical(b) ?? b.lowercased()) }
+
  // "Claude → Matthew" is Claude's: the name before the arrow.
  static func who(_ owner: String) -> String {
   (owner.components(separatedBy:"→").first ?? owner).trimmingCharacters(in:.whitespaces)
@@ -228,8 +247,8 @@ enum MeetingData {
   }
   var waiting: [RoomMessage] = []
   for message in messages {
-   if message.author.lowercased() == "matthew" { waiting = [] }
-   else if message.to.lowercased() == "matthew" { waiting.append(message) }
+   if MeetingData.canonical(message.author) == "Matthew" { waiting = [] }
+   else if MeetingData.canonical(message.to) == "Matthew" { waiting.append(message) }
   }
   result.messages = waiting.filter { message in
    guard let date = message.date else { return true }
@@ -257,11 +276,11 @@ enum MeetingData {
    guard let next = words.dropFirst(phrase.count).first else { return true }
    return next == "." || next == "!"
   }
-  switch message.author.lowercased() {
-  case "matthew":
+  switch canonical(message.author) {
+  case "Matthew"?:
    let shout = text.uppercased()
    return opens(shout,"BOARD MEETING") || opens(shout,"GROUP MEETING")
-  case "claude": return opens(text,"BOARD MEETING") || opens(text,"GROUP MEETING")
+  case "Claude"?: return opens(text,"BOARD MEETING") || opens(text,"GROUP MEETING")
   default: return false
   }
  }
@@ -276,13 +295,12 @@ enum MeetingData {
 
  // One crew member's tab: their board items (On the table and Questions) sorted by status, and the messages they wrote or got.
  static func crew(_ name: String,board: Board?,messages: [RoomMessage]) -> CrewView {
-  let mine = name.lowercased()
   var progress: [BoardItem] = [], next: [BoardItem] = [], waiting: [BoardItem] = []
   var blocked: [BoardItem] = [], asking: [BoardItem] = [], done: [BoardItem] = []
   for section in board?.sections ?? [] {
    let title = section.title.lowercased()
    guard title == "on the table" || title == "questions" else { continue }
-   for item in section.items where who(item.owner).lowercased() == mine {
+   for item in section.items where same(who(item.owner),name) {
     if item.isDone { done.append(item) }
     else if title == "questions" { asking.append(item) }
     else if item.status.hasPrefix("blocked") { blocked.append(item) }
@@ -300,7 +318,7 @@ enum MeetingData {
    CrewGroup(title:"Asking Matthew",status:"asking",items:asking),
    CrewGroup(title:"Done",status:"done",items:done)
   ].filter { !$0.items.isEmpty }
-  view.messages = messages.filter { $0.author.lowercased() == mine || $0.to.lowercased() == mine }
+  view.messages = messages.filter { same($0.author,name) || same($0.to,name) }
   return view
  }
 

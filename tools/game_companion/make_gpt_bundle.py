@@ -31,6 +31,7 @@ FILES = [
     ("VentureData.swift", "Reads the store's public visitor counters, the ECS feed, GitHub automation status and the product list age."),
     ("StripeData.swift", "Reads store sales from Stripe with a read-only restricted key. GET requests only."),
     ("MeetingData.swift", "Reads the shared Meeting Room board (meeting-room/BOARD.md) from GitHub. Read-only."),
+    ("ThreadData.swift", "Thread tab logic: newest first, day groups, sender filter. Pure logic, tested."),
     ("SpeechData.swift", "What the Meeting Room reads out loud and which built-in voice each person gets. Pure logic, tested."),
     ("MeetingVoice.swift", "Speaks the Meeting Room with the Mac's built-in voices, one each for Claude, GPT, Friday and Matthew. Not a live call."),
     ("MeetingRoom.swift", "The Meeting Room page: tabs for You, Claude, GPT, Friday, the Board and the Thread, a Call a board meeting button, Listen buttons, and a box that makes a ready-to-paste note for Claude or GPT."),

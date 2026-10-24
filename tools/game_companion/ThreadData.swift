@@ -16,7 +16,7 @@ enum ThreadData {
  // Only the messages from this sender (any letter case); "All" keeps everything.
  static func filtered(_ messages: [RoomMessage],sender: String) -> [RoomMessage] {
   guard sender != "All" else { return messages }
-  return messages.filter { $0.author.lowercased() == sender.lowercased() }
+  return messages.filter { MeetingData.same($0.author,sender) }
  }
 
  // Which group a date belongs to. A message with no date, or one older than a week, is "Earlier". A date in the future counts as today.

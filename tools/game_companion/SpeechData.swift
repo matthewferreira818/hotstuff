@@ -95,15 +95,15 @@ enum SpeechData {
 
  // Which of Claude, GPT, Friday and Matthew wrote this tag (any letter case), or nil for anything else.
  static func knownSpeaker(_ author: String) -> String? {
-  (crew + ["Matthew"]).first { $0.lowercased() == author.lowercased() }
+  MeetingData.canonical(author)
  }
 
  // A message: the app's own header ("GPT to Everyone, 3 hours ago.") in the Narrator voice, then the person's words in theirs.
  // An untagged or oddly tagged message is read by the Narrator and says so.
  static func messageLines(_ message: RoomMessage,now: Date = Date(),firstID: Int = 0) -> [SpeakLine] {
   let known = knownSpeaker(message.author)
-  let who = known ?? (message.author == "?" ? "An untagged message" : "A message tagged \(message.author)")
-  let to = message.to.isEmpty ? "" : " to \(message.to)"
+  let who = known.map { MeetingData.display($0) } ?? (message.author == "?" ? "An untagged message" : "A message tagged \(message.author)")
+  let to = message.to.isEmpty ? "" : " to \(MeetingData.canonical(message.to).map { MeetingData.display($0) } ?? message.to)"
   let head = "\(who)\(to), \(agoWords(message.date,now:now))."
   var out = [SpeakLine(id:firstID,speaker:"Narrator",text:head)]
   for piece in chunks(spoken(message.text,limit:900)) { out.append(SpeakLine(id:firstID + out.count,speaker:known ?? "Narrator",text:piece)) }
@@ -116,14 +116,14 @@ enum SpeechData {
   let crew = MeetingData.crew(name,board:board,messages:messages)
   var out: [(speaker: String,text: String)] = []
   let open = crew.open
-  out.append(("Narrator",open == 0 ? "Nothing on the board is under \(name)'s name." : "\(open) open \(open == 1 ? "item is" : "items are") under \(name)'s name on the board."))
+  out.append(("Narrator",open == 0 ? "Nothing on the board is under \(MeetingData.display(name))'s name." : "\(open) open \(open == 1 ? "item is" : "items are") under \(MeetingData.display(name))'s name on the board."))
   for group in crew.groups where group.status != "done" {
    let heads = group.items.prefix(2).map { sentence(spoken($0.text,limit:110)) }
    let more = group.items.count > 2 ? " And \(group.items.count - 2) more." : ""
    out.append(("Narrator","\(group.title): \(heads.joined(separator:" "))\(more)"))
   }
-  if let last = crew.messages.last(where: { $0.author.lowercased() == name.lowercased() }), case let said = spoken(last.text,limit:260), !said.isEmpty {
-   out.append(("Narrator","\(name)'s last post, \(agoWords(last.date,now:now)):"))
+  if let last = crew.messages.last(where: { MeetingData.same($0.author,name) }), case let said = spoken(last.text,limit:260), !said.isEmpty {
+   out.append(("Narrator","\(MeetingData.display(name))'s last post, \(agoWords(last.date,now:now)):"))
    out.append((name,said))
   }
   return out
@@ -160,7 +160,7 @@ enum SpeechData {
    for item in needs.questions.prefix(3) { lines.append(("Narrator","Question: \(spoken(item.text,limit:200))")) }
    for item in needs.tasks.prefix(3) { lines.append(("Narrator","To do: \(spoken(item.text,limit:200))")) }
    for message in needs.messages.suffix(2) {
-    let who = knownSpeaker(message.author) ?? (message.author == "?" ? "An untagged message" : "A message tagged \(message.author)")
+    let who = knownSpeaker(message.author).map { MeetingData.display($0) } ?? (message.author == "?" ? "An untagged message" : "A message tagged \(message.author)")
     lines.append(("Narrator","\(who) wrote to you:"))
     lines.append((knownSpeaker(message.author) ?? "Narrator",spoken(message.text,limit:200)))
    }

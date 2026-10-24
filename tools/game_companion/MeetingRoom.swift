@@ -207,7 +207,7 @@ import Cocoa
   let pasteboard = NSPasteboard.general
   pasteboard.clearContents()
   pasteboard.setString(message(),forType:.string)
-  copied = to == 0 ? "Copied for Claude" : (to == 1 ? "Copied for GPT" : "Copied")
+  copied = to == 0 ? "Copied for Claude" : (to == 1 ? "Copied for \(MeetingData.display("GPT"))" : "Copied")
   Task {
    try? await Task.sleep(nanoseconds:2_500_000_000)
    copied = ""
@@ -232,7 +232,7 @@ extension CompanionInterfaceView {
    Picker("View",selection:$meeting.tab) {
     Text(meeting.needs.count > 0 ? "You · \(meeting.needs.count)" : "You").tag(0)
     Text("Claude").tag(1)
-    Text("GPT").tag(2)
+    Text(MeetingData.display("GPT")).tag(2)
     Text("Friday").tag(3)
     Text("Board").tag(4)
     Text("Thread").tag(5)
@@ -270,7 +270,7 @@ extension CompanionInterfaceView {
    Text(meeting.updatedLine).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
    Spacer()
    if !voice.playing.isEmpty {
-    Button { voice.stop() } label: { Label(voice.speaker.isEmpty ? "Stop voice" : "Stop · \(voice.speaker)",systemImage:"stop.fill") }
+    Button { voice.stop() } label: { Label(voice.speaker.isEmpty ? "Stop voice" : "Stop · \(MeetingData.display(voice.speaker))",systemImage:"stop.fill") }
      .buttonStyle(PillButtonStyle())
    }
    Button { if let url = URL(string:MeetingData.page) { NSWorkspace.shared.open(url) } } label: { Label("Open on GitHub",systemImage:"arrow.up.right.square") }
@@ -353,7 +353,7 @@ extension CompanionInterfaceView {
    if let held = held {
     Text("Called \(hubAgo(held.call.date)) by \(held.call.author). \(held.replies.count) message\(held.replies.count == 1 ? "" : "s") since.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.75))
     HStack(spacing:8) {
-     ForEach(["Claude","GPT"],id:\.self) { name in hubPill(held.called(name) ? "\(name.uppercased()) CALLED IT" : (held.posted(name) ? "\(name.uppercased()) POSTED" : "\(name.uppercased()) NOT YET"),tint:held.called(name) || held.posted(name) ? HubColor.green : HubColor.slate) }
+     ForEach(["Claude","GPT"],id:\.self) { name in hubPill(held.called(name) ? "\(MeetingData.display(name).uppercased()) CALLED IT" : (held.posted(name) ? "\(MeetingData.display(name).uppercased()) POSTED" : "\(MeetingData.display(name).uppercased()) NOT YET"),tint:held.called(name) || held.posted(name) ? HubColor.green : HubColor.slate) }
     }
    } else {
     Text("No board meeting in the last two days. Calling one posts a note on the thread. Claude and GPT can answer each other there when they next read the room. Friday joins only when you ask her.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
@@ -374,7 +374,7 @@ extension CompanionInterfaceView {
    if hubVoiceBlocked {
     Text("Friday is live or the microphone is on, so voices are off: they would be heard.").font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber)
    } else if !voice.speaker.isEmpty {
-    Text(voice.speaker == "Narrator" ? "Reading aloud…" : "Reading \(voice.speaker)'s words aloud…").font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(hubOwnerTint(voice.speaker))
+    Text(voice.speaker == "Narrator" ? "Reading aloud…" : "Reading \(MeetingData.display(voice.speaker))'s words aloud…").font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(hubOwnerTint(voice.speaker))
    }
    if !meeting.meetingNote.isEmpty { Text(meeting.meetingNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
    Text("Your Mac reads written words aloud. Not a live call.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
@@ -406,7 +406,7 @@ extension CompanionInterfaceView {
 
  var hubGPTTab: some View {
   hubCrewPage("GPT","A second opinion and notes, in your ChatGPT Project. Works only on the files the board gives it.","brain.head.profile",HubColor.green,[
-   HubAction(label:"Message GPT",icon:"paperplane.fill") { meeting.compose(to:1) },
+   HubAction(label:"Message \(MeetingData.display("GPT"))",icon:"paperplane.fill") { meeting.compose(to:1) },
    HubAction(label:"Open ChatGPT",icon:"arrow.up.right") { if let url = URL(string:"https://chatgpt.com/") { NSWorkspace.shared.open(url) } }
   ])
  }
@@ -427,7 +427,7 @@ extension CompanionInterfaceView {
    hubCrewHeader(name,job,icon,tint,crew,actions + hear)
    ForEach(crew.groups) { group in hubCrewGroup(name,group) }
    if crew.groups.isEmpty {
-    Text(name == "Friday" ? "Friday's app work is built by Claude, so it is on Claude's tab. Her own posts show under Messages." : "Nothing of \(name)'s is on the board right now.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+    Text(name == "Friday" ? "Friday's app work is built by Claude, so it is on Claude's tab. Her own posts show under Messages." : "Nothing of \(MeetingData.display(name))'s is on the board right now.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
    }
    hubCrewMessages(name,crew)
   }
@@ -442,7 +442,7 @@ extension CompanionInterfaceView {
    }
    VStack(alignment:.leading,spacing:4) {
     HStack(spacing:8) {
-     Text(name).font(.system(size:18,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
+     Text(MeetingData.display(name)).font(.system(size:18,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
      hubPill(crew.open == 0 ? "NOTHING OPEN" : "\(crew.open) OPEN",tint:tint)
     }
     Text(job).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(3).multilineTextAlignment(.leading)
@@ -482,7 +482,7 @@ extension CompanionInterfaceView {
   let recent = Array(crew.messages.suffix(all ? 30 : 3).reversed())
   return hubGroup("Messages",crew.messages.count,HubColor.sky) {
    if recent.isEmpty {
-    Text("No messages with \(name) in the recent thread.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+    Text("No messages with \(MeetingData.display(name)) in the recent thread.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
    }
    ForEach(recent) { message in hubMessageRow(message) }
    if crew.messages.count > 3 {
@@ -550,7 +550,7 @@ extension CompanionInterfaceView {
   let open = meeting.opened.contains(id)
   let cut = MeetingData.isCut(text)
   let row = HStack(alignment:.top,spacing:10) {
-   if !owner.isEmpty { hubPill(MeetingData.who(owner).uppercased(),tint:hubOwnerTint(owner)) }
+   if !owner.isEmpty { hubPill(MeetingData.display(MeetingData.canonical(MeetingData.who(owner)) ?? MeetingData.who(owner)).uppercased(),tint:hubOwnerTint(owner)) }
    Text(open ? text : MeetingData.brief(text)).font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(status.hasPrefix("done") ? 0.5 : 0.85)).multilineTextAlignment(.leading)
    Spacer(minLength:8)
    if !status.isEmpty { hubPill(status.uppercased(),tint:hubStatusTint(status)) }
@@ -569,12 +569,12 @@ extension CompanionInterfaceView {
  func hubMessageRow(_ message: RoomMessage) -> some View {
   let id = "m\(message.id)"
   let open = meeting.opened.contains(id)
-  let forMatthew = message.to.lowercased() == "matthew"
+  let forMatthew = MeetingData.canonical(message.to) == "Matthew"
   return VStack(alignment:.leading,spacing:8) {
    VStack(alignment:.leading,spacing:5) {
     HStack(spacing:8) {
-     hubPill(message.author.uppercased(),tint:hubOwnerTint(message.author))
-     if !message.to.isEmpty { Text("→ \(message.to)").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
+     hubPill(MeetingData.display(MeetingData.canonical(message.author) ?? message.author).uppercased(),tint:hubOwnerTint(message.author))
+     if !message.to.isEmpty { Text("→ \(MeetingData.display(MeetingData.canonical(message.to) ?? message.to))").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
      Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
      Spacer(minLength:0)
      Button { voice.toggle(id,SpeechData.messageLines(message)) } label: { Image(systemName:voice.playing == id ? "stop.fill" : "speaker.wave.2.fill").font(.system(size:12)).foregroundStyle(Color.white.opacity(0.6)).frame(width:28,height:24).contentShape(Rectangle()) }
@@ -595,20 +595,21 @@ extension CompanionInterfaceView {
       .onTapGesture { withAnimation(.easeOut(duration:0.18)) { meeting.toggleOpen(id) } }
     }
    }
-   if open && message.author.lowercased() != "matthew" {
-    Button { meeting.compose(to:message.author.lowercased() == "gpt" ? 1 : 0) } label: { Label("Reply",systemImage:"arrowshape.turn.up.left") }
+   if open && MeetingData.canonical(message.author) != "Matthew" {
+    Button { meeting.compose(to:MeetingData.canonical(message.author) == "GPT" ? 1 : 0) } label: { Label("Reply",systemImage:"arrowshape.turn.up.left") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
   }
  }
 
  func hubOwnerTint(_ owner: String) -> Color {
-  let name = owner.lowercased()
-  if name.hasPrefix("claude") { return HubColor.amber }
-  if name.hasPrefix("gpt") { return HubColor.green }
-  if name.hasPrefix("matthew") { return HubColor.sky }
-  if name.hasPrefix("friday") { return Noir.crimsonLight }
-  return HubColor.slate
+  switch MeetingData.canonical(owner) {
+  case "Claude"?: return HubColor.amber
+  case "GPT"?: return HubColor.green
+  case "Matthew"?: return HubColor.sky
+  case "Friday"?: return Noir.crimsonLight
+  default: return HubColor.slate
+  }
  }
 
  func hubStatusTint(_ status: String) -> Color {
@@ -645,7 +646,7 @@ extension CompanionInterfaceView {
     Button { meeting.composing = false } label: { Label("Close",systemImage:"xmark") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
-   Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To GPT").tag(1); Text("To everyone").tag(2) }
+   Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To \(MeetingData.display("GPT"))").tag(1); Text("To everyone").tag(2) }
     .pickerStyle(.segmented).labelsHidden().frame(maxWidth:440)
    TextEditor(text:$meeting.draft)
     .font(.system(size:13.5,design:.rounded))

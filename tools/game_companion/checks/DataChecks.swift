@@ -2,7 +2,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift SpeechData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift VoiceOverData.swift WebData.swift ObsData.swift VideoLabData.swift HelperData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift SpeechData.swift ThreadData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift VoiceOverData.swift WebData.swift ObsData.swift VideoLabData.swift HelperData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -122,18 +122,18 @@ import Foundation
   precondition(SpeechData.spoken("key github_pat_AbCdEf123456 and sk_live_abcdefgh12 mail me at a.b@x.co now") == "key a key and a key mail me at an email address now")
   // A message: the header is the Narrator's, the words are the author's own voice. Odd or missing tags are the Narrator's and say so.
   let spokenMessage = SpeechData.messageLines(said(9,"GPT","I will check **it** → soon.","2026-10-24T09:00:00Z"),now:now24)
-  precondition(spokenMessage.map { $0.speaker } == ["Narrator","GPT"] && spokenMessage[0].text == "GPT to Everyone, 3 hours ago." && spokenMessage[1].text == "I will check it to soon.")
+  precondition(spokenMessage.map { $0.speaker } == ["Narrator","GPT"] && spokenMessage[0].text == "Roxy to Everyone, 3 hours ago." && spokenMessage[1].text == "I will check it to soon.")
   let untagged = SpeechData.messageLines(said(10,"?","hi","2026-10-24T11:59:30Z"),now:now24)
   precondition(untagged.map { $0.speaker } == ["Narrator","Narrator"] && untagged[0].text == "An untagged message to Everyone, just now.")
   let lowerTag = SpeechData.messageLines(said(11,"gpt","hello there","2026-10-24T11:00:00Z"),now:now24)
-  precondition(lowerTag[1].speaker == "GPT" && lowerTag[0].text == "GPT to Everyone, 1 hour ago.")
+  precondition(lowerTag[1].speaker == "GPT" && lowerTag[0].text == "Roxy to Everyone, 1 hour ago.")
   precondition(SpeechData.messageLines(said(12,"Chrome Claude","hi","2026-10-24T11:00:00Z"),now:now24)[0].text == "A message tagged Chrome Claude to Everyone, 1 hour ago.")
   let spokenMeeting = SpeechData.meetingLines(held!,now:now24)
   precondition(spokenMeeting.map { $0.id } == Array(0..<spokenMeeting.count) && spokenMeeting.first?.speaker == "Narrator" && spokenMeeting.contains { $0.speaker == "Matthew" } && spokenMeeting.contains { $0.speaker == "GPT" } && spokenMeeting.last?.speaker == "Claude")
   // The read-out: everything the app wrote is the Narrator's; only a person's last post is in their voice.
   let script = SpeechData.meetingScript(board:crewBoard,messages:crewThread,now:now24)
   precondition(script.first?.text == SpeechData.openingLine && script.first?.speaker == "Narrator" && script.last?.text == SpeechData.closingLine && script.last?.speaker == "Narrator")
-  precondition(script.contains { $0.speaker == "Narrator" && $0.text == "2 open items are under GPT's name on the board." } && script.contains { $0.speaker == "Narrator" && $0.text == "Nothing on the board is under Friday's name." })
+  precondition(script.contains { $0.speaker == "Narrator" && $0.text == "2 open items are under Roxy's name on the board." } && script.contains { $0.speaker == "Narrator" && $0.text == "Nothing on the board is under Friday's name." })
   precondition(script.contains { $0.speaker == "Narrator" && $0.text == "Claude's last post, 2 days ago:" } && script.contains { $0.speaker == "Claude" && $0.text == "t" })
   precondition(script.contains { $0.speaker == "Narrator" && $0.text.hasPrefix("3 things need Matthew") })
   precondition(script.contains { $0.speaker == "GPT" && $0.text == "t" } && !script.contains { $0.speaker == "Friday" })
@@ -154,7 +154,16 @@ import Foundation
   let waitingOnly = MeetingData.needs(board:MeetingData.parse("## On the table\n- [Claude] Mine. Status: building\n"),messages:[said(5,"GPT","for you","2026-10-24T11:00:00Z")].map { m in var n = m; n.to = "Matthew"; return n },now:now24)
   precondition(waitingOnly.count == 1)
   let readWaiting = SpeechData.meetingScript(board:MeetingData.parse("## On the table\n- [Claude] Mine. Status: building\n"),messages:waitingOnly.messages,now:now24)
-  precondition(readWaiting.contains { $0.speaker == "Narrator" && $0.text == "GPT wrote to you:" } && readWaiting.contains { $0.speaker == "GPT" && $0.text == "for you" } && !readWaiting.contains { $0.text == "The rest are in the You tab." })
+  precondition(readWaiting.contains { $0.speaker == "Narrator" && $0.text == "Roxy wrote to you:" } && readWaiting.contains { $0.speaker == "GPT" && $0.text == "for you" } && !readWaiting.contains { $0.text == "The rest are in the You tab." })
+  // Nicknames: GPT's tag can carry its names ("GPT (Roxy)", "Carrie (GPT)"), and on screen GPT is called Roxy. "Chrome Claude" is not Claude.
+  precondition(MeetingData.canonical("GPT (Roxy)") == "GPT" && MeetingData.canonical("Carrie (GPT)") == "GPT" && MeetingData.canonical("roxy") == "GPT" && MeetingData.canonical("Friday") == "Friday")
+  precondition(MeetingData.canonical("Chrome Claude") == nil && MeetingData.canonical("Claude") == "Claude" && MeetingData.canonical("?") == nil && MeetingData.canonical("") == nil)
+  precondition(MeetingData.display("GPT") == "Roxy" && MeetingData.display("Claude") == "Claude" && MeetingData.same("GPT (Roxy)","gpt") && !MeetingData.same("Chrome Claude","Claude"))
+  let nick = [said(21,"GPT (Roxy)","hello from roxy","2026-10-24T11:00:00Z")]
+  let nickTab = MeetingData.crew("GPT",board:crewBoard,messages:nick)
+  precondition(nickTab.messages.map { $0.id } == [21] && nickTab.lastPost != nil && ThreadData.filtered(nick,sender:"GPT").count == 1)
+  precondition(SpeechData.messageLines(nick[0],now:now24).map { $0.speaker } == ["Narrator","GPT"])
+  precondition(MeetingData.isMeetingCall(RoomMessage(id:1,author:"Claude Code",to:"",text:"BOARD MEETING. hi",date:now24,url:"")))
   func call(_ author: String,_ to: String,_ text: String) -> RoomMessage { RoomMessage(id:1,author:author,to:to,text:text,date:now24,url:"") }
   precondition(MeetingData.isMeetingCall(call("Matthew","","BOARD MEETING")) && MeetingData.isMeetingCall(call("Matthew","Everyone","Group meeting! Go")))
   precondition(!MeetingData.isMeetingCall(call("Matthew","","Board meetings are cancelled")) && !MeetingData.isMeetingCall(call("Claude","","Board meeting recap: ok")))

@@ -25,6 +25,7 @@ _Last updated: 2026-10-24 by Claude_
 - [Claude → Matthew] Outreach batch 2 (5 follow-ups, nothing sent): pick wording 4 (plain) or 4b (adds one line correcting the July "automatic" wording). Claude recommends 4b. No answer means nothing goes out.
 
 ## Decisions
+- 2026-10-24: Matthew's design direction for the revamp: a little darker with a black accent, everything easy to reach and read, room to add pages, and fun, with his friends (read as the crew). Three looks went to him to pick. Details: notes/app-revamp-plan.md.
 - 2026-10-24: Matthew's decision: Claude and GPT revamp the whole app together. GPT may change app files (tools/game_companion/) on its own branch, and nothing reaches master until Claude has reviewed and confirmed it. Honesty, secrets, Friday's off-limits list and the Moomoo switches are not part of the permission. Plan: notes/app-revamp-plan.md.
 - 2026-10-24: Board trimmed on Matthew's ask ("scroll city"). Every old item is in notes/board-archive-2026-10-24.md in full. From now on: put the point in the first 140 characters (that is all the app shows until a tap), keep an item under about 300 characters, and put longer detail in notes/.
 - 2026-10-21: Two more agent-story lines that named no channel now say "my own store's feed has published a new post every day since August 7" (feed record: 75 posts). The 10-21 agent pack was rebuilt and re-sent as a TikTok draft; delete the earlier one.

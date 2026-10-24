@@ -8,6 +8,28 @@ Written 2026-10-24 by Claude. Public repo: nothing private belongs here.
 called the Meeting Room "scroll city"; the fix there (one screen at a time, tabs, categories, short lines that open on a tap) is the
 model for the rest of the app.
 
+## Design direction (Matthew, 2026-10-24)
+
+"A little darker with a black accent, easily accessible everything, and room ready for expansion. It's time we put an effort into
+our business, why not make it fun and do it with my friends."
+
+- **Darker, black accent.** Deeper background, black buttons and selected states with a visible outline, one small warm colour kept
+  for attention only. Three looks were sent to Matthew to pick from (Midnight, Graphite, Pure black); the winner becomes the theme.
+- **Easily accessible everything:**
+  - Text at least 4.5:1 against its background (the three looks measure 7.5 to 19.8:1); small grey text at least 7:1.
+  - Click targets at least 44 pt (buttons 48 pt); icon-only buttons get an accessibility label and a tooltip.
+  - Never colour alone: every status has a word or an icon as well.
+  - Every page reachable by keyboard (Command-1 to Command-9 plus a way to reach the rest) with a visible focus ring.
+  - Reduce Motion respected; a Text size setting (small, medium, large) that scales the type everywhere.
+  - Anything he uses most is one click from Home; nothing important is hidden behind a scroll or a long press.
+- **Room for expansion:** a new page is one file plus one line in a page list (name, icon, group, view), not edits across five files.
+  The rail is grouped and can grow (a "More" place for the rest). Colours, spacing and type sizes live in one theme file
+  (`HubTheme.swift`) so a re-colour is a one-file change. A **Team** place is left open for later.
+- **Fun, with his friends.** Read first as the crew: Claude, GPT and Friday. Ideas that cost nothing: a face for each of us on our
+  tab, a small celebration when something real happens (first client, first sale, a streak milestone), the board meeting you can
+  hear. If he also means real people joining (sharing the app, roles, what they may see), that is a bigger step with privacy and
+  key-handling questions: this repo is public and every key stays on his Mac. Nothing is shared with anyone until he says so.
+
 ## The working agreement
 
 1. **GPT may change app files** (anything in `tools/game_companion/`) **on its own branch.** One branch per page or batch, named
@@ -46,11 +68,13 @@ model for the rest of the app.
    per page with no change in behaviour, so pages can have single owners. Add the new files to `rebuild.sh`. GPT compile-checks.
 1. **Audit (GPT and Claude, read-only).** For each page: what is cluttered, too long, inconsistent or broken, with a one-line fix.
    Post it in the thread or in `meeting-room/notes/`. Claude merges the two lists into a priority order and confirms the plan.
-2. **Design kit (Claude).** One small file of shared pieces (page header, category card with count, tap-to-open line, stat tile,
-   tab bar) and the spacing and type sizes, written down in `meeting-room/notes/`.
+2. **Design kit (Claude).** The theme file (`HubTheme.swift`: colours, spacing, type sizes, the Text size setting), the page list
+   (name, icon, group, view in one place), and one small file of shared pieces (page header, category card with count,
+   tap-to-open line, stat tile, tab bar), written down in `meeting-room/notes/`.
 3. **Pages in batches.** Each batch is one branch, one owner, a few pages. Each page ends as tabs or categories with short lines.
 4. **Home and navigation.** Home leads with what needs Matthew; the rail gets grouped (for example Business, Stream, Friday).
 5. **Polish.** Compact window, Reduce Motion, keyboard shortcuts, empty and offline states.
+6. **Fun.** The crew's faces, small celebrations for real events, sounds that can be switched off. After the basics land.
 
 ## Pages and proposed owners
 
@@ -75,6 +99,7 @@ Until the split lands (phase 0), nobody edits `Hub.swift`.
 - [ ] Only the owner's files changed; any new `.swift` file is in `rebuild.sh` and `make_gpt_bundle.py`.
 - [ ] One board line says what changed.
 - [ ] Saved settings and data still load.
+- [ ] Accessibility: contrast, 44 pt targets, labels on icon-only buttons, status never by colour alone, keyboard reachable.
 
 ## Cost
 

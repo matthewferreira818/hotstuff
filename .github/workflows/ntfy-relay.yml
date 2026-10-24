@@ -18,6 +18,8 @@ on:
 jobs:
   push:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     timeout-minutes: 5
     steps:
       - name: Send the push
@@ -41,3 +43,19 @@ jobs:
           done
           echo "all attempts failed"
           exit 1
+      # Backup (2026-10-24, his iPhone never buzzed for ntfy): mention him in issue 24 so the GitHub app buzzes.
+      # PUBLIC: fixed wording only, chosen from the title. Never the body, which holds a lead's name and contact.
+      - name: Backup ping through the GitHub app
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: ${{ github.event.client_payload.title }}
+        run: |
+          case "$TITLE" in
+            *LEAD*) NOTE="New ECS lead: reply today. The details are on your leads page." ;;
+            "ORDER PAID"*) NOTE="Order paid: it needs fulfillment. The details are on your orders page." ;;
+            "Order paid"*) NOTE="Order paid and auto-placed with CJ. Nothing to do." ;;
+            *) NOTE="A store alert came in. The details are in ntfy." ;;
+          esac
+          printf '@matthewferreira818 %s\n' "$NOTE" > note.md
+          gh issue comment 24 --repo "$GITHUB_REPOSITORY" --body-file note.md && echo "GitHub backup ping posted"

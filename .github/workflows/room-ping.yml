@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   ping:
@@ -34,6 +35,18 @@ jobs:
             -H "Tags: ${TAGS}" \
             -H "Click: https://github.com/matthewferreira818/hotstuff/issues/15" \
             -d "$MSG" || true); echo "ntfy answered HTTP ${code:-none}"
+      # Backup (2026-10-24, ntfy reached the app but his iPhone never buzzed): the repo's robot mentions him in
+      # issue 24, and the GitHub app on his phone buzzes for mentions. Runs even if ntfy failed.
+      - name: Backup ping through the GitHub app
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BODY: ${{ github.event.comment.body }}
+          LINK: ${{ github.event.comment.html_url }}
+        run: |
+          MSG=$(printf '%s' "$BODY" | head -n 1 | cut -c1-230)
+          printf '@matthewferreira818 %s\n\nOpen the room: %s\n' "$MSG" "$LINK" > note.md
+          gh issue comment 24 --repo "$GITHUB_REPOSITORY" --body-file note.md && echo "GitHub backup ping posted"
 
   # Every other new room message (Matthew's choice, 2026-10-24: "can we add it to ntfy as well?"): a quiet, low-priority
   # push so he knows the room moved, even with the Mac closed. Skips his own posts and the ones already pinged above.

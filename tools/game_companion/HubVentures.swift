@@ -87,50 +87,31 @@ extension CompanionInterfaceView {
 
  var hubSystems: some View {
   ScrollView {
-   VStack(alignment:.leading,spacing:14) {
-    HStack(spacing:10) {
-     if let runs = ventures.runs {
-      if ventures.alerts.isEmpty { hubPill("ALL \(runs.count) RAN WITHOUT ERRORS",tint:HubColor.green) }
-      else { hubPill("\(ventures.alerts.count) NEED ATTENTION",tint:Noir.crimsonLight) }
+   VStack(alignment:.leading,spacing:16) {
+    VStack(alignment:.leading,spacing:6) {
+     HStack(spacing:10) {
+      Text("Systems").font(.system(size:20,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+      Spacer(minLength:4)
+      Button { Task { await ventures.refresh(force:true) } } label: {
+       Label(ventures.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise")
+        .font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+        .padding(.horizontal,12).frame(minHeight:44).systemsControl()
+      }
+      .buttonStyle(.plain).disabled(ventures.loading || DesignPreview.enabled)
+      .accessibilityLabel("Refresh the loaded runs, repository issues and catalog")
      }
-     if let open = ventures.issues?.count, open > 0 {
-      hubPill("\(open) OPEN ALERT\(open == 1 ? "" : "S")",tint:HubColor.amber)
-     }
-     Spacer()
-     hubRefreshButton()
+     Text("Read-only results from the public repository")
+      .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
     }
-    hubCatalogCard
-    hubIssuesCard
-    if let runs = ventures.runs {
-     ForEach(runs) { run in hubRunRow(run) }
-     Text("Read from GitHub's public status of your repo. Each line is that automation's latest run. A green tick means it ran without crashing, not that it posted: when something it needs is out (like X credits), it raises an alert above instead. Nothing here can start, stop or change an automation.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
-    } else if ventures.failed {
-     hubOffline("GitHub")
-    } else {
-     ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(50)
-    }
+    SystemsSnapshotDashboard(runs:ventures.runs,issues:ventures.issues,catalog:ventures.catalog,loading:ventures.loading,lastAttempt:ventures.lastRefresh == .distantPast ? nil : ventures.lastRefresh,ago:hubAgo)
    }
-   .padding(.horizontal,32).padding(.bottom,30)
+   .padding(.horizontal,hub.compact ? 16 : 32).padding(.top,4).padding(.bottom,24)
   }
-  .scrollIndicators(.hidden)
+  .scrollIndicators(.hidden).background(HubTheme.background)
  }
 
  func hubRunRow(_ run: AutomationRun) -> some View {
-  let icon = run.isFailing ? "xmark.circle.fill" : (run.isRunning ? "arrow.triangle.2.circlepath.circle.fill" : "checkmark.circle.fill")
-  let tint = run.isFailing ? Noir.crimsonLight : (run.isRunning ? HubColor.amber : HubColor.green)
-  return HStack(spacing:14) {
-   Image(systemName:icon).font(.system(size:22)).foregroundStyle(tint)
-   VStack(alignment:.leading,spacing:2) {
-    Text(run.name).font(.system(size:14.5,weight:.semibold,design:.rounded)).foregroundStyle(Color.white)
-    Text("Last run \(hubAgo(run.created))\(run.isFailing ? " · it failed" : (run.isRunning ? " · running now" : ""))").font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.55))
-   }
-   Spacer()
-   if let url = URL(string:run.url), !run.url.isEmpty {
-    Button("Open") { NSWorkspace.shared.open(url) }.buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-   }
-  }
-  .padding(14)
-  .hubCard()
+  SystemsLoadedRunRow(run:run,ago:hubAgo)
  }
 }
 
@@ -584,6 +565,301 @@ private extension View {
    .overlay(RoundedRectangle(cornerRadius:18).stroke(HubTheme.line,lineWidth:1))
  }
  func ecsFeedControl() -> some View {
+  background(HubTheme.control,in:RoundedRectangle(cornerRadius:12))
+   .overlay(RoundedRectangle(cornerRadius:12).stroke(HubTheme.controlOutline,lineWidth:1))
+ }
+}
+
+private enum SystemsRunCategory { case success, review, active, other, unavailable }
+
+private struct SystemsRunResult {
+ let category: SystemsRunCategory
+ let label: String
+ let icon: String
+ var tint: Color {
+  switch category {
+  case .success: return HubTheme.green
+  case .review: return HubTheme.amber
+  case .active: return HubTheme.blue
+  case .other,.unavailable: return HubTheme.subtext
+  }
+ }
+
+ static func read(_ run: AutomationRun) -> SystemsRunResult {
+  let status = run.status.trimmingCharacters(in:.whitespacesAndNewlines).lowercased()
+  let conclusion = run.conclusion.trimmingCharacters(in:.whitespacesAndNewlines).lowercased()
+  if status == "completed" {
+   switch conclusion {
+   case "success": return Self(category:.success,label:"Completed successfully",icon:"checkmark.circle")
+   case "failure": return Self(category:.review,label:"Failed",icon:"xmark.circle")
+   case "timed_out": return Self(category:.review,label:"Timed out",icon:"clock.badge.exclamationmark")
+   case "action_required": return Self(category:.review,label:"Action required",icon:"hand.raised")
+   case "stale": return Self(category:.review,label:"Stale result",icon:"clock.badge.exclamationmark")
+   case "startup_failure": return Self(category:.review,label:"Startup failure",icon:"xmark.circle")
+   case "cancelled": return Self(category:.other,label:"Cancelled",icon:"minus.circle")
+   case "skipped": return Self(category:.other,label:"Skipped",icon:"forward.end.circle")
+   case "neutral": return Self(category:.other,label:"Neutral",icon:"minus.circle")
+   default: return Self(category:.unavailable,label:"Conclusion unavailable",icon:"questionmark.circle")
+   }
+  }
+  switch status {
+  case "in_progress": return Self(category:.active,label:"In progress in loaded data",icon:"arrow.triangle.2.circlepath")
+  case "queued": return Self(category:.active,label:"Queued in loaded data",icon:"clock")
+  case "requested": return Self(category:.active,label:"Requested in loaded data",icon:"clock")
+  case "waiting": return Self(category:.active,label:"Waiting in loaded data",icon:"clock")
+  case "pending": return Self(category:.active,label:"Pending in loaded data",icon:"clock")
+  case "expected": return Self(category:.active,label:"Expected in loaded data",icon:"clock")
+  default: return Self(category:.unavailable,label:"Status unavailable",icon:"questionmark.circle")
+  }
+ }
+}
+
+private enum SystemsSnapshotTab: String,CaseIterable {
+ case overview = "Overview", runs = "Runs", issues = "Issues"
+}
+
+@MainActor private final class SystemsSnapshotPageState: ObservableObject {
+ @Published var tab = SystemsSnapshotTab.overview
+ @Published var allRuns = false
+ @Published var allIssues = false
+}
+
+// The reader retains caches on failure. Counts below describe only the values it returned and kept.
+private struct SystemsSnapshotDashboard: View {
+ let runs: [AutomationRun]?
+ let issues: [OpenAlert]?
+ let catalog: CatalogStats?
+ let loading: Bool
+ let lastAttempt: Date?
+ let ago: (Date?) -> String
+ @StateObject private var page = SystemsSnapshotPageState()
+
+ var body: some View {
+  VStack(alignment:.leading,spacing:16) {
+   HStack(spacing:6) {
+    ForEach(SystemsSnapshotTab.allCases,id:\.self) { option in
+     Button { page.tab = option } label: {
+      Text(option.rawValue).font(.system(size:12.5,weight:page.tab == option ? .semibold : .medium,design:.rounded))
+       .foregroundStyle(page.tab == option ? HubTheme.text : HubTheme.subtext)
+       .frame(maxWidth:.infinity,minHeight:44)
+       .background(page.tab == option ? HubTheme.control : HubTheme.card,in:RoundedRectangle(cornerRadius:11))
+       .overlay(RoundedRectangle(cornerRadius:11).stroke(page.tab == option ? HubTheme.controlOutline : HubTheme.line,lineWidth:1))
+     }
+     .buttonStyle(.plain).accessibilityAddTraits(page.tab == option ? .isSelected : [])
+    }
+   }
+   .accessibilityElement(children:.contain).accessibilityLabel("Systems views")
+   switch page.tab {
+   case .overview: overview
+   case .runs: runList
+   case .issues: issueList
+   }
+   VStack(alignment:.leading,spacing:4) {
+    Text(lastAttempt.map { "Last refresh attempt: \($0.formatted(date:.abbreviated,time:.shortened))" } ?? "No refresh attempt recorded in this session.")
+    Text("Earlier loaded values can remain after a failed refresh. A successful run result does not prove a post or other external action happened. Open issues may explain missing access or credits.")
+   }
+   .font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+  }
+ }
+
+ private var overview: some View {
+  VStack(alignment:.leading,spacing:12) {
+   if let runs = runs {
+    let states = runs.map(SystemsRunResult.read)
+    let review = states.filter { $0.category == .review }.count
+    let unknown = states.filter { $0.category == .unavailable }.count
+    let active = states.filter { $0.category == .active }.count
+    let success = states.filter { $0.category == .success }.count
+    let other = states.filter { $0.category == .other }.count
+    Button { page.tab = .runs } label: {
+     summary("Latest loaded runs",value:review > 0 ? "\(review) results to review" : (unknown > 0 ? "\(unknown) results unavailable" : "\(runs.count) loaded run results"),detail:"\(success) success · \(active) active · \(other) other\(unknown > 0 ? " · \(unknown) unavailable" : "")",tint:review > 0 ? HubTheme.amber : HubTheme.text,opens:true)
+    }
+    .buttonStyle(.plain).accessibilityHint("Opens the loaded workflow results")
+   } else {
+    unavailable("Run results",detail:"Use Refresh to try the repository's workflow runs again.")
+   }
+   if let issues = issues {
+    Button { page.tab = .issues } label: {
+     summary("Repository issues",value:"\(issues.count) loaded open issues",detail:issues.contains { $0.id == 15 } ? "Includes Meeting Room #15; issues are not all outages." : "Issues can be discussions, requests or outages.",tint:HubTheme.text,opens:true)
+    }
+    .buttonStyle(.plain).accessibilityHint("Opens the loaded repository issues")
+   } else {
+    unavailable("Repository issues",detail:"Use Refresh to try the open-issue list again.")
+   }
+   catalogSummary
+  }
+ }
+
+ private var catalogSummary: some View {
+  Group {
+   if let catalog = catalog {
+    VStack(alignment:.leading,spacing:7) {
+     Text("Catalog record").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(HubTheme.subtext)
+     Text("\(catalog.count) products · \(catalog.categories) categories")
+      .font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+     if let date = catalog.refreshed {
+      Text("Recorded refresh \(ago(date))\(catalog.isStale() ? " · over five days old" : "")")
+       .font(.system(size:12,design:.rounded)).foregroundStyle(catalog.isStale() ? HubTheme.amber : HubTheme.subtext)
+     } else {
+      Text("Refresh date unknown").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(HubTheme.amber)
+     }
+     Text("Date of the matching product-refresh commit; supplier availability is not verified.")
+      .font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+    }
+    .padding(16).frame(maxWidth:.infinity,alignment:.leading).systemsCard()
+   } else {
+    unavailable("Catalog record",detail:"Use Refresh to try the product list and its recorded refresh date again.")
+   }
+  }
+ }
+
+ private var runList: some View {
+  VStack(alignment:.leading,spacing:12) {
+   heading("Latest loaded runs",detail:"From the 60 most recent repository runs, grouped by workflow name. Some workflows may be absent.")
+   if let runs = runs {
+    if runs.isEmpty {
+     empty("No run records were returned in the loaded response.")
+    } else {
+     let sorted = runs.sorted {
+      let a = rank(SystemsRunResult.read($0).category), b = rank(SystemsRunResult.read($1).category)
+      return a == b ? ($0.created ?? .distantPast) > ($1.created ?? .distantPast) : a < b
+     }
+     Text("Review and unavailable results first; times show when runs were created.")
+      .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+     ForEach(page.allRuns ? sorted : Array(sorted.prefix(2))) { run in SystemsLoadedRunRow(run:run,ago:ago) }
+     if sorted.count > 2 { showAll(page.allRuns,title:"runs",count:sorted.count) { page.allRuns.toggle() } }
+    }
+   } else {
+    unavailable("Run results",detail:"The workflow-run request has no loaded data. Use Refresh to try again.")
+   }
+  }
+ }
+
+ private var issueList: some View {
+  VStack(alignment:.leading,spacing:12) {
+   heading("Loaded repository issues",detail:"Up to 30 open issues. This list includes discussions such as Meeting Room #15, not only incidents.")
+   if let issues = issues {
+    if issues.isEmpty {
+     empty("No open issues were returned in the loaded response.")
+    } else {
+     ForEach(page.allIssues ? issues : Array(issues.prefix(3))) { issue in
+      VStack(alignment:.leading,spacing:8) {
+       HStack(alignment:.top,spacing:10) {
+        VStack(alignment:.leading,spacing:5) {
+         Text("#\(issue.id) · \(issue.id == 15 ? "Meeting Room" : "Open issue")")
+          .font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(HubTheme.subtext)
+         Text(issue.title).font(.system(size:13,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+          .lineLimit(2).multilineTextAlignment(.leading)
+        }
+        Spacer(minLength:4)
+        if let url = URL(string:issue.url), !issue.url.isEmpty {
+         Button { NSWorkspace.shared.open(url) } label: {
+          Image(systemName:"arrow.up.right").frame(width:44,height:44).foregroundStyle(HubTheme.text).systemsControl()
+         }
+         .buttonStyle(.plain).disabled(DesignPreview.enabled)
+         .accessibilityLabel("Open issue \(issue.id): \(issue.title)")
+        }
+       }
+       Text(issue.since.map { "Opened \($0.formatted(date:.abbreviated,time:.shortened))" } ?? "Issue creation time unavailable")
+        .font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+      }
+      .padding(16).frame(maxWidth:.infinity,alignment:.leading).systemsCard()
+     }
+     if issues.count > 3 { showAll(page.allIssues,title:"issues",count:issues.count) { page.allIssues.toggle() } }
+    }
+   } else {
+    unavailable("Repository issues",detail:"The issue request has no loaded data. Use Refresh to try again.")
+   }
+  }
+ }
+
+ private func summary(_ title: String,value: String,detail: String,tint: Color,opens: Bool) -> some View {
+  HStack(alignment:.center,spacing:10) {
+   VStack(alignment:.leading,spacing:6) {
+    Text(title).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(HubTheme.subtext)
+    Text(value).font(.system(size:17,weight:.semibold,design:.rounded)).foregroundStyle(tint)
+    Text(detail).font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+     .fixedSize(horizontal:false,vertical:true)
+   }
+   Spacer(minLength:4)
+   if opens { Image(systemName:"chevron.right").font(.system(size:11,weight:.semibold)).foregroundStyle(HubTheme.subtext) }
+  }
+  .padding(16).frame(maxWidth:.infinity,minHeight:88,alignment:.leading).systemsCard()
+ }
+
+ private func heading(_ title: String,detail: String) -> some View {
+  VStack(alignment:.leading,spacing:4) {
+   Text(title).font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text).accessibilityAddTraits(.isHeader)
+   Text(detail).font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+  }
+ }
+
+ private func unavailable(_ title: String,detail: String) -> some View {
+  VStack(alignment:.leading,spacing:8) {
+   if loading { ProgressView().controlSize(.small) }
+   Text(loading ? "Loading \(title.lowercased())…" : "\(title) unavailable")
+    .font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+   Text(loading ? "Reading the public repository data." : detail)
+    .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+  }
+  .padding(16).frame(maxWidth:.infinity,minHeight:100,alignment:.leading).systemsCard()
+ }
+
+ private func empty(_ text: String) -> some View {
+  Text(text).font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.subtext)
+   .padding(18).frame(maxWidth:.infinity,alignment:.leading).systemsCard()
+ }
+
+ private func showAll(_ expanded: Bool,title: String,count: Int,action: @escaping () -> Void) -> some View {
+  Button(action:action) {
+   Label(expanded ? "Show fewer \(title)" : "Show all \(count) loaded \(title)",systemImage:expanded ? "chevron.up" : "chevron.down")
+    .font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+    .frame(maxWidth:.infinity,minHeight:44,alignment:.leading)
+  }
+  .buttonStyle(.plain)
+ }
+
+ private func rank(_ category: SystemsRunCategory) -> Int {
+  switch category { case .review: return 0; case .unavailable: return 1; case .active: return 2; case .other: return 3; case .success: return 4 }
+ }
+}
+
+private struct SystemsLoadedRunRow: View {
+ let run: AutomationRun
+ let ago: (Date?) -> String
+ var body: some View {
+  let state = SystemsRunResult.read(run)
+  return VStack(alignment:.leading,spacing:8) {
+   HStack(alignment:.top,spacing:10) {
+    Image(systemName:state.icon).font(.system(size:18)).foregroundStyle(state.tint).accessibilityHidden(true)
+    VStack(alignment:.leading,spacing:5) {
+     Text(run.name).font(.system(size:13,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text).lineLimit(2)
+     Text(state.label).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(state.tint)
+    }
+    Spacer(minLength:4)
+    if let url = URL(string:run.url), !run.url.isEmpty {
+     Button { NSWorkspace.shared.open(url) } label: {
+      Image(systemName:"arrow.up.right").frame(width:44,height:44).foregroundStyle(HubTheme.text).systemsControl()
+     }
+     .buttonStyle(.plain).disabled(DesignPreview.enabled)
+     .accessibilityLabel("Open run details for \(run.name)")
+    }
+   }
+   Text(run.created.map { "Run created \($0.formatted(date:.abbreviated,time:.shortened)) · \(ago($0))" } ?? "Run creation time unavailable")
+    .font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+   Text("Status: \(run.status.isEmpty ? "not supplied" : run.status) · conclusion: \(run.conclusion.isEmpty ? "not supplied" : run.conclusion)")
+    .font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+  }
+  .padding(16).frame(maxWidth:.infinity,alignment:.leading).systemsCard()
+ }
+}
+
+private extension View {
+ func systemsCard() -> some View {
+  background(HubTheme.card,in:RoundedRectangle(cornerRadius:18))
+   .overlay(RoundedRectangle(cornerRadius:18).stroke(HubTheme.line,lineWidth:1))
+ }
+ func systemsControl() -> some View {
   background(HubTheme.control,in:RoundedRectangle(cornerRadius:12))
    .overlay(RoundedRectangle(cornerRadius:12).stroke(HubTheme.controlOutline,lineWidth:1))
  }

@@ -176,6 +176,8 @@ money mode still applies. Don't promise abilities Claude doesn't have.
 - `meeting-room/BOARD.md` — the shared board for every Claude chat, GPT (his ChatGPT Project) and Friday; Matthew sees it
   in the app's Meeting Room page. Chats can't see each other, so this is the room: read it at the start of a job, update
   it before you stop, one owner per item. The repo is public, so nothing private on it. Rules: `meeting-room/README.md`.
+  Keep items short (the point in the first 140 characters, under about 300 in all; longer detail goes in `meeting-room/notes/`):
+  Matthew reads it in the app's tabs, and on 2026-10-24 it was trimmed from 25 KB to 7 KB for being "scroll city".
   **Messages live in GitHub issue 15** (locked; Claude, GPT and Matthew all post through the owner's account, so every message
   starts with a tag like `**[Claude → GPT]**`). Read it with the board at the start of a job; a `**[Claude → Matthew]**`
   message sends a push to his phone, which is how to ping him. The daily morning routine includes a room check.

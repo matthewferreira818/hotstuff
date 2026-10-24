@@ -9,7 +9,7 @@ EXE=$(defaults read "$APP/Contents/Info" CFBundleExecutable)
 MACOS=$(sw_vers -productVersion | cut -d. -f1)
 TMP=$(mktemp -d)
 
-echo "Building Friday (takes a minute)…"
+echo "Building The Helm (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
 SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,SpeechData,ThreadData,MeetingVoice,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,Helper,FridayHands,Hub,HubTheme,HubShell,HubHome,HubStocks,HubVentures,HubLaunchpad,HubGame,HubAccounts,HubHelpers}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
@@ -34,13 +34,13 @@ ditto -c -k --keepParent "$APP" "$PROJECT/outputs/GameCompanion-backup.zip"
 cp "$TMP/$EXE" "$APP/Contents/MacOS/$EXE"
 cp "${SOURCES[@]}" "$PROJECT/outputs/"
 
-# Branding (Matthew, 2026-10-14: "name it Friday, and surprise me with the icon"): the app is called Friday, with the icon drawn in icon/.
+# Branding (Matthew, 2026-10-14: "name it Friday, and surprise me with the icon"; renamed 2026-10-24: the app is now called The Helm, and Friday is the voice inside it). The icon is still the one drawn in icon/.
 # Only the display name and the icon change. The app ID, the file name and the saved data stay exactly as they were, so macOS keeps its
 # permissions and nothing is lost. This runs before signing, so the signature covers it.
 PLIST="$APP/Contents/Info.plist"
-setkey() { /usr/libexec/PlistBuddy -c "Set :$1 $2" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Add :$1 string $2" "$PLIST"; }
-setkey CFBundleName Friday || true
-setkey CFBundleDisplayName Friday || true
+setkey() { /usr/libexec/PlistBuddy -c "Set :$1 \"$2\"" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Add :$1 string \"$2\"" "$PLIST"; }
+setkey CFBundleName "The Helm" || true
+setkey CFBundleDisplayName "The Helm" || true
 if [ -f "$DIR/icon/Friday-1024.png" ]; then
  SET="$TMP/Friday.iconset"
  mkdir -p "$SET"
@@ -73,5 +73,5 @@ fi
 
 touch "$APP"
 killall Dock 2>/dev/null || true   # the Dock restarts at once; it picks up the new name and icon
-echo "Done. Open Friday from the Desktop icon, then redo the screen permission."
+echo "Done. Open The Helm from the Desktop icon, then redo the screen permission."
 echo "(If anything is wrong, the old app is saved as outputs/GameCompanion-backup.zip)"

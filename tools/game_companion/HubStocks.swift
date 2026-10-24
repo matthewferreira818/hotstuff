@@ -26,8 +26,9 @@ extension CompanionInterfaceView {
       .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
     }
     HStack(spacing:8) {
-     hubStockChoice("Dip robot",index:0)
-     hubStockChoice("Momentum robot",index:1)
+     hubStockChoice("Dip",index:0).accessibilityLabel("Dip robot")
+     hubStockChoice("Momentum",index:1).accessibilityLabel("Momentum robot")
+     hubStockChoice("Hot hands",index:2).accessibilityLabel("Hot hands robot")
     }
     .accessibilityElement(children:.contain).accessibilityLabel("Choose a practice robot")
     if let robot = stocks.current {
@@ -37,7 +38,7 @@ extension CompanionInterfaceView {
       if stocks.loading { ProgressView().controlSize(.small) }
       Text(stocks.loading ? "Loading this robot's snapshot…" : "This robot's snapshot is unavailable")
        .font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
-      Text(stocks.loading ? "Reading the public practice account." : "Use Refresh to try again. The other robot may still have a snapshot.")
+      Text(stocks.loading ? "Reading the public practice account." : "Use Refresh to try again. Other robots may still have snapshots.")
        .font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.subtext)
      }
      .padding(20).frame(maxWidth:.infinity,minHeight:140,alignment:.leading)

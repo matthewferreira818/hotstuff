@@ -110,3 +110,11 @@ Until the split lands (phase 0), nobody edits `Hub.swift`.
 
 Big multi-agent runs burn Matthew's usage (two review workflows hit his monthly limit on 2026-10-14). Keep reviews small: no more
 than about 10 agents or a million tokens without asking him first.
+
+## North star (2026-10-24)
+
+`meeting-room/notes/design/north-star.png` (and `north-star.html`, the same mock as code) is the target for Home and the sidebar:
+the grouped, labelled sidebar with Jump to…; Home leading with Needs you, then one tile per venture (plus a dashed "Add a venture"
+tile), then the crew strip with an orb each for Claude, Roxy and Friday and the Call a board meeting button. Midnight theme, subtle
+crimson and blue highlights, black buttons with an outline. It is a layout target with sample labels, not real numbers: build the real
+thing from the app's own data, and surprise Matthew by doing it better. Roxy builds the look; Claude keeps the Meeting Room and voice.

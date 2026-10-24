@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-24 from commit 799d142. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit 5571af2. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -12416,49 +12416,38 @@ extension CompanionInterfaceView {
 
  var hubEcs: some View {
   ScrollView {
-   VStack(alignment:.leading,spacing:18) {
-    HStack(spacing:10) {
-     hubPill("THE SITE'S OWN FEED",tint:HubColor.violet)
-     Spacer()
-     Button { if let url = URL(string:"https://findhotstuff.com/automation/") { NSWorkspace.shared.open(url) } } label: { Label("Open the site",systemImage:"arrow.up.right.square") }
-      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-     hubRefreshButton()
+   VStack(alignment:.leading,spacing:16) {
+    VStack(alignment:.leading,spacing:6) {
+     Text("East Coast Social").font(.system(size:20,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+     Text("Daily cards published to the site's automation/feed")
+      .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
     }
-    if let f = ventures.feed {
-     let streak = f.streakDays()
-     LazyVGrid(columns:[GridItem(.adaptive(minimum:200),spacing:14)],spacing:14) {
-      hubStat("Feed streak",streak.map { "\($0) days" } ?? "Not claimed",streak != nil ? "A new post every day since \(f.since)" : "A day is missing, or the latest post is old",tint:streak != nil ? HubColor.green : HubColor.amber)
-      hubStat("Posts published",String(f.total),"since \(f.since)",tint:Color.white)
-      hubStat("Latest post",f.last,"the feed's newest card",tint:Color.white)
+    HStack(spacing:8) {
+     Button {
+      if let url = URL(string:"https://findhotstuff.com/automation/") { NSWorkspace.shared.open(url) }
+     } label: {
+      Label("Open ECS",systemImage:"arrow.up.right.square")
+       .font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+       .frame(maxWidth:.infinity,minHeight:44).ecsFeedControl()
      }
-     if let days = streak {
-      VStack(alignment:.leading,spacing:6) {
-       Text("Honest wording for anything you post").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.55))
-       Text("\"my own store's feed has published a new post every day for \(days) days\" (findhotstuff.com/automation)").font(.system(size:13.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.9)).textSelection(.enabled)
-       Text("It counts the site's feed, not any social page.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))
-      }
-      .padding(16).frame(maxWidth:.infinity,alignment:.leading).hubCard()
+     .buttonStyle(.plain).disabled(DesignPreview.enabled)
+     .accessibilityHint("Opens the existing East Coast Social site in your browser")
+     Button { Task { await ventures.refresh(force:true) } } label: {
+      Label(ventures.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise")
+       .font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+       .frame(maxWidth:.infinity,minHeight:44).ecsFeedControl()
      }
-     HStack(alignment:.top,spacing:14) {
-      ForEach(f.cards) { card in
-       VStack(alignment:.leading,spacing:8) {
-        AsyncImage(url:URL(string:"\(VentureData.feed)\(card.image)")) { image in image.resizable().scaledToFit() } placeholder: { ProgressView().frame(height:120) }
-         .clipShape(RoundedRectangle(cornerRadius:14,style:.continuous))
-        Text(card.date).font(.system(size:11,weight:.semibold,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
-        Text(card.message).font(.system(size:12.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.85)).lineLimit(3)
-       }
-       .padding(12).frame(maxWidth:.infinity,alignment:.topLeading).hubCard()
-      }
-     }
-    } else if ventures.failed {
-     hubOffline("the site's feed files")
-    } else {
-     ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(50)
+     .buttonStyle(.plain).disabled(ventures.loading || DesignPreview.enabled)
+     .accessibilityLabel("Refresh the site's feed data")
+    }
+    EcsFeedDashboard(feed:ventures.feed,loading:ventures.loading) { text in
+     NSPasteboard.general.clearContents()
+     return NSPasteboard.general.setString(text,forType:.string)
     }
    }
-   .padding(.horizontal,32).padding(.bottom,30)
+   .padding(.horizontal,hub.compact ? 16 : 32).padding(.top,4).padding(.bottom,24)
   }
-  .scrollIndicators(.hidden)
+  .scrollIndicators(.hidden).background(HubTheme.background)
  }
 
  var hubSystems: some View {
@@ -12729,6 +12718,239 @@ private extension View {
  func storeSnapshotCard() -> some View {
   background(HubTheme.card,in:RoundedRectangle(cornerRadius:18))
    .overlay(RoundedRectangle(cornerRadius:18).stroke(HubTheme.line,lineWidth:1))
+ }
+}
+
+private enum EcsFeedTab: String,CaseIterable {
+ case overview = "Overview", cards = "Feed cards", wording = "Wording"
+}
+
+@MainActor private final class EcsFeedPageState: ObservableObject {
+ @Published var tab = EcsFeedTab.overview
+ @Published var openedCards: Set<String> = []
+ @Published var copyNote = ""
+}
+
+// These counts and claims describe the site's own daily feed cards, never delivery to a social page.
+private struct EcsFeedDashboard: View {
+ let feed: FeedStats?
+ let loading: Bool
+ let copyWording: (String) -> Bool
+ @StateObject private var page = EcsFeedPageState()
+
+ var body: some View {
+  VStack(alignment:.leading,spacing:16) {
+   HStack(spacing:6) {
+    ForEach(EcsFeedTab.allCases,id:\.self) { option in
+     Button { page.tab = option } label: {
+      Text(option.rawValue).font(.system(size:12.5,weight:page.tab == option ? .semibold : .medium,design:.rounded))
+       .foregroundStyle(page.tab == option ? HubTheme.text : HubTheme.subtext)
+       .frame(maxWidth:.infinity,minHeight:44)
+       .background(page.tab == option ? HubTheme.control : HubTheme.card,in:RoundedRectangle(cornerRadius:11))
+       .overlay(RoundedRectangle(cornerRadius:11).stroke(page.tab == option ? HubTheme.controlOutline : HubTheme.line,lineWidth:1))
+     }
+     .buttonStyle(.plain).accessibilityAddTraits(page.tab == option ? .isSelected : [])
+    }
+   }
+   .accessibilityElement(children:.contain).accessibilityLabel("Site-feed views")
+   if let feed = feed {
+    switch page.tab {
+    case .overview: overview(feed)
+    case .cards: cards(feed)
+    case .wording: wordingCard
+    }
+   } else {
+    VStack(alignment:.leading,spacing:8) {
+     if loading { ProgressView().controlSize(.small) }
+     Text(loading ? "Loading the site's feed…" : "Site-feed data unavailable")
+      .font(.system(size:15,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+     Text(loading ? "Reading the daily-card feed." : "Use Refresh to try the feed again, or Open ECS to view the site. Other venture data may still have loaded.")
+      .font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.subtext)
+    }
+    .padding(18).frame(maxWidth:.infinity,minHeight:130,alignment:.leading).ecsFeedCard()
+   }
+   Text("This page measures cards on the site's automation/feed, not posts delivered to a social page.")
+    .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+  }
+  .onChange(of:wording) { _,_ in page.copyNote = "" }
+ }
+
+ private func overview(_ feed: FeedStats) -> some View {
+  let streak = feed.streakDays()
+  return VStack(alignment:.leading,spacing:14) {
+   VStack(alignment:.leading,spacing:7) {
+    Text("Published site-feed cards").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(HubTheme.subtext)
+    Text(String(feed.total)).font(.system(size:36,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+     .lineLimit(1).minimumScaleFactor(0.6)
+    Text(feed.since.isEmpty ? "First feed date unavailable" : "Site-feed count since \(feed.since)")
+     .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+   }
+   .padding(20).frame(maxWidth:.infinity,alignment:.leading).ecsFeedCard()
+   HStack(alignment:.top,spacing:12) {
+    VStack(alignment:.leading,spacing:7) {
+     Text("Site-feed streak").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(HubTheme.subtext)
+     Text(streak.map { "\($0) days" } ?? "Not claimed")
+      .font(.system(size:22,weight:.bold,design:.rounded)).foregroundStyle(streak == nil ? HubTheme.amber : HubTheme.green)
+      .lineLimit(1).minimumScaleFactor(0.65)
+     Text("Consecutive daily feed cards").font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+      .fixedSize(horizontal:false,vertical:true)
+    }
+    .padding(16).frame(maxWidth:.infinity,minHeight:120,alignment:.topLeading).ecsFeedCard()
+    VStack(alignment:.leading,spacing:7) {
+     Text("Newest feed card").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(HubTheme.subtext)
+     Text(feed.last.isEmpty ? "Unavailable" : feed.last)
+      .font(.system(size:19,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+      .lineLimit(1).minimumScaleFactor(0.65)
+     Text("Date recorded in the feed").font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+      .fixedSize(horizontal:false,vertical:true)
+    }
+    .padding(16).frame(maxWidth:.infinity,minHeight:120,alignment:.topLeading).ecsFeedCard()
+   }
+   if let days = streak {
+    Text("The loaded site-feed record supports a daily-card streak of \(days) days.")
+     .font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.subtext)
+   } else {
+    Text("The feed's continuity check did not confirm a current daily run. The published-card count still appears above.")
+     .font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.subtext)
+   }
+  }
+ }
+
+ private func cards(_ feed: FeedStats) -> some View {
+  VStack(alignment:.leading,spacing:12) {
+   heading("Recent site-feed cards",detail:"Loaded recent cards, not the full feed archive")
+   if feed.cards.isEmpty {
+    VStack(alignment:.leading,spacing:8) {
+     Text(loading ? "Reading recent card details…" : "Recent card details unavailable")
+      .font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+     Text("The feed count loaded, but no recent card details were returned. Use Refresh or Open ECS to check the site.")
+      .font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.subtext)
+    }
+    .padding(18).frame(maxWidth:.infinity,alignment:.leading).ecsFeedCard()
+   } else {
+    ForEach(Array(feed.cards.enumerated()),id:\.offset) { index,card in
+     cardRow(card,key:"\(index)-\(card.date)")
+    }
+   }
+  }
+ }
+
+ private func cardRow(_ card: FeedCard,key: String) -> some View {
+  let expanded = page.openedCards.contains(key)
+  let flat = card.message.replacingOccurrences(of:"\n",with:" ").trimmingCharacters(in:.whitespacesAndNewlines)
+  let brief = flat.count > 140 ? String(flat.prefix(140)) + "…" : flat
+  return VStack(alignment:.leading,spacing:12) {
+   Button {
+    if !page.openedCards.insert(key).inserted { page.openedCards.remove(key) }
+   } label: {
+    HStack(alignment:.top,spacing:10) {
+     VStack(alignment:.leading,spacing:5) {
+      Text(card.date.isEmpty ? "Feed-card date unavailable" : card.date)
+       .font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.subtext)
+      Text(brief.isEmpty ? "No caption supplied for this feed card." : brief)
+       .font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.text)
+       .lineLimit(2).multilineTextAlignment(.leading)
+     }
+     Spacer(minLength:4)
+     Image(systemName:expanded ? "chevron.up" : "chevron.down")
+      .font(.system(size:11,weight:.semibold)).foregroundStyle(HubTheme.subtext)
+    }
+    .frame(maxWidth:.infinity,minHeight:44,alignment:.leading).contentShape(Rectangle())
+   }
+   .buttonStyle(.plain)
+   .accessibilityLabel("Site-feed card, \(card.date.isEmpty ? "date unavailable" : card.date). \(brief.isEmpty ? "Caption unavailable" : brief)")
+   .accessibilityHint(expanded ? "Collapses the full caption and image" : "Opens the full caption and image")
+   if expanded {
+    if !card.message.isEmpty {
+     Text(card.message).font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.text)
+      .fixedSize(horizontal:false,vertical:true).textSelection(.enabled)
+    }
+    cardImage(card)
+   }
+  }
+  .padding(16).frame(maxWidth:.infinity,alignment:.leading).ecsFeedCard()
+ }
+
+ @ViewBuilder private func cardImage(_ card: FeedCard) -> some View {
+  if card.image.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {
+   imageState("No image supplied for this feed card.",loading:false)
+  } else if DesignPreview.enabled {
+   imageState("Site-feed image preview",loading:false)
+  } else if let url = URL(string:"\(VentureData.feed)\(card.image)") {
+   AsyncImage(url:url) { phase in
+    switch phase {
+    case .success(let image):
+     image.resizable().scaledToFit().frame(maxWidth:.infinity,maxHeight:300)
+      .clipShape(RoundedRectangle(cornerRadius:12))
+      .accessibilityLabel("Site-feed image for \(card.date.isEmpty ? "an undated card" : card.date)")
+    case .failure: imageState("The feed-card image couldn't load. The caption is shown above.",loading:false)
+    default: imageState("Loading the feed-card image…",loading:true)
+    }
+   }
+  } else {
+   imageState("Feed-card image address unavailable.",loading:false)
+  }
+ }
+
+ private func imageState(_ title: String,loading: Bool) -> some View {
+  HStack(spacing:10) {
+   if loading { ProgressView().controlSize(.small) }
+   Text(title).font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+  }
+  .padding(14).frame(maxWidth:.infinity,minHeight:64,alignment:.leading)
+  .background(HubTheme.control,in:RoundedRectangle(cornerRadius:12))
+ }
+
+ private var wording: String {
+  guard let feed = feed else { return "" }
+  if let days = feed.streakDays() {
+   return "My own store's site feed has published a new card every day for \(days) days (findhotstuff.com/automation/)."
+  }
+  let since = feed.since.isEmpty ? "" : " since \(feed.since)"
+  let through = feed.last.isEmpty ? "" : "; the latest feed-card date is \(feed.last)"
+  return "My own store's site feed records \(feed.total) published cards\(since)\(through) (findhotstuff.com/automation/)."
+ }
+
+ private var wordingCard: some View {
+  VStack(alignment:.leading,spacing:12) {
+   heading("Wording for the site feed",detail:"Describes the loaded daily-card record")
+   Text(wording).font(.system(size:14,design:.rounded)).foregroundStyle(HubTheme.text)
+    .fixedSize(horizontal:false,vertical:true).textSelection(.enabled)
+   Text("This wording describes cards published to automation/feed. It makes no claim about delivery to a social page.")
+    .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+   Button {
+    page.copyNote = copyWording(wording) ? "Wording copied." : "Couldn't copy the wording. You can select the text and copy it."
+   } label: {
+    Label("Copy wording",systemImage:"doc.on.doc")
+     .font(.system(size:12.5,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+     .frame(maxWidth:.infinity,minHeight:44).ecsFeedControl()
+   }
+   .buttonStyle(.plain).disabled(DesignPreview.enabled)
+   .accessibilityHint("Copies the displayed wording to your clipboard")
+   if !page.copyNote.isEmpty {
+    Text(page.copyNote).font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+   }
+  }
+  .padding(18).frame(maxWidth:.infinity,alignment:.leading).ecsFeedCard()
+ }
+
+ private func heading(_ title: String,detail: String) -> some View {
+  VStack(alignment:.leading,spacing:4) {
+   Text(title).font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+    .accessibilityAddTraits(.isHeader)
+   Text(detail).font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+  }
+ }
+}
+
+private extension View {
+ func ecsFeedCard() -> some View {
+  background(HubTheme.card,in:RoundedRectangle(cornerRadius:18))
+   .overlay(RoundedRectangle(cornerRadius:18).stroke(HubTheme.line,lineWidth:1))
+ }
+ func ecsFeedControl() -> some View {
+  background(HubTheme.control,in:RoundedRectangle(cornerRadius:12))
+   .overlay(RoundedRectangle(cornerRadius:12).stroke(HubTheme.controlOutline,lineWidth:1))
  }
 }
 ```
@@ -14786,7 +15008,7 @@ _Last updated: 2026-10-24 by Claude_
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [GPT] Room monitoring: design approved with changes (notes/helm-monitoring-design.md). Home has landed, so slice 1 (logic file plus checks, no notifications) can start. Nothing paid. Status: assigned
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
-- [GPT] Store page is on master (Claude reviewed; Mac compile of c809b97 exit 0, 28 warnings; not launch-tested). Next: ECS, then Systems, then Hot hands on Stocks if its snapshot exists. Compile on Matthew's Mac before each merge. Status: building
+- [GPT] ECS page is on master (Claude reviewed; Mac compile of 5e04f48 exit 0, 28 warnings; not launch-tested). Next: Systems, then Hot hands on Stocks if its snapshot exists, then monitor slice 1. Compile on Matthew's Mac before each merge. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
 - [Claude] Voice for the room, Call a board meeting, Roxy as GPT's name on screen, send times on messages: on master, compile-verified on Matthew's Mac (voice and foundation, 93177cd); the send-times change (351633a) is not compiled yet. Live on his Mac after Update Friday. Status: waiting

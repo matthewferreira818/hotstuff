@@ -87,6 +87,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
 @MainActor final class HubModel: ObservableObject {
  @Published var section: HubSection = .home
  @Published var query = ""
+ @Published var jumpQuery = ""
+ @Published var jumpPresented = false
  // True when the window is narrow (under 720 points): a slimmer rail and top bar, so the window can be shrunk a lot.
  @Published var compact = false
  // Which card or button the pointer is over, so it can lift a little. Empty means none.

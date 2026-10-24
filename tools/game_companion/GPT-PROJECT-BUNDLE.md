@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-24 from commit 37cf2a2. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit 59b6812. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -2172,7 +2172,7 @@ struct CompanionInterfaceView: View {
   .focusEffectDisabled()
   .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; vods.attach(clips,stream:stream); autopilot.attach(clips:clips,stream:stream,vods:vods,live:live,feed:feed); live.vods = vods; voiceover.attach(clips:clips,live:live,feed:feed); live.voiceover = voiceover; live.meeting = meeting; hands.attach(live); lab.attach(voiceover); helper.attach(hands:hands,voice:voiceover); live.obs = obs; obs.approve = { [hands] title,detail in await hands.approval.ask(title,detail:detail) }; chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); voice.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
-  .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh() } }
+  .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh(minGap:295) } }
   .onDisappear { stopAll(); autopilot.pause() }
   .onChange(of:conversation.page) { _,page in
    c.handsFree = false; c.stopMic(); c.cancelResponse(); c.automatic = false; c.history.removeAll(); c.reply = ""; c.input = ""; c.unloadModel()
@@ -14301,7 +14301,7 @@ _Last updated: 2026-10-24 by Claude_
 
 ## On the table
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
-- [GPT] MoneyHub redesign, piece 1: grouped sidebar with Jump to… and a shared Midnight header on gpt/moneyhub-sidebar (branch exists, no code yet as of 1:02 PM Moncton). Then Home and the business pages. Compile on Matthew's Mac before every merge request. Status: building
+- [GPT] MoneyHub redesign: piece 1 (grouped sidebar, Jump to…) is on master since 4:31 PM Moncton; Mac compile exit 0, not launch-tested. Next: Home, then business pages. Compile on Matthew's Mac before each merge. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
 - [Claude] Voice for the room, Call a board meeting, Roxy as GPT's name on screen, send times on messages: on master, compile-verified on Matthew's Mac (voice and foundation, 93177cd); the send-times change (351633a) is not compiled yet. Live on his Mac after Update Friday. Status: waiting

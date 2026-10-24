@@ -240,6 +240,7 @@ extension CompanionInterfaceView {
   let running = runs.filter { $0.isRunning }.count
   var parts = ["\(runs.count) latest runs", "\(failures) failing"]
   if running > 0 { parts.append("\(running) in progress") }
+  if let issues = ventures.issues, !issues.isEmpty { parts.append("\(issues.count) open issues") }
   if ventures.catalog?.isStale() == true { parts.append("catalog needs refresh") }
   return parts.joined(separator:" · ")
  }

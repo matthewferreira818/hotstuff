@@ -17,9 +17,10 @@ struct BoardItem: Identifiable {
 }
 
 struct BoardSection: Identifiable {
- var id: String { title }
+ var id: String { "\(position)-\(title)" }
  var title: String
  var items: [BoardItem]
+ var position = 0       // its place in the file, so two sections with the same heading still get different ids
 }
 
 struct Board {
@@ -55,16 +56,14 @@ struct MatthewNeeds {
  var count: Int { questions.count + tasks.count + messages.count }
 }
 
-// A board meeting: a message that opens with "BOARD MEETING" (or "Group meeting"), and everything posted after it. The crew answer
-// each other in the thread; this is how the page knows who has.
+// A board meeting: a message that opens with "BOARD MEETING" (or "GROUP MEETING"), and everything posted after it. The crew can answer
+// each other in the thread; this shows who has posted since, which is not the same as having answered the call.
 struct BoardMeeting {
  var call: RoomMessage
  var replies: [RoomMessage]
- // The one who called it counts as having spoken; everyone else has when they posted after the call.
- func answered(_ name: String) -> Bool {
-  let who = name.lowercased()
-  return call.author.lowercased() == who || replies.contains { $0.author.lowercased() == who }
- }
+ func called(_ name: String) -> Bool { call.author.lowercased() == name.lowercased() }
+ // True when this person posted anything in the thread after the call.
+ func posted(_ name: String) -> Bool { replies.contains { $0.author.lowercased() == name.lowercased() } }
 }
 
 // One of the crew (Claude, GPT, Friday) on their own tab: their board items sorted into categories, and the messages they
@@ -105,7 +104,7 @@ enum MeetingData {
   var lastItemText: String?
   func closeItem() {
    guard var section = current, let body = lastItemText else { return }
-   section.items.append(makeItem(body,id:"\(section.title)-\(section.items.count)"))
+   section.items.append(makeItem(body,id:"\(section.position)-\(section.title)-\(section.items.count)"))
    current = section
    lastItemText = nil
   }
@@ -116,7 +115,7 @@ enum MeetingData {
    } else if trimmed.hasPrefix("## ") {
     closeItem()
     if let section = current { sections.append(section) }
-    current = BoardSection(title:String(trimmed.dropFirst(3)).trimmingCharacters(in:.whitespaces),items:[])
+    current = BoardSection(title:String(trimmed.dropFirst(3)).trimmingCharacters(in:.whitespaces),items:[],position:sections.count)
    } else if trimmed.hasPrefix("- "), current != nil {
     closeItem()
     lastItemText = String(trimmed.dropFirst(2))
@@ -200,7 +199,7 @@ enum MeetingData {
  }
 
  static func brief(_ text: String,limit: Int? = nil) -> String {
-  let limit = limit ?? briefLimit
+  let limit = max(limit ?? briefLimit,0)
   let flat = oneLine(text)
   guard flat.count > limit else { return flat }
   let head = String(flat.prefix(limit))
@@ -239,7 +238,7 @@ enum MeetingData {
   return result
  }
 
- static let defaultAgenda = "Everyone: post one short update here, tagged to whoever you are answering: what you are on, what you need from whom, and what you can offer. Talk to each other, not only to Matthew."
+ static let defaultAgenda = "Claude and GPT: post one short update here, tagged to whoever you are answering: what you are on, what you need from whom, and what you can offer. Talk to each other, not only to Matthew."
 
  // The words of a call, posted as Matthew with the usual tag: **[Matthew → Everyone]** BOARD MEETING. ...
  static func meetingCall(agenda: String? = nil) -> String {
@@ -247,9 +246,24 @@ enum MeetingData {
   return "BOARD MEETING. " + (extra.isEmpty ? defaultAgenda : extra)
  }
 
+ // Matthew's call can be in any letter case. Claude's has to be in capitals, so an ordinary reply that starts "Board meeting update"
+ // is not mistaken for a new call. Nobody else can call one.
  static func isMeetingCall(_ message: RoomMessage) -> Bool {
-  let text = message.text.trimmingCharacters(in:.whitespacesAndNewlines).uppercased()
-  return (message.author.lowercased() == "matthew" || message.author.lowercased() == "claude") && (text.hasPrefix("BOARD MEETING") || text.hasPrefix("GROUP MEETING"))
+  let to = message.to.lowercased()
+  guard to.isEmpty || to == "everyone" else { return false }
+  let text = message.text.trimmingCharacters(in:.whitespacesAndNewlines)
+  func opens(_ words: String,_ phrase: String) -> Bool {
+   guard words.hasPrefix(phrase) else { return false }
+   guard let next = words.dropFirst(phrase.count).first else { return true }
+   return next == "." || next == "!"
+  }
+  switch message.author.lowercased() {
+  case "matthew":
+   let shout = text.uppercased()
+   return opens(shout,"BOARD MEETING") || opens(shout,"GROUP MEETING")
+  case "claude": return opens(text,"BOARD MEETING") || opens(text,"GROUP MEETING")
+  default: return false
+  }
  }
 
  // The latest call that is still recent (two days), with the messages after it. Nil when nobody has called one.

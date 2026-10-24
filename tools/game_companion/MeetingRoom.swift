@@ -30,7 +30,10 @@ import Cocoa
  @Published var tokenNote = ""
  @Published var sending = false
  @Published var sendNote = ""
+ // What the Board meeting card says about the last call; it clears itself after a while so it never goes stale.
+ @Published var meetingNote = ""
  var lastRefresh = Date.distantPast
+ private var lastCallPosted = Date.distantPast
 
  // Reads the board and the message thread. Both are public, so no key is needed to read.
  func refresh(minGap: Double = 600,force: Bool = false) async {
@@ -64,17 +67,32 @@ import Cocoa
   guard hasToken, let token = savedToken() else {
    NSPasteboard.general.clearContents()
    NSPasteboard.general.setString(MeetingData.formatted(from:"Matthew",to:"Everyone",text:call),forType:.string)
-   sendNote = "Posting isn't connected yet, so the call is copied. Paste it into the thread on GitHub, or connect posting (Write a message, steps at the bottom)."
+   say("Posting isn't connected, so the call is copied to your clipboard. Paste it into the thread (Thread tab, Open the thread), or connect posting (Write a message, steps at the bottom).")
+   return
+  }
+  // A second call within two minutes is almost always a double tap or a slow refresh, not a new meeting.
+  if Date().timeIntervalSince(lastCallPosted) < 120 || (meetingNow?.call.date.map { Date().timeIntervalSince($0) < 120 } ?? false) {
+   say("A board meeting was just called. Give it a couple of minutes.")
    return
   }
   sending = true
   defer { sending = false }
   switch await MeetingData.post(call,from:"Matthew",to:"Everyone",token:token) {
   case .ok:
-   sendNote = "Board meeting called. Claude, GPT and Friday answer at their next check."
+   lastCallPosted = Date()
+   say("Board meeting called on the thread. Claude and GPT can answer when they next read the room. Friday only passes on what you tell her.")
+   while loading { try? await Task.sleep(nanoseconds:300_000_000) }
    await refresh(force:true)
   case .failed(let reason):
-   sendNote = reason
+   say(reason)
+  }
+ }
+
+ private func say(_ words: String) {
+  meetingNote = words
+  Task {
+   try? await Task.sleep(nanoseconds:20_000_000_000)
+   if meetingNote == words { meetingNote = "" }
   }
  }
 
@@ -240,13 +258,21 @@ extension CompanionInterfaceView {
   .onAppear { Task { await meeting.refresh(minGap:60) } }
   .onChange(of:meeting.tab) { _,tab in if tab != 3 { meeting.fridayPrivate = false } }
   .onChange(of:live.running) { _,running in if running { voice.stop() } }
+  .onChange(of:c.listening) { _,listening in if listening { voice.stop() } }
   .onDisappear { voice.stop() }
  }
+
+ // Friday hears this Mac, and so does the local microphone, so voices stay off while either is on.
+ var hubVoiceBlocked: Bool { live.running || c.listening }
 
  var hubMeetingHeader: some View {
   HStack(spacing:10) {
    Text(meeting.updatedLine).font(.system(size:12,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
    Spacer()
+   if !voice.playing.isEmpty {
+    Button { voice.stop() } label: { Label(voice.speaker.isEmpty ? "Stop voice" : "Stop · \(voice.speaker)",systemImage:"stop.fill") }
+     .buttonStyle(PillButtonStyle())
+   }
    Button { if let url = URL(string:MeetingData.page) { NSWorkspace.shared.open(url) } } label: { Label("Open on GitHub",systemImage:"arrow.up.right.square") }
     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    Button { Task { await meeting.refresh(force:true) } } label: { Label(meeting.loading ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise") }
@@ -277,7 +303,6 @@ extension CompanionInterfaceView {
  @ViewBuilder var hubNeeds: some View {
   let needs = meeting.needs
   hubComposerOrButton
-  hubMeetingBar
   if needs.count == 0 {
    VStack(spacing:8) {
     Image(systemName:"checkmark.circle").font(.system(size:34)).foregroundStyle(Color.white.opacity(0.3))
@@ -302,6 +327,7 @@ extension CompanionInterfaceView {
     }
    }
   }
+  hubMeetingBar
  }
 
  // A card with a small coloured category title and a count, around whatever lines go in it.
@@ -327,35 +353,46 @@ extension CompanionInterfaceView {
    if let held = held {
     Text("Called \(hubAgo(held.call.date)) by \(held.call.author). \(held.replies.count) message\(held.replies.count == 1 ? "" : "s") since.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.75))
     HStack(spacing:8) {
-     ForEach(SpeechData.crew,id:\.self) { name in hubPill(held.answered(name) ? "\(name.uppercased()) ANSWERED" : "\(name.uppercased()) NOT YET",tint:held.answered(name) ? HubColor.green : HubColor.slate) }
+     ForEach(["Claude","GPT"],id:\.self) { name in hubPill(held.called(name) ? "\(name.uppercased()) CALLED IT" : (held.posted(name) ? "\(name.uppercased()) POSTED" : "\(name.uppercased()) NOT YET"),tint:held.called(name) || held.posted(name) ? HubColor.green : HubColor.slate) }
     }
    } else {
-    Text("No board meeting in the last two days. Call one and Claude, GPT and Friday answer each other here, at their next check.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+    Text("No board meeting in the last two days. Calling one posts a note on the thread. Claude and GPT can answer each other there when they next read the room. Friday joins only when you ask her.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
    }
    HStack(spacing:10) {
     Button { meeting.confirmCall = true } label: { Label(meeting.sending ? "Posting…" : "Call a board meeting",systemImage:"person.3.fill") }
      .buttonStyle(PillButtonStyle())
      .disabled(meeting.sending)
     if let held = held {
-     Button { voice.toggle("meeting",SpeechData.meetingLines(held)) } label: { Label(voice.playing == "meeting" ? "Stop" : "Listen to it",systemImage:voice.playing == "meeting" ? "stop.fill" : "speaker.wave.2.fill") }
+     Button { voice.toggle("meeting",SpeechData.meetingLines(held)) } label: { Label(voice.playing == "meeting" ? "Stop" : "Hear the meeting",systemImage:voice.playing == "meeting" ? "stop.fill" : "speaker.wave.2.fill") }
       .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-      .disabled(live.running)
+      .disabled(hubVoiceBlocked)
     }
-    Button { voice.toggle("board",SpeechData.meetingScript(board:meeting.board,messages:meeting.messages)) } label: { Label(voice.playing == "board" ? "Stop" : "Hear the board",systemImage:voice.playing == "board" ? "stop.fill" : "speaker.wave.2.fill") }
+    Button { voice.toggle("board",SpeechData.meetingScript(board:meeting.board,messages:meeting.messages)) } label: { Label(voice.playing == "board" ? "Stop" : "Read the board aloud",systemImage:voice.playing == "board" ? "stop.fill" : "speaker.wave.2.fill") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
-     .disabled(live.running)
+     .disabled(hubVoiceBlocked)
    }
-   if live.running {
-    Text("Friday is live, so voices are off: she would hear them. Stop her first.").font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber)
+   if hubVoiceBlocked {
+    Text("Friday is live or the microphone is on, so voices are off: they would be heard.").font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber)
    } else if !voice.speaker.isEmpty {
-    Text("\(voice.speaker) is speaking…").font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(hubOwnerTint(voice.speaker))
+    Text(voice.speaker == "Narrator" ? "Reading aloud…" : "Reading \(voice.speaker)'s words aloud…").font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(hubOwnerTint(voice.speaker))
    }
-   if !meeting.sendNote.isEmpty { Text(meeting.sendNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
-   Text("Voices are your Mac's built-in ones, one each for Claude, GPT, Friday and you, reading what was written. It is not a live call.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+   if !meeting.meetingNote.isEmpty { Text(meeting.meetingNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
+   Text("Your Mac reads written words aloud. Not a live call.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
   }
   .confirmationDialog("Call a board meeting?",isPresented:$meeting.confirmCall) {
-   Button("Post the call") { Task { await meeting.callMeeting() } }
-  } message: { Text("This posts a message to the room thread (public). Claude, GPT and Friday answer each other there at their next check.") }
+   Button(meeting.hasToken ? "Post the call" : "Copy the call") { Task { await meeting.callMeeting() } }
+   Button("Cancel",role:.cancel) {}
+  } message: {
+   Text(hubCallWords(held))
+  }
+ }
+
+ // What the confirmation says: where the call goes, the exact words, and a warning if a meeting is already on.
+ func hubCallWords(_ held: BoardMeeting?) -> String {
+  var words = meeting.hasToken ? "This posts to the public room thread on GitHub, under your name: " : "Posting isn't connected, so this only copies the call to your clipboard: "
+  words += "\"" + MeetingData.meetingCall() + "\"."
+  if let date = held?.call.date { words += " A meeting was already called " + hubAgo(date) + "." }
+  return words
  }
 
  // MARK: Claude, GPT and Friday
@@ -384,7 +421,7 @@ extension CompanionInterfaceView {
  // One crew member's page: who they are, their work in categories, then their messages.
  func hubCrewPage(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ actions: [HubAction]) -> some View {
   let crew = meeting.crew(name)
-  let hear: [HubAction] = live.running ? [] : [HubAction(label:voice.playing == "crew-\(name)" ? "Stop" : "Hear \(name)",icon:voice.playing == "crew-\(name)" ? "stop.fill" : "speaker.wave.2.fill") { voice.toggle("crew-\(name)",SpeechData.crewScript(name,board:meeting.board,messages:meeting.messages)) }]
+  let hear: [HubAction] = hubVoiceBlocked ? [] : [HubAction(label:voice.playing == "crew-\(name)" ? "Stop" : "Read aloud",icon:voice.playing == "crew-\(name)" ? "stop.fill" : "speaker.wave.2.fill") { voice.toggle("crew-\(name)",SpeechData.crewScript(name,board:meeting.board,messages:meeting.messages)) }]
   return VStack(alignment:.leading,spacing:14) {
    hubComposerIfOpen
    hubCrewHeader(name,job,icon,tint,crew,actions + hear)
@@ -540,9 +577,11 @@ extension CompanionInterfaceView {
      if !message.to.isEmpty { Text("→ \(message.to)").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
      Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
      Spacer(minLength:0)
-     Button { voice.toggle(id,SpeechData.messageLines(message)) } label: { Image(systemName:voice.playing == id ? "stop.fill" : "speaker.wave.2.fill").font(.system(size:12)).foregroundStyle(Color.white.opacity(0.6)) }
+     Button { voice.toggle(id,SpeechData.messageLines(message)) } label: { Image(systemName:voice.playing == id ? "stop.fill" : "speaker.wave.2.fill").font(.system(size:12)).foregroundStyle(Color.white.opacity(0.6)).frame(width:28,height:24).contentShape(Rectangle()) }
       .buttonStyle(.plain)
-      .disabled(live.running)
+      .help(voice.playing == id ? "Stop reading" : "Read this message aloud")
+      .accessibilityLabel(voice.playing == id ? "Stop reading" : "Read this message aloud")
+      .disabled(hubVoiceBlocked)
      Image(systemName:open ? "chevron.up" : "chevron.down").font(.system(size:11,weight:.semibold)).foregroundStyle(Color.white.opacity(0.4))
     }
     .contentShape(Rectangle())

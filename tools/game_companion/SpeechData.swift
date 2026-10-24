@@ -1,9 +1,9 @@
 import Foundation
 
 // What the Meeting Room says out loud, and which voice says it. Foundation-only so it can be tested here; the speaking itself is
-// in MeetingVoice.swift. This reads WRITTEN words (the board and each person's last post) in a different built-in Mac voice for
-// Claude, GPT, Friday and Matthew. It is not a live call, and it never makes up a sentence for anyone: lines about a person's board
-// items are written in the third person ("GPT has two items open"), and only their own last post is read as their words.
+// in MeetingVoice.swift. This reads WRITTEN words (the board and each person's last post). It is not a live call, and it never puts a
+// sentence in anyone's mouth: everything the app itself writes ("GPT's last post, 3 hours ago", "2 open items are under Claude's
+// name") is read by the Narrator voice, and only a person's own posted words are read in that person's voice.
 
 struct SpeakLine: Identifiable {
  var id: Int
@@ -12,9 +12,10 @@ struct SpeakLine: Identifiable {
 }
 
 enum SpeechData {
- static let speakers = ["Claude","GPT","Friday","Matthew"]
  static let crew = ["Claude","GPT","Friday"]
- static let openingLine = "Group meeting. Your Mac is reading the room out loud, one voice each. These are the board's words and each person's last post, not a live call."
+ static let speakers = ["Claude","GPT","Friday","Matthew","Narrator"]
+ static let openingLine = "Board read-out. Your Mac is reading the board's items and each person's last post aloud, in a different voice for each. It is not a live call and nobody is speaking live."
+ static let closingLine = "That is everything on the board."
 
  struct VoiceInfo {
   var id: String
@@ -23,24 +24,32 @@ enum SpeechData {
   var quality: Int
  }
 
- // Words that are fine to read: no markdown marks, links as "a link", file names as "a file", arrows as "to", newlines as spaces.
- // Long text is cut at the end of a sentence and says so.
+ // Words that are fine to read: no markdown marks, links as "a link", file names as "a file", keys and email addresses never read,
+ // arrows as "to", newlines as spaces. Long text is cut at the end of a sentence and says so.
  static func spoken(_ text: String,limit: Int = 600) -> String {
-  var words = text
+  let limit = max(limit,0)
+  // The tail is cut anyway, so clip first: the cleaning rules are slow on very long unbroken text (a pasted log, a base64 blob).
+  let cap = limit * 5 + 500
+  let clipped = text.count > cap
+  var words = clipped ? String(text.prefix(cap)) : text
   let rules: [(String,String)] = [
+   (#"\b(?:github_pat_|ghp_|gho_|ghs_|sk_live_|rk_live_|sk-|AIza)[\w\-]{8,}"#,"a key"),
+   (#"[\w.+\-]+@[\w\-]+\.[\w.\-]+"#,"an email address"),
    (#"\[([^\]]+)\]\((?:[^)]+)\)"#,"$1"),
    (#"https?://\S+"#,"a link"),
    (#"[\w.\-]+(?:/[\w.\-]+)+\.[A-Za-z]{1,5}"#,"a file"),
    (#"\b[\w\-]+\.(?:md|py|swift|json|yml|yaml|html|txt|command|sh|csv)\b"#,"a file"),
-   (#"[*_`#>]+"#,""),
+   (#"(?<=\w)_(?=\w)"#," "),
+   (#"(?m)^[ \t]*>+"#,""),
+   (#"[*_`#]+"#,""),
    (#"\s*→\s*"#," to "),
    (#"\s*\n+\s*"#," "),
    (#" {2,}"#," ")
   ]
   for (pattern,template) in rules { words = words.replacingOccurrences(of:pattern,with:template,options:.regularExpression) }
   words = words.trimmingCharacters(in:.whitespacesAndNewlines)
-  guard words.count > limit else { return words }
-  let cut = MeetingData.brief(words,limit:limit)
+  guard words.count > limit || clipped else { return words }
+  let cut = words.count > limit ? MeetingData.brief(words,limit:limit) : words + "…"
   return String(cut.dropLast()) + ". There is more in the room."
  }
 
@@ -50,9 +59,10 @@ enum SpeechData {
   var current = ""
   var sentence = ""
   func flush() { if !current.isEmpty { out.append(current); current = "" } }
-  for character in text {
+  let characters = Array(text)
+  for (index,character) in characters.enumerated() {
    sentence.append(character)
-   if ".?!".contains(character) {
+   if ".?!".contains(character), index + 1 == characters.count || characters[index + 1].isWhitespace {
     if current.count + sentence.count > max { flush() }
     current += sentence
     sentence = ""
@@ -77,39 +87,55 @@ enum SpeechData {
   return unit(Int(seconds / 86400),"day")
  }
 
- // A message, read by its author's voice: who it was to, when, and the words.
- static func messageLines(_ message: RoomMessage,now: Date = Date(),firstID: Int = 0) -> [SpeakLine] {
-  let author = speakers.contains(message.author) ? message.author : "Claude"
-  let to = message.to.isEmpty ? "" : " to \(message.to)"
-  let head = "\(message.author)\(to), \(agoWords(message.date,now:now))."
-  let body = chunks(spoken(message.text,limit:900))
-  return ([head] + body).enumerated().map { SpeakLine(id:firstID + $0.offset,speaker:author,text:$0.element) }
+ // The text with a full stop on the end unless it already has a stop, a question mark or an exclamation mark.
+ static func sentence(_ text: String) -> String {
+  guard let last = text.last else { return text }
+  return ".?!".contains(last) ? text : text + "."
  }
 
- // One crew member's report, in their voice: how many items are open and the first few in each category (third person, from the
- // board), then their own last post in the thread, if there is one.
- static func crewLines(_ name: String,board: Board?,messages: [RoomMessage],now: Date = Date()) -> [String] {
+ // Which of Claude, GPT, Friday and Matthew wrote this tag (any letter case), or nil for anything else.
+ static func knownSpeaker(_ author: String) -> String? {
+  (crew + ["Matthew"]).first { $0.lowercased() == author.lowercased() }
+ }
+
+ // A message: the app's own header ("GPT to Everyone, 3 hours ago.") in the Narrator voice, then the person's words in theirs.
+ // An untagged or oddly tagged message is read by the Narrator and says so.
+ static func messageLines(_ message: RoomMessage,now: Date = Date(),firstID: Int = 0) -> [SpeakLine] {
+  let known = knownSpeaker(message.author)
+  let who = known ?? (message.author == "?" ? "An untagged message" : "A message tagged \(message.author)")
+  let to = message.to.isEmpty ? "" : " to \(message.to)"
+  let head = "\(who)\(to), \(agoWords(message.date,now:now))."
+  var out = [SpeakLine(id:firstID,speaker:"Narrator",text:head)]
+  for piece in chunks(spoken(message.text,limit:900)) { out.append(SpeakLine(id:firstID + out.count,speaker:known ?? "Narrator",text:piece)) }
+  return out
+ }
+
+ // One crew member's report: how many items sit under their name and the first few in each category (all in the Narrator voice,
+ // since the board lines were filed by whoever edits the board), then their own last post in their own voice, if there is one.
+ static func crewLines(_ name: String,board: Board?,messages: [RoomMessage],now: Date = Date()) -> [(speaker: String,text: String)] {
   let crew = MeetingData.crew(name,board:board,messages:messages)
-  var out: [String] = []
-  out.append(crew.open == 0 ? "\(name) has nothing open on the board." : "\(name) has \(crew.open) open on the board.")
+  var out: [(speaker: String,text: String)] = []
+  let open = crew.open
+  out.append(("Narrator",open == 0 ? "Nothing on the board is under \(name)'s name." : "\(open) open \(open == 1 ? "item is" : "items are") under \(name)'s name on the board."))
   for group in crew.groups where group.status != "done" {
-   let heads = group.items.prefix(2).map { spoken($0.text,limit:110) }
-   let more = group.items.count > 2 ? ", and \(group.items.count - 2) more" : ""
-   out.append("\(group.title): \(heads.joined(separator:". "))\(more).")
+   let heads = group.items.prefix(2).map { sentence(spoken($0.text,limit:110)) }
+   let more = group.items.count > 2 ? " And \(group.items.count - 2) more." : ""
+   out.append(("Narrator","\(group.title): \(heads.joined(separator:" "))\(more)"))
   }
-  if let last = crew.messages.last(where: { $0.author.lowercased() == name.lowercased() }) {
-   out.append("Last post \(agoWords(last.date,now:now)): \(spoken(last.text,limit:260))")
+  if let last = crew.messages.last(where: { $0.author.lowercased() == name.lowercased() }), case let said = spoken(last.text,limit:260), !said.isEmpty {
+   out.append(("Narrator","\(name)'s last post, \(agoWords(last.date,now:now)):"))
+   out.append((name,said))
   }
   return out
  }
 
- // One crew member's report as lines in their voice (for the Hear Claude / Hear GPT / Hear Friday buttons).
+ // One crew member's report as lines (for the Read aloud button on their tab).
  static func crewScript(_ name: String,board: Board?,messages: [RoomMessage],now: Date = Date()) -> [SpeakLine] {
-  guard board != nil else { return number([(name,"The board has not loaded yet, so there is nothing to read.")]) }
-  return number(crewLines(name,board:board,messages:messages,now:now).map { (name,$0) })
+  guard board != nil else { return number([("Narrator","The board has not loaded yet, so there is nothing to read.")]) }
+  return number(crewLines(name,board:board,messages:messages,now:now).map { ($0.speaker,$0.text) })
  }
 
- // A board meeting as it happened in the thread: the call, then every reply, each in its author's voice.
+ // A board meeting as it happened in the thread: the call, then every reply, each message as messageLines() reads it.
  static func meetingLines(_ meeting: BoardMeeting,now: Date = Date()) -> [SpeakLine] {
   var out: [SpeakLine] = []
   for message in [meeting.call] + meeting.replies {
@@ -118,25 +144,30 @@ enum SpeechData {
   return out
  }
 
- // The whole meeting: an opening, each of Claude, GPT and Friday in their own voice, then what needs Matthew.
+ // The whole read-out: an opening, each of Claude, GPT and Friday, then what needs Matthew. The Narrator reads everything the app wrote.
  static func meetingScript(board: Board?,messages: [RoomMessage],now: Date = Date()) -> [SpeakLine] {
-  var lines: [(String,String)] = [("Claude",openingLine)]
+  var lines: [(String,String)] = [("Narrator",openingLine)]
   guard board != nil else {
-   lines.append(("Claude","The board has not loaded yet, so there is nothing to read."))
+   lines.append(("Narrator","The board has not loaded yet, so there is nothing to read."))
    return number(lines)
   }
-  for name in crew { for sentence in crewLines(name,board:board,messages:messages,now:now) { lines.append((name,sentence)) } }
+  for name in crew { for line in crewLines(name,board:board,messages:messages,now:now) { lines.append((line.speaker,line.text)) } }
   let needs = MeetingData.needs(board:board,messages:messages,now:now)
   if needs.count == 0 {
-   lines.append(("Claude","Matthew, nothing needs you right now."))
+   lines.append(("Narrator","Nothing needs Matthew right now."))
   } else {
-   lines.append(("Claude","Matthew, \(needs.count) \(needs.count == 1 ? "thing needs" : "things need") you."))
-   for item in needs.questions.prefix(3) { lines.append(("Claude","Question: \(spoken(item.text,limit:200))")) }
-   for item in needs.tasks.prefix(3) { lines.append(("Claude","To do: \(spoken(item.text,limit:200))")) }
-   let shown = min(3,needs.questions.count) + min(3,needs.tasks.count)
-   if needs.count > shown { lines.append(("Claude","The rest are in the You tab.")) }
+   lines.append(("Narrator","\(needs.count) \(needs.count == 1 ? "thing needs" : "things need") Matthew."))
+   for item in needs.questions.prefix(3) { lines.append(("Narrator","Question: \(spoken(item.text,limit:200))")) }
+   for item in needs.tasks.prefix(3) { lines.append(("Narrator","To do: \(spoken(item.text,limit:200))")) }
+   for message in needs.messages.suffix(2) {
+    let who = knownSpeaker(message.author) ?? (message.author == "?" ? "An untagged message" : "A message tagged \(message.author)")
+    lines.append(("Narrator","\(who) wrote to you:"))
+    lines.append((knownSpeaker(message.author) ?? "Narrator",spoken(message.text,limit:200)))
+   }
+   let shown = min(3,needs.questions.count) + min(3,needs.tasks.count) + min(2,needs.messages.count)
+   if needs.count > shown { lines.append(("Narrator","The rest are in the You tab.")) }
   }
-  lines.append(("Claude","That is the meeting."))
+  lines.append(("Narrator",closingLine))
   return number(lines)
  }
 
@@ -150,7 +181,8 @@ enum SpeechData {
   "Claude":["Daniel","Oliver","Alex","Aaron","Evan"],
   "GPT":["Samantha","Ava","Allison","Nicky","Susan"],
   "Friday":["Karen","Moira","Tessa","Serena","Flo"],
-  "Matthew":["Tom","Fred","Lee","Gordon","Rishi"]
+  "Matthew":["Tom","Lee","Gordon","Rishi","Fred"],
+  "Narrator":["Ralph","Kathy","Bruce","Fred","Junior"]
  ]
 
  static func assign(_ speakers: [String],voices: [VoiceInfo]) -> [String:String] {

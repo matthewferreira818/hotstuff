@@ -87,14 +87,17 @@ import Foundation
   precondition(MeetingData.crew("Claude",board:nil,messages:[]).open == 0)
   // A board meeting: the latest call that is under two days old, and who has answered since.
   func said(_ id: Int,_ author: String,_ text: String,_ when: String) -> RoomMessage { RoomMessage(id:id,author:author,to:"Everyone",text:text,date:clock.date(from:when),url:"") }
-  precondition(MeetingData.meetingCall().hasPrefix("BOARD MEETING. Everyone:") && MeetingData.meetingCall(agenda:" Talk money ").hasSuffix("Talk money"))
+  precondition(MeetingData.meetingCall().hasPrefix("BOARD MEETING. Claude and GPT:") && MeetingData.meetingCall(agenda:" Talk money ").hasSuffix("Talk money"))
   let meetingThread = [said(1,"Claude","BOARD MEETING. old","2026-10-01T12:00:00Z"), said(2,"Matthew","Board meeting. Go.","2026-10-24T08:00:00Z"), said(3,"GPT","Here is my part.","2026-10-24T09:00:00Z"), said(4,"Claude","Mine too.","2026-10-24T09:30:00Z")]
   let now24 = clock.date(from:"2026-10-24T12:00:00Z")!
   let held = MeetingData.currentMeeting(meetingThread,now:now24)
   precondition(held?.call.id == 2 && held?.replies.map { $0.id } == [3,4])
-  precondition(held?.answered("Matthew") == true && held?.answered("gpt") == true && held?.answered("Friday") == false)
+  precondition(held?.called("Matthew") == true && held?.called("GPT") == false && held?.posted("gpt") == true && held?.posted("Matthew") == false && held?.posted("Friday") == false)
   precondition(MeetingData.currentMeeting(meetingThread,now:clock.date(from:"2026-10-27T12:00:00Z")!) == nil)
-  precondition(MeetingData.currentMeeting([said(1,"GPT","BOARD MEETING from a stranger","2026-10-24T08:00:00Z"), said(2,"Claude","Group meeting. The room is live.","2026-10-24T08:30:00Z")],now:now24)?.call.id == 2)
+  precondition(MeetingData.currentMeeting([said(1,"GPT","BOARD MEETING from a stranger","2026-10-24T08:00:00Z"), said(2,"Claude","GROUP MEETING. The room is live.","2026-10-24T08:30:00Z")],now:now24)?.call.id == 2)
+  // Claude's ordinary reply is not a new call (capitals only); Matthew's can be any case; a stranger's never counts.
+  precondition(MeetingData.currentMeeting([said(1,"Matthew","board meeting. go","2026-10-24T08:00:00Z"), said(2,"Claude","Board meeting update. Notes.","2026-10-24T08:30:00Z")],now:now24)?.call.id == 1)
+  precondition(MeetingData.currentMeeting([said(1,"GPT","BOARD MEETING","2026-10-24T08:00:00Z")],now:now24) == nil)
   precondition(MeetingData.currentMeeting([],now:now24) == nil)
   // Reading aloud: marks, links and file names are dropped, arrows become "to", long text is cut at a sentence, and the voices
   // are different for each speaker.
@@ -109,22 +112,55 @@ import Foundation
   let voiceList = [SpeechData.VoiceInfo(id:"d",name:"Daniel",language:"en-GB",quality:1), SpeechData.VoiceInfo(id:"s",name:"Samantha",language:"en-US",quality:1),
                    SpeechData.VoiceInfo(id:"a",name:"Ava (Premium)",language:"en-US",quality:3), SpeechData.VoiceInfo(id:"k",name:"Karen",language:"en-AU",quality:1),
                    SpeechData.VoiceInfo(id:"t",name:"Thomas",language:"fr-FR",quality:3)]
-  let given = SpeechData.assign(SpeechData.speakers,voices:voiceList)
+  let given = SpeechData.assign(["Claude","GPT","Friday","Matthew"],voices:voiceList)
   precondition(given["Claude"] == "d" && given["GPT"] == "s" && given["Friday"] == "k" && given["Matthew"] == "a")
   precondition(Set(given.values).count == 4 && !given.values.contains("t"))
+  precondition(SpeechData.assign(SpeechData.speakers,voices:voiceList)["Narrator"] == "a")
   precondition(SpeechData.assign(["Claude","GPT"],voices:[SpeechData.VoiceInfo(id:"only",name:"Zed",language:"en-US",quality:1)]) == ["Claude":"only","GPT":"only"])
   precondition(SpeechData.assign(["Claude"],voices:[]).isEmpty)
+  // Keys and email addresses are never read out.
+  precondition(SpeechData.spoken("key github_pat_AbCdEf123456 and sk_live_abcdefgh12 mail me at a.b@x.co now") == "key a key and a key mail me at an email address now")
+  // A message: the header is the Narrator's, the words are the author's own voice. Odd or missing tags are the Narrator's and say so.
   let spokenMessage = SpeechData.messageLines(said(9,"GPT","I will check **it** → soon.","2026-10-24T09:00:00Z"),now:now24)
-  precondition(spokenMessage.map { $0.speaker } == ["GPT","GPT"] && spokenMessage[0].text == "GPT to Everyone, 3 hours ago." && spokenMessage[1].text == "I will check it to soon.")
-  precondition(SpeechData.messageLines(said(10,"?","hi","2026-10-24T11:59:30Z"),now:now24)[1].speaker == "Claude")
+  precondition(spokenMessage.map { $0.speaker } == ["Narrator","GPT"] && spokenMessage[0].text == "GPT to Everyone, 3 hours ago." && spokenMessage[1].text == "I will check it to soon.")
+  let untagged = SpeechData.messageLines(said(10,"?","hi","2026-10-24T11:59:30Z"),now:now24)
+  precondition(untagged.map { $0.speaker } == ["Narrator","Narrator"] && untagged[0].text == "An untagged message to Everyone, just now.")
+  let lowerTag = SpeechData.messageLines(said(11,"gpt","hello there","2026-10-24T11:00:00Z"),now:now24)
+  precondition(lowerTag[1].speaker == "GPT" && lowerTag[0].text == "GPT to Everyone, 1 hour ago.")
+  precondition(SpeechData.messageLines(said(12,"Chrome Claude","hi","2026-10-24T11:00:00Z"),now:now24)[0].text == "A message tagged Chrome Claude to Everyone, 1 hour ago.")
   let spokenMeeting = SpeechData.meetingLines(held!,now:now24)
-  precondition(spokenMeeting.map { $0.id } == Array(0..<spokenMeeting.count) && spokenMeeting.first?.speaker == "Matthew" && spokenMeeting.contains { $0.speaker == "GPT" } && spokenMeeting.last?.speaker == "Claude")
+  precondition(spokenMeeting.map { $0.id } == Array(0..<spokenMeeting.count) && spokenMeeting.first?.speaker == "Narrator" && spokenMeeting.contains { $0.speaker == "Matthew" } && spokenMeeting.contains { $0.speaker == "GPT" } && spokenMeeting.last?.speaker == "Claude")
+  // The read-out: everything the app wrote is the Narrator's; only a person's last post is in their voice.
   let script = SpeechData.meetingScript(board:crewBoard,messages:crewThread,now:now24)
-  precondition(script.first?.text == SpeechData.openingLine && script.first?.speaker == "Claude" && script.last?.text == "That is the meeting.")
-  precondition(script.contains { $0.speaker == "GPT" && $0.text == "GPT has 2 open on the board." } && script.contains { $0.speaker == "Friday" && $0.text == "Friday has nothing open on the board." })
-  precondition(script.contains { $0.speaker == "Claude" && $0.text.hasPrefix("Last post 2 days ago") } && script.contains { $0.text.hasPrefix("Matthew, ") })
+  precondition(script.first?.text == SpeechData.openingLine && script.first?.speaker == "Narrator" && script.last?.text == SpeechData.closingLine && script.last?.speaker == "Narrator")
+  precondition(script.contains { $0.speaker == "Narrator" && $0.text == "2 open items are under GPT's name on the board." } && script.contains { $0.speaker == "Narrator" && $0.text == "Nothing on the board is under Friday's name." })
+  precondition(script.contains { $0.speaker == "Narrator" && $0.text == "Claude's last post, 2 days ago:" } && script.contains { $0.speaker == "Claude" && $0.text == "t" })
+  precondition(script.contains { $0.speaker == "Narrator" && $0.text.hasPrefix("3 things need Matthew") })
+  precondition(script.contains { $0.speaker == "GPT" && $0.text == "t" } && !script.contains { $0.speaker == "Friday" })
   precondition(SpeechData.meetingScript(board:nil,messages:[],now:now24).count == 2)
-  precondition(SpeechData.crewScript("Friday",board:crewBoard,messages:crewThread,now:now24).map { $0.speaker } == ["Friday"])
+  precondition(SpeechData.crewScript("Friday",board:crewBoard,messages:crewThread,now:now24).map { $0.speaker } == ["Narrator"])
+  precondition(SpeechData.knownSpeaker("GPT") == "GPT" && SpeechData.knownSpeaker("claude") == "Claude" && SpeechData.knownSpeaker("?") == nil)
+  // Edge cases found in review: stops inside numbers, doubled punctuation, long unbroken text, odd limits, look-alike calls, duplicate headings.
+  precondition(SpeechData.chunks("Pi is 3.14159 and v1.2.3 is out. Cost is $79.50 a month.",max:20) == ["Pi is 3.14159 and v1.2.3 is out.","Cost is $79.50 a month."])
+  precondition(SpeechData.spoken("snake_case_word and 5 > 3\n> quoted line") == "snake case word and 5 > 3 quoted line")
+  precondition(SpeechData.sentence("Done") == "Done." && SpeechData.sentence("Done?") == "Done?" && SpeechData.sentence("") == "")
+  precondition(script.contains { $0.speaker == "Narrator" && $0.text == "In progress: A." } && script.contains { $0.speaker == "Narrator" && $0.text == "Asking Matthew: Q?" })
+  precondition(!script.contains { $0.text.contains("..") || $0.text.contains(".,") })
+  let startedAt = Date()
+  let longBlob = SpeechData.spoken(String(repeating:"a",count:65_536))
+  precondition(longBlob.hasSuffix("There is more in the room.") && longBlob.count < 700 && Date().timeIntervalSince(startedAt) < 2)
+  precondition(SpeechData.spoken(String(repeating:" ",count:65_536)).isEmpty || Date().timeIntervalSince(startedAt) < 4)
+  precondition(SpeechData.spoken("hello",limit:-5) == ". There is more in the room." && MeetingData.brief("hello world",limit:-1) == "…" && MeetingData.brief("",limit:-1) == "")
+  let waitingOnly = MeetingData.needs(board:MeetingData.parse("## On the table\n- [Claude] Mine. Status: building\n"),messages:[said(5,"GPT","for you","2026-10-24T11:00:00Z")].map { m in var n = m; n.to = "Matthew"; return n },now:now24)
+  precondition(waitingOnly.count == 1)
+  let readWaiting = SpeechData.meetingScript(board:MeetingData.parse("## On the table\n- [Claude] Mine. Status: building\n"),messages:waitingOnly.messages,now:now24)
+  precondition(readWaiting.contains { $0.speaker == "Narrator" && $0.text == "GPT wrote to you:" } && readWaiting.contains { $0.speaker == "GPT" && $0.text == "for you" } && !readWaiting.contains { $0.text == "The rest are in the You tab." })
+  func call(_ author: String,_ to: String,_ text: String) -> RoomMessage { RoomMessage(id:1,author:author,to:to,text:text,date:now24,url:"") }
+  precondition(MeetingData.isMeetingCall(call("Matthew","","BOARD MEETING")) && MeetingData.isMeetingCall(call("Matthew","Everyone","Group meeting! Go")))
+  precondition(!MeetingData.isMeetingCall(call("Matthew","","Board meetings are cancelled")) && !MeetingData.isMeetingCall(call("Claude","","Board meeting recap: ok")))
+  precondition(!MeetingData.isMeetingCall(call("Claude","GPT","BOARD MEETING. Hi")) && !MeetingData.isMeetingCall(call("Claude","","BOARD MEETING: GPT, your part")))
+  let twin = MeetingData.parse("## On the table\n- [Claude] A\n## On the table\n- [Claude] B\n")
+  precondition(twin.sections[0].id != twin.sections[1].id && twin.sections[0].items[0].id != twin.sections[1].items[0].id)
 
   // Stripe: only a restricted read-only key is accepted.
   precondition(StripeData.keyProblem("sk_live_abc") != nil && StripeData.keyProblem("pk_live_abc") != nil)

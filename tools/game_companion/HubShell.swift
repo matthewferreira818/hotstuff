@@ -21,72 +21,185 @@ extension CompanionInterfaceView {
    }
    .onAppear { hub.compact = geo.size.width < 720 }
    .onChange(of:geo.size.width) { _,width in hub.compact = width < 720 }
+   .sheet(isPresented:$hub.jumpPresented) { hubJumpSheet }
   }
  }
 
+ // Compact windows keep a labelled, keyboard-accessible way to reach every page.
  var hubRail: some View {
-  VStack(spacing:10) {
-   Circle()
-    .fill(RadialGradient(colors:[Noir.crimsonLight,Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.3),startRadius:1,endRadius:22))
-    .frame(width:30,height:30)
-    .padding(.bottom,4)
-   ScrollView(showsIndicators:false) {
-    VStack(spacing:5) {
-     ForEach(hub.order) { section in
-      hubRailButton(section)
-       .onDrag {
-        hub.dragging = section
-        return NSItemProvider(object:String(section.rawValue) as NSString)
-       }
-       .onDrop(of:[UTType.text],delegate:RailDropDelegate(target:section,hub:hub))
-       .contextMenu {
-        Button("Move up") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.nudge(section,by:-1) } }
-        Button("Move down") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.nudge(section,by:1) } }
-        Button("Put the icons back in the original order") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.resetOrder() } }
-       }
+  VStack(alignment:.leading,spacing:8) {
+   Button { hubSelect(.home) } label: {
+    HStack(spacing:11) {
+     Circle()
+      .fill(RadialGradient(colors:[HubTheme.crimson,HubTheme.hex(0x6C1C38),HubTheme.hex(0x17080E)],center:UnitPoint(x:0.3,y:0.25),startRadius:2,endRadius:24))
+      .frame(width:30,height:30)
+     if !hub.compact {
+      Text("MoneyHub").font(.system(size:18,weight:.bold,design:.rounded))
+       .foregroundStyle(HubTheme.text)
      }
     }
-    .padding(.vertical,2)
+    .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
+   }
+   .buttonStyle(.plain).accessibilityLabel("MoneyHub Home")
+   .padding(.horizontal,hub.compact ? 4 : 12)
+
+   Button { hub.jumpQuery = ""; hub.jumpPresented = true } label: {
+    HStack(spacing:9) {
+     Image(systemName:"magnifyingglass").font(.system(size:16,weight:.semibold))
+     if !hub.compact {
+      Text("Jump to…").font(.system(size:13,weight:.medium))
+      Spacer(minLength:2)
+      Text("⌘K").font(.system(size:11,weight:.medium))
+     }
+    }
+    .foregroundStyle(HubTheme.subtext)
+    .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
+    .padding(.horizontal,hub.compact ? 0 : 12)
+    .background(HubTheme.control,in:RoundedRectangle(cornerRadius:11))
+    .overlay(RoundedRectangle(cornerRadius:11).stroke(HubTheme.controlOutline,lineWidth:1))
+   }
+   .buttonStyle(.plain).keyboardShortcut("k",modifiers:.command)
+   .accessibilityLabel("Jump to a page")
+   .help("Search all pages (Command-K)")
+   .padding(.horizontal,hub.compact ? 7 : 10)
+
+   ScrollView(showsIndicators:false) {
+    VStack(alignment:.leading,spacing:4) {
+     hubRailButton(.home)
+     hubRailGroup("CREW",pages:[.friday,.helper,.meeting])
+     hubRailGroup("BUSINESS",pages:[.stocks,.store,.ecs,.systems])
+     hubRailGroup("STREAM",pages:[.stream,.game])
+     hubRailGroup("SETUP",pages:[.launchpad,.accounts])
+    }
+    .padding(.horizontal,hub.compact ? 4 : 10)
+    .padding(.bottom,10)
    }
    Spacer(minLength:0)
    Button { c.showPanel = true } label: {
-    VStack(spacing:5) {
-     Image(systemName:"slider.horizontal.3").font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(0.7)).frame(width:48,height:32)
-     if !hub.compact { Text("Settings").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)) }
+    HStack(spacing:10) {
+     Image(systemName:"slider.horizontal.3").frame(width:22)
+     if !hub.compact { Text("Settings") }
     }
+    .font(.system(size:14,weight:.medium))
+    .foregroundStyle(HubTheme.subtext)
+    .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
+    .padding(.horizontal,hub.compact ? 0 : 12)
    }
    .buttonStyle(.plain)
    .keyboardShortcut(",",modifiers:.command)
-   .hubHover("rail-settings",hub,lift:1.06)
+   .accessibilityLabel("Settings")
+   .padding(.horizontal,hub.compact ? 4 : 10)
   }
-  .padding(.top,hub.compact ? 28 : 40).padding(.bottom,16)
-  .frame(width:hub.compact ? 60 : 88)
-  .background(.ultraThinMaterial)
-  .overlay(alignment:.trailing) { Rectangle().fill(Color.white.opacity(0.08)).frame(width:1) }
+  .padding(.vertical,16)
+  .frame(width:hub.compact ? 60 : 214)
+  .background(HubTheme.sidebar)
+  .overlay(alignment:.trailing) { Rectangle().fill(HubTheme.line).frame(width:1) }
+ }
+
+ func hubRailGroup(_ label: String,pages: [HubSection]) -> some View {
+  VStack(alignment:.leading,spacing:2) {
+   if !hub.compact {
+    Text(label).font(.system(size:11,weight:.bold,design:.rounded))
+     .tracking(1.25).foregroundStyle(HubTheme.subtext)
+     .padding(.leading,12).padding(.top,14).padding(.bottom,4)
+     .accessibilityAddTraits(.isHeader)
+   } else {
+    Rectangle().fill(HubTheme.line).frame(height:1).padding(.vertical,9).padding(.horizontal,10)
+   }
+   ForEach(hub.order.filter { pages.contains($0) }) { section in
+    hubRailButton(section)
+     .onDrag {
+      hub.dragging = section
+      return NSItemProvider(object:String(section.rawValue) as NSString)
+     }
+     .onDrop(of:[UTType.text],delegate:RailDropDelegate(target:section,hub:hub))
+     .contextMenu {
+      Button("Move up") { hub.nudge(section,by:-1) }
+      Button("Move down") { hub.nudge(section,by:1) }
+      Button("Reset page order") { hub.resetOrder() }
+     }
+   }
+  }
  }
 
  func hubRailButton(_ section: HubSection) -> some View {
   let selected = hub.section == section
   return Button { hubSelect(section) } label: {
-   VStack(spacing:3) {
-    ZStack {
-     RoundedRectangle(cornerRadius:14,style:.continuous).fill(Color.white.opacity(0.06)).frame(width:42,height:42)
-     if selected {
-      RoundedRectangle(cornerRadius:14,style:.continuous)
-       .fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing))
-       .frame(width:42,height:42)
-       .matchedGeometryEffect(id:"railSelection",in:railNamespace)
-     }
-     Image(systemName:section.icon).font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(selected ? 1 : 0.7))
+   HStack(spacing:11) {
+    Image(systemName:section.icon)
+     .font(.system(size:17,weight:.medium))
+     .frame(width:22,height:24)
+     .foregroundStyle(selected ? HubTheme.crimson : HubTheme.subtext)
+    if !hub.compact {
+     Text(section.title).font(.system(size:14,weight:selected ? .semibold : .medium))
+      .foregroundStyle(selected ? HubTheme.text : HubTheme.subtext)
+      .lineLimit(1)
+     Spacer(minLength:0)
     }
-    if !hub.compact { Text(section.title).font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(selected ? 0.95 : 0.5)) }
    }
+   .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
+   .padding(.horizontal,hub.compact ? 0 : 12)
+   .background(selected ? HubTheme.control : Color.clear,in:RoundedRectangle(cornerRadius:11))
+   .overlay(RoundedRectangle(cornerRadius:11)
+    .stroke(selected ? HubTheme.controlOutline : Color.clear,lineWidth:1))
   }
   .buttonStyle(.plain)
+  .accessibilityLabel(section.title)
+  .accessibilityAddTraits(selected ? .isSelected : [])
+  .help(section.title)
   .hubShortcut(hub.shortcut(for:section))
-  .hubHover("rail-\(section.rawValue)",hub,lift:1.06)
  }
 
+ var hubJumpSheet: some View {
+  VStack(alignment:.leading,spacing:14) {
+   Text("Jump to a page").font(.system(size:22,weight:.bold,design:.rounded))
+    .foregroundStyle(HubTheme.text)
+   HStack(spacing:10) {
+    Image(systemName:"magnifyingglass").foregroundStyle(HubTheme.blue)
+    TextField("Search pages",text:$hub.jumpQuery)
+     .textFieldStyle(.plain)
+     .foregroundStyle(HubTheme.text)
+     .onSubmit {
+      if let first = HubSection.allCases.first(where: {
+       hub.jumpQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(hub.jumpQuery)
+      }) {
+       hub.jumpPresented = false
+       hubSelect(first)
+      }
+     }
+   }
+   .padding(15)
+   .background(HubTheme.control,in:RoundedRectangle(cornerRadius:12))
+   .overlay(RoundedRectangle(cornerRadius:12).stroke(HubTheme.controlOutline))
+   ScrollView {
+    VStack(spacing:3) {
+     ForEach(HubSection.allCases.filter {
+      hub.jumpQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(hub.jumpQuery)
+     }) { section in
+      Button {
+       hub.jumpPresented = false
+       hubSelect(section)
+      } label: {
+       HStack(spacing:12) {
+        Image(systemName:section.icon).frame(width:24)
+        Text(section.title)
+        Spacer()
+        Image(systemName:"arrow.up.left").font(.system(size:11))
+       }
+       .foregroundStyle(HubTheme.text)
+       .frame(minHeight:48)
+       .padding(.horizontal,12)
+       .background(HubTheme.card,in:RoundedRectangle(cornerRadius:10))
+      }
+      .buttonStyle(.plain)
+     }
+    }
+   }
+  }
+  .padding(22)
+  .frame(width:460,height:430)
+  .background(HubTheme.background)
+ }
  // Moves to a page with a spring and a soft tap on the trackpad.
  func hubSelect(_ section: HubSection) {
   guard hub.section != section else { return }

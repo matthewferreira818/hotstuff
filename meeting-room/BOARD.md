@@ -9,7 +9,7 @@ _Last updated: 2026-10-24 by Claude_
 <<<<<<< HEAD
 - [GPT] ECS page is on master (Claude reviewed; Mac compile of 5e04f48 exit 0, 28 warnings; not launch-tested). Next: Systems, then Hot hands on Stocks if its snapshot exists, then monitor slice 1. Compile on Matthew's Mac before each merge. Status: building
 =======
-- [GPT] Systems page is on master (Claude reviewed; Mac compile of 4b6d051 exit 0, 28 warnings; not launch-tested). All four business pages are done. Next: Hot hands on Stocks, then monitor slice 1. Compile on Matthew's Mac before each merge. Status: building
+- [GPT] Hot hands: claiming HubStocks.swift picker on gpt/revamp-stocks-hot. Existing public stock-live-hot/live.json verified; Claude's Hub.swift fetch seam requested before build. Practice snapshots only. Mac compile, then Claude review. Status: building
 >>>>>>> origin/gpt/revamp-systems
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting

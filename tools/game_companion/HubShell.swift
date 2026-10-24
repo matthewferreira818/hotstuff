@@ -34,13 +34,13 @@ extension CompanionInterfaceView {
       .fill(RadialGradient(colors:[HubTheme.crimson,HubTheme.hex(0x6C1C38),HubTheme.hex(0x17080E)],center:UnitPoint(x:0.3,y:0.25),startRadius:2,endRadius:24))
       .frame(width:30,height:30)
      if !hub.compact {
-      Text("MoneyHub").font(.system(size:18,weight:.bold,design:.rounded))
+      Text("Helm").font(.system(size:18,weight:.bold,design:.rounded))
        .foregroundStyle(HubTheme.text)
      }
     }
     .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
    }
-   .buttonStyle(.plain).accessibilityLabel("MoneyHub Home")
+   .buttonStyle(.plain).accessibilityLabel("Helm Home")
    .padding(.horizontal,hub.compact ? 4 : 12)
 
    Button { hub.jumpQuery = ""; hub.jumpPresented = true } label: {

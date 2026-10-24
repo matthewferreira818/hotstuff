@@ -236,10 +236,11 @@ enum HubSection: Int, CaseIterable, Identifiable {
 @MainActor final class StockHub: ObservableObject {
  @Published var dip: StockRobot?
  @Published var momentum: StockRobot?
+ @Published var hot: StockRobot?
  @Published var loading = false
  @Published var failed = false
  @Published var robot = 0
- var current: StockRobot? { robot == 0 ? dip : momentum }
+ var current: StockRobot? { robot == 0 ? dip : (robot == 1 ? momentum : hot) }
 
  func refresh() async {
   guard !loading else { return }
@@ -247,10 +248,12 @@ enum HubSection: Int, CaseIterable, Identifiable {
   defer { loading = false }
   async let first = StockData.fetch(branch:"stock-live",name:"Dip robot")
   async let second = StockData.fetch(branch:"stock-live-momentum",name:"Momentum robot")
-  let (a,b) = await (first,second)
+  async let third = StockData.fetch(branch:"stock-live-hot",name:"Hot hands robot")
+  let (a,b,c) = await (first,second,third)
   if let a = a { dip = a }
   if let b = b { momentum = b }
-  failed = (a == nil && b == nil && dip == nil && momentum == nil)
+  if let c = c { hot = c }
+  failed = (a == nil && b == nil && c == nil && dip == nil && momentum == nil && hot == nil)
  }
 }
 

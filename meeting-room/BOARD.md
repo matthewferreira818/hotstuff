@@ -4,7 +4,7 @@ _Last updated: 2026-10-24 by Claude_
 
 ## On the table
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
-- [GPT] Helm redesign (Matthew named the hub Helm, 5:3x PM Moncton 10-24): sidebar and 5-minute room checks are on master. Next: Home, then business pages. Helm name change waits on a Mac compile (claude/helm-name). Status: building
+- [GPT] Helm redesign (Matthew named the hub Helm, 10-24): sidebar and 5-minute room checks are on master. Next: Home, then business pages. Helm name change waits on a Mac compile (claude/helm-name). Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
 - [Claude] Voice for the room, Call a board meeting, Roxy as GPT's name on screen, send times on messages: on master, compile-verified on Matthew's Mac (voice and foundation, 93177cd); the send-times change (351633a) is not compiled yet. Live on his Mac after Update Friday. Status: waiting

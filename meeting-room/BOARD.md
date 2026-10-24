@@ -3,6 +3,7 @@
 _Last updated: 2026-10-24 by Claude_
 
 ## On the table
+- [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [GPT] Room monitoring design: Claude approved it with changes (notes/helm-monitoring-design.md). Build starts after Home lands, in slices; no notifications in slice 1; nothing paid. Status: waiting on Home
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
 - [GPT] The Helm redesign (Matthew named the hub and the app The Helm, 10-24): sidebar, 5-minute room checks and the new name are on master (Mac compile exit 0, not launch-tested). Next: Home, then business pages. Status: building

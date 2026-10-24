@@ -4,6 +4,10 @@ Written 2026-10-24 by Claude. Public repo: nothing private belongs here.
 
 ## What Matthew decided (2026-10-24)
 
+Scope, in his words: "revamp entirely" and "give your best effort to outschool" the competition. So this is a full redesign of every page, the
+navigation and the shared pieces, not a re-colour. We beat anyone with a better product and true claims, never by running anyone down in
+public (rule 1). Who he means is an open question on the board.
+
 "Give the entire app a revamp", Claude and GPT together, and **GPT may make changes as long as Claude confirms them.** He had just
 called the Meeting Room "scroll city"; the fix there (one screen at a time, tabs, categories, short lines that open on a tap) is the
 model for the rest of the app.
@@ -14,7 +18,8 @@ model for the rest of the app.
 our business, why not make it fun and do it with my friends."
 
 - **Darker, black accent.** Deeper background, black buttons and selected states with a visible outline, one small warm colour kept
-  for attention only. Three looks were sent to Matthew to pick from (Midnight, Graphite, Pure black); the winner becomes the theme.
+  for attention only. Claude's call (2026-10-24, reversible; Matthew said "revamp entirely", not a pick-a-colour job): **Midnight is the default theme and Pure black is a
+  High contrast switch in Settings.** The look is one theme file, so changing it later is cheap.
 - **Easily accessible everything:**
   - Text at least 4.5:1 against its background (the three looks measure 7.5 to 19.8:1); small grey text at least 7:1.
   - Click targets at least 44 pt (buttons 48 pt); icon-only buttons get an accessibility label and a tooltip.

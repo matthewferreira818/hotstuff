@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-24 from commit 15912c8. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit 37cf2a2. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -11193,6 +11193,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
 @MainActor final class HubModel: ObservableObject {
  @Published var section: HubSection = .home
  @Published var query = ""
+ @Published var jumpQuery = ""
+ @Published var jumpPresented = false
  // True when the window is narrow (under 720 points): a slimmer rail and top bar, so the window can be shrunk a lot.
  @Published var compact = false
  // Which card or button the pointer is over, so it can lift a little. Empty means none.
@@ -11533,72 +11535,185 @@ extension CompanionInterfaceView {
    }
    .onAppear { hub.compact = geo.size.width < 720 }
    .onChange(of:geo.size.width) { _,width in hub.compact = width < 720 }
+   .sheet(isPresented:$hub.jumpPresented) { hubJumpSheet }
   }
  }
 
+ // Compact windows keep a labelled, keyboard-accessible way to reach every page.
  var hubRail: some View {
-  VStack(spacing:10) {
-   Circle()
-    .fill(RadialGradient(colors:[Noir.crimsonLight,Noir.crimson,Noir.crimsonDeep],center:UnitPoint(x:0.35,y:0.3),startRadius:1,endRadius:22))
-    .frame(width:30,height:30)
-    .padding(.bottom,4)
-   ScrollView(showsIndicators:false) {
-    VStack(spacing:5) {
-     ForEach(hub.order) { section in
-      hubRailButton(section)
-       .onDrag {
-        hub.dragging = section
-        return NSItemProvider(object:String(section.rawValue) as NSString)
-       }
-       .onDrop(of:[UTType.text],delegate:RailDropDelegate(target:section,hub:hub))
-       .contextMenu {
-        Button("Move up") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.nudge(section,by:-1) } }
-        Button("Move down") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.nudge(section,by:1) } }
-        Button("Put the icons back in the original order") { withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.resetOrder() } }
-       }
+  VStack(alignment:.leading,spacing:8) {
+   Button { hubSelect(.home) } label: {
+    HStack(spacing:11) {
+     Circle()
+      .fill(RadialGradient(colors:[HubTheme.crimson,HubTheme.hex(0x6C1C38),HubTheme.hex(0x17080E)],center:UnitPoint(x:0.3,y:0.25),startRadius:2,endRadius:24))
+      .frame(width:30,height:30)
+     if !hub.compact {
+      Text("MoneyHub").font(.system(size:18,weight:.bold,design:.rounded))
+       .foregroundStyle(HubTheme.text)
      }
     }
-    .padding(.vertical,2)
+    .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
+   }
+   .buttonStyle(.plain).accessibilityLabel("MoneyHub Home")
+   .padding(.horizontal,hub.compact ? 4 : 12)
+
+   Button { hub.jumpQuery = ""; hub.jumpPresented = true } label: {
+    HStack(spacing:9) {
+     Image(systemName:"magnifyingglass").font(.system(size:16,weight:.semibold))
+     if !hub.compact {
+      Text("Jump to…").font(.system(size:13,weight:.medium))
+      Spacer(minLength:2)
+      Text("⌘K").font(.system(size:11,weight:.medium))
+     }
+    }
+    .foregroundStyle(HubTheme.subtext)
+    .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
+    .padding(.horizontal,hub.compact ? 0 : 12)
+    .background(HubTheme.control,in:RoundedRectangle(cornerRadius:11))
+    .overlay(RoundedRectangle(cornerRadius:11).stroke(HubTheme.controlOutline,lineWidth:1))
+   }
+   .buttonStyle(.plain).keyboardShortcut("k",modifiers:.command)
+   .accessibilityLabel("Jump to a page")
+   .help("Search all pages (Command-K)")
+   .padding(.horizontal,hub.compact ? 7 : 10)
+
+   ScrollView(showsIndicators:false) {
+    VStack(alignment:.leading,spacing:4) {
+     hubRailButton(.home)
+     hubRailGroup("CREW",pages:[.friday,.helper,.meeting])
+     hubRailGroup("BUSINESS",pages:[.stocks,.store,.ecs,.systems])
+     hubRailGroup("STREAM",pages:[.stream,.game])
+     hubRailGroup("SETUP",pages:[.launchpad,.accounts])
+    }
+    .padding(.horizontal,hub.compact ? 4 : 10)
+    .padding(.bottom,10)
    }
    Spacer(minLength:0)
    Button { c.showPanel = true } label: {
-    VStack(spacing:5) {
-     Image(systemName:"slider.horizontal.3").font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(0.7)).frame(width:48,height:32)
-     if !hub.compact { Text("Settings").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.5)) }
+    HStack(spacing:10) {
+     Image(systemName:"slider.horizontal.3").frame(width:22)
+     if !hub.compact { Text("Settings") }
     }
+    .font(.system(size:14,weight:.medium))
+    .foregroundStyle(HubTheme.subtext)
+    .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
+    .padding(.horizontal,hub.compact ? 0 : 12)
    }
    .buttonStyle(.plain)
    .keyboardShortcut(",",modifiers:.command)
-   .hubHover("rail-settings",hub,lift:1.06)
+   .accessibilityLabel("Settings")
+   .padding(.horizontal,hub.compact ? 4 : 10)
   }
-  .padding(.top,hub.compact ? 28 : 40).padding(.bottom,16)
-  .frame(width:hub.compact ? 60 : 88)
-  .background(.ultraThinMaterial)
-  .overlay(alignment:.trailing) { Rectangle().fill(Color.white.opacity(0.08)).frame(width:1) }
+  .padding(.vertical,16)
+  .frame(width:hub.compact ? 60 : 214)
+  .background(HubTheme.sidebar)
+  .overlay(alignment:.trailing) { Rectangle().fill(HubTheme.line).frame(width:1) }
+ }
+
+ func hubRailGroup(_ label: String,pages: [HubSection]) -> some View {
+  VStack(alignment:.leading,spacing:2) {
+   if !hub.compact {
+    Text(label).font(.system(size:11,weight:.bold,design:.rounded))
+     .tracking(1.25).foregroundStyle(HubTheme.subtext)
+     .padding(.leading,12).padding(.top,14).padding(.bottom,4)
+     .accessibilityAddTraits(.isHeader)
+   } else {
+    Rectangle().fill(HubTheme.line).frame(height:1).padding(.vertical,9).padding(.horizontal,10)
+   }
+   ForEach(hub.order.filter { pages.contains($0) }) { section in
+    hubRailButton(section)
+     .onDrag {
+      hub.dragging = section
+      return NSItemProvider(object:String(section.rawValue) as NSString)
+     }
+     .onDrop(of:[UTType.text],delegate:RailDropDelegate(target:section,hub:hub))
+     .contextMenu {
+      Button("Move up") { hub.nudge(section,by:-1) }
+      Button("Move down") { hub.nudge(section,by:1) }
+      Button("Reset page order") { hub.resetOrder() }
+     }
+   }
+  }
  }
 
  func hubRailButton(_ section: HubSection) -> some View {
   let selected = hub.section == section
   return Button { hubSelect(section) } label: {
-   VStack(spacing:3) {
-    ZStack {
-     RoundedRectangle(cornerRadius:14,style:.continuous).fill(Color.white.opacity(0.06)).frame(width:42,height:42)
-     if selected {
-      RoundedRectangle(cornerRadius:14,style:.continuous)
-       .fill(LinearGradient(colors:[Noir.crimsonLight,Noir.crimson],startPoint:.topLeading,endPoint:.bottomTrailing))
-       .frame(width:42,height:42)
-       .matchedGeometryEffect(id:"railSelection",in:railNamespace)
-     }
-     Image(systemName:section.icon).font(.system(size:17,weight:.semibold)).foregroundStyle(Color.white.opacity(selected ? 1 : 0.7))
+   HStack(spacing:11) {
+    Image(systemName:section.icon)
+     .font(.system(size:17,weight:.medium))
+     .frame(width:22,height:24)
+     .foregroundStyle(selected ? HubTheme.crimson : HubTheme.subtext)
+    if !hub.compact {
+     Text(section.title).font(.system(size:14,weight:selected ? .semibold : .medium))
+      .foregroundStyle(selected ? HubTheme.text : HubTheme.subtext)
+      .lineLimit(1)
+     Spacer(minLength:0)
     }
-    if !hub.compact { Text(section.title).font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(selected ? 0.95 : 0.5)) }
    }
+   .frame(maxWidth:.infinity,minHeight:48,alignment:hub.compact ? .center : .leading)
+   .padding(.horizontal,hub.compact ? 0 : 12)
+   .background(selected ? HubTheme.control : Color.clear,in:RoundedRectangle(cornerRadius:11))
+   .overlay(RoundedRectangle(cornerRadius:11)
+    .stroke(selected ? HubTheme.controlOutline : Color.clear,lineWidth:1))
   }
   .buttonStyle(.plain)
+  .accessibilityLabel(section.title)
+  .accessibilityAddTraits(selected ? .isSelected : [])
+  .help(section.title)
   .hubShortcut(hub.shortcut(for:section))
-  .hubHover("rail-\(section.rawValue)",hub,lift:1.06)
  }
 
+ var hubJumpSheet: some View {
+  VStack(alignment:.leading,spacing:14) {
+   Text("Jump to a page").font(.system(size:22,weight:.bold,design:.rounded))
+    .foregroundStyle(HubTheme.text)
+   HStack(spacing:10) {
+    Image(systemName:"magnifyingglass").foregroundStyle(HubTheme.blue)
+    TextField("Search pages",text:$hub.jumpQuery)
+     .textFieldStyle(.plain)
+     .foregroundStyle(HubTheme.text)
+     .onSubmit {
+      if let first = HubSection.allCases.first(where: {
+       hub.jumpQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(hub.jumpQuery)
+      }) {
+       hub.jumpPresented = false
+       hubSelect(first)
+      }
+     }
+   }
+   .padding(15)
+   .background(HubTheme.control,in:RoundedRectangle(cornerRadius:12))
+   .overlay(RoundedRectangle(cornerRadius:12).stroke(HubTheme.controlOutline))
+   ScrollView {
+    VStack(spacing:3) {
+     ForEach(HubSection.allCases.filter {
+      hub.jumpQuery.isEmpty || $0.title.localizedCaseInsensitiveContains(hub.jumpQuery)
+     }) { section in
+      Button {
+       hub.jumpPresented = false
+       hubSelect(section)
+      } label: {
+       HStack(spacing:12) {
+        Image(systemName:section.icon).frame(width:24)
+        Text(section.title)
+        Spacer()
+        Image(systemName:"arrow.up.left").font(.system(size:11))
+       }
+       .foregroundStyle(HubTheme.text)
+       .frame(minHeight:48)
+       .padding(.horizontal,12)
+       .background(HubTheme.card,in:RoundedRectangle(cornerRadius:10))
+      }
+      .buttonStyle(.plain)
+     }
+    }
+   }
+  }
+  .padding(22)
+  .frame(width:460,height:430)
+  .background(HubTheme.background)
+ }
  // Moves to a page with a spring and a soft tap on the trackpad.
  func hubSelect(_ section: HubSection) {
   guard hub.section != section else { return }
@@ -14185,12 +14300,11 @@ scheduled tasks, twice a day. Nobody can watch it live, so replies are not insta
 _Last updated: 2026-10-24 by Claude_
 
 ## On the table
-- [Claude] App revamp (Matthew, 10-24: "give the entire app a revamp"; GPT may change app files if Claude confirms). Plan, owners and checklist: notes/app-revamp-plan.md. Phase 0: ship the voice work, then split Hub.swift into one file per page. Status: building
-- [GPT] App revamp, phase 1, read-only: audit every page of the app (what is cluttered, too long or inconsistent, one-line fix each) and post it in the thread. Read notes/app-revamp-plan.md first. Don't edit app files until Claude confirms the plan. Status: assigned
+- [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
+- [GPT] MoneyHub redesign, piece 1: grouped sidebar with Jump to… and a shared Midnight header on gpt/moneyhub-sidebar (branch exists, no code yet as of 1:02 PM Moncton). Then Home and the business pages. Compile on Matthew's Mac before every merge request. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
-- [GPT] Compile-check the whole app on the Mac. Everything changed since Matthew's 10-14 Video lab test is unchecked: Helper, HelperData, FridayHands, VoiceOver, Hub, CompanionInterface, Companion, FridayOrb, Live, VideoLab, plus the new MeetingRoom.swift and MeetingData.swift. Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
-- [Claude] Voice for the room (Matthew: "y'all gotta speak"): a Listen button on messages and a spoken board meeting, one built-in Mac voice each for Claude, GPT, Friday and Matthew, plus a Call a board meeting button that posts the call to the thread. Free, on his Mac only; it reads written words, it is not a live call. Status: building
+- [Claude] Voice for the room, Call a board meeting, Roxy as GPT's name on screen, send times on messages: on master, compile-verified on Matthew's Mac (voice and foundation, 93177cd); the send-times change (351633a) is not compiled yet. Live on his Mac after Update Friday. Status: waiting
 - [Claude] Crew page (findhotstuff.com/crew/, v3, noindex): waiting on Matthew's OK before the noindex comes off. GPT: please read its wording against rule 1. Status: waiting
 - [Claude] Outreach twice a week (Tuesday and Friday). Batch 1 is ready and waits for Matthew's go; batch 2 (5 follow-ups) waits for his pick under Questions. Status: waiting
 - [Claude] Later, not urgent: swap the older Apple calls in ClipEditor.swift for the newer ones, after the first clip test works (the old ones still work); GPT compile-checks the swap. Status: waiting
@@ -14208,6 +14322,7 @@ _Last updated: 2026-10-24 by Claude_
 - [Claude → Matthew] Outreach batch 2 (5 follow-ups, nothing sent): pick wording 4 (plain) or 4b (adds one line correcting the July "automatic" wording). Claude recommends 4b. No answer means nothing goes out.
 
 ## Decisions
+- 2026-10-24: Matthew's later decisions: GPT is now called Roxy on screen (tag stays GPT); he wants a full surprise revamp by Roxy and Claude with the Meeting Room checked every few minutes; Roxy builds on gpt/moneyhub-* branches and asks for a Mac compile before each merge, Claude merges. Master 15912c8 compile-verified (exit 0, 28 warnings, Roxy, 1:16 PM).
 - 2026-10-24: Matthew's decision, later: GPT gets "a chance off restrictions". It may edit and push app files straight to master (any page, Hub.swift included), announcing what it takes on here; Claude reviews after and reverts what breaks a protection. Still on: honesty, secrets, Friday's off-limits list, the Moomoo switches, nothing paid, no public posts or messages to people without a go.
 - 2026-10-24: Matthew's design direction for the revamp: a little darker with a black accent, everything easy to reach and read, room to add pages, and fun, with his friends (read as the crew). Claude's call: Midnight default, Pure black as a High contrast switch. He wants it revamped entirely. Details: notes/app-revamp-plan.md.
 - 2026-10-24: Matthew's decision: Claude and GPT revamp the whole app together. GPT may change app files (tools/game_companion/) on its own branch, and nothing reaches master until Claude has reviewed and confirmed it. Honesty, secrets, Friday's off-limits list and the Moomoo switches are not part of the permission. Plan: notes/app-revamp-plan.md.

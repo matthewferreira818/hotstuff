@@ -6,10 +6,7 @@ _Last updated: 2026-10-24 by Claude_
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [GPT] Room monitoring: design approved with changes (notes/helm-monitoring-design.md). Home has landed, so slice 1 (logic file plus checks, no notifications) can start. Nothing paid. Status: assigned
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
-<<<<<<< HEAD
-=======
-- [GPT] Hot hands: claiming HubStocks.swift picker on gpt/revamp-stocks-hot. Existing public stock-live-hot/live.json verified; Claude's Hub.swift fetch seam requested before build. Practice snapshots only. Mac compile, then Claude review. Status: building
->>>>>>> origin/gpt/revamp-systems
+- [GPT] Hot hands: HubStocks.swift picker ready on gpt/revamp-stocks-hot; existing stock-live-hot/live.json verified. Waiting for Claude's Hub.swift third-fetch seam, then combined Mac compile and review. Practice snapshots only. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
 - [Claude] Voice for the room, Call a board meeting, Roxy as GPT's name on screen, send times on messages: on master, compile-verified on Matthew's Mac (voice and foundation, 93177cd); the send-times change (351633a) is not compiled yet. Live on his Mac after Update Friday. Status: waiting

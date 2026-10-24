@@ -248,9 +248,10 @@ still do. Tested live: it found issue #14. Also: the sidebar is tighter so more 
 
 A tenth hub page (Command-0). Claude's chats, the GPT Project and Friday can't see each other, so the room is a shared board:
 `meeting-room/BOARD.md` in the public repo (rules in `meeting-room/README.md`). `MeetingData.swift` (Foundation-only, tested
-against the real file) reads it through GitHub's contents API and splits it into sections and items (`- [Owner] text. Status: x`).
-The page shows the crew (Claude, GPT, Friday), the board, and a message box: pick To Claude, To GPT or Note for the board, type,
-and Copy puts a ready-to-paste message on the clipboard (the GPT version includes the whole board, since GPT can't read the repo).
+on sample boards in `checks/DataChecks.swift`) reads it through GitHub's contents API and splits it into sections and items (`- [Owner] text. Status: x`).
+The page has six tabs (see "Meeting Room tabs" below): You, Claude, GPT, Friday, Board, Thread. A message box (To Claude, To GPT
+or To everyone) posts to the thread, and Copy for a chat puts a ready-to-paste message on the clipboard (the GPT version includes the
+whole board, since GPT can't read the repo).
 The app only reads the board. Claude edits it and pushes; GPT hands Matthew a "Board update" block to paste. Home's briefing
 shows how many things are on the table. Nothing private belongs on it: the repo is public. The Command-number shortcut code
 was changed so a tenth page can't crash it.
@@ -290,8 +291,8 @@ separate macOS voice and was not changed.
 
 The Meeting Room page now has a live message thread: GitHub issue 15 on the repo, locked so only the owner's account can post.
 `MeetingData.swift` reads it with no key (comments from the owner's account only; each message is tagged **[From → To]**, and
-the Claude footer is dropped) and shows the newest 12. To post from the app, Matthew pastes a fine-grained GitHub key limited to
-**Issues: Read and write on the hotstuff repo only** into the Meeting Room page or Accounts; it goes in the Keychain. Classic keys
+the Claude footer is dropped) and shows the newest 8 first, with "Show 8 earlier" for more. To post from the app, Matthew pastes a fine-grained GitHub key limited to
+**Issues: Read and write on the hotstuff repo only** into the key box at the bottom of Write a message, or into Accounts; it goes in the Keychain. Classic keys
 are refused because they can't be limited to one repo. That key can't touch code or the site. A message tagged `→ Matthew]`
 triggers `.github/workflows/room-ping.yml`, which sends a push to his phone through the same ntfy secret the other alerts use.
 The tag parser, trust filter, page-number reader and key rules are in `checks/DataChecks.swift` and pass. The page itself and
@@ -301,7 +302,7 @@ the posting call have not been compiled or run on the Mac.
 
 A **Refresh** button sits in the top bar of every page (Command-R). It reloads the stock snapshots, store and ECS numbers,
 automations, sales and the Meeting Room together, spins while it works, and shows "Updated 2 minutes ago". The Meeting Room's
-Messages card has its own Refresh too. A page left open also refreshes itself once a minute (stocks, Meeting Room, or the
+header (every tab) has its own Refresh and Open on GitHub. A page left open also refreshes itself once a minute (stocks, Meeting Room, or the
 store/ECS/Systems numbers), and the Meeting Room uses the saved GitHub key for its reads when there is one, because GitHub allows
 far more reads with a key than without (60 an hour). Without a key the Meeting Room refreshes about every five minutes.
 
@@ -345,8 +346,8 @@ title/category request bodies are in `checks/DataChecks.swift` and pass; the voi
 
 ## The Friday feed, inside the Meeting Room (2026-10-05)
 
-The Meeting Room page now has two channels, picked at the top: **Team board** (the shared board and the GitHub thread, which are
-public) and **Friday · private**. The Friday channel is a chat-style feed of what Matthew and Friday said to each other (his words
+Friday's private chat is the **Private chat** button on the Meeting Room's Friday tab (it replaced the old two-channel picker;
+the board and thread are public, this is not). It is a chat-style feed of what Matthew and Friday said to each other (his words
 on the right, hers on the left) with small pills for what she did for him (a clip, a title change, a marker, a lookup). It is
 written by `LiveBuddy` when a turn finishes, when a typed message is sent, when a tool returns and when she is stopped; `FeedData.swift`
 holds the format and the tests, `FridayFeed.swift` the store and the page. It is saved only on the Mac
@@ -537,7 +538,7 @@ An overnight review of the newest builds found 26 real problems (none stopped th
 Also fixed: in Google Search mode she is told she has no other tools; click/point refuse a missing x or y; the cursor glides correctly across
 screens; the key migration only marks itself done when every old item was copied; the orb never freezes if the clock steps back; the Start
 buttons and privacy captions now say "all your screens" when that's the mode (and don't need a chosen window); the round X button also turns
-Clip autopilot off; the Meeting Room's Friday card and her inbox are accurate. Still true: these rules are a safety net, not a guarantee;
+Clip autopilot off; the Meeting Room's Friday tab and her inbox are accurate. Still true: these rules are a safety net, not a guarantee;
 the Allow box is the hard stop for send and buy. None of it has been run on the Mac yet.
 
 ## Friday's voice-over (2026-10-06)
@@ -784,3 +785,18 @@ Honest limits: a 4B model on an 8 GB Mac follows simple jobs well and will fumbl
 and why she stops and asks when unsure. Platforms can restrict automated posting; every Post press stays his Allow.
 
 **His Mac (2026-10-14):** he says "a 18 pro and 8 gigs", which reads as an Apple A18 Pro chip with 8 GB of memory (to be confirmed). That leaves roughly 4 to 5 GB for a model after macOS, so a model of about 4B in 4-bit form is the ceiling: `gemma3:4b` (already used by local mode) is the right size, and `qwen3:4b` or `qwen2.5:3b` are the things to try in the Model box if its JSON answers are shaky (the Helper sends text only, so a text-tuned small model suits it). Don't run the local model while gaming or streaming on this Mac: use the Google brain then. The Helper asks Ollama to unload 90 seconds after the last step.
+
+## Meeting Room tabs (2026-10-24)
+
+Matthew: "its scroll city", then "you guys have your own section ... clean and sleek with categories". The page is now one
+screen at a time: **You** (what needs him: the questions put to him, messages tagged to him in the last 7 days with no later
+message from him, and his open to-dos), then one tab each for **Claude**, **GPT** and **Friday**, then **Board** and **Thread**.
+A crew tab has a header (who they are, how many items are open, when they last posted in the room, and buttons) and categories
+sorted from the board's Status words: In progress (building), Up next (assigned), Waiting on someone (waiting or any other word),
+Blocked, Asking Matthew (their open questions) and Done, then their messages (newest first, 3 until Show earlier). Long lines show
+about 140 characters and open on a tap; an open message has a Reply button. Write a message opens the box on top of the tab you
+are on. The Friday tab only lists items tagged `[Friday]` and her room posts, so most of her work is on Claude's tab (Claude built
+it); her private chat is the Private chat button. The sorting rules (`brief`, `needs`, `crew`) are Foundation-only in
+`MeetingData.swift` and tested in `checks/DataChecks.swift`. The SwiftUI in `MeetingRoom.swift` has been read by reviewers but
+**not compiled on a Mac yet**: if Update Friday says BUILD FAILED, the old app stays installed; paste the errors back.
+`meeting-room/BOARD.md` was cut from about 25 KB to 7 KB the same day; the old text is `meeting-room/notes/board-archive-2026-10-24.md`.

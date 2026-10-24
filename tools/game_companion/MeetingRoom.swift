@@ -11,6 +11,8 @@ import Cocoa
  // The writing box opens on top of whichever tab is showing; Friday's private chat (this Mac only) replaces her tab while open.
  @Published var composing = false
  @Published var fridayPrivate = false
+ // Asks "Call a board meeting?" before anything is posted.
+ @Published var confirmCall = false
  // Lines Matthew has tapped open (each shows short until then), lists he asked to see in full, and how many messages are showing.
  @Published var opened: Set<String> = []
  @Published var expanded: Set<String> = []
@@ -51,6 +53,30 @@ import Cocoa
  }
 
  var needs: MatthewNeeds { MeetingData.needs(board:board,messages:messages) }
+
+ // The latest board meeting called in the thread in the last two days, if any.
+ var meetingNow: BoardMeeting? { MeetingData.currentMeeting(messages) }
+
+ // Posts the call for a board meeting to the thread as Matthew. Without the posting key it puts the call on the clipboard instead.
+ func callMeeting() async {
+  guard !sending else { return }
+  let call = MeetingData.meetingCall()
+  guard hasToken, let token = savedToken() else {
+   NSPasteboard.general.clearContents()
+   NSPasteboard.general.setString(MeetingData.formatted(from:"Matthew",to:"Everyone",text:call),forType:.string)
+   sendNote = "Posting isn't connected yet, so the call is copied. Paste it into the thread on GitHub, or connect posting (Write a message, steps at the bottom)."
+   return
+  }
+  sending = true
+  defer { sending = false }
+  switch await MeetingData.post(call,from:"Matthew",to:"Everyone",token:token) {
+  case .ok:
+   sendNote = "Board meeting called. Claude, GPT and Friday answer at their next check."
+   await refresh(force:true)
+  case .failed(let reason):
+   sendNote = reason
+  }
+ }
 
  func crew(_ name: String) -> CrewView { MeetingData.crew(name,board:board,messages:messages) }
 
@@ -213,6 +239,8 @@ extension CompanionInterfaceView {
   }
   .onAppear { Task { await meeting.refresh(minGap:60) } }
   .onChange(of:meeting.tab) { _,tab in if tab != 3 { meeting.fridayPrivate = false } }
+  .onChange(of:live.running) { _,running in if running { voice.stop() } }
+  .onDisappear { voice.stop() }
  }
 
  var hubMeetingHeader: some View {
@@ -249,6 +277,7 @@ extension CompanionInterfaceView {
  @ViewBuilder var hubNeeds: some View {
   let needs = meeting.needs
   hubComposerOrButton
+  hubMeetingBar
   if needs.count == 0 {
    VStack(spacing:8) {
     Image(systemName:"checkmark.circle").font(.system(size:34)).foregroundStyle(Color.white.opacity(0.3))
@@ -281,13 +310,52 @@ extension CompanionInterfaceView {
    HStack(spacing:8) {
     Circle().fill(tint).frame(width:8,height:8)
     Text(title.uppercased()).font(.system(size:11,weight:.bold,design:.rounded)).tracking(1).foregroundStyle(tint)
-    Text(String(count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+    if count >= 0 { Text(String(count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4)) }
    }
    content()
   }
   .padding(18)
   .frame(maxWidth:.infinity,alignment:.leading)
   .hubCard()
+ }
+
+ // The board meeting card: call one, hear the board read out loud, or hear the last meeting played back. The voices are the Mac's own,
+ // one each for Claude, GPT, Friday and Matthew, and they read written words. It is not a live call with anyone.
+ @ViewBuilder var hubMeetingBar: some View {
+  let held = meeting.meetingNow
+  hubGroup("Board meeting",-1,HubColor.violet) {
+   if let held = held {
+    Text("Called \(hubAgo(held.call.date)) by \(held.call.author). \(held.replies.count) message\(held.replies.count == 1 ? "" : "s") since.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.75))
+    HStack(spacing:8) {
+     ForEach(SpeechData.crew,id:\.self) { name in hubPill(held.answered(name) ? "\(name.uppercased()) ANSWERED" : "\(name.uppercased()) NOT YET",tint:held.answered(name) ? HubColor.green : HubColor.slate) }
+    }
+   } else {
+    Text("No board meeting in the last two days. Call one and Claude, GPT and Friday answer each other here, at their next check.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+   }
+   HStack(spacing:10) {
+    Button { meeting.confirmCall = true } label: { Label(meeting.sending ? "Posting…" : "Call a board meeting",systemImage:"person.3.fill") }
+     .buttonStyle(PillButtonStyle())
+     .disabled(meeting.sending)
+    if let held = held {
+     Button { voice.toggle("meeting",SpeechData.meetingLines(held)) } label: { Label(voice.playing == "meeting" ? "Stop" : "Listen to it",systemImage:voice.playing == "meeting" ? "stop.fill" : "speaker.wave.2.fill") }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+      .disabled(live.running)
+    }
+    Button { voice.toggle("board",SpeechData.meetingScript(board:meeting.board,messages:meeting.messages)) } label: { Label(voice.playing == "board" ? "Stop" : "Hear the board",systemImage:voice.playing == "board" ? "stop.fill" : "speaker.wave.2.fill") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+     .disabled(live.running)
+   }
+   if live.running {
+    Text("Friday is live, so voices are off: she would hear them. Stop her first.").font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber)
+   } else if !voice.speaker.isEmpty {
+    Text("\(voice.speaker) is speaking…").font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(hubOwnerTint(voice.speaker))
+   }
+   if !meeting.sendNote.isEmpty { Text(meeting.sendNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
+   Text("Voices are your Mac's built-in ones, one each for Claude, GPT, Friday and you, reading what was written. It is not a live call.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+  }
+  .confirmationDialog("Call a board meeting?",isPresented:$meeting.confirmCall) {
+   Button("Post the call") { Task { await meeting.callMeeting() } }
+  } message: { Text("This posts a message to the room thread (public). Claude, GPT and Friday answer each other there at their next check.") }
  }
 
  // MARK: Claude, GPT and Friday
@@ -316,9 +384,10 @@ extension CompanionInterfaceView {
  // One crew member's page: who they are, their work in categories, then their messages.
  func hubCrewPage(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ actions: [HubAction]) -> some View {
   let crew = meeting.crew(name)
+  let hear: [HubAction] = live.running ? [] : [HubAction(label:voice.playing == "crew-\(name)" ? "Stop" : "Hear \(name)",icon:voice.playing == "crew-\(name)" ? "stop.fill" : "speaker.wave.2.fill") { voice.toggle("crew-\(name)",SpeechData.crewScript(name,board:meeting.board,messages:meeting.messages)) }]
   return VStack(alignment:.leading,spacing:14) {
    hubComposerIfOpen
-   hubCrewHeader(name,job,icon,tint,crew,actions)
+   hubCrewHeader(name,job,icon,tint,crew,actions + hear)
    ForEach(crew.groups) { group in hubCrewGroup(name,group) }
    if crew.groups.isEmpty {
     Text(name == "Friday" ? "Friday's app work is built by Claude, so it is on Claude's tab. Her own posts show under Messages." : "Nothing of \(name)'s is on the board right now.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
@@ -414,6 +483,7 @@ extension CompanionInterfaceView {
 
  @ViewBuilder var hubThread: some View {
   hubComposerOrButton
+  hubMeetingBar
   hubMessages
  }
 
@@ -470,6 +540,9 @@ extension CompanionInterfaceView {
      if !message.to.isEmpty { Text("→ \(message.to)").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
      Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
      Spacer(minLength:0)
+     Button { voice.toggle(id,SpeechData.messageLines(message)) } label: { Image(systemName:voice.playing == id ? "stop.fill" : "speaker.wave.2.fill").font(.system(size:12)).foregroundStyle(Color.white.opacity(0.6)) }
+      .buttonStyle(.plain)
+      .disabled(live.running)
      Image(systemName:open ? "chevron.up" : "chevron.down").font(.system(size:11,weight:.semibold)).foregroundStyle(Color.white.opacity(0.4))
     }
     .contentShape(Rectangle())

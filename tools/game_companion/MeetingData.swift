@@ -55,6 +55,18 @@ struct MatthewNeeds {
  var count: Int { questions.count + tasks.count + messages.count }
 }
 
+// A board meeting: a message that opens with "BOARD MEETING" (or "Group meeting"), and everything posted after it. The crew answer
+// each other in the thread; this is how the page knows who has.
+struct BoardMeeting {
+ var call: RoomMessage
+ var replies: [RoomMessage]
+ // The one who called it counts as having spoken; everyone else has when they posted after the call.
+ func answered(_ name: String) -> Bool {
+  let who = name.lowercased()
+  return call.author.lowercased() == who || replies.contains { $0.author.lowercased() == who }
+ }
+}
+
 // One of the crew (Claude, GPT, Friday) on their own tab: their board items sorted into categories, and the messages they
 // wrote or were sent. Empty categories are left out.
 struct CrewGroup: Identifiable {
@@ -225,6 +237,27 @@ enum MeetingData {
    return now.timeIntervalSince(date) < days * 86400
   }
   return result
+ }
+
+ static let defaultAgenda = "Everyone: post one short update here, tagged to whoever you are answering: what you are on, what you need from whom, and what you can offer. Talk to each other, not only to Matthew."
+
+ // The words of a call, posted as Matthew with the usual tag: **[Matthew → Everyone]** BOARD MEETING. ...
+ static func meetingCall(agenda: String? = nil) -> String {
+  let extra = (agenda ?? "").trimmingCharacters(in:.whitespacesAndNewlines)
+  return "BOARD MEETING. " + (extra.isEmpty ? defaultAgenda : extra)
+ }
+
+ static func isMeetingCall(_ message: RoomMessage) -> Bool {
+  let text = message.text.trimmingCharacters(in:.whitespacesAndNewlines).uppercased()
+  return (message.author.lowercased() == "matthew" || message.author.lowercased() == "claude") && (text.hasPrefix("BOARD MEETING") || text.hasPrefix("GROUP MEETING"))
+ }
+
+ // The latest call that is still recent (two days), with the messages after it. Nil when nobody has called one.
+ static func currentMeeting(_ messages: [RoomMessage],now: Date = Date(),hours: Double = 48) -> BoardMeeting? {
+  guard let index = messages.lastIndex(where: { isMeetingCall($0) }) else { return nil }
+  let call = messages[index]
+  if let date = call.date, now.timeIntervalSince(date) > hours * 3600 { return nil }
+  return BoardMeeting(call:call,replies:Array(messages[(index + 1)...]))
  }
 
  // One crew member's tab: their board items (On the table and Questions) sorted by status, and the messages they wrote or got.

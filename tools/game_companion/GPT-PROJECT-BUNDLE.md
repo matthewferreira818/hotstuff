@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-24 from commit feba5bc. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit e62fa5a. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -68,7 +68,9 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `VentureData.swift`: Reads the store's public visitor counters, the ECS feed, GitHub automation status and the product list age.
 - `StripeData.swift`: Reads store sales from Stripe with a read-only restricted key. GET requests only.
 - `MeetingData.swift`: Reads the shared Meeting Room board (meeting-room/BOARD.md) from GitHub. Read-only.
-- `MeetingRoom.swift`: The Meeting Room page: the board, the crew, and a box that makes a ready-to-paste note for Claude or GPT.
+- `SpeechData.swift`: What the Meeting Room reads out loud and which built-in voice each person gets. Pure logic, tested.
+- `MeetingVoice.swift`: Speaks the Meeting Room with the Mac's built-in voices, one each for Claude, GPT, Friday and Matthew. Not a live call.
+- `MeetingRoom.swift`: The Meeting Room page: tabs for You, Claude, GPT, Friday, the Board and the Thread, a Call a board meeting button, Listen buttons, and a box that makes a ready-to-paste note for Claude or GPT.
 - `ClipMath.swift`: Picks the highlight out of a clip from how loud it is. Pure maths, tested.
 - `ClipEditor.swift`: Cuts the highlight and makes a wide and a tall (9:16) version with Apple's video tools.
 - `StreamData.swift`: Reads Twitch's answers (live status, channel, clips, followers) and explains its errors in plain words. Tested.
@@ -2133,6 +2135,7 @@ struct CompanionInterfaceView: View {
  @StateObject var ventures = VentureHub()
  @StateObject var sales = SalesHub()
  @StateObject var meeting = MeetingHub()
+ @StateObject var voice = MeetingVoice()
  @StateObject var stream = StreamHub()
  @StateObject var feed = FridayFeed()
  @StateObject var chat = ChatHub()
@@ -3703,6 +3706,18 @@ struct MatthewNeeds {
  var count: Int { questions.count + tasks.count + messages.count }
 }
 
+// A board meeting: a message that opens with "BOARD MEETING" (or "Group meeting"), and everything posted after it. The crew answer
+// each other in the thread; this is how the page knows who has.
+struct BoardMeeting {
+ var call: RoomMessage
+ var replies: [RoomMessage]
+ // The one who called it counts as having spoken; everyone else has when they posted after the call.
+ func answered(_ name: String) -> Bool {
+  let who = name.lowercased()
+  return call.author.lowercased() == who || replies.contains { $0.author.lowercased() == who }
+ }
+}
+
 // One of the crew (Claude, GPT, Friday) on their own tab: their board items sorted into categories, and the messages they
 // wrote or were sent. Empty categories are left out.
 struct CrewGroup: Identifiable {
@@ -3875,6 +3890,27 @@ enum MeetingData {
   return result
  }
 
+ static let defaultAgenda = "Everyone: post one short update here, tagged to whoever you are answering: what you are on, what you need from whom, and what you can offer. Talk to each other, not only to Matthew."
+
+ // The words of a call, posted as Matthew with the usual tag: **[Matthew → Everyone]** BOARD MEETING. ...
+ static func meetingCall(agenda: String? = nil) -> String {
+  let extra = (agenda ?? "").trimmingCharacters(in:.whitespacesAndNewlines)
+  return "BOARD MEETING. " + (extra.isEmpty ? defaultAgenda : extra)
+ }
+
+ static func isMeetingCall(_ message: RoomMessage) -> Bool {
+  let text = message.text.trimmingCharacters(in:.whitespacesAndNewlines).uppercased()
+  return (message.author.lowercased() == "matthew" || message.author.lowercased() == "claude") && (text.hasPrefix("BOARD MEETING") || text.hasPrefix("GROUP MEETING"))
+ }
+
+ // The latest call that is still recent (two days), with the messages after it. Nil when nobody has called one.
+ static func currentMeeting(_ messages: [RoomMessage],now: Date = Date(),hours: Double = 48) -> BoardMeeting? {
+  guard let index = messages.lastIndex(where: { isMeetingCall($0) }) else { return nil }
+  let call = messages[index]
+  if let date = call.date, now.timeIntervalSince(date) > hours * 3600 { return nil }
+  return BoardMeeting(call:call,replies:Array(messages[(index + 1)...]))
+ }
+
  // One crew member's tab: their board items (On the table and Questions) sorted by status, and the messages they wrote or got.
  static func crew(_ name: String,board: Board?,messages: [RoomMessage]) -> CrewView {
   let mine = name.lowercased()
@@ -3996,6 +4032,270 @@ enum MeetingData {
 }
 ```
 
+## FILE: SpeechData.swift
+
+```swift
+import Foundation
+
+// What the Meeting Room says out loud, and which voice says it. Foundation-only so it can be tested here; the speaking itself is
+// in MeetingVoice.swift. This reads WRITTEN words (the board and each person's last post) in a different built-in Mac voice for
+// Claude, GPT, Friday and Matthew. It is not a live call, and it never makes up a sentence for anyone: lines about a person's board
+// items are written in the third person ("GPT has two items open"), and only their own last post is read as their words.
+
+struct SpeakLine: Identifiable {
+ var id: Int
+ var speaker: String
+ var text: String
+}
+
+enum SpeechData {
+ static let speakers = ["Claude","GPT","Friday","Matthew"]
+ static let crew = ["Claude","GPT","Friday"]
+ static let openingLine = "Group meeting. Your Mac is reading the room out loud, one voice each. These are the board's words and each person's last post, not a live call."
+
+ struct VoiceInfo {
+  var id: String
+  var name: String
+  var language: String
+  var quality: Int
+ }
+
+ // Words that are fine to read: no markdown marks, links as "a link", file names as "a file", arrows as "to", newlines as spaces.
+ // Long text is cut at the end of a sentence and says so.
+ static func spoken(_ text: String,limit: Int = 600) -> String {
+  var words = text
+  let rules: [(String,String)] = [
+   (#"\[([^\]]+)\]\((?:[^)]+)\)"#,"$1"),
+   (#"https?://\S+"#,"a link"),
+   (#"[\w.\-]+(?:/[\w.\-]+)+\.[A-Za-z]{1,5}"#,"a file"),
+   (#"\b[\w\-]+\.(?:md|py|swift|json|yml|yaml|html|txt|command|sh|csv)\b"#,"a file"),
+   (#"[*_`#>]+"#,""),
+   (#"\s*→\s*"#," to "),
+   (#"\s*\n+\s*"#," "),
+   (#" {2,}"#," ")
+  ]
+  for (pattern,template) in rules { words = words.replacingOccurrences(of:pattern,with:template,options:.regularExpression) }
+  words = words.trimmingCharacters(in:.whitespacesAndNewlines)
+  guard words.count > limit else { return words }
+  let cut = MeetingData.brief(words,limit:limit)
+  return String(cut.dropLast()) + ". There is more in the room."
+ }
+
+ // Splits long speech at sentence ends into pieces of at most `max` characters, so Stop reacts quickly.
+ static func chunks(_ text: String,max: Int = 350) -> [String] {
+  var out: [String] = []
+  var current = ""
+  var sentence = ""
+  func flush() { if !current.isEmpty { out.append(current); current = "" } }
+  for character in text {
+   sentence.append(character)
+   if ".?!".contains(character) {
+    if current.count + sentence.count > max { flush() }
+    current += sentence
+    sentence = ""
+   }
+  }
+  if !sentence.isEmpty {
+   if current.count + sentence.count > max { flush() }
+   current += sentence
+  }
+  flush()
+  return out.map { $0.trimmingCharacters(in:.whitespaces) }.filter { !$0.isEmpty }
+ }
+
+ // "just now", "5 minutes ago", "3 hours ago", "4 days ago".
+ static func agoWords(_ date: Date?,now: Date = Date()) -> String {
+  guard let date = date else { return "a while ago" }
+  let seconds = max(0,now.timeIntervalSince(date))
+  func unit(_ count: Int,_ name: String) -> String { "\(count) \(name)\(count == 1 ? "" : "s") ago" }
+  if seconds < 90 { return "just now" }
+  if seconds < 3600 { return unit(Int(seconds / 60),"minute") }
+  if seconds < 48 * 3600 { return unit(Int(seconds / 3600),"hour") }
+  return unit(Int(seconds / 86400),"day")
+ }
+
+ // A message, read by its author's voice: who it was to, when, and the words.
+ static func messageLines(_ message: RoomMessage,now: Date = Date(),firstID: Int = 0) -> [SpeakLine] {
+  let author = speakers.contains(message.author) ? message.author : "Claude"
+  let to = message.to.isEmpty ? "" : " to \(message.to)"
+  let head = "\(message.author)\(to), \(agoWords(message.date,now:now))."
+  let body = chunks(spoken(message.text,limit:900))
+  return ([head] + body).enumerated().map { SpeakLine(id:firstID + $0.offset,speaker:author,text:$0.element) }
+ }
+
+ // One crew member's report, in their voice: how many items are open and the first few in each category (third person, from the
+ // board), then their own last post in the thread, if there is one.
+ static func crewLines(_ name: String,board: Board?,messages: [RoomMessage],now: Date = Date()) -> [String] {
+  let crew = MeetingData.crew(name,board:board,messages:messages)
+  var out: [String] = []
+  out.append(crew.open == 0 ? "\(name) has nothing open on the board." : "\(name) has \(crew.open) open on the board.")
+  for group in crew.groups where group.status != "done" {
+   let heads = group.items.prefix(2).map { spoken($0.text,limit:110) }
+   let more = group.items.count > 2 ? ", and \(group.items.count - 2) more" : ""
+   out.append("\(group.title): \(heads.joined(separator:". "))\(more).")
+  }
+  if let last = crew.messages.last(where: { $0.author.lowercased() == name.lowercased() }) {
+   out.append("Last post \(agoWords(last.date,now:now)): \(spoken(last.text,limit:260))")
+  }
+  return out
+ }
+
+ // One crew member's report as lines in their voice (for the Hear Claude / Hear GPT / Hear Friday buttons).
+ static func crewScript(_ name: String,board: Board?,messages: [RoomMessage],now: Date = Date()) -> [SpeakLine] {
+  guard board != nil else { return number([(name,"The board has not loaded yet, so there is nothing to read.")]) }
+  return number(crewLines(name,board:board,messages:messages,now:now).map { (name,$0) })
+ }
+
+ // A board meeting as it happened in the thread: the call, then every reply, each in its author's voice.
+ static func meetingLines(_ meeting: BoardMeeting,now: Date = Date()) -> [SpeakLine] {
+  var out: [SpeakLine] = []
+  for message in [meeting.call] + meeting.replies {
+   for line in messageLines(message,now:now) { out.append(SpeakLine(id:out.count,speaker:line.speaker,text:line.text)) }
+  }
+  return out
+ }
+
+ // The whole meeting: an opening, each of Claude, GPT and Friday in their own voice, then what needs Matthew.
+ static func meetingScript(board: Board?,messages: [RoomMessage],now: Date = Date()) -> [SpeakLine] {
+  var lines: [(String,String)] = [("Claude",openingLine)]
+  guard board != nil else {
+   lines.append(("Claude","The board has not loaded yet, so there is nothing to read."))
+   return number(lines)
+  }
+  for name in crew { for sentence in crewLines(name,board:board,messages:messages,now:now) { lines.append((name,sentence)) } }
+  let needs = MeetingData.needs(board:board,messages:messages,now:now)
+  if needs.count == 0 {
+   lines.append(("Claude","Matthew, nothing needs you right now."))
+  } else {
+   lines.append(("Claude","Matthew, \(needs.count) \(needs.count == 1 ? "thing needs" : "things need") you."))
+   for item in needs.questions.prefix(3) { lines.append(("Claude","Question: \(spoken(item.text,limit:200))")) }
+   for item in needs.tasks.prefix(3) { lines.append(("Claude","To do: \(spoken(item.text,limit:200))")) }
+   let shown = min(3,needs.questions.count) + min(3,needs.tasks.count)
+   if needs.count > shown { lines.append(("Claude","The rest are in the You tab.")) }
+  }
+  lines.append(("Claude","That is the meeting."))
+  return number(lines)
+ }
+
+ private static func number(_ lines: [(String,String)]) -> [SpeakLine] {
+  lines.enumerated().map { SpeakLine(id:$0.offset,speaker:$0.element.0,text:$0.element.1) }
+ }
+
+ // Which built-in voice each speaker gets. Each tries its own favourites first, then the best English voice nobody has, and no two
+ // speakers share one while there are enough voices.
+ static let favourites: [String:[String]] = [
+  "Claude":["Daniel","Oliver","Alex","Aaron","Evan"],
+  "GPT":["Samantha","Ava","Allison","Nicky","Susan"],
+  "Friday":["Karen","Moira","Tessa","Serena","Flo"],
+  "Matthew":["Tom","Fred","Lee","Gordon","Rishi"]
+ ]
+
+ static func assign(_ speakers: [String],voices: [VoiceInfo]) -> [String:String] {
+  let english = voices.filter { $0.language.hasPrefix("en") }
+  let ranked = english.sorted { $0.quality == $1.quality ? $0.name < $1.name : $0.quality > $1.quality }
+  var used = Set<String>()
+  var out: [String:String] = [:]
+  for speaker in speakers {
+   var pick: VoiceInfo?
+   for favourite in favourites[speaker] ?? [] {
+    pick = ranked.first { ($0.name == favourite || $0.name.hasPrefix(favourite + " ")) && !used.contains($0.id) }
+    if pick != nil { break }
+   }
+   if pick == nil { pick = ranked.first { !used.contains($0.id) } }
+   if pick == nil { pick = ranked.first }
+   if let pick = pick { out[speaker] = pick.id; used.insert(pick.id) }
+  }
+  return out
+ }
+
+ // A small difference in pitch on top of the different voices, so they stay apart even when two voices sound alike.
+ static func pitch(_ speaker: String) -> Float {
+  switch speaker {
+  case "Claude": return 0.95
+  case "GPT": return 1.05
+  case "Matthew": return 0.9
+  default: return 1.0
+  }
+ }
+}
+```
+
+## FILE: MeetingVoice.swift
+
+```swift
+import SwiftUI
+import AVFoundation
+
+// Reads the Meeting Room out loud with the Mac's built-in voices: a different one for Claude, GPT, Friday and Matthew (see
+// SpeechData.swift for what is said and how the voices are picked). Free and on this Mac only: nothing is sent anywhere. It speaks
+// WRITTEN words from the board and the thread. It is not a live call with anyone.
+@MainActor final class MeetingVoice: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
+ // What is being read right now ("board", "meeting", "crew-GPT", "m123"), or empty when quiet.
+ @Published var playing = ""
+ // Who is speaking this line, for the "now speaking" caption.
+ @Published var speaker = ""
+ private let synth = AVSpeechSynthesizer()
+ private var queue: [SpeakLine] = []
+ private var assignment: [String:String] = [:]
+ private var generation = 0
+ private var tokens: [ObjectIdentifier:Int] = [:]
+
+ override init() {
+  super.init()
+  synth.delegate = self
+ }
+
+ // Starts reading these lines under this name, or stops if that is already what is playing.
+ func toggle(_ id: String,_ lines: [SpeakLine]) {
+  if playing == id { stop() } else { play(id,lines) }
+ }
+
+ func play(_ id: String,_ lines: [SpeakLine]) {
+  stop()
+  guard !lines.isEmpty else { return }
+  let voices = AVSpeechSynthesisVoice.speechVoices().map { SpeechData.VoiceInfo(id:$0.identifier,name:$0.name,language:$0.language,quality:$0.quality.rawValue) }
+  assignment = SpeechData.assign(SpeechData.speakers,voices:voices)
+  playing = id
+  queue = lines
+  next()
+ }
+
+ func stop() {
+  generation += 1
+  queue = []
+  tokens.removeAll()
+  synth.stopSpeaking(at:.immediate)
+  playing = ""
+  speaker = ""
+ }
+
+ private func next() {
+  guard !queue.isEmpty else {
+   playing = ""
+   speaker = ""
+   return
+  }
+  let line = queue.removeFirst()
+  let utterance = AVSpeechUtterance(string:line.text)
+  if let voiceID = assignment[line.speaker], let voice = AVSpeechSynthesisVoice(identifier:voiceID) { utterance.voice = voice }
+  utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+  utterance.pitchMultiplier = SpeechData.pitch(line.speaker)
+  utterance.postUtteranceDelay = 0.3
+  speaker = line.speaker
+  tokens[ObjectIdentifier(utterance)] = generation
+  synth.speak(utterance)
+ }
+
+ nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,didFinish utterance: AVSpeechUtterance) {
+  let key = ObjectIdentifier(utterance)
+  Task { @MainActor in
+   guard let started = self.tokens.removeValue(forKey:key), started == self.generation else { return }
+   self.next()
+  }
+ }
+}
+```
+
 ## FILE: MeetingRoom.swift
 
 ```swift
@@ -4012,6 +4312,8 @@ import Cocoa
  // The writing box opens on top of whichever tab is showing; Friday's private chat (this Mac only) replaces her tab while open.
  @Published var composing = false
  @Published var fridayPrivate = false
+ // Asks "Call a board meeting?" before anything is posted.
+ @Published var confirmCall = false
  // Lines Matthew has tapped open (each shows short until then), lists he asked to see in full, and how many messages are showing.
  @Published var opened: Set<String> = []
  @Published var expanded: Set<String> = []
@@ -4052,6 +4354,30 @@ import Cocoa
  }
 
  var needs: MatthewNeeds { MeetingData.needs(board:board,messages:messages) }
+
+ // The latest board meeting called in the thread in the last two days, if any.
+ var meetingNow: BoardMeeting? { MeetingData.currentMeeting(messages) }
+
+ // Posts the call for a board meeting to the thread as Matthew. Without the posting key it puts the call on the clipboard instead.
+ func callMeeting() async {
+  guard !sending else { return }
+  let call = MeetingData.meetingCall()
+  guard hasToken, let token = savedToken() else {
+   NSPasteboard.general.clearContents()
+   NSPasteboard.general.setString(MeetingData.formatted(from:"Matthew",to:"Everyone",text:call),forType:.string)
+   sendNote = "Posting isn't connected yet, so the call is copied. Paste it into the thread on GitHub, or connect posting (Write a message, steps at the bottom)."
+   return
+  }
+  sending = true
+  defer { sending = false }
+  switch await MeetingData.post(call,from:"Matthew",to:"Everyone",token:token) {
+  case .ok:
+   sendNote = "Board meeting called. Claude, GPT and Friday answer at their next check."
+   await refresh(force:true)
+  case .failed(let reason):
+   sendNote = reason
+  }
+ }
 
  func crew(_ name: String) -> CrewView { MeetingData.crew(name,board:board,messages:messages) }
 
@@ -4214,6 +4540,8 @@ extension CompanionInterfaceView {
   }
   .onAppear { Task { await meeting.refresh(minGap:60) } }
   .onChange(of:meeting.tab) { _,tab in if tab != 3 { meeting.fridayPrivate = false } }
+  .onChange(of:live.running) { _,running in if running { voice.stop() } }
+  .onDisappear { voice.stop() }
  }
 
  var hubMeetingHeader: some View {
@@ -4250,6 +4578,7 @@ extension CompanionInterfaceView {
  @ViewBuilder var hubNeeds: some View {
   let needs = meeting.needs
   hubComposerOrButton
+  hubMeetingBar
   if needs.count == 0 {
    VStack(spacing:8) {
     Image(systemName:"checkmark.circle").font(.system(size:34)).foregroundStyle(Color.white.opacity(0.3))
@@ -4282,13 +4611,52 @@ extension CompanionInterfaceView {
    HStack(spacing:8) {
     Circle().fill(tint).frame(width:8,height:8)
     Text(title.uppercased()).font(.system(size:11,weight:.bold,design:.rounded)).tracking(1).foregroundStyle(tint)
-    Text(String(count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+    if count >= 0 { Text(String(count)).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.4)) }
    }
    content()
   }
   .padding(18)
   .frame(maxWidth:.infinity,alignment:.leading)
   .hubCard()
+ }
+
+ // The board meeting card: call one, hear the board read out loud, or hear the last meeting played back. The voices are the Mac's own,
+ // one each for Claude, GPT, Friday and Matthew, and they read written words. It is not a live call with anyone.
+ @ViewBuilder var hubMeetingBar: some View {
+  let held = meeting.meetingNow
+  hubGroup("Board meeting",-1,HubColor.violet) {
+   if let held = held {
+    Text("Called \(hubAgo(held.call.date)) by \(held.call.author). \(held.replies.count) message\(held.replies.count == 1 ? "" : "s") since.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.75))
+    HStack(spacing:8) {
+     ForEach(SpeechData.crew,id:\.self) { name in hubPill(held.answered(name) ? "\(name.uppercased()) ANSWERED" : "\(name.uppercased()) NOT YET",tint:held.answered(name) ? HubColor.green : HubColor.slate) }
+    }
+   } else {
+    Text("No board meeting in the last two days. Call one and Claude, GPT and Friday answer each other here, at their next check.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.6))
+   }
+   HStack(spacing:10) {
+    Button { meeting.confirmCall = true } label: { Label(meeting.sending ? "Posting…" : "Call a board meeting",systemImage:"person.3.fill") }
+     .buttonStyle(PillButtonStyle())
+     .disabled(meeting.sending)
+    if let held = held {
+     Button { voice.toggle("meeting",SpeechData.meetingLines(held)) } label: { Label(voice.playing == "meeting" ? "Stop" : "Listen to it",systemImage:voice.playing == "meeting" ? "stop.fill" : "speaker.wave.2.fill") }
+      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+      .disabled(live.running)
+    }
+    Button { voice.toggle("board",SpeechData.meetingScript(board:meeting.board,messages:meeting.messages)) } label: { Label(voice.playing == "board" ? "Stop" : "Hear the board",systemImage:voice.playing == "board" ? "stop.fill" : "speaker.wave.2.fill") }
+     .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+     .disabled(live.running)
+   }
+   if live.running {
+    Text("Friday is live, so voices are off: she would hear them. Stop her first.").font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber)
+   } else if !voice.speaker.isEmpty {
+    Text("\(voice.speaker) is speaking…").font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(hubOwnerTint(voice.speaker))
+   }
+   if !meeting.sendNote.isEmpty { Text(meeting.sendNote).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubColor.amber) }
+   Text("Voices are your Mac's built-in ones, one each for Claude, GPT, Friday and you, reading what was written. It is not a live call.").font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+  }
+  .confirmationDialog("Call a board meeting?",isPresented:$meeting.confirmCall) {
+   Button("Post the call") { Task { await meeting.callMeeting() } }
+  } message: { Text("This posts a message to the room thread (public). Claude, GPT and Friday answer each other there at their next check.") }
  }
 
  // MARK: Claude, GPT and Friday
@@ -4317,9 +4685,10 @@ extension CompanionInterfaceView {
  // One crew member's page: who they are, their work in categories, then their messages.
  func hubCrewPage(_ name: String,_ job: String,_ icon: String,_ tint: Color,_ actions: [HubAction]) -> some View {
   let crew = meeting.crew(name)
+  let hear: [HubAction] = live.running ? [] : [HubAction(label:voice.playing == "crew-\(name)" ? "Stop" : "Hear \(name)",icon:voice.playing == "crew-\(name)" ? "stop.fill" : "speaker.wave.2.fill") { voice.toggle("crew-\(name)",SpeechData.crewScript(name,board:meeting.board,messages:meeting.messages)) }]
   return VStack(alignment:.leading,spacing:14) {
    hubComposerIfOpen
-   hubCrewHeader(name,job,icon,tint,crew,actions)
+   hubCrewHeader(name,job,icon,tint,crew,actions + hear)
    ForEach(crew.groups) { group in hubCrewGroup(name,group) }
    if crew.groups.isEmpty {
     Text(name == "Friday" ? "Friday's app work is built by Claude, so it is on Claude's tab. Her own posts show under Messages." : "Nothing of \(name)'s is on the board right now.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
@@ -4415,6 +4784,7 @@ extension CompanionInterfaceView {
 
  @ViewBuilder var hubThread: some View {
   hubComposerOrButton
+  hubMeetingBar
   hubMessages
  }
 
@@ -4471,6 +4841,9 @@ extension CompanionInterfaceView {
      if !message.to.isEmpty { Text("→ \(message.to)").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
      Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
      Spacer(minLength:0)
+     Button { voice.toggle(id,SpeechData.messageLines(message)) } label: { Image(systemName:voice.playing == id ? "stop.fill" : "speaker.wave.2.fill").font(.system(size:12)).foregroundStyle(Color.white.opacity(0.6)) }
+      .buttonStyle(.plain)
+      .disabled(live.running)
      Image(systemName:open ? "chevron.up" : "chevron.down").font(.system(size:11,weight:.semibold)).foregroundStyle(Color.white.opacity(0.4))
     }
     .contentShape(Rectangle())
@@ -11914,7 +12287,7 @@ TMP=$(mktemp -d)
 
 echo "Building Friday (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,Helper,FridayHands,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,SpeechData,MeetingVoice,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,Helper,FridayHands,Hub}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -12082,7 +12455,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift VoiceOverData.swift WebData.swift ObsData.swift VideoLabData.swift HelperData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift SpeechData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift VoiceOverData.swift WebData.swift ObsData.swift VideoLabData.swift HelperData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -12165,6 +12538,46 @@ import Foundation
   let fridayTab = MeetingData.crew("Friday",board:crewBoard,messages:crewThread)
   precondition(fridayTab.groups.isEmpty && fridayTab.open == 0 && fridayTab.messages.isEmpty && fridayTab.lastPost == nil)
   precondition(MeetingData.crew("Claude",board:nil,messages:[]).open == 0)
+  // A board meeting: the latest call that is under two days old, and who has answered since.
+  func said(_ id: Int,_ author: String,_ text: String,_ when: String) -> RoomMessage { RoomMessage(id:id,author:author,to:"Everyone",text:text,date:clock.date(from:when),url:"") }
+  precondition(MeetingData.meetingCall().hasPrefix("BOARD MEETING. Everyone:") && MeetingData.meetingCall(agenda:" Talk money ").hasSuffix("Talk money"))
+  let meetingThread = [said(1,"Claude","BOARD MEETING. old","2026-10-01T12:00:00Z"), said(2,"Matthew","Board meeting. Go.","2026-10-24T08:00:00Z"), said(3,"GPT","Here is my part.","2026-10-24T09:00:00Z"), said(4,"Claude","Mine too.","2026-10-24T09:30:00Z")]
+  let now24 = clock.date(from:"2026-10-24T12:00:00Z")!
+  let held = MeetingData.currentMeeting(meetingThread,now:now24)
+  precondition(held?.call.id == 2 && held?.replies.map { $0.id } == [3,4])
+  precondition(held?.answered("Matthew") == true && held?.answered("gpt") == true && held?.answered("Friday") == false)
+  precondition(MeetingData.currentMeeting(meetingThread,now:clock.date(from:"2026-10-27T12:00:00Z")!) == nil)
+  precondition(MeetingData.currentMeeting([said(1,"GPT","BOARD MEETING from a stranger","2026-10-24T08:00:00Z"), said(2,"Claude","Group meeting. The room is live.","2026-10-24T08:30:00Z")],now:now24)?.call.id == 2)
+  precondition(MeetingData.currentMeeting([],now:now24) == nil)
+  // Reading aloud: marks, links and file names are dropped, arrows become "to", long text is cut at a sentence, and the voices
+  // are different for each speaker.
+  precondition(SpeechData.spoken("**Bold** and `code` see [the page](https://x.com/a) or https://y.org/z in meeting-room/notes/a.md or BOARD.md\nnext → done") == "Bold and code see the page or a link in a file or a file next to done")
+  let longSpeech = SpeechData.spoken(String(repeating:"This is a sentence that goes on. ",count:60),limit:100)
+  precondition(longSpeech.hasSuffix("There is more in the room.") && longSpeech.count < 140)
+  precondition(SpeechData.chunks("One. Two. Three.",max:8) == ["One.","Two.","Three."] && SpeechData.chunks("One. Two. Three.",max:100) == ["One. Two. Three."])
+  precondition(SpeechData.chunks("no stop at all") == ["no stop at all"] && SpeechData.chunks("").isEmpty)
+  precondition(SpeechData.agoWords(nil) == "a while ago" && SpeechData.agoWords(now24,now:now24) == "just now")
+  precondition(SpeechData.agoWords(now24.addingTimeInterval(-300),now:now24) == "5 minutes ago" && SpeechData.agoWords(now24.addingTimeInterval(-3600 * 3),now:now24) == "3 hours ago")
+  precondition(SpeechData.agoWords(now24.addingTimeInterval(-86400 * 4),now:now24) == "4 days ago" && SpeechData.agoWords(now24.addingTimeInterval(-3700),now:now24) == "1 hour ago")
+  let voiceList = [SpeechData.VoiceInfo(id:"d",name:"Daniel",language:"en-GB",quality:1), SpeechData.VoiceInfo(id:"s",name:"Samantha",language:"en-US",quality:1),
+                   SpeechData.VoiceInfo(id:"a",name:"Ava (Premium)",language:"en-US",quality:3), SpeechData.VoiceInfo(id:"k",name:"Karen",language:"en-AU",quality:1),
+                   SpeechData.VoiceInfo(id:"t",name:"Thomas",language:"fr-FR",quality:3)]
+  let given = SpeechData.assign(SpeechData.speakers,voices:voiceList)
+  precondition(given["Claude"] == "d" && given["GPT"] == "s" && given["Friday"] == "k" && given["Matthew"] == "a")
+  precondition(Set(given.values).count == 4 && !given.values.contains("t"))
+  precondition(SpeechData.assign(["Claude","GPT"],voices:[SpeechData.VoiceInfo(id:"only",name:"Zed",language:"en-US",quality:1)]) == ["Claude":"only","GPT":"only"])
+  precondition(SpeechData.assign(["Claude"],voices:[]).isEmpty)
+  let spokenMessage = SpeechData.messageLines(said(9,"GPT","I will check **it** → soon.","2026-10-24T09:00:00Z"),now:now24)
+  precondition(spokenMessage.map { $0.speaker } == ["GPT","GPT"] && spokenMessage[0].text == "GPT to Everyone, 3 hours ago." && spokenMessage[1].text == "I will check it to soon.")
+  precondition(SpeechData.messageLines(said(10,"?","hi","2026-10-24T11:59:30Z"),now:now24)[1].speaker == "Claude")
+  let spokenMeeting = SpeechData.meetingLines(held!,now:now24)
+  precondition(spokenMeeting.map { $0.id } == Array(0..<spokenMeeting.count) && spokenMeeting.first?.speaker == "Matthew" && spokenMeeting.contains { $0.speaker == "GPT" } && spokenMeeting.last?.speaker == "Claude")
+  let script = SpeechData.meetingScript(board:crewBoard,messages:crewThread,now:now24)
+  precondition(script.first?.text == SpeechData.openingLine && script.first?.speaker == "Claude" && script.last?.text == "That is the meeting.")
+  precondition(script.contains { $0.speaker == "GPT" && $0.text == "GPT has 2 open on the board." } && script.contains { $0.speaker == "Friday" && $0.text == "Friday has nothing open on the board." })
+  precondition(script.contains { $0.speaker == "Claude" && $0.text.hasPrefix("Last post 2 days ago") } && script.contains { $0.text.hasPrefix("Matthew, ") })
+  precondition(SpeechData.meetingScript(board:nil,messages:[],now:now24).count == 2)
+  precondition(SpeechData.crewScript("Friday",board:crewBoard,messages:crewThread,now:now24).map { $0.speaker } == ["Friday"])
 
   // Stripe: only a restricted read-only key is accepted.
   precondition(StripeData.keyProblem("sk_live_abc") != nil && StripeData.keyProblem("pk_live_abc") != nil)

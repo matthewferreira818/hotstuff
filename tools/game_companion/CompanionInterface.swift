@@ -13,6 +13,7 @@ struct CompanionInterfaceView: View {
  @StateObject var ventures = VentureHub()
  @StateObject var sales = SalesHub()
  @StateObject var meeting = MeetingHub()
+ @StateObject var voice = MeetingVoice()
  @StateObject var stream = StreamHub()
  @StateObject var feed = FridayFeed()
  @StateObject var chat = ChatHub()

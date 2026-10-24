@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-24 from commit b04bd8e. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit c804cf6. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -97,7 +97,16 @@ and Gemini Live tool calls. `README.md` below lists what was tested and what was
 - `HandsData.swift`: The rules and maths for Friday's hands and her all-screens view: where things land, what she may type, press and click, what needs an Allow. No Mac frameworks; tested.
 - `ScreenSnap.swift`: One picture of every screen side by side, for Friday to see.
 - `FridayHands.swift`: Friday's hands: her gliding cursor, scrolling, clicking, typing and keys, with an Allow box for anything that could send or buy. Off by default.
-- `Hub.swift`: The hub: sidebar sections, Home, Stock, Store, ECS, Systems, Launchpad, Game and Accounts pages.
+- `Hub.swift`: The hub's models and shared styles (HubSection, HubModel, the data hubs, PillButtonStyle, hubCard). The pages are in the Hub*.swift files below.
+- `HubTheme.swift`: The look in one place: Midnight and High contrast colours, spacing and type sizes. Not used by the pages yet.
+- `HubShell.swift`: The window around every page: the rail, top bar, refresh and page switching.
+- `HubHome.swift`: The Home page.
+- `HubStocks.swift`: The Stock bot page and the shared stat tile.
+- `HubVentures.swift`: The Store, ECS and Systems pages.
+- `HubLaunchpad.swift`: The Launchpad page and the Today at a glance briefing.
+- `HubGame.swift`: The Game page and the latest-clip card.
+- `HubAccounts.swift`: The Accounts page and its connect forms.
+- `HubHelpers.swift`: Small helpers every page uses.
 - `rebuild.sh`: Builds the app with swiftc (no Xcode), signs it and installs it.
 - `make_cert.sh`: One-time: makes the self-signed signing certificate so permissions and Keychain trust stick.
 - `checks/ReviewChecks.swift`: Small automated checks for the conversation code.
@@ -11437,9 +11446,70 @@ extension View {
    }
  }
 }
+```
 
+## FILE: HubTheme.swift
+
+```swift
+import SwiftUI
+
+// The look in one place (revamp, 2026-10-24). Nothing uses this yet: the pages still use Noir and HubColor, and move over one page at a time,
+// so adding it changes nothing on screen. Midnight is the default; Pure black is the High contrast switch (UserDefaults "hub.highContrast",
+// to be set from Settings). Every text colour below is at least 4.5:1 against the surface it is meant for (measured on 2026-10-24).
+enum HubTheme {
+ static var highContrast: Bool { UserDefaults.standard.bool(forKey:"hub.highContrast") }
+
+ static func hex(_ value: UInt32,_ opacity: Double = 1) -> Color {
+  Color(red:Double((value >> 16) & 0xFF) / 255,green:Double((value >> 8) & 0xFF) / 255,blue:Double(value & 0xFF) / 255).opacity(opacity)
+ }
+
+ // Surfaces: layered blacks instead of shadows.
+ static var background: Color { hex(highContrast ? 0x000000 : 0x050507) }
+ static var sidebar: Color { hex(highContrast ? 0x000000 : 0x08080C) }
+ static var card: Color { hex(highContrast ? 0x0A0A0C : 0x0D0D13) }
+ static var line: Color { hex(highContrast ? 0x33333C : 0x23232D) }
+ // Controls: black with a visible outline (white in High contrast).
+ static var control: Color { hex(0x000000) }
+ static var controlOutline: Color { hex(highContrast ? 0xFFFFFF : 0x4A4A5C) }
+
+ // Text: off-white by default (pure white on pure black glares), pure white in High contrast.
+ static var text: Color { hex(highContrast ? 0xFFFFFF : 0xF2F2F5) }
+ static var subtext: Color { hex(highContrast ? 0xB4B4C0 : 0xA9A9B8) }   // 8.4:1 on the card (Midnight), 9.6:1 (High contrast)
+
+ // Small highlights only. Never the only signal: every status also has a word or an icon.
+ static let crimson = hex(0xD94A63)
+ static let blue = hex(0x4D8DFF)
+ static let green = hex(0x4ADE80)
+ static let amber = hex(0xF5B544)
+
+ // Orbs, one per member of the crew.
+ static let orbClaude = amber
+ static let orbRoxy = blue
+ static let orbFriday = crimson
+
+ // Spacing, shape and type sizes (points). Click targets are at least 44 high.
+ static let pagePadding: CGFloat = 32
+ static let cardPadding: CGFloat = 18
+ static let cardRadius: CGFloat = 20
+ static let gap: CGFloat = 14
+ static let minTarget: CGFloat = 44
+ static let titleSize: CGFloat = 28
+ static let headingSize: CGFloat = 15
+ static let bodySize: CGFloat = 14
+ static let smallSize: CGFloat = 12.5
+}
+```
+
+## FILE: HubShell.swift
+
+```swift
+import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
+
+// The window around every page: the rail, the top bar, refresh and which page shows.
+// Split out of Hub.swift on 2026-10-24 with no change in behaviour, so pages can have one owner each.
 extension CompanionInterfaceView {
-
  // MARK: shell
 
  var hubShell: some View {
@@ -11623,7 +11693,19 @@ extension CompanionInterfaceView {
   case .helper: hubHelper
   }
  }
+}
+```
 
+## FILE: HubHome.swift
+
+```swift
+import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
+
+// Home: the greeting, the glance list and a tile per venture.
+// Split out of Hub.swift on 2026-10-24 with no change in behaviour, so pages can have one owner each.
+extension CompanionInterfaceView {
  // MARK: home
 
  var hubGreeting: String {
@@ -11752,7 +11834,19 @@ extension CompanionInterfaceView {
   let connected = [live.hasKey,clips.signedIn,sales.hasKey,meeting.hasToken].filter { $0 }.count
   return "\(connected) of 4 logins connected"
  }
+}
+```
 
+## FILE: HubStocks.swift
+
+```swift
+import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
+
+// The Stock bot page (practice money only) and the small stat tile the other pages reuse.
+// Split out of Hub.swift on 2026-10-24 with no change in behaviour, so pages can have one owner each.
+extension CompanionInterfaceView {
  // MARK: stock bot
 
  var hubStocks: some View {
@@ -11858,8 +11952,19 @@ extension CompanionInterfaceView {
   .frame(maxWidth:.infinity,alignment:.topLeading)
   .hubCard()
  }
+}
+```
 
+## FILE: HubVentures.swift
 
+```swift
+import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
+
+// The Store, ECS and Systems pages, with the shared refresh button and offline card.
+// Split out of Hub.swift on 2026-10-24 with no change in behaviour, so pages can have one owner each.
+extension CompanionInterfaceView {
  // MARK: store, ECS, systems
 
  func hubRefreshButton() -> some View {
@@ -12020,8 +12125,19 @@ extension CompanionInterfaceView {
   .padding(14)
   .hubCard()
  }
+}
+```
 
+## FILE: HubLaunchpad.swift
 
+```swift
+import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
+
+// The Launchpad page: agents and links, plus the Today at a glance briefing.
+// Split out of Hub.swift on 2026-10-24 with no change in behaviour, so pages can have one owner each.
+extension CompanionInterfaceView {
  // MARK: launchpad
 
  var hubLaunchpad: some View {
@@ -12126,7 +12242,19 @@ extension CompanionInterfaceView {
    .hubCard()
   }
  }
+}
+```
 
+## FILE: HubGame.swift
+
+```swift
+import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
+
+// The Game page and the latest-clip card.
+// Split out of Hub.swift on 2026-10-24 with no change in behaviour, so pages can have one owner each.
+extension CompanionInterfaceView {
  // MARK: game, accounts, coming soon
 
  var hubGame: some View {
@@ -12175,7 +12303,19 @@ extension CompanionInterfaceView {
    .padding(18).frame(maxWidth:.infinity,alignment:.leading).hubCard()
   }
  }
+}
+```
 
+## FILE: HubAccounts.swift
+
+```swift
+import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
+
+// The Accounts page, its connect forms, the sales block and the catalog and alerts cards.
+// Split out of Hub.swift on 2026-10-24 with no change in behaviour, so pages can have one owner each.
+extension CompanionInterfaceView {
  var hubAccounts: some View {
   ScrollView {
    VStack(alignment:.leading,spacing:12) {
@@ -12403,7 +12543,19 @@ extension CompanionInterfaceView {
   }
   .frame(maxWidth:.infinity)
  }
+}
+```
 
+## FILE: HubHelpers.swift
+
+```swift
+import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
+
+// Small helpers every page uses: pills, money, time and the Ask Friday bar.
+// Split out of Hub.swift on 2026-10-24 with no change in behaviour, so pages can have one owner each.
+extension CompanionInterfaceView {
  // MARK: helpers
 
  func hubPill(_ text: String,tint: Color) -> some View {
@@ -12454,7 +12606,7 @@ TMP=$(mktemp -d)
 
 echo "Building Friday (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,SpeechData,ThreadData,MeetingVoice,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,Helper,FridayHands,Hub}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,SpeechData,ThreadData,MeetingVoice,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,Helper,FridayHands,Hub,HubTheme,HubShell,HubHome,HubStocks,HubVentures,HubLaunchpad,HubGame,HubAccounts,HubHelpers}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"

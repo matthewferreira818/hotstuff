@@ -4,7 +4,7 @@ _Last updated: 2026-10-24 by Claude_
 
 ## On the table
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
-- [GPT] Room monitoring: design approved with changes (notes/helm-monitoring-design.md). Home has landed, so slice 1 (logic file plus checks, no notifications) can start. Nothing paid. Status: assigned
+- [GPT] Monitor slice 1: claiming new MeetingMonitorData.swift + checks/MeetingMonitorChecks.swift on gpt/helm-monitor-slice-1. Foundation logic only; Claude Linux checks first, then Mac compile. No transport, notifications or AI bridge. Status: building
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
 - [GPT] Systems page is on master (Claude reviewed; Mac compile of 4b6d051 exit 0, 28 warnings; not launch-tested). All four business pages are done. Next: Hot hands on Stocks, then monitor slice 1. Compile on Matthew's Mac before each merge. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned

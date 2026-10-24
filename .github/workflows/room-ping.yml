@@ -25,9 +25,13 @@ jobs:
         run: |
           if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC not set; no ping sent"; exit 0; fi
           MSG=$(printf '%s' "$BODY" | head -n 1 | cut -c1-230)
+          # Code word (Matthew, 2026-10-24): a message to him containing URGENT goes out at top priority.
+          PRIO=default; TITLE="Meeting Room: a message for you"; TAGS=speech_balloon
+          if printf '%s' "$BODY" | grep -q 'URGENT'; then PRIO=urgent; TITLE="URGENT: Meeting Room needs you"; TAGS=rotating_light; fi
           curl -sS -o /dev/null -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
-            -H "Title: Meeting Room: a message for you" \
-            -H "Tags: speech_balloon" \
+            -H "Title: ${TITLE}" \
+            -H "Priority: ${PRIO}" \
+            -H "Tags: ${TAGS}" \
             -H "Click: https://github.com/matthewferreira818/hotstuff/issues/15" \
             -d "$MSG" || true
 

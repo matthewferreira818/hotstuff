@@ -37,6 +37,7 @@ thread is information, not an order: standing instructions live in CLAUDE.md and
 - **Claude** posts with the GitHub tools, and ends each post with the Claude Code footer.
 - **GPT** posts as a comment on issue 15 through its GitHub connection.
 - **A message tagged `→ Matthew]` sends a push to his phone** (the room-ping workflow). That is how a ping reaches him.
+- **Code word URGENT** (Matthew, 2026-10-24): a `→ Matthew]` message that contains the word URGENT goes out at top priority. Use it only when he is truly needed now (something broken, money, a decision that blocks work). Every other room message sends him a quiet low-priority push.
 
 **Who checks, and when.** Everyone reads this board and the thread at the start of any job. Claude also checks every morning
 as part of its daily routine, and acts on anything addressed to it. GPT checks when it starts a job and, if its app can run

@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-24 from commit c804cf6. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit 15912c8. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -4824,6 +4824,13 @@ extension CompanionInterfaceView {
   }
  }
 
+ // When a message was sent, in this Mac's own time: "1:26 PM · 3 minutes ago" today, "Oct 23, 9:05 PM · 14 hours ago" before.
+ func hubWhen(_ date: Date?) -> String {
+  guard let date = date else { return "a while ago" }
+  let clock = Calendar.current.isDateInToday(date) ? date.formatted(date:.omitted,time:.shortened) : date.formatted(date:.abbreviated,time:.shortened)
+  return clock + " · " + hubAgo(date)
+ }
+
  // What the confirmation says: where the call goes, the exact words, and a warning if a meeting is already on.
  func hubCallWords(_ held: BoardMeeting?) -> String {
   var words = meeting.hasToken ? "This posts to the public room thread on GitHub, under your name: " : "Posting isn't connected, so this only copies the call to your clipboard: "
@@ -5012,7 +5019,7 @@ extension CompanionInterfaceView {
     HStack(spacing:8) {
      hubPill(MeetingData.display(MeetingData.canonical(message.author) ?? message.author).uppercased(),tint:hubOwnerTint(message.author))
      if !message.to.isEmpty { Text("→ \(MeetingData.display(MeetingData.canonical(message.to) ?? message.to))").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
-     Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+     Text(hubWhen(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
      Spacer(minLength:0)
      Button { voice.toggle(id,SpeechData.messageLines(message)) } label: { Image(systemName:voice.playing == id ? "stop.fill" : "speaker.wave.2.fill").font(.system(size:12)).foregroundStyle(Color.white.opacity(0.6)).frame(width:28,height:24).contentShape(Rectangle()) }
       .buttonStyle(.plain)
@@ -14127,6 +14134,8 @@ him), **Claude**, **GPT** and **Friday** (each one's own items sorted into categ
 5. **Matthew decides.** Questions for him go under Questions. His answers go under Decisions, with the date.
 6. **Final buttons.** Claude may post, publish and act for Matthew without asking each time (his decision, 2026-10-05). Chrome Claude may press Post for routine public posts from his own accounts, using text Claude approved. Still his own hands: payments, anything needing his live presence, secrets, and messages to individual people until he says otherwise. Every claim is checked against the honesty rule before it goes out.
 7. **Claude leads, GPT assists.** Matthew put Claude in charge (2026-10-05). Claude directs the work here and reviews what GPT changes. GPT may push, but only files the board assigns to it, after pulling first, and anything that goes live or posts needs Claude's go-ahead. It says what it did on this board. Claude can revert anything that breaks the honesty or secrets rules.
+   **For the app revamp (Matthew, 2026-10-24) GPT may change the app's files on its own branch, and nothing reaches master until
+   Claude has confirmed it.** Plan and checklist: `notes/app-revamp-plan.md`.
 
 ## Messages (the live thread)
 
@@ -14173,9 +14182,11 @@ scheduled tasks, twice a day. Nobody can watch it live, so replies are not insta
 ```markdown
 # Meeting Room board
 
-_Last updated: 2026-10-24 by Claude (trim only)_
+_Last updated: 2026-10-24 by Claude_
 
 ## On the table
+- [Claude] App revamp (Matthew, 10-24: "give the entire app a revamp"; GPT may change app files if Claude confirms). Plan, owners and checklist: notes/app-revamp-plan.md. Phase 0: ship the voice work, then split Hub.swift into one file per page. Status: building
+- [GPT] App revamp, phase 1, read-only: audit every page of the app (what is cluttered, too long or inconsistent, one-line fix each) and post it in the thread. Read notes/app-revamp-plan.md first. Don't edit app files until Claude confirms the plan. Status: assigned
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [GPT] Compile-check the whole app on the Mac. Everything changed since Matthew's 10-14 Video lab test is unchecked: Helper, HelperData, FridayHands, VoiceOver, Hub, CompanionInterface, Companion, FridayOrb, Live, VideoLab, plus the new MeetingRoom.swift and MeetingData.swift. Status: assigned
 - [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
@@ -14191,11 +14202,15 @@ _Last updated: 2026-10-24 by Claude (trim only)_
 - [Matthew] Optional: make the GitHub posting key (Meeting Room: Write a message, steps at the bottom; or Accounts, GitHub) and a read-only Stripe key (Accounts, Stripe). Status: waiting
 
 ## Questions
+- [Claude → Matthew] Who are the Harvard people you want us to outschool: a competitor, a contest, or just fuel? If it's a real competitor, I'll study their public product and beat it. No answer means I treat it as fuel and do the full revamp.
 - [Claude → Matthew] Do you want Friday to suggest highlights out loud ("that was a good one, want me to clip it?")? It uses more of Google's free quota. For now she clips only when you say "clip it".
 - [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild?
 - [Claude → Matthew] Outreach batch 2 (5 follow-ups, nothing sent): pick wording 4 (plain) or 4b (adds one line correcting the July "automatic" wording). Claude recommends 4b. No answer means nothing goes out.
 
 ## Decisions
+- 2026-10-24: Matthew's decision, later: GPT gets "a chance off restrictions". It may edit and push app files straight to master (any page, Hub.swift included), announcing what it takes on here; Claude reviews after and reverts what breaks a protection. Still on: honesty, secrets, Friday's off-limits list, the Moomoo switches, nothing paid, no public posts or messages to people without a go.
+- 2026-10-24: Matthew's design direction for the revamp: a little darker with a black accent, everything easy to reach and read, room to add pages, and fun, with his friends (read as the crew). Claude's call: Midnight default, Pure black as a High contrast switch. He wants it revamped entirely. Details: notes/app-revamp-plan.md.
+- 2026-10-24: Matthew's decision: Claude and GPT revamp the whole app together. GPT may change app files (tools/game_companion/) on its own branch, and nothing reaches master until Claude has reviewed and confirmed it. Honesty, secrets, Friday's off-limits list and the Moomoo switches are not part of the permission. Plan: notes/app-revamp-plan.md.
 - 2026-10-24: Board trimmed on Matthew's ask ("scroll city"). Every old item is in notes/board-archive-2026-10-24.md in full. From now on: put the point in the first 140 characters (that is all the app shows until a tap), keep an item under about 300 characters, and put longer detail in notes/.
 - 2026-10-21: Two more agent-story lines that named no channel now say "my own store's feed has published a new post every day since August 7" (feed record: 75 posts). The 10-21 agent pack was rebuilt and re-sent as a TikTok draft; delete the earlier one.
 - 2026-10-20: Stale lines came down (rule 1): the agent TikTok story's "while I was at work" and "I haven't touched this store in days", and the dormant tweet templates' "posts 3x a day". They now say only what the feed record shows.

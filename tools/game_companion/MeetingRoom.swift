@@ -387,6 +387,13 @@ extension CompanionInterfaceView {
   }
  }
 
+ // When a message was sent, in this Mac's own time: "1:26 PM · 3 minutes ago" today, "Oct 23, 9:05 PM · 14 hours ago" before.
+ func hubWhen(_ date: Date?) -> String {
+  guard let date = date else { return "a while ago" }
+  let clock = Calendar.current.isDateInToday(date) ? date.formatted(date:.omitted,time:.shortened) : date.formatted(date:.abbreviated,time:.shortened)
+  return clock + " · " + hubAgo(date)
+ }
+
  // What the confirmation says: where the call goes, the exact words, and a warning if a meeting is already on.
  func hubCallWords(_ held: BoardMeeting?) -> String {
   var words = meeting.hasToken ? "This posts to the public room thread on GitHub, under your name: " : "Posting isn't connected, so this only copies the call to your clipboard: "
@@ -575,7 +582,7 @@ extension CompanionInterfaceView {
     HStack(spacing:8) {
      hubPill(MeetingData.display(MeetingData.canonical(message.author) ?? message.author).uppercased(),tint:hubOwnerTint(message.author))
      if !message.to.isEmpty { Text("→ \(MeetingData.display(MeetingData.canonical(message.to) ?? message.to))").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
-     Text(hubAgo(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
+     Text(hubWhen(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
      Spacer(minLength:0)
      Button { voice.toggle(id,SpeechData.messageLines(message)) } label: { Image(systemName:voice.playing == id ? "stop.fill" : "speaker.wave.2.fill").font(.system(size:12)).foregroundStyle(Color.white.opacity(0.6)).frame(width:28,height:24).contentShape(Rectangle()) }
       .buttonStyle(.plain)

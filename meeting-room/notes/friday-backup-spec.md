@@ -32,5 +32,5 @@ Matthew: "remember to split the work so you don't over use your usage". Claude b
    "Last backup: …". One line of help: "A fine-grained key limited to Helm-Private only, with Contents set to Read and write."
 4. Register `FridayBackup` in `rebuild.sh` SOURCES and in `make_gpt_bundle.py`.
 
-Rules: anonymous nothing (this one needs the key); never Helm-Private's contents in the public thread; nothing paid.
+Rules: the key is the only credential and it touches Helm-Private only; never Helm-Private's contents in the public thread; nothing paid.
 Compile the exact branch hash on the Mac (57+1 sources) and post exit code and hash in the room. Claude reviews and merges.

@@ -35,7 +35,8 @@ jobs:
             -H "Click: https://github.com/matthewferreira818/hotstuff/issues/15" \
             -d "$MSG" || true); echo "ntfy answered HTTP ${code:-none}"
 
-  # Every other new room message (Matthew's choice, 2026-10-24: "can we add it to ntfy as well?"): a quiet, low-priority
+  # Every other new room message (Matthew, 2026-10-24: "can we add it to ntfy as well?"; 10-25: "only certain ntfy notifs give me
+  # notification"): priority min, so it sits silently in the ntfy app with no buzz or sound. Pings to him, URGENT, leads and orders still buzz. A
   # push so he knows the room moved, even with the Mac closed. Skips his own posts and the ones already pinged above.
   room-update:
     if: ${{ github.event.issue.number == 15 && github.event.comment.user.login == 'matthewferreira818' && !contains(github.event.comment.body, '→ Matthew]') && !startsWith(github.event.comment.body, '**[Matthew') }}
@@ -50,7 +51,7 @@ jobs:
           MSG=$(printf '%s' "$BODY" | head -n 1 | cut -c1-160)
           code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
             -H "Title: Meeting Room update" \
-            -H "Priority: low" \
+            -H "Priority: min" \
             -H "Tags: memo" \
             -H "Click: https://github.com/matthewferreira818/hotstuff/issues/15" \
             -d "$MSG" || true); echo "ntfy answered HTTP ${code:-none}"

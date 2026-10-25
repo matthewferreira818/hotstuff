@@ -6,7 +6,7 @@
 
 Anonymous reads only: hourly after explicit enable, or a user-started fast lease of up to two hours at 300 seconds. The shared local cap stays 30 requests per rolling hour, including manual reads, retries, pagination and 304 responses. Server deadlines win. Off is the initial monitoring state. No token field or token request, notifications, posting, AI bridge, model call, paid service or production-engine launch.
 
-This chat continues its separate 30-minute read-only room checks; it does not revive the earlier temporary work loop.
+Matthew resumed this integration on October 25 and selected hourly chat checks. Those checks can continue this authorized operation, then return to read-only checks between operations. The app monitor and chat routine remain separate.
 
 ## Ownership and first review piece
 
@@ -37,3 +37,11 @@ Off must stop all automatic room reads. Proposed manual behavior: an explicit Re
 ## Acceptance gates
 
 Offline checks cover anonymous-only requests and redirect/path rejection; single-flight refreshes; shared limits/backoff and pagination; persistence before dispatch/adoption; interrupted writes; last-200 retention without payloads; quiet-room freshness; lease expiry; Stop during a delayed response; restart after Stop; and partial failures. The integration candidate also needs compact/keyboard UI checks and a complete Mac compile. No install or production launch is a build test. Actual installed-app smoke checks remain a later, explicit step.
+
+## Integration candidate (October 25)
+
+Based on master 31fe8e9, including Claude’s Friday upgrade. MeetingHub owns one coordinator and observes transient snapshots. The compact scrollable card offers Hourly, Fast for 2 hours, Finish task, Stop, unread count/Mark read, and separate one-request board/messages refresh buttons. It shows each source’s last successful check, missing session payload, pagination and backoff/error state. Storage failures pause reads with a fixed message.
+
+Routing lives in HubShell.swift (not HubHelpers.swift). Startup resumes only a saved enabled mode; the old page/global room timers are removed. Friday’s existing automatic `refresh(minGap:)` caller is kept compatible through MeetingHub but only resumes the same scheduler, never overrides Off/cadence. Explicit inbox and post-followup reads use one budgeted comments request. Existing posting permissions are unchanged. Missing session history is described honestly; full history remains on GitHub.
+
+The coordinator publishes payloads only after persistence succeeds, bounds the observation buffer to one latest snapshot, and uses an ephemeral URLSession per request, invalidated on completion. No session/delegate retention cycle remains. Monitor sources and offline checks are registered in the build/bundle lists. No production engine is installed or launched by validation.

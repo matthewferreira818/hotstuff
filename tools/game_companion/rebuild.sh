@@ -11,7 +11,7 @@ TMP=$(mktemp -d)
 
 echo "Building The Helm (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,SpeechData,ThreadData,MeetingVoice,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,Helper,FridayHands,Hub,HubTheme,HubShell,HubHome,HubStocks,HubVentures,HubLaunchpad,HubGame,HubAccounts,HubHelpers}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,MeetingMonitorData,MeetingMonitor,SpeechData,ThreadData,MeetingVoice,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,FridayData,Helper,FridayHands,Hub,HubTheme,HubShell,HubHome,HubStocks,HubVentures,HubLaunchpad,HubGame,HubAccounts,HubHelpers}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -41,6 +41,8 @@ PLIST="$APP/Contents/Info.plist"
 setkey() { /usr/libexec/PlistBuddy -c "Set :$1 \"$2\"" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Add :$1 string \"$2\"" "$PLIST"; }
 setkey CFBundleName "The Helm" || true
 setkey CFBundleDisplayName "The Helm" || true
+# Friday works Spotify through its own AppleScript commands (2026-10-25); macOS shows this line when it asks once for permission.
+setkey NSAppleEventsUsageDescription "Friday plays, pauses and skips songs in Spotify when you ask her." || true
 if [ -f "$DIR/icon/Friday-1024.png" ]; then
  SET="$TMP/Friday.iconset"
  mkdir -p "$SET"

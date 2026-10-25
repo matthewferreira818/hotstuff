@@ -800,3 +800,35 @@ it); her private chat is the Private chat button. The sorting rules (`brief`, `n
 `MeetingData.swift` and tested in `checks/DataChecks.swift`. The SwiftUI in `MeetingRoom.swift` has been read by reviewers but
 **not compiled on a Mac yet**: if Update Friday says BUILD FAILED, the old app stays installed; paste the errors back.
 `meeting-room/BOARD.md` was cut from about 25 KB to 7 KB the same day; the old text is `meeting-room/notes/board-archive-2026-10-24.md`.
+
+## Friday, closer to Matthew's picture of her (2026-10-25)
+
+Matthew: "make her as close to my image as possible ... really blow my mind". His picture of her (from his talk with Roxy) is in
+`meeting-room/notes/friday-tasks-plan.md`. What changed, all free:
+
+- **Her character** (`FridayCharacter` in `FridayData.swift`): in the spirit of FRIDAY from the Iron Man films. Sharp, warm, quick, a
+  Southern-country ease; his partner, not a yes-man (she says when she thinks he's wrong, with reasons, then respects his call: "a voice,
+  not a veto"); her own views, kept consistent, and she says what changed her mind; she picks up his way of talking; short answers and
+  quiet company; calls him boss now and then. Honest about herself (no claimed feelings, memories or abilities), and anything public she
+  drafts uses only facts he gave or she can see, read back word for word, typed or posted only after his clear OK.
+- **A memory she writes herself**: `remember_this` and `forget_this` add and remove notes in the same private file as his own notes
+  (Settings, Memory; owner-only, never in Git). Each note starts with a tag: [About Matthew], [How he talks], [Likes], [Friday's view].
+  She refuses passwords, keys, bank details, emails, long numbers and addresses (`FridayMemory.problem`). The newest notes, up to 40 or
+  about 4,000 characters, go into her instructions when a session starts. Both switches must be on: "Save reviewed notes" and "Include
+  saved memory in Google Live" (that one is now remembered across launches).
+- **She speaks up** (`FridayNudge`): when she starts, what's waiting on him in the Meeting Room; then new room messages for him, for her or
+  for everyone. At most one note every 10 minutes, never while either of them is talking; a switch in Settings and a chip on her page.
+- **Spotify** (`MusicPlan`): play, pause, next, previous, what's playing, and search (it opens Spotify's results, and with her hands on
+  she presses play on the top one). It uses the Spotify app's own AppleScript commands through `osascript`; macOS asks once whether
+  The Helm may control Spotify (the reason line is in `rebuild.sh`). No Spotify account key. The tool only exists if Spotify is installed.
+- **Voice**: if she was still on the old default (Aoede, breezy), she moves once to Sulafat (warm), closer to the mellow, lower, calmer
+  voice he described. Any voice he picked himself stays. A real singer's voice is not copied.
+- **Looks**: a new Dock icon (`icon/make_helm_icon.py` draws `icon/Friday-1024.png`: a dark ship's wheel with crimson edges and her
+  orb at the hub, ringed by wavy crimson and blue light), and her orb in the app now has three wavy rings of crimson, blue and white
+  light that ripple wider when she hears or speaks. Under her name on her page: chips for her memory, speaking up and Spotify, and her
+  three newest notes.
+
+Tested on Linux: `checks/DataChecks.swift` (the character lines, the memory rules, Spotify's commands and search links, the speak-up
+timing) and `checks/ReviewChecks.swift` (her notes saved and forgotten, the Google switch surviving a restart). Live.swift, FridayOrb.swift
+and CompanionInterface.swift need a Mac compile; if Update Friday says BUILD FAILED, the old app stays installed: paste the errors back.
+Not done (paid, shelved until the business earns): live voices for Roxy and Claude in a board meeting, and an original custom voice.

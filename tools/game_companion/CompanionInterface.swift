@@ -38,9 +38,9 @@ struct CompanionInterfaceView: View {
   .tint(Noir.crimson)
   .groupBoxStyle(NoirCard())
   .focusEffectDisabled()
-  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; vods.attach(clips,stream:stream); autopilot.attach(clips:clips,stream:stream,vods:vods,live:live,feed:feed); live.vods = vods; voiceover.attach(clips:clips,live:live,feed:feed); live.voiceover = voiceover; live.meeting = meeting; hands.attach(live); lab.attach(voiceover); helper.attach(hands:hands,voice:voiceover); live.obs = obs; obs.approve = { [hands] title,detail in await hands.approval.ask(title,detail:detail) }; chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); voice.attach(live); Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true); await meeting.refresh(force:true) } }
+  .onAppear { Keychain.migrateLegacy([GeminiKey.service,TwitchTokens.service,MeetingHub.tokenService,SalesHub.service]); c.conversation = conversation; live.conversation = conversation; live.clips = clips; live.stream = stream; live.feed = feed; live.chat = chat; live.hands = hands; vods.attach(clips,stream:stream); autopilot.attach(clips:clips,stream:stream,vods:vods,live:live,feed:feed); live.vods = vods; voiceover.attach(clips:clips,live:live,feed:feed); live.voiceover = voiceover; live.meeting = meeting; hands.attach(live); lab.attach(voiceover); helper.attach(hands:hands,voice:voiceover); live.obs = obs; obs.approve = { [hands] title,detail in await hands.approval.ask(title,detail:detail) }; chat.attach(clips,stream:stream,feed:feed); stream.attach(clips); corner.attach(live); voice.attach(live); Task { await meeting.startMonitoring() }; Task { await stocks.refresh(); await ventures.refresh(force:true); await sales.refresh(force:true) } }
   .onReceive(pageTick) { _ in Task { await hubRefreshVisible() } }
-  .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh(); await meeting.refresh(minGap:295) } }
+  .onReceive(refreshTick) { _ in Task { await stocks.refresh(); await ventures.refresh(); await sales.refresh() } }
   .onDisappear { stopAll(); autopilot.pause() }
   .onChange(of:conversation.page) { _,page in
    c.handsFree = false; c.stopMic(); c.cancelResponse(); c.automatic = false; c.history.removeAll(); c.reply = ""; c.input = ""; c.unloadModel()
@@ -68,6 +68,7 @@ struct CompanionInterfaceView: View {
       Spacer(minLength:0)
       orbSection(orb)
       captions
+      if !tight && c.tab == 0 { fridayMind.padding(.top,12) }
       Spacer(minLength:0)
      }
      .frame(minHeight:box.size.height)
@@ -126,6 +127,44 @@ struct CompanionInterfaceView: View {
   }
   .frame(maxWidth:.infinity,minHeight:hub.compact ? 30 : 120,alignment:.top)
   .padding(.horizontal,10).padding(.top,6)
+ }
+
+ // A quiet strip under her: what she remembers, whether she speaks up on her own, and Spotify (2026-10-25). Tapping memory opens
+ // Settings (without switching pages, which would end a live session); tapping "Speaks up" turns it on or off.
+ var fridayMind: some View {
+  VStack(spacing:10) {
+   HStack(spacing:8) {
+    mindChip(conversation.memoryEnabled ? "Remembers \(conversation.notes.count)" : "Memory off",icon:"brain",on:conversation.memoryEnabled && conversation.shareMemoryWithGoogle) { c.showPanel = true }
+    mindChip(live.speakUp ? "Speaks up" : "Quiet",icon:"bubble.left.and.bubble.right",on:live.speakUp) { live.speakUp.toggle() }
+    if live.spotifyInstalled { mindChip("Spotify",icon:"music.note",on:true) { if let url = URL(string:"spotify:") { NSWorkspace.shared.open(url) } } }
+   }
+   let recent = Array(conversation.notes.suffix(3).reversed())
+   if conversation.memoryEnabled && !recent.isEmpty {
+    VStack(alignment:.leading,spacing:6) {
+     ForEach(recent) { note in
+      Text(note.text).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.62)).lineLimit(1)
+     }
+    }
+    .padding(.horizontal,14).padding(.vertical,10)
+    .frame(maxWidth:360,alignment:.leading)
+    .background(RoundedRectangle(cornerRadius:14,style:.continuous).fill(Color.white.opacity(0.05)))
+    .overlay(RoundedRectangle(cornerRadius:14,style:.continuous).strokeBorder(Noir.crimson.opacity(0.25),lineWidth:1))
+   }
+  }
+ }
+
+ func mindChip(_ title: String,icon: String,on: Bool,action: @escaping () -> Void) -> some View {
+  Button(action:action) {
+   HStack(spacing:6) {
+    Image(systemName:icon).font(.system(size:11,weight:.semibold))
+    Text(title).font(.system(size:11,weight:.semibold,design:.rounded))
+   }
+   .foregroundStyle(on ? Color.white.opacity(0.9) : Color.white.opacity(0.5))
+   .padding(.horizontal,12).padding(.vertical,7)
+   .background(Capsule().fill(on ? Noir.crimson.opacity(0.28) : Color.white.opacity(0.06)))
+   .overlay(Capsule().strokeBorder(on ? Noir.crimsonLight.opacity(0.45) : Color.white.opacity(0.10),lineWidth:1))
+  }
+  .buttonStyle(.plain)
  }
 
  // A small look at the last picture she was sent, so what leaves the Mac is never a mystery.
@@ -311,6 +350,7 @@ struct CompanionInterfaceView: View {
   Toggle("Include saved memory in Google Live",isOn:$conversation.shareMemoryWithGoogle).disabled(!conversation.memoryEnabled || live.running)
   Text("Memory is optional. Only the notes and topics you review here are saved; transcripts, audio and screen images are not. Allowing Google memory sharing sends those notes as cloud context when the next live session starts. Deleting local notes cannot erase cloud copies.").font(.caption).foregroundStyle(.secondary)
   Text(conversation.status).font(.caption).foregroundStyle(.secondary)
+  Text("Friday adds her own notes when you tell her something about you (they start with a tag like [Likes] or [Friday's view]). Remove any you don't want; she never saves passwords, keys, bank details, emails, phone numbers or addresses.").font(.caption).foregroundStyle(.secondary)
   HStack { TextField("A note you want the companion to remember",text:$conversation.noteDraft); Button("Add note") { conversation.remember() }.disabled(conversation.noteDraft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty) }
   ForEach(conversation.notes) { note in HStack { Text(note.text).textSelection(.enabled); Spacer(); Button("Remove",role:.destructive) { conversation.removeNote(note.id) } }.padding(10).background(.quaternary,in:RoundedRectangle(cornerRadius:10)) }
   Divider()
@@ -327,6 +367,7 @@ struct CompanionInterfaceView: View {
   if live.hasKey { HStack { Text("Google key saved on this Mac"); Button("Remove key") { live.forgetKey() }.disabled(DesignPreview.enabled) } }
   else { HStack { SecureField("Google API key",text:$live.keyInput); Button("Save key") { live.saveKey() }.disabled(DesignPreview.enabled); Button("Get a key") { NSWorkspace.shared.open(URL(string:"https://aistudio.google.com/apikey")!) }.disabled(DesignPreview.enabled) } }
   Picker("Live voice",selection:$live.voice) { ForEach(live.voices,id:\.self) { Text(live.voiceLabel($0)).tag($0) } }.disabled(live.running)
+  Toggle("Friday speaks up on her own: what's waiting on you when she starts, and new room messages for you or her (at most every 10 minutes, never while you talk)",isOn:$live.speakUp)
   Toggle("Pop up in a corner when the window is out of sight while Friday is live",isOn:$corner.enabled)
   Picker("Corner",selection:$corner.position) { Text("Top right").tag(0); Text("Top left").tag(1); Text("Bottom right").tag(2); Text("Bottom left").tag(3) }.pickerStyle(.segmented).disabled(!corner.enabled)
   Picker("Her brain",selection:$live.liveModel) { Text("Standard · fast").tag("gemini-3.8-live"); Text("Thinks harder · slower").tag("gemini-3.8-live-extended-thinking") }.pickerStyle(.segmented).disabled(live.running)

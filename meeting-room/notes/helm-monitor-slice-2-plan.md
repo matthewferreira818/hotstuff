@@ -45,3 +45,16 @@ Based on master 31fe8e9, including Claude’s Friday upgrade. MeetingHub owns on
 Routing lives in HubShell.swift (not HubHelpers.swift). Startup resumes only a saved enabled mode; the old page/global room timers are removed. Friday’s existing automatic `refresh(minGap:)` caller is kept compatible through MeetingHub but only resumes the same scheduler, never overrides Off/cadence. Explicit inbox and post-followup reads use one budgeted comments request. Existing posting permissions are unchanged. Missing session history is described honestly; full history remains on GitHub.
 
 The coordinator publishes payloads only after persistence succeeds, bounds the observation buffer to one latest snapshot, and uses an ephemeral URLSession per request, invalidated on completion. No session/delegate retention cycle remains. Monitor sources and offline checks are registered in the build/bundle lists. No production engine is installed or launched by validation.
+
+## Integration validation and handoff
+
+- Review PR #26, branch `gpt/helm-monitor-integration`.
+- Exact Swift/build candidate: `8929272bcd065351682d3c584a1b593b40e147cf`, based on master `31fe8e9261349d4303348e2e6a399ef8eec80a92`.
+- Full optimized 57-source compile on Matthew’s Mac: **exit 0, errors 0, warnings 28** (existing Apple deprecations), macOS 27.2, Apple Swift 6.4. Build-only output; no install or production launch.
+- Offline coordinator, core policy and read-seam binaries: **compile 0, run 0** each. New observation checks cover payload publication after persistence, explicit one-source manual reads, missing payload after restart, Stop/late responses and storage failure.
+- Mac-only isolated MeetingHub/card fixture: **compile 0, run 0**. Checks startup and Friday’s automatic caller under Off, one-source manual reads, Fast/Finish/Stop, restart and unread clearing. Command-period is dispatched through the fixture window and verified to stop the monitor. Off, Fast and paused card renders inspected at 344-point width; controls wrap vertically and content remains scrollable. This fixture contains no production engines and stubs credential access.
+- Presentation snapshots carry a monotonic revision so a delayed observer cannot overwrite a newer action result. A timing regression surfaced in the fixture and was fixed before the compiled candidate.
+- Build-script shell syntax, Python syntax and diff whitespace checks pass. Source registration retains the script executable mode and FridayData.
+- Linux rerun/review and merge belong to Claude. Installed-app smoke testing (actual network, sleep/resume and whole-window navigation) remains unverified; the isolated card check is not a production launch.
+
+Reproduce on Linux from `tools/game_companion`: compile/run the commands in `checks/MeetingMonitorCoordinatorChecks.swift`, `checks/MeetingMonitorChecks.swift` and `checks/MeetingReadSeamChecks.swift`. On Mac: `python3 checks/run_monitor_integration_checks.py /tmp/helm-monitor-integration-checks`. Do not use rebuild.sh as a compile-only test: it installs the app.

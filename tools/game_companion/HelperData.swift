@@ -314,4 +314,13 @@ enum HelperPlan {
  ]
 
  static func standing(_ key: String) -> String? { standingCC.first { $0.key == key }?.text }
+
+ // Quick starts for the first rungs of the job ladder (meeting-room/notes/friday-tasks-plan.md): a tap fills the job box and
+ // nothing runs until he presses Start, so he can edit the words first. Reading and scrolling only; nothing here sends.
+ static let starters: [(title: String,goal: String)] = [
+  ("What's this window?","Tell me in two sentences what this window is about. Don't click or type anything."),
+  ("Scroll and read","Scroll down this page slowly so I can read it, and stop at the bottom. Don't click anything."),
+  ("Today's store post","In the browser, go to findhotstuff.com/automation and tell me what today's post says. Don't click anything that sends or buys."),
+  ("Find on the wiki","In the browser, search the Minecraft wiki for NAME and open the best match. Don't sign in to anything.")
+ ]
 }

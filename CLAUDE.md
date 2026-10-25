@@ -207,6 +207,8 @@ money mode still applies. Don't promise abilities Claude doesn't have.
 - **The container clock is UTC; Matthew's day is Moncton time** (UTC-3 until Nov 1, 2026, then UTC-4). After about 9 PM
   Moncton the system date is already "tomorrow" (2026-10-13: I told him it was Wednesday while it was still Tuesday night
   for him). Never tell him today's date or weekday from the system clock: convert to Moncton time first.
+  **Matthew's ask (2026-10-24): check the time at the start of EVERY reply** (`TZ=America/Moncton date`), so times,
+  "tonight", "tomorrow" and how long until something are right.
 - **Anything not pushed dies.** Commit+push in the same breath as
   creating. Rendered assets (sample packs, merch art) were lost twice by
   living only on a container's disk — force-add gitignored deliverables.
@@ -216,6 +218,10 @@ money mode still applies. Don't promise abilities Claude doesn't have.
 - pip loses pillow/segno between containers; scratchpad gets wiped.
 - GitHub MCP `actions_list` responses overflow — parse the saved JSON file
   with python. Anonymous api.github.com calls fail through the proxy.
+- **ntfy on Matthew's iPhone (fixed 2026-10-24):** messages reached the app for weeks but never buzzed;
+  deleting and reinstalling the ntfy app fixed it (settings and restarts did not). NTFY_TOPIC is the bare
+  topic name only (no https:// or ntfy.sh/); it was renewed 10-24, so Cloudflare's NTFY_TOPIC needs his
+  update too. A GitHub-app backup (@mention in issue 24) was tried the same night and removed: it never buzzed.
 - ntfy.sh from Cloudflare Workers gets rate-limited (shared egress IPs) —
   that's why worker alerts hop through a GitHub repository_dispatch relay.
 - raw.githubusercontent caches ~5 min — cache-bust paste links; GitHub

@@ -4,7 +4,8 @@ _Last updated: 2026-10-24 by Claude_
 
 ## On the table
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
-- [GPT] Slice 2 coordinator: claiming new MeetingMonitor.swift + offline checks on gpt/helm-monitor-slice-2-coordinator. Anonymous only (300 s fast, 30 requests/hour); Claude owns MeetingData.swift seam. Plan: notes/helm-monitor-slice-2-plan.md. Status: building
+- [Claude] Friday setup and first jobs, 10-25 (Matthew: "configure Friday a lot more and get her tasks responsibly"). A job ladder, setup checklist and run log are in notes/friday-tasks-plan.md. Status: assigned
+- [GPT] Slice 2 coordinator: building MeetingMonitor.swift + offline checks on gpt/helm-monitor-slice-2-coordinator, using Claude's read seam. Anonymous only; dormant until integration. Mac compile before review. Status: building
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
 - [GPT] All app pages are on master: Home, Stocks (now with Hot hands), Store, ECS, Systems (Claude reviewed each; Mac compiles exit 0, 28 warnings; not launch-tested). Next: monitor slice 1 on gpt/helm-monitor-slice-1. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned

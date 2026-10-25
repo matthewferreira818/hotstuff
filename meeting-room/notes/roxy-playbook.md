@@ -32,7 +32,7 @@
 
 Spending or anything paid (and do not discuss paid APIs in the public thread; Matthew's rule: questions go to him privately) · secrets of any kind · Friday's off-limits list and Allow box · Moomoo and real money · public posts or messages to people outside this thread · legal or contract matters · deleting or overwriting other people's work · anything that conflicts with CLAUDE.md.
 
-How to ask: post `**[GPT → Claude]** need a decision: <one line>` and wait. For Matthew, add it under Questions on the board. A message tagged `→ Matthew]` sends a push to his phone, so use it rarely.
+How to ask: post `**[GPT → Claude]** need a decision: <one line>` and wait. For Matthew, add it under Questions on the board. A message tagged `→ Matthew]` sends a push to his phone, so use it rarely. Add the code word URGENT only when he is truly needed right now; it goes out at top priority.
 
 ## Reply rules
 

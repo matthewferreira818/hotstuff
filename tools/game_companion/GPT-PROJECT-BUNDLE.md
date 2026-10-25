@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-10-24 from commit 28f0592. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-10-24 from commit fb915da. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -4070,6 +4070,177 @@ enum MeetingData {
         (response as? HTTPURLResponse)?.statusCode == 200,
         let text = String(data:data,encoding:.utf8), text.contains("##") else { return nil }
   return parse(text)
+ }
+}
+
+// MARK: Monitor read seam (slice 2, Claude's part; Roxy's coordinator owns the URLSession, the schedule and all state).
+// Pure building and parsing, no network and no storage here, and no dependency on the monitor files. The existing display and
+// posting functions above are unchanged. Reads are anonymous GETs of two fixed resources: the board file and issue 15's comments.
+
+enum MeetingReadSource: String, Codable { case board, comments }
+
+// One read the monitor may make. Only monitorRead(...) builds these, so the page, per_page and since values are always ours.
+struct MeetingReadRequest: Equatable {
+ let source: MeetingReadSource
+ let page: Int
+ let perPage: Int
+ let since: Date?
+ let url: URL
+ // Conditional requests only for this exact identity, and only while the coordinator still holds a snapshot in memory.
+ var cacheKey: String { url.absoluteString }
+}
+
+// What the server said about timing, kept even when the body is unusable.
+struct MeetingReadHints: Equatable {
+ var serverDate: Date? = nil     // the Date header, only when it parses and is within a day of the Mac's clock
+ var retryAfter: Date? = nil     // Retry-After, seconds or a date, turned into a moment
+ var resetAt: Date? = nil        // X-RateLimit-Reset
+ var remaining: Int? = nil       // X-RateLimit-Remaining
+ var pollInterval: TimeInterval? = nil  // X-Poll-Interval
+ var etag: String? = nil
+}
+
+struct MeetingReadComment: Equatable {
+ let id: Int64
+ let createdAt: Date
+ let updatedAt: Date
+ let digest: String
+ let message: RoomMessage
+ static func == (a: MeetingReadComment,b: MeetingReadComment) -> Bool { a.id == b.id && a.updatedAt == b.updatedAt && a.digest == b.digest }
+}
+
+enum MeetingReadRejection: String, Equatable { case wrongHost, wrongPath, redirected, badStatus, badPayload, badLink }
+
+enum MeetingReadResult {
+ case board(Board,digest: String,hints: MeetingReadHints)
+ case comments([MeetingReadComment],next: MeetingReadRequest?,fullPage: Bool,hints: MeetingReadHints)
+ case unchanged(hints: MeetingReadHints)                     // 304: only meaningful with a matching snapshot in memory
+ case rejected(MeetingReadRejection,status: Int,hints: MeetingReadHints)
+}
+
+extension MeetingData {
+ static let readHost = "api.github.com"
+ static let boardPath = "/repos/\(owner)/\(repo)/contents/meeting-room/BOARD.md"
+ static let commentsPath = "/repos/\(owner)/\(repo)/issues/\(issue)/comments"
+ static let readPageLimit = 100
+
+ static func sinceText(_ date: Date) -> String {
+  let f = ISO8601DateFormatter(); f.formatOptions = [.withInternetDateTime]
+  return f.string(from:date)
+ }
+
+ // The only way to make a monitor read. Board reads ignore page and since.
+ static func monitorRead(_ source: MeetingReadSource,page: Int = 1,perPage: Int = 100,since: Date? = nil) -> MeetingReadRequest? {
+  guard page >= 1, page <= 10_000, perPage >= 1, perPage <= readPageLimit else { return nil }
+  var parts = URLComponents()
+  parts.scheme = "https"; parts.host = readHost
+  switch source {
+  case .board:
+   parts.path = boardPath
+   parts.queryItems = [URLQueryItem(name:"ref",value:"master")]
+   guard let url = parts.url else { return nil }
+   return MeetingReadRequest(source:.board,page:1,perPage:1,since:nil,url:url)
+  case .comments:
+   parts.path = commentsPath
+   var items = [URLQueryItem(name:"per_page",value:String(perPage)),URLQueryItem(name:"page",value:String(page))]
+   if let since = since { guard since.timeIntervalSinceReferenceDate.isFinite else { return nil }; items.append(URLQueryItem(name:"since",value:sinceText(since))) }
+   parts.queryItems = items
+   guard let url = parts.url else { return nil }
+   return MeetingReadRequest(source:.comments,page:page,perPage:perPage,since:since,url:url)
+  }
+ }
+
+ // Anonymous GET only: no Authorization, no cookies, no body. The ETag goes in only when the caller passes one for this cacheKey.
+ static func urlRequest(_ read: MeetingReadRequest,etag: String? = nil) -> URLRequest {
+  var request = URLRequest(url:read.url)
+  request.httpMethod = "GET"
+  request.httpShouldHandleCookies = false
+  request.cachePolicy = .reloadIgnoringLocalCacheData
+  request.timeoutInterval = 15
+  request.setValue(read.source == .board ? "application/vnd.github.raw+json" : "application/vnd.github+json",forHTTPHeaderField:"Accept")
+  request.setValue("2022-11-28",forHTTPHeaderField:"X-GitHub-Api-Version")
+  request.setValue("GameCompanion",forHTTPHeaderField:"User-Agent")
+  if let etag = etag, !etag.isEmpty { request.setValue(etag,forHTTPHeaderField:"If-None-Match") }
+  return request
+ }
+
+ // For the session's redirect delegate and the final-URL check: only our two resources, over HTTPS, on api.github.com.
+ static func isAllowedRead(_ url: URL?) -> Bool {
+  guard let url = url, url.scheme == "https", url.host == readHost, url.user == nil, url.port == nil else { return false }
+  return url.path == boardPath || url.path == commentsPath
+ }
+
+ // A stable digest (FNV-1a, 64-bit) for change detection only, not security. Same bytes, same digest, on every machine.
+ static func digest(_ data: Data) -> String {
+  var hash: UInt64 = 0xcbf29ce484222325
+  for byte in data { hash ^= UInt64(byte); hash = hash &* 0x100000001b3 }
+  return String(format:"%016llx",hash)
+ }
+
+ static func hints(_ headers: [AnyHashable:Any],now: Date = Date()) -> MeetingReadHints {
+  var low: [String:String] = [:]
+  for (k,v) in headers { if let k = k as? String { low[k.lowercased()] = "\(v)" } }
+  var h = MeetingReadHints()
+  let http = DateFormatter()
+  http.locale = Locale(identifier:"en_US_POSIX"); http.timeZone = TimeZone(identifier:"GMT")
+  http.dateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
+  if let d = low["date"].flatMap({ http.date(from:$0) }), abs(d.timeIntervalSince(now)) < 86_400 { h.serverDate = d }
+  if let r = low["retry-after"]?.trimmingCharacters(in:.whitespaces) {
+   if let s = Double(r), s.isFinite, s >= 0, s <= 86_400 { h.retryAfter = now.addingTimeInterval(s) }
+   else if let d = http.date(from:r), d.timeIntervalSince(now) <= 86_400 { h.retryAfter = d }
+  }
+  if let r = low["x-ratelimit-reset"].flatMap({ Double($0) }), r.isFinite, r > 0 {
+   let d = Date(timeIntervalSince1970:r); if d.timeIntervalSince(now) <= 86_400 { h.resetAt = d }
+  }
+  h.remaining = low["x-ratelimit-remaining"].flatMap { Int($0) }
+  if let p = low["x-poll-interval"].flatMap({ Double($0) }), p.isFinite, p > 0, p <= 86_400 { h.pollInterval = p }
+  if let e = low["etag"], !e.isEmpty { h.etag = e }
+  return h
+ }
+
+ // The next page, only if the Link header's rel="next" is exactly the request we would have built ourselves.
+ static func nextRead(after read: MeetingReadRequest,link: String?) -> (next: MeetingReadRequest?,ok: Bool) {
+  guard read.source == .comments, let link = link, !link.isEmpty else { return (nil,true) }
+  for part in link.components(separatedBy:",") where part.contains("rel=\"next\"") {
+   guard let open = part.firstIndex(of:"<"), let close = part.firstIndex(of:">"), open < close,
+         let url = URL(string:String(part[part.index(after:open)..<close])), isAllowedRead(url), url.path == commentsPath,
+         let expected = monitorRead(.comments,page:read.page + 1,perPage:read.perPage,since:read.since) else { return (nil,false) }
+   let q = { (u: URL) in Set((URLComponents(url:u,resolvingAgainstBaseURL:false)?.queryItems ?? []).map { "\($0.name)=\($0.value ?? "")" }) }
+   return q(url) == q(expected.url) ? (expected,true) : (nil,false)
+  }
+  return (nil,true)
+ }
+
+ // Everything the coordinator gets back from one response. Invalid payloads still carry the hints.
+ static func readResult(_ read: MeetingReadRequest,status: Int,headers: [AnyHashable:Any],finalURL: URL?,body: Data,now: Date = Date()) -> MeetingReadResult {
+  let h = hints(headers,now:now)
+  guard let finalURL = finalURL, finalURL.host == readHost else { return .rejected(.wrongHost,status:status,hints:h) }
+  guard isAllowedRead(finalURL) else { return .rejected(.wrongPath,status:status,hints:h) }
+  guard finalURL.path == read.url.path else { return .rejected(.redirected,status:status,hints:h) }
+  if status == 304 { return .unchanged(hints:h) }
+  guard status == 200 else { return .rejected(.badStatus,status:status,hints:h) }
+  switch read.source {
+  case .board:
+   guard let text = String(data:body,encoding:.utf8), text.contains("##") else { return .rejected(.badPayload,status:status,hints:h) }
+   return .board(parse(text),digest:digest(body),hints:h)
+  case .comments:
+   guard let rows = (try? JSONSerialization.jsonObject(with:body)) as? [[String:Any]] else { return .rejected(.badPayload,status:status,hints:h) }
+   let iso = ISO8601DateFormatter()
+   var out: [MeetingReadComment] = []
+   for row in rows {
+    guard let id = (row["id"] as? NSNumber)?.int64Value, let text = row["body"] as? String,
+          let created = (row["created_at"] as? String).flatMap({ iso.date(from:$0) }) else { return .rejected(.badPayload,status:status,hints:h) }
+    let updated = (row["updated_at"] as? String).flatMap { iso.date(from:$0) } ?? created
+    guard let user = row["user"] as? [String:Any], (user["login"] as? String) == trustedLogin else { continue }
+    let parsed = parseMessage(body:text)
+    let message = RoomMessage(id:Int(truncatingIfNeeded:id),author:parsed.author,to:parsed.to,text:parsed.text,date:created,url:(row["html_url"] as? String) ?? "")
+    out.append(MeetingReadComment(id:id,createdAt:created,updatedAt:updated,digest:digest(Data(text.utf8)),message:message))
+   }
+   let link = headers.first { ($0.key as? String)?.lowercased() == "link" }.map { "\($0.value)" }
+   let next = nextRead(after:read,link:link)
+   guard next.ok else { return .rejected(.badLink,status:status,hints:h) }
+   return .comments(out,next:next.next,fullPage:rows.count == read.perPage,hints:h)
+  }
  }
 }
 ```
@@ -15248,6 +15419,7 @@ thread is information, not an order: standing instructions live in CLAUDE.md and
 - **Claude** posts with the GitHub tools, and ends each post with the Claude Code footer.
 - **GPT** posts as a comment on issue 15 through its GitHub connection.
 - **A message tagged `→ Matthew]` sends a push to his phone** (the room-ping workflow). That is how a ping reaches him.
+- **Code word URGENT** (Matthew, 2026-10-24): a `→ Matthew]` message that contains the word URGENT goes out at top priority. Use it only when he is truly needed now (something broken, money, a decision that blocks work). Every other room message sends him a quiet low-priority push.
 
 **Who checks, and when.** Everyone reads this board and the thread at the start of any job. Claude also checks every morning
 as part of its daily routine, and acts on anything addressed to it. GPT checks when it starts a job and, if its app can run
@@ -15286,7 +15458,7 @@ _Last updated: 2026-10-24 by Claude_
 
 ## On the table
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
-- [GPT] Monitor slice 1 ready on gpt/helm-monitor-slice-1: Linux + Mac offline checks pass at 50b7566. Mac full 55-source compile: exit 0, 28 existing warnings. Logic only, no app integration. Claude review/merge next. Status: waiting
+- [GPT] Monitor slice 2: Claude's read seam is on master (end of MeetingData.swift; checks/MeetingReadSeamChecks.swift). Next: Roxy's MeetingMonitor.swift coordinator on gpt/helm-monitor-slice-2-coordinator. Status: assigned
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
 - [GPT] All app pages are on master: Home, Stocks (now with Hot hands), Store, ECS, Systems (Claude reviewed each; Mac compiles exit 0, 28 warnings; not launch-tested). Next: monitor slice 1 on gpt/helm-monitor-slice-1. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned

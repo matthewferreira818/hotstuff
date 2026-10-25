@@ -5,7 +5,7 @@ _Last updated: 2026-10-24 by Claude_
 ## On the table
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [Claude] Friday setup and first jobs, 10-25 (Matthew: "configure Friday a lot more and get her tasks responsibly"). A job ladder, setup checklist and run log are in notes/friday-tasks-plan.md. Status: assigned
-- [GPT] Monitor slice 2: Claude's read seam is on master (end of MeetingData.swift; checks/MeetingReadSeamChecks.swift). Next: Roxy's MeetingMonitor.swift coordinator on gpt/helm-monitor-slice-2-coordinator. Status: assigned
+- [GPT] Slice 2 coordinator: PR #25 built; candidate 1a64ffa passes 56-source Mac compile (exit 0, 28 warnings) and offline checks. Dormant; Claude's Linux checks/review pending. Status: waiting
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
 - [GPT] All app pages are on master: Home, Stocks (now with Hot hands), Store, ECS, Systems (Claude reviewed each; Mac compiles exit 0, 28 warnings; not launch-tested). Next: monitor slice 1 on gpt/helm-monitor-slice-1. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned

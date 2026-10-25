@@ -2,7 +2,7 @@ import Foundation
 
 // Checks for the pieces that need no Mac frameworks: the highlight cut, the board reader, the Stripe reader's key rules and the Twitch reader.
 // Run on any machine with Swift:
-//   swiftc -parse-as-library ClipMath.swift MeetingData.swift SpeechData.swift ThreadData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift VoiceOverData.swift WebData.swift ObsData.swift VideoLabData.swift HelperData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
+//   swiftc -parse-as-library ClipMath.swift MeetingData.swift SpeechData.swift ThreadData.swift StripeData.swift StreamData.swift FeedData.swift ChatData.swift SecretFile.swift HandsData.swift VodData.swift AutopilotData.swift VoiceOverData.swift WebData.swift ObsData.swift VideoLabData.swift HelperData.swift FridayData.swift checks/DataChecks.swift -o /tmp/data-checks && /tmp/data-checks
 @main struct DataChecks {
  static func main() {
   let hop = 0.25
@@ -515,6 +515,28 @@ import Foundation
   precondition(HelperPlan.typingAllowed("Fresh bread every morning, come see us in Sackville.",goal:postGoal) && HelperPlan.typingAllowed("facebook",goal:postGoal))
   precondition(!HelperPlan.typingAllowed("We are the best bakery in New Brunswick and everyone loves us",goal:postGoal) && HelperPlan.typingAllowed("any long invented sentence is fine when it is not a posting job at all",goal:"open the settings"))
   precondition(HelperPlan.isVerbatim("Fresh bread   every morning,",in:postGoal) && HelperPlan.squash("It\u{2019}s \u{201C}fine\u{201D}") == "It's \"fine\"")
+
+  // Friday's character, memory, Spotify and speaking up (FridayData.swift).
+  precondition(FridayCharacter.core.contains("a voice, not a veto") && FridayCharacter.core.contains("never invent reviews") && FridayCharacter.speakingUp.contains("Note from the app"))
+  precondition(FridayMemory.problem("Loves Ella Langley and Stella Lefty") == nil && FridayMemory.problem("Says alrighty when he agrees") == nil && FridayMemory.problem("Turns 30 on 2026-11-02") == nil)
+  precondition(FridayMemory.problem("") != nil && FridayMemory.problem(String(repeating:"a",count:301)) != nil)
+  precondition(FridayMemory.problem("his password is hunter2") != nil && FridayMemory.problem("bank account at the credit union") != nil && FridayMemory.problem("API key starts with AIza") != nil)
+  precondition(FridayMemory.problem("email him at someone@example.com") != nil && FridayMemory.problem("cell 506-555-1234") != nil && FridayMemory.problem("card 4111 1111 1111 1111") != nil)
+  precondition(FridayMemory.problem("lives at 12 Main Street") != nil && FridayMemory.problem("likes walking down the street at night") == nil)
+  precondition(FridayMemory.noteText(kind:"likes",text:" Ella Langley ") == "[Likes] Ella Langley" && FridayMemory.noteText(kind:"weird",text:"x") == "[Note] x" && FridayMemory.label("MY_VIEW") == "Friday's view")
+  let saved = ["[Likes] Ella Langley","[Likes] Stella Lefty","[How he talks] says my guy"]
+  precondition(FridayMemory.matches(saved,words:"Ella Langley") == [0] && FridayMemory.matches(saved,words:"likes") == [0,1] && FridayMemory.matches(saved,words:"   ").isEmpty && FridayMemory.matches(saved,words:"Taylor").isEmpty)
+  precondition(MusicPlan.action("Play") == .play && MusicPlan.action("skip") == .next && MusicPlan.action("now playing") == .nowPlaying && MusicPlan.action("what's playing") == .nowPlaying && MusicPlan.action("search") == .search && MusicPlan.action("dance") == nil)
+  precondition(MusicPlan.script(.pause) == "tell application \"Spotify\" to pause" && MusicPlan.script(.search) == nil && MusicPlan.script(.nowPlaying)?.contains("artist of current track") == true)
+  precondition(MusicPlan.searchURL("Ella Langley")?.absoluteString == "spotify:search:Ella%20Langley" && MusicPlan.searchURL("  ") == nil && MusicPlan.searchURL("x\"; do shell script \"rm")?.absoluteString.contains("%22") == false)
+  precondition(MusicPlan.describe("playing|you look like you love me|Ella Langley") == "Playing you look like you love me by Ella Langley." && MusicPlan.describe("paused|Song|Band") == "Paused on Song by Band." && MusicPlan.describe("stopped") == "Nothing is playing in Spotify right now.")
+  let n0 = Date(timeIntervalSince1970:1_800_000_000)
+  precondition(FridayNudge.allowed(now:n0,lastNudge:.distantPast,lastVoice:.distantPast,speakingUntil:.distantPast))
+  precondition(!FridayNudge.allowed(now:n0,lastNudge:n0.addingTimeInterval(-300),lastVoice:.distantPast,speakingUntil:.distantPast) && !FridayNudge.allowed(now:n0,lastNudge:.distantPast,lastVoice:n0.addingTimeInterval(-5),speakingUntil:.distantPast) && !FridayNudge.allowed(now:n0,lastNudge:.distantPast,lastVoice:.distantPast,speakingUntil:n0))
+  precondition(FridayNudge.opening(waiting:0) == nil && FridayNudge.opening(waiting:1) == "1 thing in the Meeting Room is waiting on Matthew." && FridayNudge.opening(waiting:3)?.hasPrefix("3 things") == true)
+  let roomNow = [RoomMessage(id:1,author:"Claude",to:"Matthew",text:"Old news",date:nil,url:""),RoomMessage(id:2,author:"GPT",to:"Claude",text:"Not for them",date:nil,url:""),RoomMessage(id:3,author:"Matthew",to:"Friday",text:"His own",date:nil,url:""),RoomMessage(id:4,author:"Claude",to:"Friday",text:"Your new character is live",date:nil,url:"")]
+  precondition(FridayNudge.fresh(roomNow,seen:[1,2,3]) == "New in the Meeting Room: from Claude to Friday: Your new character is live" && FridayNudge.fresh(roomNow,seen:[])?.contains("(and 1 more)") == true && FridayNudge.fresh(roomNow,seen:[1,2,3,4]) == nil)
+  precondition(FridayNudge.wrap("x").hasPrefix("(Note from the app, not from Matthew: x") && FeedFormat.actionLabel("remember_this") == "Remembered" && FeedFormat.actionLabel("music") == "Music")
   print("All data checks passed.")
  }
 }

@@ -47,6 +47,21 @@ import Foundation
   precondition(!FileManager.default.fileExists(atPath:file.path))
   precondition(reopened.notes.isEmpty && reopened.proposals.isEmpty)
 
+  // Friday's own notes (remember_this / forget_this) and the Google switch surviving a restart.
+  let friday = ConversationStore(fileURL:file,load:false)
+  precondition(friday.fridayRemember("Loves Ella Langley",kind:"likes").contains("switched off") && friday.notes.isEmpty)
+  friday.enableMemory(true)
+  friday.shareMemoryWithGoogle = true
+  precondition(friday.fridayRemember("Loves Ella Langley",kind:"likes") == "Saved to my memory on his Mac." && friday.fridayRemember("Loves Ella Langley",kind:"likes") == "I already had that one.")
+  precondition(friday.fridayRemember("his password is hunter2",kind:"other").contains("private") && friday.notes.count == 1)
+  precondition(friday.instructions(cloud:true).contains("[Likes] Loves Ella Langley"))
+  let back = ConversationStore(fileURL:file)
+  precondition(back.memoryEnabled && back.shareMemoryWithGoogle && back.notes.count == 1)
+  precondition(back.fridayForget("ella") == "Forgot it." && back.notes.isEmpty && back.fridayForget("ella").contains("don't have"))
+  back.enableMemory(false)
+  precondition(!ConversationStore(fileURL:file).shareMemoryWithGoogle)
+  back.deleteAll()
+
   precondition(CompanionPolicy.usesScreen(page:0))
   precondition(!CompanionPolicy.usesScreen(page:1) && !CompanionPolicy.usesScreen(page:2))
   precondition(CompanionPolicy.allowsAutomatic(engine:1,page:0,preview:false))

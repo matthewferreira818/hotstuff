@@ -11,7 +11,7 @@ page-message flow below describes. Read the rules first and follow them exactly.
 **1. Read the rules and the batch** (open each, read it all):
 - https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/east-coast-social/outreach/README.md
 - https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/marketing/east-coast-social/outreach/templates.md
-- the newest `batch-YYYY-MM-DD.md` in https://github.com/matthewferreira818/hotstuff/tree/master/marketing/east-coast-social/outreach
+- the newest `batch-YYYY-MM-DD.md` in https://github.com/matthewferreira818/Helm-Private/tree/main/ecs/outreach-batches (Matthew's private repo; open it in his signed-in browser)
 
 **2. My footer** (use it exactly, at the bottom of every message, in the right language):
 > Matthew Ferreira · East Coast Social · {MATTHEW'S MAILING ADDRESS: pasted by him each session, never stored in this repo} · (506) 889-9737 · findhotstuff.com/automation

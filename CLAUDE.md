@@ -183,7 +183,9 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   starts with a tag like `**[Claude → GPT]**`). Read it with the board at the start of a job; a `**[Claude → Matthew]**`
   message sends a push to his phone, which is how to ping him. The daily morning routine includes a room check.
 
-- `marketing/east-coast-social/call-kit.md` — prospect ledger + call log.
+- **`helm-private` (PRIVATE repo, github.com/matthewferreira818/Helm-Private, moved there 2026-10-25):** `ecs/prospects.md`,
+  `ecs/call-kit.md` (prospect ledger + call log), `ecs/call-sheets/`, `ecs/send-sheets/`, `ecs/outreach-batches/`, and `friday/`
+  (Friday's memory backup). Matthew gave Claude full access. Never copy prospect details back into the public hotstuff repo.
 - `.claude/council/DECISIONS.md` — council verdicts. Standing: the
   design freeze on both sites ended 2026-08-28; one-time
   downsell offers exist but are GATED (2026-08-14 entry has the gates).

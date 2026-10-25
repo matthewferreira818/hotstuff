@@ -7,7 +7,9 @@ written here.** The footer's address is pasted into C.C's session by Matthew (se
 
 ## Who does what
 - **Claude (scheduled routine, Tuesday and Friday around noon):** reads the room thread for C.C's sent log, replies, and any
-  "no thanks"; updates `prospects.md`; picks up to 5 prospects; writes `batch-YYYY-MM-DD.md` with the messages filled in
+  "no thanks"; updates `prospects.md`; picks up to 5 prospects; writes `batch-YYYY-MM-DD.md` with the messages filled in.
+  Since 2026-10-25 the prospect list, the call log and the batches live in the PRIVATE repo helm-private (`ecs/prospects.md`,
+  `ecs/call-kit.md`, `ecs/outreach-batches/`), not here.
   (except the last-post month and the footer); runs `tools/claims_check.py` on each; pings Matthew that the batch is ready. If
   the last batch has no sent log yet, no new batch is made; Claude just reminds him.
 - **Matthew:** starts a C.C session when a batch is ready (paste the prompt, paste the footer). First batch only: he reads it

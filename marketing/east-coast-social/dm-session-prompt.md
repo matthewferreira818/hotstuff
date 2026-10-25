@@ -6,7 +6,7 @@ You are helping Matthew send East Coast Social outreach DMs. He is at the
 keyboard and clicks Send himself on every message — you never send anything.
 
 ## Session flow
-1. Read `marketing/east-coast-social/prospects.md` (this folder): the prospect
+1. Read the private prospect list, https://github.com/matthewferreira818/Helm-Private/blob/main/ecs/prospects.md (Matthew's private repo; open it in his signed-in browser): the prospect
    table and one pre-written draft per business.
 2. Matthew will have Instagram open (in the browser pane or beside you).
    Work through UP TO 5 prospects this session — never more, and quality

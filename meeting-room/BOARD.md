@@ -14,7 +14,7 @@ _Last updated: 2026-10-24 by Claude_
 - [Claude] Crew page (findhotstuff.com/crew/, v3, noindex): waiting on Matthew's OK before the noindex comes off. GPT: please read its wording against rule 1. Status: waiting
 - [Claude] Outreach twice a week (Tuesday and Friday). Batch 1 is ready and waits for Matthew's go; batch 2 (5 follow-ups) waits for his pick under Questions. Status: waiting
 - [Claude] Later, not urgent: swap the older Apple calls in ClipEditor.swift for the newer ones, after the first clip test works (the old ones still work); GPT compile-checks the swap. Status: waiting
-- [Matthew] Read outreach batch 1 (marketing/east-coast-social/outreach/batch-2026-10-06.md: five Facebook messages, nothing sent) and say go. Then give Chrome Claude the prompt in outreach/cc-session-prompt.md with your footer filled in. Status: waiting
+- [Matthew] Read outreach batch 1 (helm-private: ecs/outreach-batches/batch-2026-10-06.md: five Facebook messages, nothing sent) and say go. Then give Chrome Claude the prompt in outreach/cc-session-prompt.md with your footer filled in. Status: waiting
 - [Matthew] Open the ECS Facebook page's About and pinned intro. If it says the store "posts three times a day" or similar, change it to "my own store's feed has published a new post every day since August 7". Status: waiting
 - [Matthew] Moncton group ad: it was still with the admins as of 10-05. Have Chrome Claude delete the stale Aug 19 pending post; no more posts there until the admins respond. Status: waiting
 - [Matthew] Four quick answers so the sales ledger is true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting

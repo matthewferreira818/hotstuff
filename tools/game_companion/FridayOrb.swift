@@ -176,10 +176,26 @@ struct FridayOrb: View {
    Circle().stroke(Noir.crimsonLight.opacity(0.26 * m.glow + m.level * 0.30),lineWidth:size * 0.03)
     .frame(width:size,height:size)
     .blur(radius:size * 0.05)
+   // Three wavy rings of light, crimson, blue and white, the same as the Helm icon (Matthew to Roxy: "a reddish hue ... a nice blue
+   // and white ... not as cloudy, more so like wavy"). They ripple faster and wider when she hears or speaks.
+   ForEach(0..<3,id:\.self) { i in waveRing(i,m,time) }
    if m.ripples > 0.01 {
     ForEach(0..<3,id:\.self) { i in ripple(i,m) }
    }
   }
+ }
+
+ private func waveRing(_ i: Int,_ m: OrbDynamics.Frame,_ time: Double) -> some View {
+  let colors: [Color] = [Noir.crimsonLight,Color(red:0.42,green:0.62,blue:1.0),Color.white]
+  let strength: Double = (0.30 + 0.45 * m.glow + m.level * 0.5) * (i == 2 ? 0.45 : 0.8)
+  let wave: Double = 0.018 + 0.010 * Double(i) + m.level * 0.03
+  let scale: CGFloat = 1.10 + 0.05 * CGFloat(i)
+  let width: CGFloat = i == 2 ? 0.006 : 0.010
+  return FridayBlob(phase:time * (0.7 + 0.25 * Double(i)) + Double(i) * 2.1,amount:wave)
+   .stroke(colors[i].opacity(min(0.85,strength)),lineWidth:size * width)
+   .frame(width:size * scale,height:size * scale)
+   .blur(radius:size * 0.006)
+   .shadow(color:colors[i].opacity(0.6 * min(1,strength)),radius:size * 0.03)
  }
 
  private func ripple(_ i: Int,_ m: OrbDynamics.Frame) -> some View {

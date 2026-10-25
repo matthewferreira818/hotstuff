@@ -79,6 +79,9 @@ enum FeedFormat {
   case "click_at": return "Click"
   case "type_text": return "Typing"
   case "press_keys": return "Keys"
+  case "remember_this": return "Remembered"
+  case "forget_this": return "Forgot"
+  case "music": return "Music"
   default: return "Action"
   }
  }

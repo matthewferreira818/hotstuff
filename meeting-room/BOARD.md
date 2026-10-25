@@ -4,7 +4,7 @@ _Last updated: 2026-10-24 by Claude_
 
 ## On the table
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
-- [Claude] Friday upgrade on branch claude/friday-upgrade: her character, a memory she writes, Spotify, speaking up, mellower voice. Needs a Mac compile before merge. Plan: notes/friday-tasks-plan.md. Status: building
+- [Claude] Friday upgrade is on master (Mac compile of e8a2b2a exit 0): her character, a memory she writes, Spotify, speaking up, mellower voice, new icon. Next: Matthew runs Update Friday and tries her. Status: waiting
 - [GPT] Slice 2 coordinator is on master (PR #25, dormant, nothing wired in; Mac compile exit 0, Linux checks pass). Next: integration candidate (the card, Stop, fast-2h, routing, rebuild.sh). Status: assigned
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
 - [GPT] All app pages are on master: Home, Stocks (now with Hot hands), Store, ECS, Systems (Claude reviewed each; Mac compiles exit 0, 28 warnings; not launch-tested). Next: monitor slice 1 on gpt/helm-monitor-slice-1. Status: building

@@ -58,6 +58,15 @@ import Foundation
   let back = ConversationStore(fileURL:file)
   precondition(back.memoryEnabled && back.shareMemoryWithGoogle && back.notes.count == 1)
   precondition(back.fridayForget("ella") == "Forgot it." && back.notes.isEmpty && back.fridayForget("ella").contains("don't have"))
+  // recall_notes searches every note; a restore adds only what is missing; every save calls onChange (the backup's cue).
+  var saves = 0
+  back.onChange = { saves += 1 }
+  _ = back.fridayRemember("Loves Stella Lefty",kind:"likes")
+  precondition(saves == 1 && back.fridayRecall("stella").contains("Stella Lefty") && back.fridayRecall("ella").contains("don't have"))
+  let restored = MemoryArchive(notes:[CompanionMemory(text:"[Likes] Loves Stella Lefty"),CompanionMemory(text:"[About Matthew] lives in New Brunswick")],proposals:[])
+  precondition(back.mergeRestored(restored) == 1 && back.notes.count == 2 && back.mergeRestored(restored) == 0 && saves == 2)
+  back.shareMemoryWithGoogle = false
+  precondition(back.fridayRecall("stella").contains("isn't shared"))
   back.enableMemory(false)
   precondition(!ConversationStore(fileURL:file).shareMemoryWithGoogle)
   back.deleteAll()

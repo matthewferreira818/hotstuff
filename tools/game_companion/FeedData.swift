@@ -81,6 +81,7 @@ enum FeedFormat {
   case "press_keys": return "Keys"
   case "remember_this": return "Remembered"
   case "forget_this": return "Forgot"
+  case "recall_notes": return "Recalled"
   case "music": return "Music"
   default: return "Action"
   }

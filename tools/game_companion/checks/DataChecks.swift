@@ -539,6 +539,21 @@ import Foundation
   let roomNow = [RoomMessage(id:1,author:"Claude",to:"Matthew",text:"Old news",date:nil,url:""),RoomMessage(id:2,author:"GPT",to:"Claude",text:"Not for them",date:nil,url:""),RoomMessage(id:3,author:"Matthew",to:"Friday",text:"His own",date:nil,url:""),RoomMessage(id:4,author:"Claude",to:"Friday",text:"Your new character is live",date:nil,url:"")]
   precondition(FridayNudge.fresh(roomNow,seen:[1,2,3]) == "New in the Meeting Room: from Claude to Friday: Your new character is live" && FridayNudge.fresh(roomNow,seen:[])?.contains("(and 1 more)") == true && FridayNudge.fresh(roomNow,seen:[1,2,3,4]) == nil)
   precondition(FridayNudge.wrap("x").hasPrefix("(Note from the app, not from Matthew: x") && FeedFormat.actionLabel("remember_this") == "Remembered" && FeedFormat.actionLabel("music") == "Music")
+  // Friday's recall and her memory backup (FridayData.swift).
+  let mem = ["[Likes] Ella Langley","[Likes] Stella Lefty","[How he talks] says my guy","[About Matthew] works days, 6:45 to 4:30","[Likes] Ella Langley's new album"]
+  precondition(FridayMemory.search(mem,words:"Ella Langley album") == ["[Likes] Ella Langley's new album","[Likes] Ella Langley"] && FridayMemory.search(mem,words:"likes",limit:2) == ["[Likes] Ella Langley's new album","[Likes] Stella Lefty"])
+  precondition(FridayMemory.search(mem,words:"a").isEmpty && FridayMemory.search(mem,words:"Taylor Swift").isEmpty && FridayMemory.search([],words:"ella").isEmpty)
+  precondition(FridayBackupPlan.url.absoluteString == "https://api.github.com/repos/matthewferreira818/Helm-Private/contents/friday/memory.json")
+  precondition(FridayBackupPlan.tokenProblem("") != nil && FridayBackupPlan.tokenProblem("ghp_classic") != nil && FridayBackupPlan.tokenProblem(" github_pat_abc ") == nil)
+  let getB = FridayBackupPlan.request("GET",token:"github_pat_x")
+  precondition(getB.url?.query == "ref=main" && getB.value(forHTTPHeaderField:"Authorization") == "Bearer github_pat_x" && getB.httpBody == nil)
+  let putB = FridayBackupPlan.request("PUT",token:"github_pat_x",body:FridayBackupPlan.uploadBody(Data("{}".utf8),sha:"abc"))
+  let putJSON = (try? JSONSerialization.jsonObject(with:putB.httpBody ?? Data())) as? [String:Any]
+  precondition(putB.httpMethod == "PUT" && putB.url?.query == nil && putJSON?["sha"] as? String == "abc" && putJSON?["content"] as? String == "e30=" && putJSON?["branch"] as? String == "main")
+  precondition(((try? JSONSerialization.jsonObject(with:FridayBackupPlan.uploadBody(Data(),sha:nil) ?? Data())) as? [String:Any])?["sha"] == nil)
+  let got = FridayBackupPlan.existing(Data("{\"sha\":\"s1\",\"content\":\"e30=\\n\"}".utf8))
+  precondition(got?.sha == "s1" && got?.content == Data("{}".utf8) && FridayBackupPlan.existing(Data("[]".utf8)) == nil)
+  precondition(FridayBackupPlan.problem(status:401).contains("didn't accept") && FridayBackupPlan.problem(status:500).contains("500"))
   print("All data checks passed.")
  }
 }

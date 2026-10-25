@@ -336,6 +336,9 @@ enum GeminiKey {
    declarations.append(tool("remember_this","Saves one short note to your memory on Matthew's Mac, so you remember it next time. Use it when he shares something about himself worth keeping, or for a view of your own you've formed with reasons. Never for passwords, keys, card or bank details, addresses, phone numbers or other people's private details.",keep,required:["note"]))
    var drop: [String:Any] = [:]
    drop["words"] = field("STRING","A few words from the note to remove, for example 'Ella Langley'.")
+   var recall: [String:Any] = [:]
+   recall["words"] = field("STRING","A few words to look for in your memory, for example 'Ella Langley' or 'his job'.")
+   declarations.append(tool("recall_notes","Searches ALL the notes in your memory on Matthew's Mac, including old ones you weren't handed at the start, and returns the best matches. Use it when he mentions something you may have saved before.",recall,required:["words"]))
    declarations.append(tool("forget_this","Removes the notes in your memory that contain these words. Use it when Matthew asks you to forget something.",drop,required:["words"]))
   }
   if spotifyInstalled {
@@ -633,6 +636,7 @@ enum GeminiKey {
   else if teamTools.contains(name) { status = "Checking the room…" }
   else if vodTools.contains(name) { status = "Clipping your past stream…" }
   else if name == "remember_this" || name == "forget_this" { status = "Updating my memory…" }
+  else if name == "recall_notes" { status = "Checking my memory…" }
   else if name == "music" { status = "Working Spotify…" }
   else { status = "Looking up “\(query)”…" }
   // The answer belongs to the connection that asked. After a stop, restart or reconnect it is dropped.
@@ -649,6 +653,7 @@ enum GeminiKey {
    }
    else if webTools.contains(name) { result = openWeb(name:name,args:args) }
    else if name == "remember_this" { result = conversation?.fridayRemember(args["note"] as? String ?? "",kind:args["kind"] as? String ?? "other") ?? "My memory isn't connected right now." }
+   else if name == "recall_notes" { result = conversation?.fridayRecall(args["words"] as? String ?? "") ?? "My memory isn't connected right now." }
    else if name == "forget_this" { result = conversation?.fridayForget(args["words"] as? String ?? "") ?? "My memory isn't connected right now." }
    else if name == "music" { result = await playMusic(action:args["action"] as? String ?? "",query:args["query"] as? String ?? "") }
    else if name == "watch_screen" {

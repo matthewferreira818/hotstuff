@@ -32,6 +32,8 @@ struct MemoryArchive: Codable {
  @Published var lastReflection = ""
  var lastInitiative = Date()
  let fileURL: URL
+ // Called after every successful save, so the backup (FridayBackup.swift) knows to copy the file to Helm-Private.
+ var onChange: (() -> Void)?
  init(fileURL: URL? = nil, load: Bool = true) {
   self.fileURL = fileURL ?? FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/CompanionMemory.json")
   if load, let data = try? Data(contentsOf:self.fileURL), let archive = try? JSONDecoder().decode(MemoryArchive.self,from:data), archive.version == 1 {
@@ -76,6 +78,22 @@ struct MemoryArchive: Codable {
   for id in ids { removeNote(id) }
   return ids.count == 1 ? "Forgot it." : "Forgot \(ids.count) notes about that."
  }
+ // recall_notes in Live.swift: she searches ALL her notes, not only the newest ones she was handed at the start.
+ // Same consent as the start of a session: memory on and shared with Google Live.
+ func fridayRecall(_ words: String) -> String {
+  guard memoryEnabled && shareMemoryWithGoogle else { return "My memory isn't shared with me in live sessions. He can switch on 'Include saved memory in Google Live' in Settings, Memory." }
+  let found = FridayMemory.search(notes.map { $0.text },words:words)
+  return found.isEmpty ? "I don't have anything saved about that." : "From my memory (\(found.count) note\(found.count == 1 ? "" : "s")): " + found.joined(separator:" | ")
+ }
+ // Restore from the Helm-Private backup: adds the notes this Mac doesn't have yet (same id or same words counts as had). Returns how many.
+ @discardableResult func mergeRestored(_ archive: MemoryArchive) -> Int {
+  let ids = Set(notes.map { $0.id }), texts = Set(notes.map { $0.text.lowercased() })
+  let fresh = archive.notes.filter { !ids.contains($0.id) && !texts.contains($0.text.lowercased()) }
+  guard !fresh.isEmpty else { return 0 }
+  notes = (notes + fresh).sorted { $0.created < $1.created }
+  persist()
+  return fresh.count
+ }
  func queueProposal() {
   let title = proposalTitle.trimmingCharacters(in:.whitespacesAndNewlines)
   let purpose = proposalPurpose.trimmingCharacters(in:.whitespacesAndNewlines)
@@ -102,6 +120,7 @@ struct MemoryArchive: Codable {
    try data.write(to:fileURL,options:.atomic)
    try FileManager.default.setAttributes([.posixPermissions:0o600],ofItemAtPath:fileURL.path)
    status = "Reviewed notes and topic queue saved privately on this Mac. Chats, screen images and audio are not saved."
+   onChange?()
   } catch { status = "Memory could not be saved: \(error.localizedDescription)" }
  }
  func stopInitiative() { initiativeEnabled = false; lastInitiative = Date() }
@@ -114,11 +133,11 @@ struct MemoryArchive: Codable {
   if includeQuestion { text += " You may ask one short relevant question or make one specific research/project proposal with a purpose. Stop after asking. Do not use external tools for this proposal; wait for explicit approval." }
   else { text += " Do not initiate extra questions unless the player requests one." }
   if memoryEnabled && (!cloud || shareMemoryWithGoogle) && !notes.isEmpty {
-   // The newest notes that fit in about 4,000 characters (Friday saves her own now, so 8 was too few).
+   // The newest notes that fit in about 10,000 characters (Friday saves her own now; older ones she finds with recall_notes).
    var picked: [String] = []
    var size = 0
    for note in notes.reversed() {
-    if picked.count >= 40 || size + note.text.count > 4000 { break }
+    if picked.count >= 100 || size + note.text.count > 10_000 { break }
     picked.insert(note.text,at:0); size += note.text.count + 1
    }
    let memory = picked.joined(separator:"\n")

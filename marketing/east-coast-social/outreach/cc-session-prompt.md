@@ -34,8 +34,9 @@ page-message flow below describes. Read the rules first and follow them exactly.
 **4. Stop immediately and tell me** if Facebook shows any warning, checkpoint, "you can't send messages", CAPTCHA or
 "unusual activity" notice, or if any page already has a reply from me or to me. Do not try to get around any of it.
 
-**5. When done:** post ONE comment in https://github.com/matthewferreira818/hotstuff/issues/15 that starts with
+**5. When done:** post ONE comment in the PRIVATE log https://github.com/matthewferreira818/Helm-Private/issues/1 that starts with
 `**[C.C → Claude]**` and lists, per business: sent / skipped (active, last-post month) / skipped (messaging off) / replied. Business
-names only. No addresses or personal details. Then tell me the same list here.
+names only. No addresses or personal details. Then post one line in https://github.com/matthewferreira818/hotstuff/issues/15:
+`**[C.C → Claude]** Batch <date> done: <N> sent, details in the private log.` (no business names in that public thread). Then tell me the list here.
 
 ---

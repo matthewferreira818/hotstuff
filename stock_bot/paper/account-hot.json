@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 376.6,
+ "cash": 1.49,
  "spy_at_start": 777.22,
  "positions": {
   "PLUG": {
    "qty": 263.1107564990386,
    "avg_entry_price": 1.4313,
    "fill": 1.4214
+  },
+  "RIOT": {
+   "qty": 27.148379661125475,
+   "avg_entry_price": 13.817,
+   "fill": 13.7437
   }
  },
  "orders": [
@@ -760,6 +765,16 @@
    "price": 1.4214,
    "dollars": 376.6,
    "fee": 2.61
+  },
+  {
+   "time": "2026-10-29T19:01:39+00:00",
+   "symbol": "RIOT",
+   "side": "buy",
+   "status": "filled",
+   "qty": 27.14838,
+   "price": 13.7437,
+   "dollars": 375.11,
+   "fee": 1.99
   }
  ],
  "deposited": 1000.0,

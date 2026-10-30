@@ -1,13 +1,9 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 116.24,
+ "cash": 196.93,
  "spy_at_start": 764.32,
  "positions": {
-  "HOOD": {
-   "qty": 1.0012484703148372,
-   "avg_entry_price": 99.8753
-  },
   "MU": {
    "qty": 0.11220961229098003,
    "avg_entry_price": 891.1892
@@ -582,6 +578,16 @@
    "qty": 0.435649,
    "price": 267.5722,
    "dollars": 114.58,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T18:26:41+00:00",
+   "symbol": "HOOD",
+   "side": "sell",
+   "status": "filled",
+   "qty": 1.001248,
+   "price": 82.5773,
+   "dollars": 80.69,
    "fee": 1.99
   }
  ],

@@ -1,9 +1,20 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 747.45,
+ "cash": 1.09,
  "spy_at_start": 777.22,
- "positions": {},
+ "positions": {
+  "QBTS": {
+   "qty": 36.195773037878304,
+   "avg_entry_price": 10.3252,
+   "fill": 10.2703
+  },
+  "ONDS": {
+   "qty": 59.672801010431954,
+   "avg_entry_price": 6.2446,
+   "fill": 6.2112
+  }
+ },
  "orders": [
   {
    "time": "2026-10-08T15:10:24+00:00",
@@ -783,6 +794,26 @@
    "qty": 27.14838,
    "price": 13.8012,
    "dollars": 372.69,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T18:32:33+00:00",
+   "symbol": "QBTS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 36.195773,
+   "price": 10.2703,
+   "dollars": 373.73,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T18:32:45+00:00",
+   "symbol": "ONDS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 59.672801,
+   "price": 6.2112,
+   "dollars": 372.63,
    "fee": 1.99
   }
  ],

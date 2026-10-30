@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 281.74,
+ "cash": 181.74,
  "spy_at_start": 764.32,
  "positions": {
   "MU": {
@@ -23,6 +23,10 @@
   "RIOT": {
    "qty": 7.703547436041536,
    "avg_entry_price": 12.981
+  },
+  "CRWD": {
+   "qty": 0.39774175534016304,
+   "avg_entry_price": 251.4194
   }
  },
  "orders": [
@@ -594,6 +598,16 @@
    "qty": 0.434624,
    "price": 199.7021,
    "dollars": 84.81,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T18:26:45+00:00",
+   "symbol": "CRWD",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.397742,
+   "price": 246.4162,
+   "dollars": 100.0,
    "fee": 1.99
   }
  ],

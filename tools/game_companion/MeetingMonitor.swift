@@ -8,7 +8,7 @@ import Darwin
 import Glibc
 #endif
 
-// Dormant until MeetingHub explicitly owns one instance. No global instance, posting or credentials.
+// MeetingHub owns one instance. No global instance, posting or credentials.
 struct MeetingMonitorResponse {
  let status: Int
  let headers: [AnyHashable:Any]
@@ -20,18 +20,20 @@ protocol MeetingMonitorTransport {
 }
 
 final class MeetingMonitorHTTP: NSObject, MeetingMonitorTransport, URLSessionTaskDelegate, @unchecked Sendable {
- private lazy var session: URLSession = {
+ private func makeSession() -> URLSession {
   let c = URLSessionConfiguration.ephemeral
   c.httpCookieStorage = nil; c.urlCredentialStorage = nil; c.urlCache = nil
   c.timeoutIntervalForRequest = 15; c.timeoutIntervalForResource = 30
   return URLSession(configuration:c,delegate:self,delegateQueue:nil)
- }()
+ }
  static func allowed(_ read: MeetingReadRequest) -> Bool {
   guard let canonical = MeetingData.monitorRead(read.source,page:read.page,perPage:read.perPage,since:read.since) else { return false }
   return read == canonical && MeetingData.isAllowedRead(read.url)
  }
  func read(_ read: MeetingReadRequest,etag: String?) async throws -> MeetingMonitorResponse {
   guard Self.allowed(read) else { throw URLError(.unsupportedURL) }
+  let session = makeSession()
+  defer { session.invalidateAndCancel() }
   let (data,response) = try await session.data(for:MeetingData.urlRequest(read,etag:etag))
   guard let http = response as? HTTPURLResponse, http.url == read.url else { throw URLError(.badServerResponse) }
   return MeetingMonitorResponse(status:http.statusCode,headers:http.allHeaderFields,url:http.url,body:data)
@@ -49,7 +51,6 @@ final class MeetingMonitorHTTP: NSObject, MeetingMonitorTransport, URLSessionTas
   #endif
   completionHandler(.cancelAuthenticationChallenge,nil)
  }
- deinit { session.invalidateAndCancel() }
 }
 
 enum MeetingMonitorEventKind: String,Codable { case enabled, stopped, taskStarted, taskEnded, checked, changed, failed, reserved }
@@ -130,6 +131,17 @@ final class MeetingMonitorFileStorage: MeetingMonitorStorage {
  }
 }
 
+// Transient UI snapshot. The stream never writes payloads to disk.
+struct MeetingMonitorPresentation {
+ var revision: UInt64
+ var state: MeetingMonitorState
+ var board: Board?
+ var messages: [RoomMessage]
+ var busy: Bool
+ var storageFailed: Bool
+ var commentsLoaded: Bool
+}
+
 actor MeetingMonitor {
  enum Origin { case automatic, manual }
  private let transport: MeetingMonitorTransport
@@ -145,6 +157,10 @@ actor MeetingMonitor {
  private var active: Task<MeetingMonitorResponse,Error>?
  private var timer: Task<Void,Never>?
  private var busy = false
+ private var commentsLoaded = false
+ private var observer: AsyncStream<MeetingMonitorPresentation>.Continuation?
+ private var observerID: UUID?
+ private var presentationRevision: UInt64 = 0
  // Separate in-memory generation also invalidates callbacks if saving Stop fails.
  private var generation: UInt64 = 0
  init(transport: MeetingMonitorTransport,storage: MeetingMonitorStorage,
@@ -153,15 +169,32 @@ actor MeetingMonitor {
   state = try storage.load()
  }
  func snapshot() -> MeetingMonitorState { state }
+ func presentation() -> MeetingMonitorPresentation {
+  .init(revision:presentationRevision,state:state,board:boardPayload,messages:messages.values.sorted { $0.id < $1.id },
+        busy:busy,storageFailed:storageFailed,commentsLoaded:commentsLoaded)
+ }
+ func updates() -> AsyncStream<MeetingMonitorPresentation> {
+  observer?.finish()
+  let id = UUID(); observerID = id
+  return AsyncStream(bufferingPolicy:.bufferingNewest(1)) { continuation in
+   observer = continuation
+   continuation.yield(presentation())
+   continuation.onTermination = { [weak self] _ in Task { await self?.removeObserver(id) } }
+  }
+ }
+ private func removeObserver(_ id: UUID) {
+  if observerID == id { observer = nil; observerID = nil }
+ }
+ private func publish() { presentationRevision &+= 1; observer?.yield(presentation()) }
  @discardableResult private func commit(_ next: MeetingMonitorState) -> Bool {
-  do { try storage.save(next); state = next; return true }
-  catch { storageFailed = true; timer?.cancel(); timer = nil; active?.cancel(); return false }
+  do { try storage.save(next); state = next; publish(); return true }
+  catch { storageFailed = true; timer?.cancel(); timer = nil; active?.cancel(); publish(); return false }
  }
  private func invalidate() { generation &+= 1; timer?.cancel(); timer = nil; active?.cancel() }
  func stop() {
   invalidate()
   var next = state; next.settings.stop(); next.log(.stopped,at:clock())
-  if !commit(next) { state.settings.stop() } // fail closed for this process; caller must display storageFailed
+  if !commit(next) { state.settings.stop(); publish() } // fail closed for this process; caller must display storageFailed
  }
  @discardableResult func enableHourly() -> Bool {
   guard !storageFailed else { return false }
@@ -201,13 +234,13 @@ actor MeetingMonitor {
   return commit(next)
  }
  // All callers share this single-flight path. Manual Off consumes exactly one request, never creates a timer.
- func refresh(_ origin: Origin) async {
+ func refresh(_ origin: Origin,source: MeetingReadSource? = nil) async {
   guard !busy, !storageFailed else { return }
   guard normalize(), origin == .manual || state.settings.mode != .off else { return }
-  busy = true; let run = generation
-  defer { busy = false; active = nil }
+  busy = true; publish(); let run = generation
+  defer { busy = false; active = nil; publish() }
   if origin == .manual {
-   _ = await fetch(state.manualNext,run:run,manual:true)
+   _ = await fetch(source ?? state.manualNext,run:run,manual:true)
    return
   }
   _ = await fetch(.board,run:run,manual:false)
@@ -312,6 +345,8 @@ actor MeetingMonitor {
   guard commit(next) else { return false }
   if let payload { boardPayload = payload; boardETag = hints.etag }
   for row in rows { messages[row.id] = row.message }
+  if successful && source == .comments && next.batch == nil { commentsLoaded = true }
+  publish()
   return successful
  }
 }

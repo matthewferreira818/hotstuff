@@ -59,6 +59,7 @@ actor FakeMonitorTransport: MeetingMonitorTransport {
   return "{\"id\":\(id),\"body\":\"\(body)\",\"user\":{\"login\":\"matthewferreira818\"},\"created_at\":\"\(d)\",\"updated_at\":\"\(d)\"}"
  }
  static func main() async throws {
+  try await presentationAndManualSource()
   try await offAndStop()
   try await pagination()
   try await limitsAndStorage()
@@ -66,6 +67,33 @@ actor FakeMonitorTransport: MeetingMonitorTransport {
   try privateFile()
   if failures > 0 { print("\(failures) coordinator checks failed"); exit(1) }
   print("All coordinator checks passed (offline).")
+ }
+ static func presentationAndManualSource() async throws {
+  let s = MemoryMonitorStore(), c = TestClock(); let n = FakeMonitorTransport(s), m = try monitor(s,n,c)
+  var updates = await m.updates().makeAsyncIterator()
+  let initial = await updates.next()
+  check(initial?.state.settings.mode == .off && initial?.commentsLoaded == false,"observer starts Off with unloaded messages")
+  await n.enqueue([response(.comments,c,body:"[\(row(7,c.now))]")])
+  await m.refresh(.manual,source:.comments)
+  let loaded = await updates.next()
+  check(await n.count() == 1,"explicit comments refresh uses only one request")
+  check(loaded?.messages.first?.id == 7 && loaded?.commentsLoaded == true && loaded?.busy == false,"observer receives payload after durable commit")
+  check(loaded?.state.settings.mode == .off,"observing and manual refresh do not enable monitor")
+  let restart = try monitor(s,n,c)
+  let restored = await restart.presentation()
+  check(restored.state.comments.lastSuccessfulCheck != nil && !restored.commentsLoaded && restored.messages.isEmpty,"restart distinguishes saved check timestamp from missing payload")
+  await n.delay()
+  let pending = Task { await m.refresh(.manual,source:.board) }
+  while await n.count() < 2 { await Task.yield() }
+  let inFlight = await updates.next()
+  check(inFlight?.busy == true,"observer shows real in-flight work")
+  await m.stop()
+  await n.release(response(.board,c)); await pending.value
+  let stopped = await updates.next()
+  check(stopped?.state.settings.mode == .off && stopped?.board == nil && stopped?.busy == false,"Stop publishes Off and rejects late payload")
+  s.fail = true; await m.refresh(.manual)
+  let failed = await updates.next()
+  check(failed?.storageFailed == true,"observer exposes persistence failure")
  }
  static func offAndStop() async throws {
   let s = MemoryMonitorStore(), c = TestClock(); let n = FakeMonitorTransport(s), m = try monitor(s,n,c)

@@ -1,18 +1,18 @@
 # HotsTuff — TikTok Photo Pack (auto-generated)
 
-_Generated 2026-10-28 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
+_Generated 2026-10-31 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
 
 
 ## 🖼️ Slides
 
-1. `slide-01.png` — Collar Coats Army Tactical — $21.99 (Fashion)
-2. `slide-02.png` — Necklaces Silver Plated Chain — $13.99 (Jewelry)
-3. `slide-03.png` — Foundation Eyebrow Eyeliner Cosmetic — $15.99 (Beauty)
-4. `slide-04.png` — Squeak Puppy Pets Supplies — $18.99 (Pet)
-5. `slide-05.png` — Shoulder For Women's Shoolbags — $27.99 (Bags)
-6. `slide-06.png` — Men's And Women's — $11.99 (Wellness)
-7. `slide-07.png` — Portable Wall Mobile Fast — $11.99 (Electronics)
-8. `slide-08.png` — Lawn Garden Car Washing — $18.99 (Auto)
+1. `slide-01.png` — Cup Kitchen Tool Kit — $24.99 (Kitchen)
+2. `slide-02.png` — Life Pendant Necklace — $35.99 (Jewelry)
+3. `slide-03.png` — Tops Women's Christmas Clothing — $35.99 (Fashion)
+4. `slide-04.png` — Soap Nourishing Shampoo Essential — $15.99 (Trending Finds)
+5. `slide-05.png` — Sedentary Sleep Monitoring Watch — $35.99 (Trending Finds)
+6. `slide-06.png` — Vegetable Plant Growth Bag — $21.99 (Bags)
+7. `slide-07.png` — Simulation Silk Single Ice — $18.99 (Trending Finds)
+8. `slide-08.png` — Straw Holiday Cool Beach — $27.99 (Fashion)
 
 
 ## 📝 Captions — pick one, paste as-is
@@ -20,19 +20,19 @@ _Generated 2026-10-28 · 8 slides · post all slides as one TikTok photo (swipe)
 **Variant 1 — curiosity hook**
 
 ```
-ok this week's finds are actually unreal 👀 everything under $28 #tiktokmademebuyit #trending #fashiontok #jewelrytok #beautytok
+ok this week's finds are actually unreal 👀 everything under $36 #tiktokmademebuyit #trending #kitchengadgets #jewelrytok #fashiontok
 ```
 
 **Variant 2 — POV hook**
 
 ```
-POV: your fyp finally delivered 🔥 slide 1 is the collar coats army tactical btw #tiktokmademebuyit #trending #fashiontok #jewelrytok #beautytok
+POV: your fyp finally delivered 🔥 slide 1 is the cup kitchen tool kit btw #tiktokmademebuyit #trending #kitchengadgets #jewelrytok #fashiontok
 ```
 
 **Variant 3 — ranked-list hook**
 
 ```
-ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #fashiontok #jewelrytok #beautytok
+ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #kitchengadgets #jewelrytok #fashiontok
 ```
 
 > 🎵 Add a trending sound in-app before posting — photo posts ride the sound's reach.

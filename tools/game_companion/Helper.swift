@@ -47,6 +47,8 @@ import AppKit
   let words = goal.trimmingCharacters(in:.whitespacesAndNewlines)
   guard !running else { return }
   guard !words.isEmpty else { status = "Tell me what you'd like done first."; return }
+  if GuardHub.isLocked { status = "Lockdown is on, so the Helper is off. Unlock it on the Guard page first."; return }
+  if GuardHub.isOffline && brain == .google { status = "Offline mode is on. Pick the brain on this Mac, or turn Offline mode off."; return }
   guard let hands = hands else { return }
   guard hands.enabled else { status = "Her hands are switched off. Turn on \"Let Friday use her hands\" in Settings first."; return }
   question = ""
@@ -64,6 +66,7 @@ import AppKit
  // A standing job that already exists in the repo (like the daily posting session): she just tells C.C to do it.
  func tellCCStanding(_ key: String) {
   guard !running, let hands = hands, let text = HelperPlan.standing(key) else { return }
+  if GuardHub.isLocked { status = "Lockdown is on, so I can't send C.C anything. Unlock it on the Guard page first."; return }
   guard hands.enabled else { status = "Her hands are switched off. Turn on \"Let Friday use her hands\" in Settings first."; return }
   question = ""
   running = true
@@ -81,7 +84,7 @@ import AppKit
 
  // Matthew shows her C.C's message box once: the real mouse on it, a few seconds' notice.
  func teachBox() {
-  guard let hands = hands, !teaching, !running else { return }
+  guard let hands = hands, !teaching, !running, !GuardHub.isLocked else { return }
   teaching = true
   teachJob = Task {
    for second in stride(from:6,through:1,by:-1) {
@@ -111,6 +114,7 @@ import AppKit
   var history: [String] = []
   for number in 1...HelperPlan.maxSteps {
    if Task.isCancelled { status = "Stopped."; return }
+   if GuardHub.isLocked { status = "Lockdown came on, so I stopped."; add("Stopped: lockdown is on."); return }
    let look = hands.helperLook()
    if let problem = look.problem { status = problem; add(problem); return }
    let shown = HelperPlan.view(look.items.map { $0.element })

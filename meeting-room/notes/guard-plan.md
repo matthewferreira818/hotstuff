@@ -20,7 +20,7 @@ Unlock is a plain button (his choice: "itll only be me"); Friday has no unlock t
   keeps her Google session off, she's told the moment lockdown changes), Helper.swift (off in lockdown; no Google brain offline),
   MeetingRoom.swift (no room reads offline). Registered in rebuild.sh and the bundle.
 
-## Roxy's half: the screens (new file `HubGuard.swift`, plus the sidebar)
+## The screens (`HubGuard.swift`): built by Claude on 2026-11-02 so it's done tonight; Roxy runs the Mac compile
 
 A modern security look, NOT retro terminal: midnight glass cards, one bright accent (cyan for safe, crimson for warnings), SF Pro
 for words and SF Mono only for data (names, numbers, times), big clear status, 44 pt buttons, text at least 4.5:1. Use
@@ -31,7 +31,7 @@ for words and SF Mono only for data (names, numbers, times), big clear status, 4
    becomes **Unlock**, which only Matthew presses), an **Offline mode** switch with the line "Stops Friday's Google session, room
    reads and the Helper's Google brain. To cut the Mac off completely, also turn off Wi-Fi.", **Run checks** (shows `results`
    as cards with verdict, detail and fix), **Apps using the internet** (`network`, new ones highlighted), **Account sweep**
-   (`GuardSweep.items` as rows with an Open button, disabled while locked since links are off), **Keys** (`GuardKeys.all` with
+   (`GuardSweep.items` as rows with an Open button; Matthew presses these himself, so they stay on in lockdown), **Keys** (`GuardKeys.all` with
    Saved / Not saved and a Forget button that asks "Are you sure?"), and the **Alert log** (newest first, with Clear).
 3. **Real or Fake?** page: a paste box, Check (calls `checkFake()`), the verdict big, the red flags as a list, the advice line.
    Phase 2 (later): a "second opinion" button sending `FakeCheck.prompt` to the local Ollama brain.
@@ -44,3 +44,11 @@ for words and SF Mono only for data (names, numbers, times), big clear status, 4
 
 Then the Mac compile of the exact hash (the branch includes Claude's half), exit code and hash in the room. Claude reviews and merges.
 Rules unchanged: honesty, secrets, Friday's off-limits list and Allow box, Moomoo, nothing paid, no posts without a go.
+
+## Also in this update (2026-11-02)
+
+- Bad-day kit card on the Guard page (`GuardKit`: six steps and the family code word). Lab lessons and practice sites live in
+  `GuardLab` (GuardData.swift, tested).
+- The app file is renamed to `The Helm.app` (Matthew: "its still game companion"); the icon gets a fresh file name every build and
+  macOS is told to re-read it, so the Dock can't keep an old picture.
+- **New icon: Roxy's job** (Matthew: "I dont like the Icon pic tbh, maybe let roxy take a stab at it?"). Brief in issue 15.

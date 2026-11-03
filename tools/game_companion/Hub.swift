@@ -13,10 +13,11 @@ enum HubColor {
  static let slate = Color(red:0.62,green:0.67,blue:0.80)
  static let coral = Color(red:1.0,green:0.50,blue:0.40)
  static let indigo = Color(red:0.40,green:0.46,blue:1.0)
+ static let cyan = Color(red:0.30,green:0.86,blue:0.96)
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper, shield, realFake, lab
  var id: Int { rawValue }
  var title: String {
   switch self {
@@ -32,6 +33,9 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .meeting: return "Meeting Room"
   case .stream: return "Stream"
   case .helper: return "Helper"
+  case .shield: return "Guard"
+  case .realFake: return "Real or Fake?"
+  case .lab: return "Lab"
   }
  }
  var icon: String {
@@ -48,6 +52,9 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .meeting: return "person.3.fill"
   case .stream: return "dot.radiowaves.left.and.right"
   case .helper: return "hand.raised.fill"
+  case .shield: return "shield.lefthalf.filled"
+  case .realFake: return "checkmark.seal.fill"
+  case .lab: return "flask.fill"
   }
  }
  var tint: Color {
@@ -64,6 +71,9 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .meeting: return HubColor.violet
   case .stream: return HubColor.violet
   case .helper: return HubColor.green
+  case .shield: return HubColor.cyan
+  case .realFake: return HubColor.cyan
+  case .lab: return HubColor.cyan
   }
  }
  var blurb: String {
@@ -80,6 +90,9 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .meeting: return "Claude, GPT and Friday on one shared board."
   case .stream: return "Your Twitch channel: go-live checks, title, category and clips."
   case .helper: return "Tell Friday a job; she does it with her hands, and asks before anything risky."
+  case .shield: return "Lockdown, Mac health checks, apps online, the account sweep and your keys."
+  case .realFake: return "Paste a message or alert; Friday points out the red flags."
+  case .lab: return "Learn to defend: lessons and free practice sites."
   }
  }
 }

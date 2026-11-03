@@ -280,7 +280,7 @@ import Foundation
   precondition(combo.code == 17 && combo.modifiers == ["shift","cmd"] && combo.label == "⇧⌘T")
   precondition(HandsPlan.parseKeys("enter")!.code == 36 && HandsPlan.parseKeys("down")!.modifiers.isEmpty && HandsPlan.parseKeys("cmd+nonsense") == nil && HandsPlan.parseKeys("hyper+t") == nil && HandsPlan.parseKeys("") == nil)
   precondition(HandsPlan.blockedCombo(HandsPlan.parseKeys("cmd+q")!) != nil && HandsPlan.blockedCombo(HandsPlan.parseKeys("cmd+opt+esc")!) != nil && HandsPlan.blockedCombo(HandsPlan.parseKeys("cmd+delete")!) != nil && HandsPlan.blockedCombo(HandsPlan.parseKeys("cmd+t")!) == nil)
-  precondition(HandsPlan.blockedReason(owner:"Safari",title:"Moomoo Canada - Trade") != nil && HandsPlan.blockedReason(owner:"Google Chrome",title:"Sign in - Twitch") != nil && HandsPlan.blockedReason(owner:"Terminal",title:"zsh") != nil && HandsPlan.blockedReason(owner:"Game Companion",title:"") != nil)
+  precondition(HandsPlan.blockedReason(owner:"Safari",title:"Moomoo Canada - Trade") != nil && HandsPlan.blockedReason(owner:"Google Chrome",title:"Sign in - Twitch") != nil && HandsPlan.blockedReason(owner:"Terminal",title:"zsh") != nil && HandsPlan.blockedReason(owner:"Game Companion",title:"") != nil && HandsPlan.blockedReason(owner:"The Helm",title:"") != nil)
   precondition(HandsPlan.blockedReason(owner:"Safari",title:"Minecraft Dungeons wiki - Power Amplifier") == nil && HandsPlan.blockedReason(owner:"Google Chrome",title:"findhotstuff.com") == nil)
   // Anything that could send or buy needs Allow: buttons named like it, checkout pages, Return, and card-number-looking text is refused.
   precondition(HandsPlan.riskyIntent("Send button") && HandsPlan.riskyIntent("place order") && HandsPlan.riskyIntent("Pay now") && HandsPlan.riskyIntent("Post"))
@@ -557,6 +557,10 @@ import Foundation
   precondition(GuardSweep.items.count == 9 && GuardSweep.items.allSatisfy { $0.url.hasPrefix("https://") } && GuardKeys.all.contains { $0.service == "GameCompanion.GeminiKey" })
   precondition(GuardShield.summary([]).verdict == .unknown && GuardShield.summary([GuardCheckResult(id:"a",title:"",verdict:.ok,detail:"",fix:"")]).line == "All clear." && GuardShield.summary([GuardCheckResult(id:"a",title:"",verdict:.warn,detail:"",fix:"")]).line == "1 thing needs a look.")
   precondition(GuardLog.appending(Array(repeating:GuardEvent(at:Date(),kind:"x",text:"y"),count:500),GuardEvent(at:Date(),kind:"z",text:"last")).count == 500)
+  // The Lab and the bad-day kit.
+  precondition(GuardLab.lessons.count == 6 && Set(GuardLab.lessons.map { $0.id }).count == 6 && GuardLab.practice.allSatisfy { $0.url.hasPrefix("https://") })
+  precondition(GuardLab.toggled("pico",in:"") == "pico" && GuardLab.toggled("pico",in:"bandit,pico") == "bandit" && GuardLab.done(GuardLab.toggled("thm",in:"pico")) == ["pico","thm"] && GuardLab.done("").isEmpty)
+  precondition(GuardKit.steps.count == 6 && GuardKit.steps[0].hasPrefix("Press Lockdown"))
   let scam = FakeCheck.check("URGENT: your Interac e-transfer is on hold. Verify your account within 24 hours at http://interac-secure-refund-ca.com/login or it will be suspended.")
   precondition(scam.verdict == "This looks like a scam." && scam.flags.count >= 3)
   precondition(FakeCheck.check("Hey, are we still on for supper Thursday?").flags.isEmpty && FakeCheck.check("").verdict == "Paste something first.")

@@ -3,8 +3,8 @@
 _Last updated: 2026-10-24 by Claude_
 
 ## On the table
-- [GPT] Mac compile of claude/guard at 14ef421 (Guard screens built by Claude; app file renamed The Helm.app). Status: assigned
-- [GPT] New app icon, 2-3 options on branch gpt/helm-icon for Matthew to pick (brief in issue 15). Status: assigned
+- [GPT] Guard 9ecd64c Mac compile passed: exit 0, 58 sources, 28 warnings, 0 errors. Compiler-only. Report: notes/guard-mac-compile-9ecd64c.md. Status: ready for Claude review
+- [GPT] Matthew selected crimson Ghost; softer top reflection, 1024 app PNG and 4K export ready on gpt/helm-icon. Native source 1254; 4K is resampled. Status: ready for Claude review
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [Claude] Friday upgrade is on master (Mac compile of e8a2b2a exit 0): her character, a memory she writes, Spotify, speaking up, mellower voice, new icon. Next: Matthew runs Update Friday and tries her. Status: waiting
 - [GPT] Slice 2 coordinator is on master (PR #25, dormant, nothing wired in; Mac compile exit 0, Linux checks pass). Next: integration candidate (the card, Stop, fast-2h, routing, rebuild.sh). Status: assigned

@@ -123,7 +123,7 @@ The weekday routine "Start stock robots" dispatches all three workflows.
 
 ## Game Companion, and the chassis dream (as of 2026-10-05)
 
-**"GC" = the Game Companion** (he also says "gaming companion"). **Since 2026-10-24 the Mac app's display name is "The Helm"** (Matthew's pick; it was "Friday" from 2026-10-14, and Friday is now the voice and character inside the app; same icon; the file name `GameCompanion.app`, app ID and saved data are unchanged on purpose, so "Update Friday.command" keeps its old name).
+**"GC" = the Game Companion** (he also says "gaming companion"). **Since 2026-10-24 the Mac app's display name is "The Helm"** (Matthew's pick; it was "Friday" from 2026-10-14, and Friday is now the voice and character inside the app; since 2026-11-02 the app FILE is `The Helm.app` too (rebuild.sh renames it in place, because Finder and the Dock show the file name; the app ID, saved data and "Update Friday.command" keep their old names on purpose).
 `tools/game_companion/` is the Mac app Matthew talks to while he plays: a
 live buddy (Google's free Gemini Live key, saved privately on his Mac as
 a file only his account can read, never in the repo or chat; since

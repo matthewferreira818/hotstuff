@@ -3,7 +3,12 @@
 # It compiles first and only touches the app if the compile succeeds; the old app is kept as a backup.
 set -e
 PROJECT=~/Documents/Codex/2026-10-04/create-a-separate-free-local-ai
-APP="$PROJECT/outputs/GameCompanion.app"
+APP="$PROJECT/outputs/The Helm.app"
+# The file was called GameCompanion.app until 2026-11-02. Finder, the Dock and Spotlight show the FILE name, so the old name hung on
+# (Matthew: "its still game companion"). It's renamed in place: the app ID, signature and saved data don't change, and the Dock
+# and Desktop aliases follow a rename.
+OLD="$PROJECT/outputs/GameCompanion.app"
+if [ -d "$OLD" ] && [ ! -d "$APP" ]; then mv "$OLD" "$APP" && echo "Renamed the app file to The Helm."; fi
 DIR="${0:A:h}"
 EXE=$(defaults read "$APP/Contents/Info" CFBundleExecutable)
 MACOS=$(sw_vers -productVersion | cut -d. -f1)
@@ -11,7 +16,7 @@ TMP=$(mktemp -d)
 
 echo "Building The Helm (takes a minute)…"
 # Every source file, in one place. Add a new .swift file here and nowhere else.
-SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,SpeechData,ThreadData,MeetingVoice,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,FridayData,Helper,FridayHands,Hub,HubTheme,HubShell,HubHome,HubStocks,HubVentures,HubLaunchpad,HubGame,HubAccounts,HubHelpers}.swift)
+SOURCES=("$DIR"/{Companion,Live,Wiki,Clips,Keychain,Conversation,CompanionConversation,CompanionInterface,FridayOrb,FridayCorner,StockData,VentureData,StripeData,MeetingData,SpeechData,ThreadData,MeetingVoice,MeetingRoom,ClipMath,ClipEditor,StreamData,StreamManager,SecretFile,FeedData,FridayFeed,ChatData,ChatHelper,AudioRoute,HandsData,ScreenSnap,VodData,VodClips,AutopilotData,ClipAutopilot,VoiceOverData,VoiceOver,WebData,ObsData,ObsBridge,VideoLabData,VideoLab,HelperData,FridayData,GuardData,Guard,Helper,FridayHands,Hub,HubTheme,HubShell,HubHome,HubStocks,HubVentures,HubLaunchpad,HubGame,HubAccounts,HubHelpers,HubGuard}.swift)
 # The compiler's warnings (dozens of harmless "deprecated" notes) are hidden. A real error is shown on its own,
 # loudly, because a failed build leaves the OLD app installed and it used to look like nothing had happened.
 LOG="$TMP/build.log"
@@ -52,8 +57,11 @@ if [ -f "$DIR/icon/Friday-1024.png" ]; then
  done
  if iconutil -c icns "$SET" -o "$TMP/Friday.icns" 2>/dev/null; then
   mkdir -p "$APP/Contents/Resources"
-  cp "$TMP/Friday.icns" "$APP/Contents/Resources/Friday.icns"
-  setkey CFBundleIconFile Friday || true
+  # A new file name every build: macOS keeps old icon pictures by file name, so a same-named file can show the old picture.
+  ICON="Helm-$(date +%Y%m%d%H%M%S)"
+  rm -f "$APP/Contents/Resources/"Friday.icns "$APP/Contents/Resources/"Helm-*.icns(N)
+  cp "$TMP/Friday.icns" "$APP/Contents/Resources/$ICON.icns"
+  setkey CFBundleIconFile "$ICON" || true
   /usr/libexec/PlistBuddy -c "Delete :CFBundleIconName" "$PLIST" 2>/dev/null || true
   echo "Friday's new icon is in."
  else
@@ -74,6 +82,8 @@ else
 fi
 
 touch "$APP"
+# Tell macOS to re-read the app's name and icon now, instead of using what it remembered.
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP" >/dev/null 2>&1 || true
 killall Dock 2>/dev/null || true   # the Dock restarts at once; it picks up the new name and icon
 echo "Done. Open The Helm from the Desktop icon, then redo the screen permission."
 echo "(If anything is wrong, the old app is saved as outputs/GameCompanion-backup.zip)"

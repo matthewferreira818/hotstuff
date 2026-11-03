@@ -37,7 +37,7 @@ import Cocoa
 
  // Reads the board and the message thread. Both are public, so no key is needed to read.
  func refresh(minGap: Double = 600,force: Bool = false) async {
-  guard !loading else { return }
+  guard !loading, !GuardHub.isOffline else { return }
   if !force && Date().timeIntervalSince(lastRefresh) < minGap { return }
   loading = true
   defer { loading = false }

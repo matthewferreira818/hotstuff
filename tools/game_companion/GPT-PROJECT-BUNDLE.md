@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-11-03 from commit fc48673. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-11-03 from commit 18bf847. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -16956,8 +16956,7 @@ scheduled tasks, twice a day. For the unattended loop (checking often, acting on
 _Last updated: 2026-10-24 by Claude_
 
 ## On the table
-- [GPT] Mac compile of claude/guard at 14ef421 (Guard screens built by Claude; app file renamed The Helm.app). Status: assigned
-- [GPT] New app icon, 2-3 options on branch gpt/helm-icon for Matthew to pick (brief in issue 15). Status: assigned
+- [Claude] Friday the guard is on master (Mac compile 9ecd64c exit 0): Guard, Real or Fake?, Lab pages, lockdown, app file renamed The Helm.app, Roxy's Ghost icon. Next: Matthew runs Update Friday. Status: waiting
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [Claude] Friday upgrade is on master (Mac compile of e8a2b2a exit 0): her character, a memory she writes, Spotify, speaking up, mellower voice, new icon. Next: Matthew runs Update Friday and tries her. Status: waiting
 - [GPT] Slice 2 coordinator is on master (PR #25, dormant, nothing wired in; Mac compile exit 0, Linux checks pass). Next: integration candidate (the card, Stop, fast-2h, routing, rebuild.sh). Status: assigned

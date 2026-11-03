@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 379.92,
+ "cash": 0.78,
  "spy_at_start": 777.22,
  "positions": {
   "ACHR": {
    "qty": 90.41019149322398,
    "avg_entry_price": 4.1812,
    "fill": 4.1592
+  },
+  "ONDS": {
+   "qty": 64.5712470905273,
+   "avg_entry_price": 5.8717,
+   "fill": 5.8408
   }
  },
  "orders": [
@@ -859,6 +864,16 @@
    "qty": 71.000563,
    "price": 5.3596,
    "dollars": 378.55,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-03T19:09:49+00:00",
+   "symbol": "ONDS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 64.571247,
+   "price": 5.8408,
+   "dollars": 379.14,
    "fee": 1.99
   }
  ],

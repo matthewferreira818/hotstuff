@@ -1,6 +1,6 @@
 # Game Companion: everything in one file (for a ChatGPT Project)
 
-Generated 2026-11-03 from commit 9e979fb. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
+Generated 2026-11-03 from commit fc48673. Re-generate with `python3 tools/game_companion/make_gpt_bundle.py`.
 Source of truth: https://github.com/matthewferreira818/hotstuff (folder `tools/game_companion/`, branch `master`).
 
 ## What this is
@@ -9881,6 +9881,17 @@ enum GuardStyle {
  }
 }
 
+// Page state lives in a small object, not @State: a command-line build can't expand SwiftUI's @State macro (only Xcode ships
+// its plugin), the same reason Companion.swift holds the tab.
+@MainActor final class GuardPageState: ObservableObject {
+ @Published var forgetting: GuardKeyInfo?
+ @Published var confirmUnlock = false
+ @Published var pulse = false
+ @Published var labDone = UserDefaults.standard.string(forKey:"guard.lab.done") ?? "" {
+  didSet { UserDefaults.standard.set(labDone,forKey:"guard.lab.done") }
+ }
+}
+
 struct GuardButtonStyle: ButtonStyle {
  var tint: Color
  @Environment(\.isEnabled) private var isEnabled
@@ -9938,9 +9949,7 @@ struct GuardHeading: View {
 
 struct GuardPage: View {
  @ObservedObject var guardHub = GuardHub.shared
- @State private var forgetting: GuardKeyInfo?
- @State private var confirmUnlock = false
- @State private var pulse = false
+ @StateObject private var ui = GuardPageState()
 
  var body: some View {
   ScrollView {
@@ -9956,20 +9965,20 @@ struct GuardPage: View {
    .padding(.horizontal,32).padding(.bottom,30)
   }
   .scrollIndicators(.hidden)
-  .alert("Unlock Friday?",isPresented:$confirmUnlock) {
+  .alert("Unlock Friday?",isPresented:$ui.confirmUnlock) {
    Button("Unlock") { guardHub.unlock() }
    Button("Stay locked",role:.cancel) {}
   } message: {
    Text("Her hands, links, screen view, posts and stream controls come back, with the usual rules and the Allow box.")
   }
-  .alert("Forget this key?",isPresented:Binding(get:{ forgetting != nil },set:{ if !$0 { forgetting = nil } })) {
+  .alert("Forget this key?",isPresented:Binding(get:{ ui.forgetting != nil },set:{ if !$0 { ui.forgetting = nil } })) {
    Button("Forget it",role:.destructive) {
-    if let key = forgetting { guardHub.forget(key) }
-    forgetting = nil
+    if let key = ui.forgetting { guardHub.forget(key) }
+    ui.forgetting = nil
    }
-   Button("Keep it",role:.cancel) { forgetting = nil }
+   Button("Keep it",role:.cancel) { ui.forgetting = nil }
   } message: {
-   Text(forgetting.map { "The Helm deletes \($0.title) from this Mac. Whatever uses it stops until you paste a fresh one." } ?? "")
+   Text(ui.forgetting.map { "The Helm deletes \($0.title) from this Mac. Whatever uses it stops until you paste a fresh one." } ?? "")
   }
  }
 
@@ -9979,7 +9988,7 @@ struct GuardPage: View {
   return HStack(alignment:.center,spacing:26) {
    ZStack {
     Circle().stroke(tint.opacity(0.35),lineWidth:1.5).frame(width:140,height:140)
-     .scaleEffect(pulse ? 1.10 : 0.92).opacity(pulse ? 0.15 : 0.9)
+     .scaleEffect(ui.pulse ? 1.10 : 0.92).opacity(ui.pulse ? 0.15 : 0.9)
     Circle().stroke(tint.opacity(0.18),lineWidth:1).frame(width:112,height:112)
     Circle().fill(RadialGradient(colors:[tint.opacity(0.38),Color.clear],center:.center,startRadius:4,endRadius:72)).frame(width:140,height:140)
     Image(systemName:guardHub.locked ? "lock.shield.fill" : GuardStyle.icon(shield.verdict))
@@ -9988,7 +9997,7 @@ struct GuardPage: View {
      .shadow(color:tint.opacity(0.65),radius:16)
    }
    .frame(width:150,height:150)
-   .onAppear { withAnimation(.easeInOut(duration:2.4).repeatForever(autoreverses:true)) { pulse = true } }
+   .onAppear { withAnimation(.easeInOut(duration:2.4).repeatForever(autoreverses:true)) { ui.pulse = true } }
    .accessibilityHidden(true)
 
    VStack(alignment:.leading,spacing:10) {
@@ -10002,7 +10011,7 @@ struct GuardPage: View {
     }
     HStack(spacing:10) {
      if guardHub.locked {
-      Button { confirmUnlock = true } label: { Label("Unlock",systemImage:"lock.open.fill") }
+      Button { ui.confirmUnlock = true } label: { Label("Unlock",systemImage:"lock.open.fill") }
        .buttonStyle(GuardButtonStyle(tint:GuardStyle.cyan.opacity(0.85)))
      } else {
       Button { guardHub.lock("Matthew pressed Lockdown") } label: { Label("Lockdown",systemImage:"lock.fill") }
@@ -10120,7 +10129,7 @@ struct GuardPage: View {
      Button { if let url = URL(string:key.renew) { NSWorkspace.shared.open(url) } } label: { Text("Its site") }
       .buttonStyle(GuardButtonStyle(tint:Color.white.opacity(0.10)))
      if saved {
-      Button { forgetting = key } label: { Label("Forget",systemImage:"trash") }
+      Button { ui.forgetting = key } label: { Label("Forget",systemImage:"trash") }
        .buttonStyle(GuardButtonStyle(tint:GuardStyle.crimson.opacity(0.55)))
      }
     }
@@ -10244,10 +10253,10 @@ struct GuardFakePage: View {
 // MARK: Lab
 
 struct GuardLabPage: View {
- @AppStorage("guard.lab.done") private var done = ""
+ @StateObject private var ui = GuardPageState()
 
  var body: some View {
-  let ticked = GuardLab.done(done)
+  let ticked = GuardLab.done(ui.labDone)
   let ids = GuardLab.lessons.map { $0.id } + GuardLab.practice.map { $0.id }
   let count = ids.filter { ticked.contains($0) }.count
   return ScrollView {
@@ -10298,7 +10307,7 @@ struct GuardLabPage: View {
  }
 
  func tick(_ id: String,done isDone: Bool) -> some View {
-  Button { done = GuardLab.toggled(id,in:done) } label: {
+  Button { ui.labDone = GuardLab.toggled(id,in:ui.labDone) } label: {
    Image(systemName:isDone ? "checkmark.circle.fill" : "circle").font(.system(size:22)).foregroundStyle(isDone ? GuardStyle.cyan : HubTheme.subtext)
     .frame(width:44,height:44)
   }
@@ -16947,7 +16956,8 @@ scheduled tasks, twice a day. For the unattended loop (checking often, acting on
 _Last updated: 2026-10-24 by Claude_
 
 ## On the table
-- [GPT] Guard pages (Guard, Real or Fake?, Lab) in HubGuard.swift on top of branch claude/guard (engine done by Claude). Spec: notes/guard-plan.md. Then Mac compile. Status: assigned
+- [GPT] Mac compile of claude/guard at 14ef421 (Guard screens built by Claude; app file renamed The Helm.app). Status: assigned
+- [GPT] New app icon, 2-3 options on branch gpt/helm-icon for Matthew to pick (brief in issue 15). Status: assigned
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [Claude] Friday upgrade is on master (Mac compile of e8a2b2a exit 0): her character, a memory she writes, Spotify, speaking up, mellower voice, new icon. Next: Matthew runs Update Friday and tries her. Status: waiting
 - [GPT] Slice 2 coordinator is on master (PR #25, dormant, nothing wired in; Mac compile exit 0, Linux checks pass). Next: integration candidate (the card, Stop, fast-2h, routing, rebuild.sh). Status: assigned

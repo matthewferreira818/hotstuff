@@ -3,6 +3,7 @@
 _Last updated: 2026-10-24 by Claude_
 
 ## On the table
+- [Matthew] Have a fluent French reader check findhotstuff.com/automation/fr/ (pilot wording changed 11-04 by Claude; not yet reviewed). Status: waiting
 - [Claude] Friday the guard is on master (Mac compile 9ecd64c exit 0): Guard, Real or Fake?, Lab pages, lockdown, app file renamed The Helm.app, Roxy's Ghost icon. Next: Matthew runs Update Friday. Status: waiting
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [Claude] Friday upgrade is on master (Mac compile of e8a2b2a exit 0): her character, a memory she writes, Spotify, speaking up, mellower voice, new icon. Next: Matthew runs Update Friday and tries her. Status: waiting

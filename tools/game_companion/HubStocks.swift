@@ -29,6 +29,8 @@ extension CompanionInterfaceView {
      hubStockChoice("Dip",index:0).accessibilityLabel("Dip robot")
      hubStockChoice("Momentum",index:1).accessibilityLabel("Momentum robot")
      hubStockChoice("Hot hands",index:2).accessibilityLabel("Hot hands robot")
+     hubStockChoice("Moonshot",index:3).accessibilityLabel("Moonshot robot")
+     hubStockChoice("Crypto",index:4).accessibilityLabel("Moonshot crypto robot")
     }
     .accessibilityElement(children:.contain).accessibilityLabel("Choose a practice robot")
     if let robot = stocks.current {

@@ -250,10 +250,12 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var dip: StockRobot?
  @Published var momentum: StockRobot?
  @Published var hot: StockRobot?
+ @Published var moon: StockRobot?
+ @Published var moonCrypto: StockRobot?
  @Published var loading = false
  @Published var failed = false
  @Published var robot = 0
- var current: StockRobot? { robot == 0 ? dip : (robot == 1 ? momentum : hot) }
+ var current: StockRobot? { [dip,momentum,hot,moon,moonCrypto][min(max(robot,0),4)] }
 
  func refresh() async {
   guard !loading else { return }
@@ -262,10 +264,15 @@ enum HubSection: Int, CaseIterable, Identifiable {
   async let first = StockData.fetch(branch:"stock-live",name:"Dip robot")
   async let second = StockData.fetch(branch:"stock-live-momentum",name:"Momentum robot")
   async let third = StockData.fetch(branch:"stock-live-hot",name:"Hot hands robot")
+  async let fourth = StockData.fetch(branch:"stock-live-moonshot",name:"Moonshot robot")
+  async let fifth = StockData.fetch(branch:"stock-live-moonshot-crypto",name:"Moonshot crypto robot")
   let (a,b,c) = await (first,second,third)
+  let (d,e) = await (fourth,fifth)
   if let a = a { dip = a }
   if let b = b { momentum = b }
   if let c = c { hot = c }
+  if let d = d { moon = d }
+  if let e = e { moonCrypto = e }
   failed = (a == nil && b == nil && c == nil && dip == nil && momentum == nil && hot == nil)
  }
 }

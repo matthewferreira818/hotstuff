@@ -1,14 +1,9 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 0.0,
+ "cash": 356.08,
  "spy_at_start": 777.22,
  "positions": {
-  "ONDS": {
-   "qty": 67.37291878586318,
-   "avg_entry_price": 5.52,
-   "fill": 5.4905
-  },
   "SMR": {
    "qty": 70.08154992799908,
    "avg_entry_price": 5.2436,
@@ -974,6 +969,16 @@
    "qty": 70.08155,
    "price": 5.2152,
    "dollars": 367.48,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:58:47+00:00",
+   "symbol": "ONDS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 67.372919,
+   "price": 5.3147,
+   "dollars": 356.08,
    "fee": 1.99
   }
  ],

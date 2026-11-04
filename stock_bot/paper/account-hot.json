@@ -1,14 +1,9 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 0.09,
+ "cash": 362.13,
  "spy_at_start": 777.22,
  "positions": {
-  "ONDS": {
-   "qty": 66.61699882038866,
-   "avg_entry_price": 5.3452,
-   "fill": 5.3153
-  },
   "PLUG": {
    "qty": 235.59122847392155,
    "avg_entry_price": 1.4934,
@@ -1015,6 +1010,16 @@
    "price": 1.4835,
    "dollars": 351.83,
    "fee": 2.33
+  },
+  {
+   "time": "2026-11-04T17:58:36+00:00",
+   "symbol": "ONDS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 66.616999,
+   "price": 5.4645,
+   "dollars": 362.04,
+   "fee": 1.99
   }
  ],
  "deposited": 1000.0,

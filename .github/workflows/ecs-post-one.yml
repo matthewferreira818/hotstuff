@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       index:
-        description: "Which post in the rotation (0-20)"
+        description: "Which post in the rotation (0-20), or intro"
         required: true
         default: "0"
 

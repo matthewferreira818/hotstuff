@@ -66,7 +66,7 @@ POOL = [
     ("Post idea for B&Bs and inns: the view this morning.",
      "A morning photo from your porch or window, plus what's happening nearby this weekend. It helps people picture their stay. ➜ {site}"),
     ("Small and local, like you.",
-     "We're not an agency. It's Matthew, in Memramcook, writing the posts himself and answering his own emails. ➜ {site}"),
+     "We're not an agency. It's Matthew, in Memramcook, making the posts himself with help from AI tools, and answering his own emails. ➜ {site}"),
     ("A quiet page can look like a closed business.",
      "Free tip: if your last post is months old, new customers may wonder if you're still open. Even one short post a week helps. ➜ {site}"),
     ("Post idea for restaurants: today's special, one photo.",

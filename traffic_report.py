@@ -230,7 +230,7 @@ def main() -> None:
         f"https://ntfy.sh/{topic}",
         data=msg.encode(),
         headers={"Title": "HotsTuff traffic", "Tags": "fire",
-                 "Priority": "default" if busy else "min"},
+                 "Priority": "low" if busy else "min"},
     )
     with urllib.request.urlopen(req, timeout=30) as resp:
         resp.read()

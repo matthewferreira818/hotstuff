@@ -235,7 +235,11 @@ class PaperBroker:
         del self.acct["positions"][symbol]
         self._record(symbol, "sell", pos["qty"], price, proceeds, fee)
         self._save(f"Practice trade: sell {symbol}")
-        return {"status": "filled"}
+        # Real profit after BOTH fees (avg_entry_price already includes the buy fee).
+        profit = proceeds - pos["qty"] * pos["avg_entry_price"]
+        if profit > 0.005:
+            _money_ping(self.path, symbol, profit)
+        return {"status": "filled", "profit": round(profit, 2)}
 
     def _price(self, symbol):
         p = self.latest_prices([symbol]).get(symbol)
@@ -255,6 +259,26 @@ def _px(x):
     """Round a price: 4 decimals, or 6 significant digits under $1 so
     fraction-of-a-penny meme coins (SHIB, PEPE) don't round to $0."""
     return round(x, 4) if abs(x) >= 1 else float(f"{x:.6g}")
+
+
+ROBOT_NAMES = {"account.json": "Dip robot", "account-momentum.json": "Momentum robot",
+               "account-hot.json": "Hot hands", "account-moonshot.json": "Moonshot",
+               "account-moonshot-crypto.json": "Moonshot crypto"}
+
+
+def _money_ping(path, symbol, profit):
+    """Matthew, 2026-11-04: "let me know when the bots make money". A sale that
+    made money after fees rings his phone (default priority, unlike routine
+    robot news). Practice money; never fails the trade."""
+    try:
+        sys.path.insert(0, HERE)
+        import stock_bot
+        name = ROBOT_NAMES.get(os.path.basename(path), "A robot")
+        stock_bot.notify(f"💰 {name} made ${profit:,.2f} (practice)",
+                         f"Sold {symbol} for a ${profit:,.2f} profit after fees. Practice money.",
+                         "default")
+    except Exception as e:  # a push must never break a trade
+        print(f"money ping skipped ({type(e).__name__})")
 
 
 def _now():

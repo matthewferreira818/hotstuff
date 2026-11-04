@@ -22,6 +22,9 @@ than discovering something was papered over.
   **Domains are registered at Porkbun.** eastcoastsocial.ca currently sits
   there as a URL-forward to findhotstuff.com/automation/ that STRIPS the
   query string (verified 08-28), so every ?ref= tag through it is lost.
+  **Email (2026-11-04):** contact@ and hello@ forward (Porkbun) to his Yahoo; sending works from Yahoo as a verified send-only
+  address (DKIM is yahoo.com, SPF softfail, no DMARC: may hit spam). Zoho Free is not offered in Canada. Proper fix later: SMTP2GO free + 3 CNAMEs.
+  The $79 two-business Starter Month pilot is drafted in helm-private ecs/pilot/; the matching page fix waits on branch claude/ecs-pilot-page-draft.
 - **East Coast Social (ECS)** — findhotstuff.com/automation (EN + /fr).
   Done-for-you daily social posting for local NB businesses: free setup,
   free sample week, **$79/mo CAD, no contracts**. Standing goal: **first
@@ -67,7 +70,9 @@ than discovering something was papered over.
    cold emails and messages once or twice a week"):** Claude writes
    it and C.C. sends it from his own accounts, once or twice a week,
    up to 5 messages a batch, taken from the prospects ledger. Channel:
-   Facebook page messages (his answer, 2026-10-05). He chose to have a
+   Facebook page messages (his answer, 2026-10-05). **Updated 2026-11-04 (his words: "10 a day", "we tailor them to the place", "get C.C to send them individually"):**
+   email is now a channel too: up to 10 tailored emails a day, each sent one at a time by C.C from contact@eastcoastsocial.ca,
+   only to businesses that publish their own email (source page logged in helm-private), first send waits for the page fix below. He chose to have a
    business advisor check the format as we go, and the footer uses his
    home address and phone (he gave them; the phone is already public on
    the ECS page). **His home address never goes in this public repo**:

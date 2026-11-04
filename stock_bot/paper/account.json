@@ -1,13 +1,9 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 188.38,
+ "cash": 276.25,
  "spy_at_start": 764.32,
  "positions": {
-  "MU": {
-   "qty": 0.11220961229098003,
-   "avg_entry_price": 891.1892
-  },
   "ASTS": {
    "qty": 2.5834323987358294,
    "avg_entry_price": 38.7082
@@ -648,6 +644,16 @@
    "qty": 16.539204,
    "price": 5.4296,
    "dollars": 87.81,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:52:08+00:00",
+   "symbol": "MU",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.11221,
+   "price": 800.8084,
+   "dollars": 87.87,
    "fee": 1.99
   }
  ],

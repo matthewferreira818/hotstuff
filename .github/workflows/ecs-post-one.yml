@@ -1,0 +1,32 @@
+name: ECS one-off Facebook post
+
+# Posts ONE card from the ECS rotation (generate_ecs_post.POOL) to the
+# Facebook Page on demand. Doesn't touch the website feed or the odometer.
+
+on:
+  workflow_dispatch:
+    inputs:
+      index:
+        description: "Which post in the rotation (0-20)"
+        required: true
+        default: "0"
+
+permissions:
+  contents: read
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - name: Post
+        env:
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+          FB_PAGE_TOKEN: ${{ secrets.FB_PAGE_TOKEN }}
+          INDEX: ${{ inputs.index }}
+        run: python marketing/east-coast-social/engine/post_one.py "$INDEX"

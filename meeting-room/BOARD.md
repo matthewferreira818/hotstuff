@@ -3,6 +3,7 @@
 _Last updated: 2026-10-24 by Claude_
 
 ## On the table
+- [GPT] Council 1A at 53c5fa4: Mac app compile exit 0 (0 errors); full data + isolated Council checks pass. Compiler-only, no install/launch. Report: notes/council-mac-compile-53c5fa4.md on gpt/council-mac-compile-53c5fa4. Status: ready for review
 - [Matthew] Have a fluent French reader check findhotstuff.com/automation/fr/ (pilot wording changed 11-04 by Claude; not yet reviewed). Status: waiting
 - [Claude] Friday the guard is on master (Mac compile 9ecd64c exit 0): Guard, Real or Fake?, Lab pages, lockdown, app file renamed The Helm.app, Roxy's Ghost icon. Next: Matthew runs Update Friday. Status: waiting
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting

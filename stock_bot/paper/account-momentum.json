@@ -12,7 +12,9 @@
   },
   "XYZ": {
    "qty": 1.139384603147788,
-   "avg_entry_price": 90.0047
+   "avg_entry_price": 90.0047,
+   "peak": 88.16999816894531,
+   "trail": 11.59
   }
  },
  "orders": [
@@ -107,5 +109,5 @@
   }
  ],
  "next_deposit": "2026-10-14",
- "last_close_check": "2026-11-03"
+ "last_close_check": "2026-11-04"
 }

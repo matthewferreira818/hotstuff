@@ -17,7 +17,7 @@ enum HubColor {
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper, shield, realFake, lab
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper, shield, realFake, lab, council
  var id: Int { rawValue }
  var title: String {
   switch self {
@@ -36,6 +36,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .shield: return "Guard"
   case .realFake: return "Real or Fake?"
   case .lab: return "Lab"
+  case .council: return "Council"
   }
  }
  var icon: String {
@@ -55,6 +56,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .shield: return "shield.lefthalf.filled"
   case .realFake: return "checkmark.seal.fill"
   case .lab: return "flask.fill"
+  case .council: return "person.3.sequence.fill"
   }
  }
  var tint: Color {
@@ -74,6 +76,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .shield: return HubColor.cyan
   case .realFake: return HubColor.cyan
   case .lab: return HubColor.cyan
+  case .council: return HubColor.cyan
   }
  }
  var blurb: String {
@@ -93,6 +96,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .shield: return "Lockdown, Mac health checks, apps online, the account sweep and your keys."
   case .realFake: return "Paste a message or alert; Friday points out the red flags."
   case .lab: return "Learn to defend: lessons and free practice sites."
+  case .council: return "Roxy, Claude and Grok take turns on your question (test mode)."
   }
  }
 }

@@ -24,6 +24,7 @@ concurrency:
 
 permissions:
   contents: write
+  actions: write   # starts the Moonshot robots too (their own timers never fired)
 
 jobs:
   run:
@@ -34,6 +35,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Start the Moonshot robots too
+        if: ${{ !inputs.snapshot }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run stock-moonshot.yml --ref master || true
+          gh workflow run stock-moonshot-crypto.yml --ref master || true
       - name: Self-test
         run: |
           python stock_bot/hot_bot.py --selftest

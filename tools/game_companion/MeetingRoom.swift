@@ -145,6 +145,7 @@ import Cocoa
  }
 
  var updatedLine: String {
+  if Date() < messagesNotBefore { return "Message refresh paused until \(messagesNotBefore.formatted(.dateTime.hour().minute().second()))" }
   if messageReadFailed { return "Message refresh failed — tap Refresh to retry." }
   guard let checked = messagesCheckedAt else { return "Shared board · Messages not checked yet" }
   return "Messages checked \(checked.formatted(.dateTime.hour().minute().second())) · \(hasToken && !anonymousReadFallback ? "fast refresh" : "90-second refresh")"

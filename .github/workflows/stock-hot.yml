@@ -41,5 +41,7 @@ jobs:
       - name: Run
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          ALPACA_KEY: ${{ secrets.ALPACA_KEY }}
+          ALPACA_SECRET: ${{ secrets.ALPACA_SECRET }}
           SNAP: ${{ inputs.snapshot && '--snapshot' || '' }}
         run: python stock_bot/hot_bot.py $SNAP

@@ -33,6 +33,7 @@ import os
 import sys
 import time
 import urllib.parse
+import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -88,6 +89,63 @@ def scan_market(scan, keep):
         except Exception as e:  # one list failing must not stop the scan
             print(f"Scan list {name} skipped ({type(e).__name__}).")
     return pick_movers(quotes, scan, keep)
+
+
+ALPACA_TRADES = "https://data.alpaca.markets/v2/stocks/trades/latest"
+FRESH_SECONDS = 120  # an Alpaca price older than this falls back to Yahoo
+
+
+def fresh_trades(data, now_ts, max_age=FRESH_SECONDS):
+    """Pure: {sym: price} from Alpaca's latest-trades reply, recent ones only."""
+    out = {}
+    for sym, t in (data.get("trades") or {}).items():
+        try:
+            ts = dt.datetime.fromisoformat(t["t"][:19] + "+00:00").timestamp()
+        except (KeyError, TypeError, ValueError):
+            continue
+        if t.get("p") and now_ts - ts <= max_age:
+            out[sym] = float(t["p"])
+    return out
+
+
+def use_live_feed(broker):
+    """Live prices (2026-11-04, Matthew's free Alpaca paper account): the
+    latest real trade from Alpaca's free real-time feed (IEX exchange),
+    Yahoo for anything Alpaca has no recent trade for. Keys come only from
+    the job's secret boxes and are never printed. Returns True if on."""
+    key, secret = os.environ.get("ALPACA_KEY"), os.environ.get("ALPACA_SECRET")
+    if not key or not secret:
+        return False
+    yahoo = broker.latest_prices
+    headers = {"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret,
+               "User-Agent": "hot-hands-practice-bot"}
+    state = {"fails": 0}
+
+    def latest_prices(symbols):
+        symbols = list(dict.fromkeys(symbols))
+        out = {}
+        if state["fails"] < 20:
+            try:
+                for i in range(0, len(symbols), 100):
+                    q = urllib.parse.urlencode(
+                        {"symbols": ",".join(symbols[i:i + 100]), "feed": "iex"})
+                    req = urllib.request.Request(f"{ALPACA_TRADES}?{q}",
+                                                 headers=headers)
+                    with urllib.request.urlopen(req, timeout=10) as r:
+                        out.update(fresh_trades(json.load(r), time.time()))
+                state["fails"] = 0
+            except Exception as e:  # never print the request: it holds keys
+                state["fails"] += 1
+                print(f"Live feed check failed ({type(e).__name__}); "
+                      "using Yahoo for this one.")
+        missing = [x for x in symbols if x not in out]
+        if missing:
+            out.update(yahoo(missing))
+        broker._last_prices.update(out)
+        return out
+
+    broker.latest_prices = latest_prices
+    return True
 
 
 def day_bars(sym):
@@ -252,11 +310,13 @@ def run():
         print("Market closed.")
         return 0
 
-    every = max(float(cfg.get("check_every_seconds", 10)), 5)
+    live = use_live_feed(broker)
+    every = max(float(cfg.get("check_every_seconds_live" if live else
+                              "check_every_seconds", 10)), 2)
     scan = cfg.get("scan") or {}
     fixed = list(cfg["stocks"])
     event(f"Market's open. Watching {len(cfg['stocks'])} cheap swingers every "
-          f"{every:g} seconds" + (", plus a whole-market scan for the day's "
+          f"{every:g} seconds" + (" on the live feed" if live else "") + (", plus a whole-market scan for the day's "
           "biggest cheap movers." if scan.get("on") else "."), "start")
     start = end = None
     last_vwap = last_snap = 0.0
@@ -427,6 +487,12 @@ def selftest():
           {"symbol": "GGG", "regularMarketPrice": 6, "regularMarketChangePercent": 5,
            "averageDailyVolume3Month": 9e6}]
     assert pick_movers(qs, sc, keep=["ONDS"]) == ["DDD", "AAA"], pick_movers(qs, sc, ["ONDS"])
+    # Live feed (2026-11-04): fresh trades kept, stale or broken ones dropped.
+    now = dt.datetime(2026, 11, 4, 16, 0, 0, tzinfo=dt.timezone.utc).timestamp()
+    data = {"trades": {"ONDS": {"t": "2026-11-04T15:59:30.123456789Z", "p": 6.5},
+                       "OLD": {"t": "2026-11-04T15:50:00Z", "p": 3.0},
+                       "BAD": {"p": 4.0}}}
+    assert fresh_trades(data, now) == {"ONDS": 6.5}, fresh_trades(data, now)
     print("selftest OK")
 
 

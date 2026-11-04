@@ -46,5 +46,7 @@
     "min_move_pct": 4,
     "max_extra": 20,
     "_read_me": "Whole-market scan (Matthew 2026-11-04: 'let it check all stocks'). Every 15 minutes it asks Yahoo's free market-wide lists (today's biggest gainers, losers, most traded) and adds up to 20 cheap ($2-$25), heavily traded stocks moving 4%+ either way to the fixed list above. Practice money only."
-  }
+  },
+  "check_every_seconds_live": 3,
+  "_live_feed_note": "Live feed (2026-11-04): with the ALPACA_KEY/ALPACA_SECRET secrets (Matthew's free Alpaca paper account) prices come from Alpaca's free real-time IEX feed every 3 seconds; Yahoo fills in anything Alpaca has no trade for in the last 2 minutes, and takes over if Alpaca fails."
 }

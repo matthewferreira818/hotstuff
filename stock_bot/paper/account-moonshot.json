@@ -1,12 +1,19 @@
 {
  "started": "2026-11-04T16:58:30+00:00",
  "start_cash": 1000.0,
- "cash": 500.0,
+ "cash": 0.0,
  "spy_at_start": 768.4,
  "positions": {
   "CVNA": {
    "qty": 6.417840158043165,
-   "avg_entry_price": 77.9078
+   "avg_entry_price": 77.9078,
+   "fill": 77.9078,
+   "peak": 77.9078,
+   "bought": "2026-11-04T16:58:46+00:00"
+  },
+  "SOFI": {
+   "qty": 28.64108368695525,
+   "avg_entry_price": 17.4574
   }
  },
  "orders": [
@@ -19,6 +26,16 @@
    "price": 77.9078,
    "dollars": 500.0,
    "fee": 0.0
+  },
+  {
+   "time": "2026-11-04T16:58:46+00:00",
+   "symbol": "SOFI",
+   "side": "buy",
+   "status": "filled",
+   "qty": 28.641084,
+   "price": 17.4574,
+   "dollars": 500.0,
+   "fee": 0.0
   }
  ],
  "deposited": 1000.0,
@@ -29,6 +46,11 @@
    "time": "2026-11-04T16:58:31+00:00",
    "kind": "start",
    "text": "Moonshot robot started with 1,000 practice dollars."
+  },
+  {
+   "time": "2026-11-04T16:58:46+00:00",
+   "kind": "buy",
+   "text": "Bought CVNA $500.00 at 77.91: up 29.2% in 10 days, the hottest on the list"
   }
  ],
  "bench_units": 1.3014055179593962

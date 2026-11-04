@@ -1,6 +1,6 @@
 # Meeting Room message refresh: implementation and Mac verification
 
-November 4, 2026. Exact compiled implementation: `c11b6ca38646d1887b0f096cb6e9205a9a566e70` on `gpt/meeting-room-refresh`.
+November 4, 2026. Exact compiled implementation: `f0938e1b3f66cc653b29f0cf3b5a8c101a6d9815` on `gpt/meeting-room-refresh`.
 
 ## Problem and resulting behavior
 
@@ -21,9 +21,9 @@ Successful sends display the actual message returned by GitHub's HTTP 201 respon
 
 ## Verification
 
-macOS 27.2, arm64, Apple Swift 6.4. All 60 app source hashes were checked again after the build. Canonical SHA-256 source-manifest digest: `2c2b9e33f28b2132465c1a0fe420e3d0efbcd713ce4e946b04154666b3795b86`.
+macOS 27.2, arm64, Apple Swift 6.4. All 60 app source hashes were checked again after the build. Canonical SHA-256 source-manifest digest: `e66a8a334e4f439dcd354ec06411a301f6814fc612f35152de066b57d336f082`.
 
-| Check at `c11b6ca38646d1887b0f096cb6e9205a9a566e70` | Compile exit | Run exit |
+| Check at `f0938e1b3f66cc653b29f0cf3b5a8c101a6d9815` | Compile exit | Run exit |
 |---|---:|---:|
 | Exact rebuild.sh 60-source optimized app invocation, arm64-apple-macos27.0 | 0 | Not launched |
 | Complete 21-source DataChecks, CouncilData included, implicit CoreGraphics import for Mac | 0 | 0 |

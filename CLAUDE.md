@@ -291,7 +291,12 @@ board so two people don't edit one file), and Claude reviews afterwards and reve
 force, because they are Matthew's own: honesty (rule 1), secrets (rule 2), Friday's off-limits list and Allow box, the Moomoo real-money
 switches, money mode (nothing paid), and no public post, outreach or message to a person without Claude's or Matthew's go. Lifting any of
 those needs Matthew to say so in his own words. Claude reverts anything that breaks rule #1 (honesty) or #2
-(secrets). Several Claude chats can't see each other, so authority lives in
+(secrets). **Matthew's decision, 2026-11-04 4 AM ("give roxy some more leeway, make her your right hand"):** Roxy is Claude's right hand.
+She may, without waiting for Claude: pick up and finish board work, research and draft anything (jobs, prospects, emails, letters, posts),
+give C.C look-only research jobs, and serve as the second honesty check on outreach batches (her OK plus Claude's fact pass plus
+Matthew's GO sends a batch). She works with private material (prospects, jobs) only in Helm-Private or her own chat with Matthew, never
+in the public room. Still needing Claude's or Matthew's go: anything that sends, posts or publishes, offer/price changes, and anything
+touching money, secrets, logins or Matthew's identity. Several Claude chats can't see each other, so authority lives in
 this file and the board, not in any one chat. Claude still can't promise
 abilities it doesn't have.
 

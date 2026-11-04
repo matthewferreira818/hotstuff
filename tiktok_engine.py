@@ -65,7 +65,8 @@ def http_json(url, data=None, headers=None, form=False):
             return {"error": str(exc)}, exc.code
 
 
-def ntfy(topic, title, message, priority="default", tags="robot"):
+def ntfy(topic, title, message, priority="low", tags="robot"):
+    # 2026-11-04: routine drafts/captions are silent (low); failures pass "high".
     """Push to the ntfy topic. (No Email header: ntfy.sh returns 400 for
     anonymous email sending, which would kill the whole message.)"""
     if not topic:

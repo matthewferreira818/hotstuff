@@ -253,7 +253,9 @@ def decide(cfg, prices, closes, positions, orders_today, cash=None,
 
 # ------------------------------------------------------------------- alerts
 
-def notify(title, body, priority="default"):
+def notify(title, body, priority="low"):
+    # 2026-11-04 (Matthew: "only important info rings"): practice-robot news is low = silent;
+    # only explicit "high" calls (real orders, a robot that stopped) buzz.
     topic = os.environ.get("NTFY_TOPIC", "")
     if not topic or os.environ.get("QUIET"):
         return

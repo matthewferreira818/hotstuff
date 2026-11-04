@@ -126,10 +126,10 @@
   "_extras_from": "Added 2026-09-27 at Matthew's request, to watch more stocks: picks from a single council seat (NVDA, ABNB from Goalie; RIOT from Tally) plus ARM and MU from the screen. Kept only stocks where the rules made money in last year's backtest; NFLX and HIMS were left out because they lost. These are NOT council picks and aren't graded as such.",
   "_matthew_picks": "ONDS and PFE added 2026-09-27 at Matthew's request. Rules 8/20/10: last-year backtest ONDS +$54 on 24 trades (holding +$2); PFE's daily swing is under 1%, so it rarely dips 8% (0 closed trades last year) and tighter rules sized to its swing lost money to fees (-$22). 10 slots x $100 = $1,200 of slots against $1,000 cash: first dips get the money.",
   "sizing": {
-    "bet_pct_of_account": 10,
-    "min_bet": 100,
+    "bet_pct_of_account": 20,
+    "min_bet": 150,
     "max_per_stock_pct": 20,
-    "_note": "Each buy = 10% of the whole account (cash + stocks), at least $100 (smaller and the ~$4 round-trip fee eats it), never more than 20% of the account in one stock, never more than the cash on hand. Replaces the per-stock dollars_per_buy / max_position_dollars and max_total_invested while set."
+    "_note": "Each buy = 10% of the whole account (cash + stocks), at least $100 (smaller and the ~$4 round-trip fee eats it), never more than 20% of the account in one stock, never more than the cash on hand. Replaces the per-stock dollars_per_buy / max_position_dollars and max_total_invested while set. Changed 2026-11-04 (Matthew: 'help the trading bots'): bets raised to 20% of the account, at least $150, so the ~$4 round-trip fee costs ~2.7% of a bet instead of ~4% (fees were $125 on a ~$1,070 start). Fewer, bigger practice bets; same dip rules."
   },
   "practice_deposits": null,
   "practice_deposits_note": "Paused 2026-10-08 (found still on 2026-10-13 and switched off): no real deposits were ever made, so the practice mirror stops too. The deposit already made on 2026-09-30 stays in the fake account. Put the old block back to restart it: amount_cad 100, every_days 14, first 2026-09-30."

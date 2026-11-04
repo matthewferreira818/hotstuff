@@ -81,7 +81,7 @@ def decide(cfg, now_ts, start, end, prices, vwaps, held, cash, value,
             continue
         if mins_left <= r["flatten_minutes_before_close"]:
             sells.append((sym, "closing time, out before the bell"))
-        elif vwap and price >= vwap:
+        elif vwap and price >= vwap and price >= fill * (1 + r.get("min_gain_pct", 0) / 100):
             sells.append((sym, f"back up to its day average {vwap:.2f}"))
         elif price <= fill * (1 - r["stop_pct"] / 100):
             sells.append((sym, f"down {r['stop_pct']}% from the buy, cut it"))
@@ -348,6 +348,10 @@ def selftest():
     b = decide(cfg, mid, start, end, p, vw, {}, 150, 1000, {}, 0)[1]
     assert [(x[0], x[1]) for x in b] == [("ONDS", 150)], b
     assert decide(cfg, mid, start, end, p, vw, {}, 90, 1000, {}, 0)[1] == []
+    # Fee-aware exit (2026-11-04): back at VWAP but not yet 1.5% above the buy -> hold.
+    cfg2 = dict(cfg, rules=dict(cfg["rules"], min_gain_pct=1.5))
+    assert not decide(cfg2, mid, start, end, {"ONDS": 7.01}, vw, {"ONDS": 6.95}, 0, 0, {}, 1)[0]
+    assert decide(cfg2, mid, start, end, {"ONDS": 7.06}, vw, {"ONDS": 6.95}, 0, 0, {}, 1)[0]
     print("selftest OK")
 
 

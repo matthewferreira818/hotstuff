@@ -1,18 +1,30 @@
 {
-  "_read_me": "Robot 3 (hot hands), practice money. Same-day trading of cheap, wide-swinging stocks (Matthew's mission, 2026-10-07). Rule: EXP-0004's VWAP snap-back, which LOST money after fees in that test; this is a live experiment. Stocks = EXP-0004's pre-declared filter ($2-$25, typical day swing 5%+). Out of everything before the close, every day.",
+  "_read_me": "Robot 3 (hot hands), practice money. Same-day trading of cheap, wide-swinging stocks (Matthew's mission, 2026-10-07). Rule: EXP-0004's VWAP snap-back, which LOST money after fees in that test; this is a live experiment. Stocks = EXP-0004's pre-declared filter ($2-$25, typical day swing 5%+). Out of everything before the close, every day. Changed 2026-11-04 (Matthew: 'help the trading bots'): fewer, deeper, fee-aware trades because fees were eating it ($203 of fees on a $1,000 start by Nov 4): buy only 4%+ under the day average, one trip per stock, max 8 orders a day, and sell at the average only once the gain covers costs (1.5%). Still an experiment; EXP-0004 found no setting that made money.",
   "broker": "practice",
   "paused": false,
-  "stocks": ["ONDS", "MARA", "RIOT", "LCID", "AMC", "SMR", "RGTI", "ACHR", "PLUG", "QBTS"],
+  "stocks": [
+    "ONDS",
+    "MARA",
+    "RIOT",
+    "LCID",
+    "AMC",
+    "SMR",
+    "RGTI",
+    "ACHR",
+    "PLUG",
+    "QBTS"
+  ],
   "rules": {
-    "under_vwap_pct": 2,
+    "under_vwap_pct": 4,
     "stop_pct": 3,
-    "trips_per_stock": 2,
+    "trips_per_stock": 1,
     "max_open": 2,
     "wait_minutes": 15,
     "last_buy_minutes_before_close": 15,
-    "flatten_minutes_before_close": 5
+    "flatten_minutes_before_close": 5,
+    "min_gain_pct": 1.5
   },
-  "max_orders_per_day": 20,
+  "max_orders_per_day": 8,
   "sizing": {
     "bet_pct_of_account": 50,
     "min_bet": 100

@@ -1,0 +1,9 @@
+{
+  "_note": "Quality Dip practice account. Created empty. Filled on first run by paper_broker.py. Paper money only.",
+  "started": null,
+  "deposited": 1000,
+  "cash": 1000,
+  "positions": {},
+  "orders": [],
+  "events": []
+}

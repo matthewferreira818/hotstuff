@@ -72,7 +72,11 @@ than discovering something was papered over.
    up to 5 messages a batch, taken from the prospects ledger. Channel:
    Facebook page messages (his answer, 2026-10-05). **Updated 2026-11-04 (his words: "10 a day", "we tailor them to the place", "get C.C to send them individually"):**
    email is now a channel too: up to 10 tailored emails a day, each sent one at a time by C.C from contact@eastcoastsocial.ca,
-   only to businesses that publish their own email (source page logged in helm-private), first send waits for the page fix below. He chose to have a
+   only to businesses that publish their own email (source page logged in helm-private), first send waits for the page fix below.
+   **Raised the same night (his words: "25 sent a day until the well runs dry on the small local, mom and pop business's, we can change the
+   paramaters later", "start with a bang"):** up to 25 a day, small independent local businesses only. Every batch still gets a fact check
+   (a second Claude pass against the source pages; Roxy in the room when available, using only a pointer to helm-private) and his GO. Sending
+   25 a day through Yahoo risks spam and the account; SMTP2GO is the planned route for that volume (his approval for the 3 DNS records). He chose to have a
    business advisor check the format as we go, and the footer uses his
    home address and phone (he gave them; the phone is already public on
    the ECS page). **His home address never goes in this public repo**:

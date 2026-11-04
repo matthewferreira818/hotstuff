@@ -1,0 +1,109 @@
+{
+  "_read_me": "Volatility robot (Grok, 2026-11-04). Practice money only. Mix of high-volatility stocks and major crypto. Idea: capture larger moves so the costs (Moomoo-style on stocks, 0.5% on crypto) are a smaller percentage of the move. Expectation: higher win size when it hits, but also larger losses and more noise. Whether it beats costs after fees is unknown until paper results accumulate. No projected return claimed. Distinct from Moonshot crypto (which already holds meme coins).",
+  "broker": "practice",
+  "paused": false,
+  "check_every_seconds": 30,
+  "max_orders_per_day": 6,
+  "market": "mixed",
+  "stocks": [
+    {
+      "symbol": "ONDS",
+      "buy_below": 0,
+      "buy_dip_pct": 12,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 12,
+      "sell_above": 0
+    },
+    {
+      "symbol": "MARA",
+      "buy_below": 0,
+      "buy_dip_pct": 12,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 12,
+      "sell_above": 0
+    },
+    {
+      "symbol": "RIOT",
+      "buy_below": 0,
+      "buy_dip_pct": 12,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 12,
+      "sell_above": 0
+    },
+    {
+      "symbol": "SMCI",
+      "buy_below": 0,
+      "buy_dip_pct": 10,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 18,
+      "stop_loss_pct": 10,
+      "sell_above": 0
+    },
+    {
+      "symbol": "COIN",
+      "buy_below": 0,
+      "buy_dip_pct": 10,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 18,
+      "stop_loss_pct": 10,
+      "sell_above": 0
+    }
+  ],
+  "crypto": [
+    {
+      "symbol": "BTC-USD",
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 150,
+      "take_profit_pct": 15,
+      "stop_loss_pct": 10
+    },
+    {
+      "symbol": "ETH-USD",
+      "buy_dip_pct": 10,
+      "dollars_per_buy": 150,
+      "take_profit_pct": 18,
+      "stop_loss_pct": 12
+    },
+    {
+      "symbol": "SOL-USD",
+      "buy_dip_pct": 12,
+      "dollars_per_buy": 150,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 14
+    },
+    {
+      "symbol": "DOGE-USD",
+      "buy_dip_pct": 15,
+      "dollars_per_buy": 100,
+      "take_profit_pct": 25,
+      "stop_loss_pct": 18
+    }
+  ],
+  "sizing": {
+    "bet_pct_of_account": 15,
+    "min_bet": 100,
+    "max_per_stock_pct": 20
+  },
+  "paper_costs": {
+    "fee_min": 1.99,
+    "fee_per_share": 0.0099,
+    "fee_pct": 0.5,
+    "slippage_pct": 0.1,
+    "_note": "Stocks use Moomoo-style fees. Crypto uses 0.5% fee (KOHO-style). Both get 0.1% slippage."
+  },
+  "practice_deposits": null,
+  "account_file": "account-volatility.json",
+  "label": "Volatility",
+  "robot_id": "volatility",
+  "live_branch": "stock-live-volatility",
+  "benchmark": "SPY",
+  "benchmark_name": "SPY"
+}

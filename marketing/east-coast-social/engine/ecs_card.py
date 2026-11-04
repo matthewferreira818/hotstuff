@@ -24,10 +24,10 @@ FONT_REG = ["/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
 
 THEMES = {
     #        background  ink        accent     wave colours (back to front)      label
-    "tip":   ("#0f3b3d", "#f3fbf8", "#5eead4", ("#14504f", "#1a6461", "#22807a"), "FREE TIP"),
+    "tip":   ("#0f3b3d", "#f3fbf8", "#5eead4", ("#1d6663", "#25807b", "#2f9e96"), "FREE TIP"),
     "idea":  ("#fff4e6", "#2a1d14", "#ea6a2a", ("#fde2c4", "#fbcf9f", "#f6b277"), "POST IDEA"),
-    "story": ("#0d1f33", "#f2f6fa", "#f0b429", ("#14304d", "#1b4066", "#245384"), "BEHIND THE SCENES"),
-    "offer": ("#f0b429", "#14213a", "#14213a", ("#f5c75a", "#f8d57f", "#fbe3a6"), "THE OFFER"),
+    "story": ("#0d1f33", "#f2f6fa", "#f0b429", ("#1d3f66", "#28568a", "#336fb0"), "BEHIND THE SCENES"),
+    "offer": ("#f0b429", "#14213a", "#14213a", ("#f6cc66", "#f9db8f", "#fceabc"), "THE OFFER"),
 }
 FOOTER = "findhotstuff.com/automation  ·  Memramcook, NB"
 

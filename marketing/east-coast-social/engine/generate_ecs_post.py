@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # repo root
 
 from ecs_site import ecs_url  # noqa: E402
-from post_card import render_card
+from ecs_card import render  # 2026-11-04 redesign: a look per kind of post
 
 # ?ref=ecs: the caption lands on X, Facebook, and manual posts alike, so the
 # tag names the funnel (ECS daily caption), not a single platform
@@ -74,10 +74,20 @@ POOL = [
 ]
 
 
+# The card's look for each POOL entry, same order (ecs_card.THEMES).
+KINDS = ['tip', 'idea', 'story', 'offer', 'tip', 'idea', 'story', 'offer', 'tip', 'idea', 'story', 'offer', 'tip', 'idea', 'story', 'offer', 'tip', 'idea', 'story', 'tip', 'idea']
+assert len(KINDS) == len(POOL)
+
+
 def todays_post(today=None):
     today = today or dt.date.today()
     msg, cap = POOL[today.toordinal() % len(POOL)]
     return msg, cap.format(site=SITE)
+
+
+def todays_kind(today=None):
+    today = today or dt.date.today()
+    return KINDS[today.toordinal() % len(POOL)]
 
 
 def archive(card_path, msg, caption, today):
@@ -134,8 +144,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     msg, caption = todays_post()
     card = out / "card.png"
-    render_card("East Coast Social", msg, card,
-                footer=SITE, tagline="Done-for-you social media · NB")
+    render(todays_kind(), msg, card)
     (out / "caption.txt").write_text(caption, encoding="utf-8")
     print(f"card + caption written to {out}\n{msg}")
     try:

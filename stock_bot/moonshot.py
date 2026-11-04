@@ -8,7 +8,8 @@ with fewer fees. Two copies run on their own practice accounts:
   - crypto (watchlist-moonshot-crypto.json): the big coins, 24/7, with a
     0.5% fee per trade (what Matthew's KOHO app charges for crypto).
 
-The rule, checked once an hour:
+The rule, checked every 10 seconds (Matthew 2026-11-04: "as often as the
+other bots"); daily history is refreshed hourly:
   - Rank everything by how much it rose over the last `lookback_days`,
     keeping only things above their `trend_days` average (still climbing).
   - Hold the top `max_positions`, all in (cash split evenly).
@@ -29,6 +30,7 @@ import datetime as dt
 import json
 import os
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -86,6 +88,9 @@ def decide(cfg, prices, scores, held, cash, now_ts):
 
 
 def run(cfg_name):
+    """One job = a loop: prices every `check_every_seconds` (10, like the
+    other robots), daily history refreshed hourly. Stocks stop at the close;
+    crypto runs until the job's time limit and the next hourly run takes over."""
     cfg_path = os.path.join(HERE, cfg_name)
     with open(cfg_path) as f:
         cfg = json.load(f)
@@ -94,39 +99,90 @@ def run(cfg_name):
     label, bench, r = cfg["label"], cfg["benchmark"], cfg["rules"]
     syms = cfg["symbols"]
     crypto = cfg.get("market") == "crypto"
-    events = broker.acct.setdefault("events", [])
+    acct = broker.acct
+    events = acct.setdefault("events", [])
+    every = max(float(cfg.get("check_every_seconds", 10)), 5)
+    started = time.monotonic()
 
     def event(text, kind="info"):
         events.append({"time": paper_broker._now(), "kind": kind, "text": text})
         del events[:-40]
         print(text if kind != "quiet" else "quiet")
 
-    market_open = True if crypto else bool(broker.clock().get("is_open"))
-    held_syms = list(broker.acct["positions"])
-    prices = broker.latest_prices(list(dict.fromkeys(syms + held_syms + [bench])))
-    acct = broker.acct
-    if "bench_units" not in acct and prices.get(bench):
-        acct["bench_units"] = acct["deposited"] / prices[bench]
-        event(f"{label} robot started with {paper_broker.START_CASH:,.0f} "
-              f"practice dollars.", "start")
+    def is_open():
+        return True if crypto else bool(broker.clock().get("is_open"))
 
-    scores, closes_by = {}, {}
-    if market_open and not cfg.get("paused"):
-        for s in dict.fromkeys(syms + held_syms):
+    scores, closes_by, prices = {}, {}, {}
+
+    def publish(market_open):
+        positions = broker.positions()
+        held_value = sum(x["market_value"] for x in positions.values())
+        pos_rows = []
+        for s, x in positions.items():
+            raw = acct["positions"][s]
+            price = prices.get(s) or raw["avg_entry_price"]
+            fill = raw.get("fill", raw["avg_entry_price"])
+            peak = raw.get("peak", fill)
+            pos_rows.append({"symbol": s, "price": price, "entry": fill,
+                             "value": x["market_value"], "peak": peak,
+                             "change_pct": round((price / fill - 1) * 100, 2),
+                             "stop": peak * (1 - r["trail_pct"] / 100)})
+        live_scores = {s: score(closes_by.get(s, []), prices.get(s),
+                                r["lookback_days"], r["trend_days"])
+                       for s in syms}
+        lead = sorted(((v, s) for s, v in live_scores.items() if v is not None),
+                      reverse=True)[:8]
+        bu = acct.get("bench_units")
+        snap = {
+            "robot": cfg["robot_id"], "label": label,
+            "updated": paper_broker._now(), "market_open": market_open,
+            "benchmark": cfg["benchmark_name"],
+            "account": {"started": acct["started"], "start_cash": acct["deposited"],
+                        "cash": round(acct["cash"], 2), "held": round(held_value, 2),
+                        "value": round(acct["cash"] + held_value, 2),
+                        "bench_value": round(bu * prices[bench], 2)
+                        if bu and prices.get(bench) else None,
+                        "trades": len(acct["orders"]),
+                        "fees": round(sum(o.get("fee", 0) for o in acct["orders"]), 2)},
+            "positions": pos_rows,
+            "leaders": [{"symbol": s, "rise_pct": round(v, 1), "price": prices.get(s)}
+                        for v, s in lead],
+            "orders": list(reversed(acct["orders"]))[:30],
+            "bot": {"events": events[-25:]},
+            "rules": r,
+        }
+        try:
+            live_snapshot.publish(snap, cfg["live_branch"])
+        except Exception as e:
+            print(f"Live page update skipped ({type(e).__name__}).")
+
+    def load_history():
+        today = dt.datetime.now(dt.timezone.utc).date().isoformat()
+        for s in dict.fromkeys(syms + list(acct["positions"])):
             try:
                 bars = fetch(s, "3mo")
             except Exception:
                 continue
             # Today's bar is still forming: rank on finished days + live price.
-            closes = [b["close"] for b in bars if b["date"] <
-                      dt.datetime.now(dt.timezone.utc).date().isoformat()]
-            closes_by[s] = closes
-            scores[s] = score(closes, prices.get(s), r["lookback_days"],
-                              r["trend_days"])
+            closes_by[s] = [b["close"] for b in bars if b["date"] < today]
+
+    def check():
+        held_syms = list(acct["positions"])
+        prices.update(broker.latest_prices(
+            list(dict.fromkeys(syms + held_syms + [bench]))))
+        if "bench_units" not in acct and prices.get(bench):
+            acct["bench_units"] = acct["deposited"] / prices[bench]
+            event(f"{label} robot started with {paper_broker.START_CASH:,.0f} "
+                  "practice dollars.", "start")
+        for s in dict.fromkeys(syms + held_syms):
+            scores[s] = score(closes_by.get(s, []), prices.get(s),
+                              r["lookback_days"], r["trend_days"])
+        peak_moved = False
         held = {}
         for s, p in acct["positions"].items():
-            if prices.get(s):
-                p["peak"] = max(p.get("peak", 0), prices[s])
+            if prices.get(s) and prices[s] > p.get("peak", 0):
+                p["peak"] = prices[s]
+                peak_moved = True
             held[s] = {"peak": p.get("peak", p["avg_entry_price"]),
                        "bought_ts": dt.datetime.fromisoformat(
                            p.get("bought", paper_broker._now())).timestamp()}
@@ -149,9 +205,9 @@ def run(cfg_name):
             try:
                 broker.buy(s, dollars)
                 o = acct["orders"][-1]
-                p = acct["positions"][s]
-                p.update(fill=o["price"], peak=o["price"],
-                         bought=paper_broker._now())
+                acct["positions"][s].update(fill=o["price"], peak=o["price"],
+                                            bought=paper_broker._now())
+                broker._save(f"{label}: buy {s}")
                 event(f"Bought {s} ${dollars:,.2f} at {o['price']:.4g}: up "
                       f"{scores[s]:.1f}% in {r['lookback_days']} days, the "
                       "hottest on the list", "buy")
@@ -161,50 +217,55 @@ def run(cfg_name):
         if done:
             stock_bot.notify(f"{label} robot (practice): {len(done)} trade(s)",
                              "\n".join(done))
-        else:
-            event(f"Checked {len(syms)}. Holding steady.", "quiet")
-        broker._save(f"{label}: hourly check")
+        return bool(done), peak_moved
 
-    # ------------------------------------------------------ live page
-    positions = broker.positions()
-    held_value = sum(x["market_value"] for x in positions.values())
-    pos_rows = []
-    for s, x in positions.items():
-        raw = acct["positions"][s]
-        price = prices.get(s) or raw["avg_entry_price"]
-        fill = raw.get("fill", raw["avg_entry_price"])
-        peak = raw.get("peak", fill)
-        pos_rows.append({"symbol": s, "price": price, "entry": fill,
-                         "value": x["market_value"], "peak": peak,
-                         "change_pct": round((price / fill - 1) * 100, 2),
-                         "stop": peak * (1 - r["trail_pct"] / 100)})
-    lead = sorted(((v, s) for s, v in scores.items() if v is not None),
-                  reverse=True)[:8]
-    bu = acct.get("bench_units")
-    snap = {
-        "robot": cfg["robot_id"], "label": label,
-        "updated": paper_broker._now(), "market_open": market_open,
-        "benchmark": cfg["benchmark_name"],
-        "account": {"started": acct["started"], "start_cash": acct["deposited"],
-                    "cash": round(acct["cash"], 2), "held": round(held_value, 2),
-                    "value": round(acct["cash"] + held_value, 2),
-                    "bench_value": round(bu * prices[bench], 2)
-                    if bu and prices.get(bench) else None,
-                    "trades": len(acct["orders"]),
-                    "fees": round(sum(o.get("fee", 0) for o in acct["orders"]), 2)},
-        "positions": pos_rows,
-        "leaders": [{"symbol": s, "rise_pct": round(v, 1), "price": prices.get(s)}
-                    for v, s in lead],
-        "orders": list(reversed(acct["orders"]))[:30],
-        "bot": {"events": events[-25:]},
-        "rules": r,
-    }
-    try:
-        live_snapshot.publish(snap, cfg["live_branch"])
-    except Exception as e:
-        print(f"Live page update skipped ({type(e).__name__}).")
-    if not market_open:
-        print("Market closed; live page refreshed.")
+    market_open = is_open()
+    if cfg.get("paused") or not market_open:
+        prices.update(broker.latest_prices(
+            list(dict.fromkeys(syms + list(acct["positions"]) + [bench]))))
+        publish(market_open)
+        print("Paused." if cfg.get("paused") else "Market closed; live page refreshed.")
+        return 0
+    load_history()
+    event(f"Checking {len(syms)} every {every:g} seconds.", "start")
+    last_hist = last_snap = last_save = time.monotonic()
+    checks = errors = 0
+    dirty = False
+    while time.monotonic() - started < stock_bot.MAX_LOOP_SECONDS:
+        now = time.monotonic()
+        try:
+            if now - last_hist >= 3600:
+                load_history()
+                last_hist = now
+            if not crypto and checks % 6 == 0 and not is_open():
+                event("Market closed.", "stop")
+                break
+            traded, peak_moved = check()
+            dirty = dirty or peak_moved or traded
+            if traded:
+                publish(True)
+                last_snap = now
+            elif checks % 360 == 0:
+                event(f"Checked {len(syms)}. Holding steady.", "quiet")
+            if dirty and now - last_save >= 600:
+                broker._save(f"{label}: peaks")
+                last_save, dirty = now, False
+            checks += 1
+            errors = 0
+        except Exception as e:
+            errors += 1
+            print(f"Check failed ({type(e).__name__}), {errors} in a row.")
+            if errors >= stock_bot.MAX_ERRORS_IN_A_ROW:
+                break
+            time.sleep(30)
+            continue
+        if now - last_snap >= stock_bot.SNAPSHOT_SECONDS:
+            publish(True)
+            last_snap = now
+        time.sleep(every)
+    publish(is_open())
+    broker._save(f"{label}: end of run")
+    print(f"Done: {checks} checks.")
     return 0
 
 

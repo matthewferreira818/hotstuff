@@ -1,5 +1,5 @@
 {
-  "_read_me": "Robot 4, Moonshot (stocks). Matthew 2026-11-04: 'a new bot that is all high risk high reward'. Practice money only, never Moomoo. All in on the 2 hottest climbers (biggest 10-day rise, above their 20-day average) from wild stocks and 2-3x leveraged funds; sells on a 15% trailing stop or when it stops climbing. Checked hourly in market hours. Costs: $0 commission (like Wealthsimple/Questrade/National Bank) plus 0.1% slippage; currency conversion is NOT modelled. Not backtested: a live experiment.",
+  "_read_me": "Robot 4, Moonshot (stocks). Matthew 2026-11-04: 'a new bot that is all high risk high reward'. Practice money only, never Moomoo. All in on the 2 hottest climbers (biggest 10-day rise, above their 20-day average) from wild stocks and 2-3x leveraged funds; sells on a 15% trailing stop or when it stops climbing. Checked every 10 seconds in market hours. Costs: $0 commission (like Wealthsimple/Questrade/National Bank) plus 0.1% slippage; currency conversion is NOT modelled. Not backtested: a live experiment.",
   "label": "Moonshot",
   "robot_id": "moonshot",
   "market": "stocks",
@@ -60,5 +60,6 @@
     "fee_per_share": 0,
     "fee_pct": 0,
     "slippage_pct": 0.1
-  }
+  },
+  "check_every_seconds": 10
 }

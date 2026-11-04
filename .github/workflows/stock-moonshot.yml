@@ -1,7 +1,7 @@
 name: Stock bot (moonshot)
 
 # Moonshot robot (moonshot): high risk, high reward, PRACTICE MONEY ONLY.
-# One quick check an hour (stocks: market hours; crypto: around the
+# One run loops, checking every 10 seconds (stocks: market hours; crypto: around the
 # clock). Rules and costs in stock_bot/watchlist-moonshot.json.
 # Public logs: the script prints counts and practice trades only.
 
@@ -20,7 +20,7 @@ permissions:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 358
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

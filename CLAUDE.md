@@ -22,7 +22,7 @@ than discovering something was papered over.
   **Domains are registered at Porkbun.** eastcoastsocial.ca currently sits
   there as a URL-forward to findhotstuff.com/automation/ that STRIPS the
   query string (verified 08-28), so every ?ref= tag through it is lost.
-  **Email (2026-11-04):** contact@ and hello@ forward (Porkbun) to his Yahoo; sending works from Yahoo as a verified send-only
+  **Email (2026-11-04):** contact@ and hello@ forward (Porkbun) to the business Gmail eastcoastsocial.nb@gmail.com since 2026-11-04 5 AM (was his Yahoo); sending works from his Yahoo (matthew.ferreira213) as a verified send-only
   address (DKIM is yahoo.com, SPF softfail, no DMARC: may hit spam). Zoho Free is not offered in Canada. Proper fix later: SMTP2GO free + 3 CNAMEs.
   The $79 two-business Starter Month pilot is drafted in helm-private ecs/pilot/; the matching page fix waits on branch claude/ecs-pilot-page-draft.
 - **East Coast Social (ECS)** — findhotstuff.com/automation (EN + /fr).

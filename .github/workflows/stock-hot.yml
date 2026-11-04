@@ -42,6 +42,7 @@ jobs:
         run: |
           gh workflow run stock-moonshot.yml --ref master || true
           gh workflow run stock-moonshot-crypto.yml --ref master || true
+          gh workflow run stock-quality.yml --ref master || true
       - name: Self-test
         run: |
           python stock_bot/hot_bot.py --selftest

@@ -51,6 +51,25 @@ import strategy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WATCHLIST = os.path.join(HERE, "watchlist.json")
+
+
+def _arg(name):
+    """Value after --name, or None (2026-11-04: one engine, several dip robots)."""
+    if name in sys.argv and sys.argv.index(name) + 1 < len(sys.argv):
+        return sys.argv[sys.argv.index(name) + 1]
+    return None
+
+
+def _repo_path(p):
+    return p if os.path.isabs(p) else os.path.join(os.path.dirname(HERE), p)
+
+
+# Optional, for a second dip robot (Grok's Quality Dip). With none given, the Dip
+# robot runs exactly as before: watchlist.json, paper/account.json, stock-live.
+if _arg("--config"):
+    WATCHLIST = _repo_path(_arg("--config"))
+ACCOUNT_FILE = _repo_path(_arg("--account")) if _arg("--account") else None
+LIVE_BRANCH = _arg("--branch")
 PAUSE_FILE = os.path.join(HERE, "PAUSE")
 
 PAPER_API = "https://paper-api.alpaca.markets"
@@ -299,7 +318,7 @@ def fresh_cfg(cfg):
         subprocess.run(git + ["fetch", "-q", "origin", branch], check=True,
                        timeout=30, capture_output=True)
         raw = subprocess.run(
-            git + ["show", f"FETCH_HEAD:stock_bot/watchlist.json"],
+            git + ["show", f"FETCH_HEAD:stock_bot/{os.path.basename(WATCHLIST)}"],
             check=True, timeout=10, capture_output=True).stdout
         cfg = json.loads(raw)
         paused_file = subprocess.run(
@@ -411,8 +430,9 @@ def run():
         # Our own practice account (paper_broker.py): real prices, fake
         # money, real-world fees. Alpaca won't take Canadian residents.
         from paper_broker import PaperBroker
-        broker, live, label = PaperBroker(cfg.get("paper_costs")), False, \
-            "practice"
+        broker = (PaperBroker(cfg.get("paper_costs"), path=ACCOUNT_FILE)
+                  if ACCOUNT_FILE else PaperBroker(cfg.get("paper_costs")))
+        live, label = False, "practice"
         try:  # paydays that have come due since the last run
             if broker.apply_deposits(cfg.get("practice_deposits")):
                 print("Practice deposit added.")
@@ -448,8 +468,11 @@ def run():
         try:
             import live_snapshot
             bot = dict(stats, events=list(EVENTS))
-            live_snapshot.publish(live_snapshot.build(
-                broker, cfg, closes, market_open, bot))
+            snap = live_snapshot.build(broker, cfg, closes, market_open, bot)
+            if LIVE_BRANCH:
+                live_snapshot.publish(snap, LIVE_BRANCH)
+            else:
+                live_snapshot.publish(snap)
         except Exception as e:  # the page must never stop the trading
             print(f"Live page update skipped ({type(e).__name__}).")
 

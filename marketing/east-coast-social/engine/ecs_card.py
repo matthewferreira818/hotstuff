@@ -61,10 +61,11 @@ def _waves(d, colours):
     edges so no wave stops short): the East Coast signature."""
     base = W + 10
     for i, col in enumerate(colours):
-        top = int(W * (0.79 + 0.05 * i))
-        amp = int(W * (0.028 - 0.005 * i))
-        cycles = (2, 3, 2)[i]
-        shift = (0.0, 1.9, 3.6)[i]
+        # bands never pinch to nothing at an edge: gap > the two amplitudes
+        top = int(W * (0.785 + 0.06 * i))
+        amp = int(W * (0.017 - 0.003 * i))
+        cycles = (2, 2, 3)[i]
+        shift = (0.0, 1.2, 2.4)[i]
         pts = [(x, top + amp * math.sin(2 * math.pi * cycles * x / W + shift))
                for x in range(-40, W + 48, 6)]
         d.polygon(pts + [(W + 40, base), (-40, base)], fill=col)

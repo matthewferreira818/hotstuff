@@ -12,13 +12,13 @@
   "paused": false,
   "check_every_seconds": 10,
   "max_total_invested": 1000,
-  "max_orders_per_day": 8,
+  "max_orders_per_day": 4,
   "_stocks_from": "Stock council 2026-09-26 (stock_bot/council/SESSIONS.md). Matthew said yes, practice money only.",
   "stocks": [
     {
       "symbol": "ASTS",
       "buy_below": 0,
-      "buy_dip_pct": 9.5,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 200,
       "take_profit_pct": 17,
@@ -28,7 +28,7 @@
     {
       "symbol": "CRWD",
       "buy_below": 0,
-      "buy_dip_pct": 10,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 100,
       "take_profit_pct": 15,
@@ -38,7 +38,7 @@
     {
       "symbol": "HOOD",
       "buy_below": 0,
-      "buy_dip_pct": 8,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 200,
       "take_profit_pct": 20,
@@ -48,7 +48,7 @@
     {
       "symbol": "NVDA",
       "buy_below": 0,
-      "buy_dip_pct": 6,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 100,
       "take_profit_pct": 9,
@@ -59,7 +59,7 @@
     {
       "symbol": "ABNB",
       "buy_below": 0,
-      "buy_dip_pct": 8,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 100,
       "take_profit_pct": 12,
@@ -70,7 +70,7 @@
     {
       "symbol": "RIOT",
       "buy_below": 0,
-      "buy_dip_pct": 8,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 100,
       "take_profit_pct": 20,
@@ -81,7 +81,7 @@
     {
       "symbol": "ARM",
       "buy_below": 0,
-      "buy_dip_pct": 8,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 100,
       "take_profit_pct": 20,
@@ -92,7 +92,7 @@
     {
       "symbol": "MU",
       "buy_below": 0,
-      "buy_dip_pct": 8,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 100,
       "take_profit_pct": 20,
@@ -103,7 +103,7 @@
     {
       "symbol": "ONDS",
       "buy_below": 0,
-      "buy_dip_pct": 8,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 100,
       "take_profit_pct": 20,
@@ -114,7 +114,7 @@
     {
       "symbol": "PFE",
       "buy_below": 0,
-      "buy_dip_pct": 8,
+      "buy_dip_pct": 12,
       "dollars_per_buy": 100,
       "max_position_dollars": 100,
       "take_profit_pct": 20,
@@ -132,5 +132,6 @@
     "_note": "Each buy = 10% of the whole account (cash + stocks), at least $100 (smaller and the ~$4 round-trip fee eats it), never more than 20% of the account in one stock, never more than the cash on hand. Replaces the per-stock dollars_per_buy / max_position_dollars and max_total_invested while set. Changed 2026-11-04 (Matthew: 'help the trading bots'): bets raised to 20% of the account, at least $150, so the ~$4 round-trip fee costs ~2.7% of a bet instead of ~4% (fees were $125 on a ~$1,070 start). Fewer, bigger practice bets; same dip rules."
   },
   "practice_deposits": null,
-  "practice_deposits_note": "Paused 2026-10-08 (found still on 2026-10-13 and switched off): no real deposits were ever made, so the practice mirror stops too. The deposit already made on 2026-09-30 stays in the fake account. Put the old block back to restart it: amount_cad 100, every_days 14, first 2026-09-30."
+  "practice_deposits_note": "Paused 2026-10-08 (found still on 2026-10-13 and switched off): no real deposits were ever made, so the practice mirror stops too. The deposit already made on 2026-09-30 stays in the fake account. Put the old block back to restart it: amount_cad 100, every_days 14, first 2026-09-30.",
+  "_grok_2026_11_04": "Grok's review, Matthew's pick (option 2, 2026-11-04): every stock now waits for a 12%+ dip before buying (was 6-10%), and at most 4 orders a day (was 8), so fewer trades cover the ~$4 round-trip fee. Hot hands stays aggressive as Matthew's live experiment."
 }

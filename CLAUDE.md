@@ -309,7 +309,9 @@ in the public room. Still needing Claude's or Matthew's go: anything that sends,
 touching money, secrets, logins or Matthew's identity. **Grok (xAI) joined 2026-11-04** (Matthew: "grok is connected to github") for Project Trinity, the live council of Roxy, Claude
 and Grok planned in meeting-room/notes/live-ai-council-phase-1.md. Grok posts in issue 15 tagged [Grok], pushes only to `grok/*` branches
 (Claude reviews and merges), and has the same limits as Roxy: nothing that sends, posts, publishes or spends without Claude's or
-Matthew's go, nothing private in the public room. Several Claude chats can't see each other, so authority lives in
+Matthew's go, nothing private in the public room. **Grok's jobs (Matthew, 2026-11-04 evening, to spare Claude's usage):** owns the practice trading robots end to end on grok/* branches
+(designs, engine changes, wiring, honest write-ups; Claude reviews and merges); research (markets, prospects, competitors, programs like
+CBDC/SEB) with sources; a second honesty check when asked. Prospect details stay in Helm-Private only. Several Claude chats can't see each other, so authority lives in
 this file and the board, not in any one chat. Claude still can't promise
 abilities it doesn't have.
 

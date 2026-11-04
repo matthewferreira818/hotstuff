@@ -59,6 +59,7 @@ import Cocoa
    }
   }
   let token: String? = hasToken && !anonymousReadFallback ? savedToken() : nil
+  if token == nil || token?.isEmpty == true { anonymousReadFallback = true }
   if force || board == nil || Date().timeIntervalSince(lastBoardRefresh) >= RoomRefreshPolicy.boardInterval {
    var fresh = await MeetingData.fetch(token:token)
    if fresh == nil, token != nil { fresh = await MeetingData.fetch(token:nil) }

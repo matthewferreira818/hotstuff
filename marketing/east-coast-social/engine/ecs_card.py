@@ -57,16 +57,17 @@ def _wrap(d, text, font, max_w):
 
 
 def _waves(d, colours):
-    """Three layered sine waves along the bottom: the East Coast signature."""
-    base = W
+    """Three layered waves running edge to edge (whole cycles, drawn past both
+    edges so no wave stops short): the East Coast signature."""
+    base = W + 10
     for i, col in enumerate(colours):
-        top = int(W * (0.80 + 0.045 * i))
-        amp = int(W * (0.018 - 0.003 * i))
-        period = W / (1.6 + 0.35 * i)
-        shift = i * 1.7
-        pts = [(x, top + amp * math.sin(2 * math.pi * x / period + shift))
-               for x in range(0, W + 8, 8)]
-        d.polygon(pts + [(W, base), (0, base)], fill=col)
+        top = int(W * (0.79 + 0.05 * i))
+        amp = int(W * (0.028 - 0.005 * i))
+        cycles = (2, 3, 2)[i]
+        shift = (0.0, 1.9, 3.6)[i]
+        pts = [(x, top + amp * math.sin(2 * math.pi * cycles * x / W + shift))
+               for x in range(-40, W + 48, 6)]
+        d.polygon(pts + [(W + 40, base), (-40, base)], fill=col)
 
 
 def _icon(d, kind, cx, cy, r, col, bg):

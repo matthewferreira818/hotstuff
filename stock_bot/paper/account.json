@@ -1,16 +1,12 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 100.57,
+ "cash": 188.38,
  "spy_at_start": 764.32,
  "positions": {
   "MU": {
    "qty": 0.11220961229098003,
    "avg_entry_price": 891.1892
-  },
-  "ONDS": {
-   "qty": 16.53920403920404,
-   "avg_entry_price": 6.0462
   },
   "ASTS": {
    "qty": 2.5834323987358294,
@@ -642,6 +638,16 @@
    "qty": 0.48323,
    "price": 202.8226,
    "dollars": 100.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:46:56+00:00",
+   "symbol": "ONDS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 16.539204,
+   "price": 5.4296,
+   "dollars": 87.81,
    "fee": 1.99
   }
  ],

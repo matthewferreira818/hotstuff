@@ -1,0 +1,107 @@
+{
+  "_read_me": "Quality Dip robot (Grok, 2026-11-04). Practice money only. Idea: fewer, larger dips on liquid large-cap / mid-cap names so the ~$4 round-trip fee is a smaller percentage of each bet. Expectation: lower trade frequency than the main Dip bot; whether it covers costs better is unknown until paper results accumulate. No projected return claimed. Stocks chosen for liquidity and reasonable daily range, not for any backtest edge.",
+  "broker": "practice",
+  "paused": false,
+  "check_every_seconds": 60,
+  "max_orders_per_day": 3,
+  "stocks": [
+    {
+      "symbol": "AAPL",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 200,
+      "max_position_dollars": 400,
+      "take_profit_pct": 12,
+      "stop_loss_pct": 8,
+      "sell_above": 0
+    },
+    {
+      "symbol": "MSFT",
+      "buy_below": 0,
+      "buy_dip_pct": 8,
+      "dollars_per_buy": 200,
+      "max_position_dollars": 400,
+      "take_profit_pct": 12,
+      "stop_loss_pct": 8,
+      "sell_above": 0
+    },
+    {
+      "symbol": "GOOGL",
+      "buy_below": 0,
+      "buy_dip_pct": 9,
+      "dollars_per_buy": 200,
+      "max_position_dollars": 400,
+      "take_profit_pct": 14,
+      "stop_loss_pct": 8,
+      "sell_above": 0
+    },
+    {
+      "symbol": "AMZN",
+      "buy_below": 0,
+      "buy_dip_pct": 9,
+      "dollars_per_buy": 200,
+      "max_position_dollars": 400,
+      "take_profit_pct": 14,
+      "stop_loss_pct": 8,
+      "sell_above": 0
+    },
+    {
+      "symbol": "META",
+      "buy_below": 0,
+      "buy_dip_pct": 10,
+      "dollars_per_buy": 200,
+      "max_position_dollars": 400,
+      "take_profit_pct": 15,
+      "stop_loss_pct": 9,
+      "sell_above": 0
+    },
+    {
+      "symbol": "NVDA",
+      "buy_below": 0,
+      "buy_dip_pct": 10,
+      "dollars_per_buy": 200,
+      "max_position_dollars": 400,
+      "take_profit_pct": 15,
+      "stop_loss_pct": 9,
+      "sell_above": 0
+    },
+    {
+      "symbol": "AMD",
+      "buy_below": 0,
+      "buy_dip_pct": 10,
+      "dollars_per_buy": 200,
+      "max_position_dollars": 400,
+      "take_profit_pct": 15,
+      "stop_loss_pct": 9,
+      "sell_above": 0
+    },
+    {
+      "symbol": "AVGO",
+      "buy_below": 0,
+      "buy_dip_pct": 9,
+      "dollars_per_buy": 200,
+      "max_position_dollars": 400,
+      "take_profit_pct": 14,
+      "stop_loss_pct": 8,
+      "sell_above": 0
+    }
+  ],
+  "sizing": {
+    "bet_pct_of_account": 20,
+    "min_bet": 150,
+    "max_per_stock_pct": 25,
+    "_note": "Larger bets than the small-account default so the fixed fee is a smaller percentage. Still paper only."
+  },
+  "paper_costs": {
+    "fee_min": 1.99,
+    "fee_per_share": 0.0099,
+    "slippage_pct": 0.1
+  },
+  "practice_deposits": null,
+  "account_file": "account-quality.json",
+  "label": "Quality Dip",
+  "robot_id": "quality",
+  "live_branch": "stock-live-quality",
+  "benchmark": "SPY",
+  "benchmark_name": "SPY"
+}

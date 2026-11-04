@@ -1,18 +1,18 @@
 # HotsTuff — TikTok Photo Pack (auto-generated)
 
-_Generated 2026-11-01 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
+_Generated 2026-11-04 · 8 slides · post all slides as one TikTok photo (swipe) post — the last slide is the QR code closer._
 
 
 ## 🖼️ Slides
 
-1. `slide-01.png` — Maker Mini Office Purifier — $13.99 (Auto)
-2. `slide-02.png` — Winter Warm Women's Dress — $27.99 (Fashion)
-3. `slide-03.png` — Heart Shaped Cross Pendant — $31.99 (Jewelry)
-4. `slide-04.png` — Restraint Lead Travel Leash — $11.99 (Pet)
-5. `slide-05.png` — Belt Feeding Care Accessory — $35.99 (Baby)
-6. `slide-06.png` — Pockets Warm Men's Clothing — $21.99 (Fashion)
-7. `slide-07.png` — Baby shoes toddler — $13.99 (Baby)
-8. `slide-08.png` — Coat For Women's Clothing — $24.99 (Fashion)
+1. `slide-01.png` — Women's Shoulder Messenger Bag — $13.99 (Bags)
+2. `slide-02.png` — Shedding Season Easy Clean — $35.99 (Pet)
+3. `slide-03.png` — Anti-spray Mask Glass Sunglasses — $13.99 (Fashion)
+4. `slide-04.png` — Chakras Colored Stones Bracelet — $11.99 (Jewelry)
+5. `slide-05.png` — Reusable Baby Diaper — $9.99 (Baby)
+6. `slide-06.png` — Air Cushion Hiking Trekking — $27.99 (Home)
+7. `slide-07.png` — Jacket Men's Outerwear Sportswear — $35.99 (Fashion)
+8. `slide-08.png` — Bedside Wall Sticker Wallpaper — $35.99 (Home)
 
 
 ## 📝 Captions — pick one, paste as-is
@@ -20,19 +20,19 @@ _Generated 2026-11-01 · 8 slides · post all slides as one TikTok photo (swipe)
 **Variant 1 — curiosity hook**
 
 ```
-ok this week's finds are actually unreal 👀 everything under $36 #tiktokmademebuyit #trending #cartok #fashiontok #jewelrytok
+ok this week's finds are actually unreal 👀 everything under $36 #tiktokmademebuyit #trending #bagtok #petsoftiktok #fashiontok
 ```
 
 **Variant 2 — POV hook**
 
 ```
-POV: your fyp finally delivered 🔥 slide 1 is the maker mini office purifier btw #tiktokmademebuyit #trending #cartok #fashiontok #jewelrytok
+POV: your fyp finally delivered 🔥 slide 1 is the women's shoulder messenger bag btw #tiktokmademebuyit #trending #bagtok #petsoftiktok #fashiontok
 ```
 
 **Variant 3 — ranked-list hook**
 
 ```
-ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #cartok #fashiontok #jewelrytok
+ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing #tiktokmademebuyit #trending #bagtok #petsoftiktok #fashiontok
 ```
 
 > 🎵 Add a trending sound in-app before posting — photo posts ride the sound's reach.

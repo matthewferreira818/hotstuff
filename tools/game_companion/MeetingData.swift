@@ -405,7 +405,15 @@ enum MeetingData {
  static func fetch(token: String? = nil) async -> Board? {
   guard var request = api("/contents/meeting-room/BOARD.md?ref=master",token:token) else { return nil }
   request.setValue("application/vnd.github.raw+json",forHTTPHeaderField:"Accept")
-  guard let (data,response) = try? await URLSession.shared.data(for:request),
+  if let (data,response) = try? await URLSession.shared.data(for:request),
+     (response as? HTTPURLResponse)?.statusCode == 200,
+     let text = String(data:data,encoding:.utf8), text.contains("##") {
+   return parse(text)
+  }
+  // Fallback (2026-11-04, "Couldn't reach the board"): without a token the API allows 60 reads an hour per network, and a busy
+  // evening of refreshes runs it out. The raw file host has no such cap (it can be ~5 minutes behind), so try it before giving up.
+  guard let raw = URL(string:"https://raw.githubusercontent.com/\(owner)/\(repo)/master/meeting-room/BOARD.md?nc=\(Int(Date().timeIntervalSince1970))"),
+        let (data,response) = try? await URLSession.shared.data(from:raw),
         (response as? HTTPURLResponse)?.statusCode == 200,
         let text = String(data:data,encoding:.utf8), text.contains("##") else { return nil }
   return parse(text)

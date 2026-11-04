@@ -13,7 +13,10 @@
   },
   "SOFI": {
    "qty": 28.64108368695525,
-   "avg_entry_price": 17.4574
+   "avg_entry_price": 17.4574,
+   "fill": 17.4574,
+   "peak": 17.4574,
+   "bought": "2026-11-04T16:58:48+00:00"
   }
  },
  "orders": [
@@ -51,6 +54,11 @@
    "time": "2026-11-04T16:58:46+00:00",
    "kind": "buy",
    "text": "Bought CVNA $500.00 at 77.91: up 29.2% in 10 days, the hottest on the list"
+  },
+  {
+   "time": "2026-11-04T16:58:48+00:00",
+   "kind": "buy",
+   "text": "Bought SOFI $500.00 at 17.46: up 18.7% in 10 days, the hottest on the list"
   }
  ],
  "bench_units": 1.3014055179593962

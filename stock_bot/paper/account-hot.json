@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 367.48,
+ "cash": 0.0,
  "spy_at_start": 777.22,
  "positions": {
   "ONDS": {
    "qty": 67.37291878586318,
    "avg_entry_price": 5.52,
    "fill": 5.4905
+  },
+  "SMR": {
+   "qty": 70.08154992799908,
+   "avg_entry_price": 5.2436,
+   "fill": 5.2152
   }
  },
  "orders": [
@@ -959,6 +964,16 @@
    "qty": 69.400367,
    "price": 5.2098,
    "dollars": 359.57,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:46:20+00:00",
+   "symbol": "SMR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 70.08155,
+   "price": 5.2152,
+   "dollars": 367.48,
    "fee": 1.99
   }
  ],

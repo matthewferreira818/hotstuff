@@ -66,6 +66,8 @@ class PaperBroker:
         # Canada: US$0.99 + US$1.00 minimums, ~US$0.0099 a share combined).
         self.fee = float(costs.get("fee_min", costs.get("fee_per_trade", 1.0)))
         self.fee_per_share = float(costs.get("fee_per_share", 0.0))
+        # Percent-of-trade fee (crypto apps like KOHO: 0.5%), 2026-11-04.
+        self.fee_pct = float(costs.get("fee_pct", 0.0)) / 100
         self.slip = float(costs.get("slippage_pct", 0.1)) / 100
         self.path = path
         self.save_hook = save_hook if save_hook is not None else git_save
@@ -152,8 +154,9 @@ class PaperBroker:
     def cash(self):
         return float(self.acct["cash"])
 
-    def order_fee(self, qty):
-        return max(self.fee, self.fee_per_share * qty)
+    def order_fee(self, qty, notional=0.0):
+        return max(self.fee, self.fee_per_share * qty,
+                   getattr(self, "fee_pct", 0.0) * notional)
 
     def apply_deposits(self, plan, today=None):
         """Mirror Matthew's paycheque deposits. plan = {"amount_cad": 100,
@@ -200,7 +203,7 @@ class PaperBroker:
         price = self._price(symbol) * (1 + self.slip)
         if dollars > self.acct["cash"] + 1e-9:
             raise RuntimeError(f"not enough practice cash for {symbol}")
-        fee = self.order_fee((dollars - self.fee) / price)
+        fee = self.order_fee((dollars - self.fee) / price, dollars)
         spend = dollars - fee
         if spend <= 0:
             raise RuntimeError("buy is smaller than the fee")
@@ -226,7 +229,7 @@ class PaperBroker:
         if not pos:
             raise RuntimeError(f"no practice position in {symbol}")
         price = self._price(symbol) * (1 - self.slip)
-        fee = self.order_fee(pos["qty"])
+        fee = self.order_fee(pos["qty"], pos["qty"] * price)
         proceeds = pos["qty"] * price - fee
         self.acct["cash"] = round(self.acct["cash"] + proceeds, 2)
         del self.acct["positions"][symbol]

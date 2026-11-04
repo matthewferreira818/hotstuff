@@ -211,14 +211,14 @@ class PaperBroker:
         pos = self.acct["positions"].get(symbol)
         if pos:
             total = pos["qty"] + qty
-            pos["avg_entry_price"] = round(
-                (pos["qty"] * pos["avg_entry_price"] + dollars) / total, 4)
+            pos["avg_entry_price"] = _px(
+                (pos["qty"] * pos["avg_entry_price"] + dollars) / total)
             pos["qty"] = total
         else:
             # The entry price includes the fee, so the bot's take-profit
             # and stop-loss measure what actually came out of pocket.
             self.acct["positions"][symbol] = {
-                "qty": qty, "avg_entry_price": round(dollars / qty, 4)}
+                "qty": qty, "avg_entry_price": _px(dollars / qty)}
         self.acct["cash"] = round(self.acct["cash"] - dollars, 2)
         self._record(symbol, "buy", qty, price, dollars, fee)
         self._save(f"Practice trade: buy {symbol}")
@@ -247,8 +247,14 @@ class PaperBroker:
         self.acct["orders"].append({
             "time": _now(), "symbol": symbol, "side": side,
             "status": "filled", "qty": round(qty, 6),
-            "price": round(price, 4), "dollars": round(dollars, 2),
+            "price": _px(price), "dollars": round(dollars, 2),
             "fee": round(fee, 2)})
+
+
+def _px(x):
+    """Round a price: 4 decimals, or 6 significant digits under $1 so
+    fraction-of-a-penny meme coins (SHIB, PEPE) don't round to $0."""
+    return round(x, 4) if abs(x) >= 1 else float(f"{x:.6g}")
 
 
 def _now():

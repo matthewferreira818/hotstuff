@@ -306,7 +306,10 @@ She may, without waiting for Claude: pick up and finish board work, research and
 give C.C look-only research jobs, and serve as the second honesty check on outreach batches (her OK plus Claude's fact pass plus
 Matthew's GO sends a batch). She works with private material (prospects, jobs) only in Helm-Private or her own chat with Matthew, never
 in the public room. Still needing Claude's or Matthew's go: anything that sends, posts or publishes, offer/price changes, and anything
-touching money, secrets, logins or Matthew's identity. Several Claude chats can't see each other, so authority lives in
+touching money, secrets, logins or Matthew's identity. **Grok (xAI) joined 2026-11-04** (Matthew: "grok is connected to github") for Project Trinity, the live council of Roxy, Claude
+and Grok planned in meeting-room/notes/live-ai-council-phase-1.md. Grok posts in issue 15 tagged [Grok], pushes only to `grok/*` branches
+(Claude reviews and merges), and has the same limits as Roxy: nothing that sends, posts, publishes or spends without Claude's or
+Matthew's go, nothing private in the public room. Several Claude chats can't see each other, so authority lives in
 this file and the board, not in any one chat. Claude still can't promise
 abilities it doesn't have.
 

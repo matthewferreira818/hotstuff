@@ -18,7 +18,8 @@ import SwiftUI
   if session.state == .idle {
    guard session.start(words) else { return }
   } else if running {
-   task?.cancel()
+   // Validate first (Roxy's review): cancelling before a refused interrupt left the round running with no task.
+   // run() below cancels the old task; its late chunks are refused by the session's generation check anyway.
    guard session.interrupt(with:words) else { return }
   } else {
    session = CouncilSession()

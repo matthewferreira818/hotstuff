@@ -96,6 +96,9 @@ than discovering something was papered over.
    Meta and TikTok need their app reviews); where a channel has neither
    a hookup nor a C.C. session, Claude preps and he posts. GPT posts or pushes live only with Claude's go-ahead. OS
    file dialogs are his.
+   **Job applications (his decision, 2026-11-04 ~5:30 AM: "can we have it so she just sends it?"):** RC/C.C may press Submit on job
+   applications from the list Claude prepared (helm-private matthew/jobs/), using only the facts he gave; any question not covered, any
+   sign-in, code, payment or new account stops for him; file pickers (OS dialogs) stay his unless a saved resume can be chosen.
 4. **No fake documents, ever** — he once asked for a fake certificate; the
    answer was and remains no, and he accepted it. Same rule as #1.
 

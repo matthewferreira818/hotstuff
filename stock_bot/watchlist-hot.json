@@ -36,5 +36,15 @@
   },
   "practice_deposits": null,
   "practice_deposits_note": "Paused 2026-10-08: no real deposits were ever made, so the practice mirror stops too. Put the old block back to restart it.",
-  "check_every_seconds": 10
+  "check_every_seconds": 10,
+  "scan": {
+    "on": true,
+    "every_minutes": 15,
+    "min_price": 2,
+    "max_price": 25,
+    "min_avg_volume": 2000000,
+    "min_move_pct": 4,
+    "max_extra": 20,
+    "_read_me": "Whole-market scan (Matthew 2026-11-04: 'let it check all stocks'). Every 15 minutes it asks Yahoo's free market-wide lists (today's biggest gainers, losers, most traded) and adds up to 20 cheap ($2-$25), heavily traded stocks moving 4%+ either way to the fixed list above. Practice money only."
+  }
 }

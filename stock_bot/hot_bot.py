@@ -52,6 +52,44 @@ def load_cfg():
         return json.load(f)
 
 
+SCAN_LISTS = ("day_losers", "day_gainers", "most_actives", "small_cap_gainers")
+
+
+def pick_movers(quotes, scan, keep=()):
+    """Pure: from Yahoo screener quotes, the day's biggest cheap movers.
+    Plain stocks only, priced in the scan's range, enough trading to get
+    in and out, moving at least min_move_pct either way; biggest move first.
+    `keep` (the fixed list) is skipped so it isn't counted twice."""
+    seen, out = set(keep), []
+    for q in quotes:
+        sym, price = q.get("symbol"), q.get("regularMarketPrice")
+        move = abs(q.get("regularMarketChangePercent") or 0)
+        if (not sym or sym in seen or "." in sym or "-" in sym
+                or q.get("quoteType", "EQUITY") != "EQUITY" or price is None
+                or not scan["min_price"] <= price <= scan["max_price"]
+                or (q.get("averageDailyVolume3Month") or 0) < scan["min_avg_volume"]
+                or move < scan["min_move_pct"]):
+            continue
+        seen.add(sym)
+        out.append((move, sym))
+    return [sym for _, sym in sorted(out, reverse=True)][:scan["max_extra"]]
+
+
+def scan_market(scan, keep):
+    """Ask Yahoo's free market-wide screens (every US stock) for today's
+    biggest gainers, losers and most traded, and keep the cheap movers."""
+    quotes = []
+    for name in SCAN_LISTS:
+        try:
+            q = urllib.parse.urlencode({"scrIds": name, "count": 100})
+            quotes += paper_broker._get("https://query1.finance.yahoo.com/v1/"
+                                        f"finance/screener/predefined/saved?{q}"
+                                        )["finance"]["result"][0]["quotes"]
+        except Exception as e:  # one list failing must not stop the scan
+            print(f"Scan list {name} skipped ({type(e).__name__}).")
+    return pick_movers(quotes, scan, keep)
+
+
 def day_bars(sym):
     """Today's 1-minute bars: (vwap, session start, session end) or None."""
     q = urllib.parse.urlencode({"range": "1d", "interval": "1m"})
@@ -215,10 +253,14 @@ def run():
         return 0
 
     every = max(float(cfg.get("check_every_seconds", 10)), 5)
+    scan = cfg.get("scan") or {}
+    fixed = list(cfg["stocks"])
     event(f"Market's open. Watching {len(cfg['stocks'])} cheap swingers every "
-          f"{every:g} seconds.", "start")
+          f"{every:g} seconds" + (", plus a whole-market scan for the day's "
+          "biggest cheap movers." if scan.get("on") else "."), "start")
     start = end = None
     last_vwap = last_snap = 0.0
+    last_scan = -1e9
     checks = errors = 0
     while True:
         now = time.monotonic()
@@ -226,9 +268,22 @@ def run():
             print("Hit the job time limit; the next scheduled run takes over.")
             break
         try:
+            if scan.get("on") and now - last_scan >= scan["every_minutes"] * 60:
+                last_scan = now
+                extra = scan_market(scan, fixed)
+                if extra:
+                    new = [x for x in extra if x not in cfg["stocks"]]
+                    cfg["stocks"] = fixed + extra
+                    last_vwap = 0.0  # fetch the new stocks' averages now
+                    event(f"Market scan: watching {len(cfg['stocks'])} stocks"
+                          + (f", new: {', '.join(new)}." if new else "."),
+                          "info")
             if now - last_vwap >= VWAP_SECONDS:
                 for sym in cfg["stocks"]:
-                    v, start, end = day_bars(sym)
+                    try:
+                        v, start, end = day_bars(sym)
+                    except Exception:  # one odd stock must not stop the rest
+                        continue
                     if v:
                         vwaps[sym] = v
                 last_vwap = now
@@ -352,6 +407,26 @@ def selftest():
     cfg2 = dict(cfg, rules=dict(cfg["rules"], min_gain_pct=1.5))
     assert not decide(cfg2, mid, start, end, {"ONDS": 7.01}, vw, {"ONDS": 6.95}, 0, 0, {}, 1)[0]
     assert decide(cfg2, mid, start, end, {"ONDS": 7.06}, vw, {"ONDS": 6.95}, 0, 0, {}, 1)[0]
+    # Market scan (2026-11-04): cheap, liquid, big movers only; biggest first.
+    sc = {"min_price": 2, "max_price": 25, "min_avg_volume": 2_000_000,
+          "min_move_pct": 4, "max_extra": 2}
+    qs = [{"symbol": "AAA", "regularMarketPrice": 5, "regularMarketChangePercent": -9,
+           "averageDailyVolume3Month": 5e6},
+          {"symbol": "BBB", "regularMarketPrice": 300, "regularMarketChangePercent": 20,
+           "averageDailyVolume3Month": 5e6},   # too pricey
+          {"symbol": "CCC", "regularMarketPrice": 4, "regularMarketChangePercent": 30,
+           "averageDailyVolume3Month": 1e5},   # too thinly traded
+          {"symbol": "DDD", "regularMarketPrice": 8, "regularMarketChangePercent": 12,
+           "averageDailyVolume3Month": 9e6},
+          {"symbol": "EEE", "regularMarketPrice": 8, "regularMarketChangePercent": 2,
+           "averageDailyVolume3Month": 9e6},   # barely moving
+          {"symbol": "ONDS", "regularMarketPrice": 7, "regularMarketChangePercent": -15,
+           "averageDailyVolume3Month": 9e7},   # already on the fixed list
+          {"symbol": "FFF", "regularMarketPrice": 6, "regularMarketChangePercent": 7,
+           "averageDailyVolume3Month": 9e6, "quoteType": "ETF"},
+          {"symbol": "GGG", "regularMarketPrice": 6, "regularMarketChangePercent": 5,
+           "averageDailyVolume3Month": 9e6}]
+    assert pick_movers(qs, sc, keep=["ONDS"]) == ["DDD", "AAA"], pick_movers(qs, sc, ["ONDS"])
     print("selftest OK")
 
 

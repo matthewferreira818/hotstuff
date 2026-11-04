@@ -34,25 +34,63 @@ import Cocoa
  @Published var meetingNote = ""
  var lastRefresh = Date.distantPast
  private var lastCallPosted = Date.distantPast
+ @Published private(set) var messagesCheckedAt: Date?
+ @Published private(set) var messageReadFailed = false
+ private var lastBoardRefresh = Date.distantPast
+ private var messageValidator: RoomMessageValidator?
+ private var messagesNotBefore = Date.distantPast
+ private var anonymousReadFallback = false
+ private var refreshQueued = false
+
+ var foregroundRefreshGap: TimeInterval { RoomRefreshPolicy.interval(authenticated:hasToken && !anonymousReadFallback) }
 
  // Reads the board and the message thread. Both are public, so no key is needed to read.
  func refresh(minGap: Double = 600,force: Bool = false) async {
-  guard !loading, !GuardHub.isOffline else { return }
+  guard !GuardHub.isOffline else { return }
+  if loading { if force { refreshQueued = true }; return }
+  guard Date() >= messagesNotBefore else { return }
   if !force && Date().timeIntervalSince(lastRefresh) < minGap { return }
   loading = true
-  defer { loading = false }
-  // With the saved key GitHub allows far more reads, so the page can refresh every minute while it is open.
-  let token: String? = hasToken ? savedToken() : nil
-  async let boardResult = MeetingData.fetch(token:token)
-  async let messageResult = MeetingData.fetchMessages(token:token)
-  var (fresh,thread) = await (boardResult,messageResult)
-  if token != nil {
-   if fresh == nil { fresh = await MeetingData.fetch(token:nil) }
-   if thread == nil { thread = await MeetingData.fetchMessages(token:nil) }
+  defer {
+   loading = false
+   if refreshQueued {
+    refreshQueued = false
+    Task { await self.refresh(force:true) }
+   }
   }
-  if let fresh = fresh { board = fresh; failed = false } else { failed = (board == nil) }
-  if let thread = thread { messages = thread }
+  let token: String? = hasToken && !anonymousReadFallback ? savedToken() : nil
+  if force || board == nil || Date().timeIntervalSince(lastBoardRefresh) >= RoomRefreshPolicy.boardInterval {
+   var fresh = await MeetingData.fetch(token:token)
+   if fresh == nil, token != nil { fresh = await MeetingData.fetch(token:nil) }
+   if let fresh = fresh { board = fresh; failed = false; lastBoardRefresh = Date() } else { failed = (board == nil) }
+  }
+  if let latest = messages.compactMap({ $0.date }).max() {
+   let since = latest.addingTimeInterval(-RoomRefreshPolicy.overlap)
+   var read = await MeetingData.fetchMessageUpdates(since:since,token:token,validator:messageValidator)
+   if read.messages == nil, token != nil, read.status == 401 {
+    anonymousReadFallback = true
+    messageValidator = nil
+    read = await MeetingData.fetchMessageUpdates(since:since,token:nil,validator:nil)
+   }
+   if let deadline = read.notBefore { messagesNotBefore = deadline }
+   if let fresh = read.messages {
+    messages = MeetingData.mergedMessages(messages,fresh)
+    messageValidator = read.validator
+    messagesCheckedAt = Date(); messageReadFailed = false
+   } else { messageReadFailed = true }
+  } else {
+   var thread = await MeetingData.fetchMessages(token:token)
+   if thread == nil, token != nil { anonymousReadFallback = true; thread = await MeetingData.fetchMessages(token:nil) }
+   if let thread = thread { messages = MeetingData.mergedMessages(messages,thread); messagesCheckedAt = Date(); messageReadFailed = false }
+   else { messageReadFailed = true; messagesNotBefore = Date().addingTimeInterval(90) }
+  }
   lastRefresh = Date()
+ }
+
+ private func showPosted(_ message: RoomMessage?) {
+  guard let message = message else { return }
+  messages = MeetingData.mergedMessages(messages,[message])
+  messageValidator = nil
  }
 
  var needs: MatthewNeeds { MeetingData.needs(board:board,messages:messages) }
@@ -78,7 +116,8 @@ import Cocoa
   sending = true
   defer { sending = false }
   switch await MeetingData.post(call,from:"Matthew",to:"Everyone",token:token) {
-  case .ok:
+  case .ok(let posted):
+   showPosted(posted)
    lastCallPosted = Date()
    say("Board meeting called on the thread. Claude and GPT can answer when they next read the room. Friday only passes on what you tell her.")
    while loading { try? await Task.sleep(nanoseconds:300_000_000) }
@@ -106,8 +145,9 @@ import Cocoa
  }
 
  var updatedLine: String {
-  guard let board = board, !board.updated.isEmpty else { return "Shared board" }
-  return "Board updated \(board.updated)"
+  if messageReadFailed { return "Message refresh failed — tap Refresh to retry." }
+  guard let checked = messagesCheckedAt else { return "Shared board · Messages not checked yet" }
+  return "Messages checked \(checked.formatted(.dateTime.hour().minute().second())) · \(hasToken && !anonymousReadFallback ? "fast refresh" : "90-second refresh")"
  }
 
  func toggleOpen(_ id: String) {
@@ -135,7 +175,8 @@ import Cocoa
   sending = true
   defer { sending = false }
   switch await MeetingData.post(words,from:"Matthew",to:MeetingHub.targets[to],token:token) {
-  case .ok:
+  case .ok(let posted):
+   showPosted(posted)
    draft = ""
    sendNote = "Posted to the room."
    await refresh(force:true)
@@ -157,7 +198,8 @@ import Cocoa
   let lower = target.lowercased()
   let to = lower == "gpt" ? "GPT" : (lower == "everyone" ? "Everyone" : "Claude")
   switch await MeetingData.post("(from Matthew, by voice) \(words)",from:"Friday",to:to,token:token) {
-  case .ok:
+  case .ok(let posted):
+   showPosted(posted)
    fridayPosts.append(Date())
    await refresh(force:true)
    return "Done. I passed that to \(to) in the room. They read the room at their next check, so an answer may take a while."
@@ -180,12 +222,16 @@ import Cocoa
   guard Keychain.write(MeetingHub.tokenService,Data(key.utf8)) else { tokenNote = "Couldn't save the key on this Mac."; return }
   tokenInput = ""
   hasToken = true
+  anonymousReadFallback = false
+  messageValidator = nil
   tokenNote = "Saved. You can post from here now."
  }
 
  func forgetToken() {
   Keychain.remove(MeetingHub.tokenService)
   hasToken = false
+  anonymousReadFallback = false
+  messageValidator = nil
   tokenNote = ""
  }
 
@@ -255,7 +301,13 @@ extension CompanionInterfaceView {
     .scrollIndicators(.hidden)
    }
   }
-  .onAppear { Task { await meeting.refresh(minGap:60) } }
+  .task {
+   // Scoped to the visible room. Leaving this page cancels the fast loop; the existing background cadence stays unchanged.
+   while !Task.isCancelled {
+    await meeting.refresh(minGap:meeting.foregroundRefreshGap)
+    do { try await Task.sleep(nanoseconds:5_000_000_000) } catch { return }
+   }
+  }
   .onChange(of:meeting.tab) { _,tab in if tab != 3 { meeting.fridayPrivate = false } }
   .onChange(of:live.running) { _,running in if running { voice.stop() } }
   .onChange(of:c.listening) { _,listening in if listening { voice.stop() } }

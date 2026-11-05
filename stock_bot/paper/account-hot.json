@@ -1,18 +1,13 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 1.17,
+ "cash": 359.44,
  "spy_at_start": 777.22,
  "positions": {
   "FPS": {
    "qty": 18.781110282603635,
    "avg_entry_price": 18.5394,
    "fill": 18.4334
-  },
-  "FLY": {
-   "qty": 23.803544521776566,
-   "avg_entry_price": 14.5781,
-   "fill": 14.4945
   }
  },
  "orders": [
@@ -1074,6 +1069,16 @@
    "qty": 23.803545,
    "price": 14.4945,
    "dollars": 347.01,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-05T19:42:20+00:00",
+   "symbol": "FLY",
+   "side": "sell",
+   "status": "filled",
+   "qty": 23.803545,
+   "price": 15.1349,
+   "dollars": 358.27,
    "fee": 1.99
   }
  ],

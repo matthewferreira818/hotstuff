@@ -1,7 +1,7 @@
 {
  "started": "2026-11-05T18:06:16+00:00",
  "start_cash": 1000.0,
- "cash": 600.0,
+ "cash": 400.0,
  "spy_at_start": 735.08,
  "positions": {
   "GOOGL": {
@@ -11,6 +11,10 @@
   "META": {
    "qty": 0.3289249701727462,
    "avg_entry_price": 608.0414
+  },
+  "NVDA": {
+   "qty": 1.0854487917701263,
+   "avg_entry_price": 184.2556
   }
  },
  "orders": [
@@ -31,6 +35,16 @@
    "status": "filled",
    "qty": 0.328925,
    "price": 601.9914,
+   "dollars": 200.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-05T18:06:28+00:00",
+   "symbol": "NVDA",
+   "side": "buy",
+   "status": "filled",
+   "qty": 1.085449,
+   "price": 182.4222,
    "dollars": 200.0,
    "fee": 1.99
   }

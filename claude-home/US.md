@@ -36,7 +36,7 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
 
 - 2026-11-05 (Thursday): the first big email day. 25 tailored emails went out at noon (34 businesses in two days), and a second warm reply
   came in (a local driving school pointed us to its owners). Everything new is on hold until CBDC answers one honest question about the
-  Self-Employment Benefit. The daily card reached the ECS Facebook page by itself (still to confirm it shows publicly). Seven practice
+  Self-Employment Benefit. The daily card reached the ECS Facebook page by itself, and Matthew confirmed it shows publicly. Seven practice
   robots now. The Helm's side rail finally keeps pages where you put them (needs his rebuild), and practice-robot pings went quiet so only
   important things make noise. Monday's 25 emails were fact-checked against each business's own site: 24 right, one opener wrong
   (a clinic's name story) and fixed before it went anywhere. Started the habit of a fresh chat each day, with a small journal.

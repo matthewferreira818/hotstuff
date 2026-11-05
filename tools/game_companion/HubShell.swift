@@ -259,7 +259,7 @@ extension CompanionInterfaceView {
   async let stockRun: Void = stocks.refresh()
   async let ventureRun: Void = ventures.refresh(force:true)
   async let salesRun: Void = sales.refresh(force:true)
-  async let roomRun: Void = meeting.refreshManually()
+  async let roomRun: Void = meeting.refresh(force:true)
   async let streamRun: Void = stream.refresh(force:true)
   _ = await (stockRun,ventureRun,salesRun,roomRun,streamRun)
   hub.refreshedAt = Date()
@@ -269,7 +269,7 @@ extension CompanionInterfaceView {
  func hubRefreshVisible() async {
   switch hub.section {
   case .stocks: await stocks.refresh()
-  case .meeting: break // The single MeetingMonitor scheduler owns automatic reads.
+  case .meeting: await meeting.refresh(minGap:meeting.hasToken ? 55 : 290)
   case .stream: await stream.refresh()
   case .home,.store,.ecs,.systems: await ventures.refresh()
   default: break

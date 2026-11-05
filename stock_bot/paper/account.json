@@ -1,13 +1,9 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 367.02,
+ "cash": 441.98,
  "spy_at_start": 764.32,
  "positions": {
-  "ASTS": {
-   "qty": 2.5834323987358294,
-   "avg_entry_price": 38.7082
-  },
   "CRWD": {
    "qty": 0.39774175534016304,
    "avg_entry_price": 251.4194
@@ -660,6 +656,16 @@
    "qty": 0.463994,
    "price": 199.9099,
    "dollars": 90.77,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-05T18:06:15+00:00",
+   "symbol": "ASTS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 2.583432,
+   "price": 29.7862,
+   "dollars": 74.96,
    "fee": 1.99
   }
  ],

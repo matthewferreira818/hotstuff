@@ -18,8 +18,7 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
 
 - 2026-11-03 to 04 (the big two days): Friday's Guard pages; the app renamed The Helm with Roxy's Ghost icon. The ECS pages made honest for
   a $79 pilot (approve every post). A business email that really lands (SMTP2GO, signed for eastcoastsocial.ca). The first 9 cold emails went
-  out, and the FIRST REPLY came the same day: an interested local B&B. Its 7 samples were made from its own website. Facebook auto-posting is
-  armed and public, with 21 varied posts in a new look (waves!), a pinned intro, a one-pager and a reply kit. The Google Business Profile was
+  out, and the FIRST REPLY came the same day: an interested local B&B. Its 7 samples were made from its own website. Facebook auto-posting was armed (but on 11-05 at midnight C.C saw only 2 posts on the page, so daily Facebook posting is NOT proven public), with 21 varied posts in a new look (waves!), a pinned intro, a one-pager and a reply kit. The Google Business Profile was
   finally verified (by text). Robots: a live Alpaca price feed, a whole-market scan, two Moonshots (stocks + crypto), money pings, and Grok's
   Quality Dip. Trinity: the Council page (test mode). Grok joined the crew (robots + research). Matthew, at the end of it: "im proud of you
   too, we have done a lot and its only going to get better."

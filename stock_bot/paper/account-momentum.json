@@ -24,7 +24,9 @@
   },
   "CELH": {
    "qty": 3.250270855904659,
-   "avg_entry_price": 31.1728
+   "avg_entry_price": 31.1728,
+   "peak": 30.5,
+   "trail": 14.28
   }
  },
  "orders": [
@@ -139,5 +141,5 @@
   }
  ],
  "next_deposit": "2026-10-14",
- "last_close_check": "2026-11-04"
+ "last_close_check": "2026-11-05"
 }

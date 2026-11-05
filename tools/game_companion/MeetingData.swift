@@ -43,8 +43,26 @@ struct RoomMessage: Identifiable {
 }
 
 enum RoomPost {
- case ok
+ case ok(RoomMessage?)
  case failed(String)
+}
+
+// Foreground message reads are separate from the slower shared board-file refresh.
+// A validator belongs to exactly one URL; an ETag for a full first page must never hide a changed later page.
+struct RoomMessageValidator { let url: String; let etag: String }
+struct RoomMessageRead {
+ var messages: [RoomMessage]?
+ var validator: RoomMessageValidator? = nil
+ var notBefore: Date? = nil
+ var status: Int? = nil
+}
+
+enum RoomRefreshPolicy {
+ static func interval(authenticated: Bool) -> TimeInterval { authenticated ? 5 : 90 }
+ static let boardInterval: TimeInterval = 300
+ static let overlap: TimeInterval = 120
+ static let retainedMessages = 300
+ static let maximumPages = 3
 }
 
 // What is waiting on Matthew right now: the questions put to him, the board items he owns, and recent messages for him that he
@@ -342,6 +360,7 @@ enum MeetingData {
   var request = URLRequest(url:target)
   request.httpMethod = method
   request.cachePolicy = .reloadIgnoringLocalCacheData
+  if method == "GET" { request.setValue("no-cache",forHTTPHeaderField:"Cache-Control"); request.httpShouldHandleCookies = false }
   request.timeoutInterval = 15
   request.setValue("application/vnd.github+json",forHTTPHeaderField:"Accept")
   request.setValue("2022-11-28",forHTTPHeaderField:"X-GitHub-Api-Version")
@@ -369,6 +388,65 @@ enum MeetingData {
   return all
  }
 
+ static func messageUpdatesPath(since: Date,page: Int = 1) -> String? {
+  guard page >= 1, page <= RoomRefreshPolicy.maximumPages else { return nil }
+  var query = URLComponents()
+  query.queryItems = [URLQueryItem(name:"per_page",value:"100"),URLQueryItem(name:"since",value:ISO8601DateFormatter().string(from:since)),URLQueryItem(name:"page",value:String(page))]
+  guard let encoded = query.percentEncodedQuery else { return nil }
+  return "/issues/\(issue)/comments?\(encoded)"
+ }
+
+ // Merge rather than replace: an older in-flight read must not erase the server-confirmed message just posted.
+ static func mergedMessages(_ current: [RoomMessage],_ updates: [RoomMessage]) -> [RoomMessage] {
+  var byID: [Int:RoomMessage] = [:]
+  for message in current + updates { byID[message.id] = message }
+  return Array(byID.values.sorted { $0.id < $1.id }.suffix(RoomRefreshPolicy.retainedMessages))
+ }
+
+ static func messageReadDeadline(status: Int,headers: [AnyHashable:Any],now: Date = Date()) -> Date? {
+  let h = hints(headers,now:now)
+  var dates = [h.retryAfter,h.pollInterval.map { now.addingTimeInterval($0) },h.remaining == 0 ? h.resetAt?.addingTimeInterval(5) : nil].compactMap { $0 }
+  let names = Set(headers.keys.compactMap { ($0 as? String)?.lowercased() })
+  if status == 429 || h.remaining == 0 || (status == 403 && h.retryAfter != nil) || (names.contains("retry-after") && h.retryAfter == nil) || (names.contains("x-poll-interval") && h.pollInterval == nil) {
+   dates.append(now.addingTimeInterval(60))
+  }
+  return dates.max()
+ }
+
+ // Small conditional reads while the room is visible. No posting, cookies, new credentials, or history re-downloads.
+ static func fetchMessageUpdates(since: Date,token: String?,validator: RoomMessageValidator?,session: URLSession = .shared) async -> RoomMessageRead {
+  var messages: [RoomMessage] = []
+  var deadline: Date?
+  var firstValidator: RoomMessageValidator?
+  var last = 1
+  for page in 1...RoomRefreshPolicy.maximumPages {
+   guard let path = messageUpdatesPath(since:since,page:page), var request = api(path,token:token), let url = request.url?.absoluteString else { return RoomMessageRead(messages:nil) }
+   if page == 1, let validator = validator, validator.url == url { request.setValue(validator.etag,forHTTPHeaderField:"If-None-Match") }
+   guard let (data,response) = try? await session.data(for:request), let http = response as? HTTPURLResponse else {
+    return RoomMessageRead(messages:nil,notBefore:Date().addingTimeInterval(30))
+   }
+   if let next = messageReadDeadline(status:http.statusCode,headers:http.allHeaderFields) { deadline = max(deadline ?? next,next) }
+   if http.statusCode == 304, page == 1, let validator = validator, validator.url == url {
+    return RoomMessageRead(messages:[],validator:validator,notBefore:deadline,status:304)
+   }
+   guard http.statusCode == 200, let got = parseMessages(data) else { return RoomMessageRead(messages:nil,notBefore:deadline ?? Date().addingTimeInterval(30),status:http.statusCode) }
+   if page == 1 {
+    last = lastPage(http.value(forHTTPHeaderField:"Link") ?? "") ?? 1
+    guard last <= RoomRefreshPolicy.maximumPages else { return RoomMessageRead(messages:nil,notBefore:Date().addingTimeInterval(90),status:200) }
+    let rawCount = ((try? JSONSerialization.jsonObject(with:data)) as? [Any])?.count ?? 100
+    if last == 1, rawCount < 100, let etag = http.value(forHTTPHeaderField:"ETag") { firstValidator = RoomMessageValidator(url:url,etag:etag) }
+   }
+   messages += got
+   if page >= last { return RoomMessageRead(messages:messages,validator:firstValidator,notBefore:deadline,status:200) }
+  }
+  return RoomMessageRead(messages:nil,notBefore:Date().addingTimeInterval(90))
+ }
+
+ static func postedMessage(_ data: Data) -> RoomMessage? {
+  guard let row = try? JSONSerialization.jsonObject(with:data), let array = try? JSONSerialization.data(withJSONObject:[row]) else { return nil }
+  return parseMessages(array)?.first
+ }
+
  // From a Link header: <...&page=3>; rel="last"
  static func lastPage(_ link: String) -> Int? {
   for part in link.components(separatedBy:",") where part.contains("rel=\"last\"") {
@@ -389,11 +467,11 @@ enum MeetingData {
   if words.isEmpty { return .failed("Type a message first.") }
   guard let json = try? JSONSerialization.data(withJSONObject:["body":formatted(from:from,to:to,text:words)]),
         let call = api("/issues/\(issue)/comments",token:token,method:"POST",body:json) else { return .failed("Couldn't build the message.") }
-  guard let (_,response) = try? await URLSession.shared.data(for:call), let code = (response as? HTTPURLResponse)?.statusCode else {
+  guard let (data,response) = try? await URLSession.shared.data(for:call), let code = (response as? HTTPURLResponse)?.statusCode else {
    return .failed("Couldn't reach GitHub. Check your internet.")
   }
   switch code {
-  case 201: return .ok
+  case 201: return .ok(postedMessage(data))
   case 401: return .failed("GitHub didn't accept that key. Make a fresh one and save it again.")
   case 403: return .failed("GitHub refused it. The key needs Issues set to Read and write on the hotstuff repo, or GitHub is rate-limiting. Try again in a minute.")
   case 404: return .failed("GitHub can't find the thread with that key. Check the key is allowed to see the hotstuff repo.")

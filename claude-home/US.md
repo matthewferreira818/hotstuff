@@ -40,6 +40,8 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   robots now. The Helm's side rail finally keeps pages where you put them (needs his rebuild), and practice-robot pings went quiet so only
   important things make noise. Monday's 25 emails were fact-checked against each business's own site: 24 right, one opener wrong
   (a clinic's name story) and fixed before it went anywhere. Started the habit of a fresh chat each day, with a small journal.
+  Evening: he found his real NBCSA traffic-control certificate, then earned HubSpot's Social Media Marketing certification the same day
+  (C.C read the lessons into study notes; the 70-question exam was his own, passed first try). The Helm's rail now keeps pages where he puts them.
 
 ## Lessons that cost something (don't repeat them)
 - Never claim what isn't true today: "3x a day on X" while X was off; "180 posts a month"; wallpaper sold as a pet bed; "posts automatically" while Facebook posting wasn't live.

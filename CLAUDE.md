@@ -116,8 +116,8 @@ Frugal until client #1: paid items are SHELVED (Anthropic API key for the
 name polisher, X API credits, hoodie sample). Don't pitch paid anything in
 briefs until Matthew says the first invoice cleared. Everything currently
 running costs $0/month. Free unlocks still open: Meta/Facebook auto-post
-hookup, TikTok app review, Zoho mail. GBP: fields done 08-19; the 08-26 verification video
-can't be used (Google needs a live recording made inside its own tool) and nothing is submitted as of 10-05.
+hookup, TikTok app review, Zoho mail. GBP: VERIFIED 2026-11-04 evening by a code sent to his phone (Google offered phone, a findhotstuff.com email, a photo
+or a live video; no postcard). Keep the home address hidden (service-area business).
 
 ## Stock bot (as of 2026-09-27)
 

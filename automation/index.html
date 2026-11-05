@@ -305,6 +305,7 @@
   main section:nth-of-type(4n+2) .eyebrow { background: #fff4e6; color: #b2461a; }
   main section:nth-of-type(4n+3) .eyebrow { background: #0d1f33; color: #f0b429; box-shadow: inset 0 0 0 1px rgba(240,180,41,.35); }
   main section:nth-of-type(4n+4) .eyebrow { background: #f0b429; color: #14213a; }
+  .feed-gap-note { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
 </style>
 
 <header class="hero">
@@ -564,6 +565,7 @@ findhotstuff.com #cozyhome</p>
       if (!posts || !posts.length) throw new Error("empty");
       // curation: keep the scary-sounding "written by a machine" card out of
       // the proof strip - it reads as AI-slop to the exact owner we want
+      var before = posts.length;
       posts = posts.filter(function (p) {
         return !/by a machine|nobody typed|par une machine|180\+ posts|runs itself|style once|zero effort/i.test((p.message || "") + (p.caption || ""));
       });
@@ -607,6 +609,20 @@ findhotstuff.com #cozyhome</p>
         strip.appendChild(item);
       });
       box.appendChild(strip);
+      // honesty: say why there are gaps when retired-wording cards are hidden
+      var shown = posts.slice(0, 6);
+      if (before > posts.length && shown.length > 1) {
+        var gap = false;
+        for (var i = 1; i < shown.length; i++) {
+          if ((new Date(shown[i - 1].date) - new Date(shown[i].date)) > 864e5 * 1.5) gap = true;
+        }
+        if (gap) {
+          var note = document.createElement("p");
+          note.className = "feed-gap-note";
+          note.textContent = "Some days are missing here on purpose: older cards used wording that no longer matches how we work (you now approve every post), so they're hidden. The feed itself still published every day.";
+          box.appendChild(note);
+        }
+      }
     })
     .catch(function () { box.closest("section").hidden = true; });
 })();

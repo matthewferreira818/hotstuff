@@ -28,10 +28,16 @@ def font(size, bold=True, serif=False):
         path = r"C:\Windows\Fonts\georgiab.ttf" if bold else r"C:\Windows\Fonts\georgia.ttf"
     else:
         path = r"C:\Windows\Fonts\arialbd.ttf" if bold else r"C:\Windows\Fonts\arial.ttf"
-    try:
-        return ImageFont.truetype(path, size)
-    except OSError:
-        return ImageFont.load_default()
+    fallbacks = ([ "/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf" if bold else "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
+                   "/Library/Fonts/Georgia Bold.ttf" if bold else "/Library/Fonts/Georgia.ttf"] if serif else
+                 [ "/usr/share/fonts/opentype/inter/Inter-Bold.otf" if bold else "/usr/share/fonts/opentype/inter/Inter-Regular.otf",
+                   "/Library/Fonts/Arial Bold.ttf" if bold else "/Library/Fonts/Arial.ttf"])
+    for p in [path] + fallbacks:
+        try:
+            return ImageFont.truetype(p, size)
+        except OSError:
+            pass
+    return ImageFont.load_default()
 
 
 def night_sky(size_w, size_h):
@@ -124,13 +130,13 @@ def make_cover():
     d.text((x0 + dot_r * 3.2, H * 0.28 - 28 * s), "EAST COAST SOCIAL", font=wm_font, fill=GOLD)
 
     line1 = "Your business posts every day."
-    line2 = "You don't lift a finger."
+    line2 = "You just approve it."
     serif_big = font(54 * s, bold=True, serif=True)
     d.text((x0, H * 0.40), line1, font=serif_big, fill=INK_LIGHT)
     d.text((x0, H * 0.53), line2, font=serif_big, fill=GOLD)
 
     tag_font = font(32 * s, bold=False)
-    d.text((x0, H * 0.72), "Done-for-you social media for local businesses",
+    d.text((x0, H * 0.72), "Daily Facebook posts for local businesses",
            font=tag_font, fill=MUTED)
     d.text((x0, H * 0.80), "findhotstuff.com/automation  ·  Sackville & Memramcook, NB",
            font=tag_font, fill=MUTED)

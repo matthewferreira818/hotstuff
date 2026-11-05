@@ -1,0 +1,27 @@
+{
+ "started": "2026-11-05T18:06:17+00:00",
+ "start_cash": 1000.0,
+ "cash": 850.0,
+ "spy_at_start": 735.08,
+ "positions": {
+  "ONDS": {
+   "qty": 32.749089227494544,
+   "avg_entry_price": 4.5803
+  }
+ },
+ "orders": [
+  {
+   "time": "2026-11-05T18:06:19+00:00",
+   "symbol": "ONDS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 32.749089,
+   "price": 4.5195,
+   "dollars": 150.0,
+   "fee": 1.99
+  }
+ ],
+ "deposited": 1000.0,
+ "spy_units": 1.3603961473581105,
+ "deposits": []
+}

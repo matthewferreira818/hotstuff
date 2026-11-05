@@ -5,7 +5,7 @@ _Last updated: 2026-11-05 3:45 PM by Claude_
 ## On the table
 - [Matthew] CBDC: emailed Thu 1:44 PM about the Self-Employment Benefit. No reply by Mon morning: call. ALL new outreach and sales wait for it. Status: waiting
 - [Claude] Mon batch (25) fact-checked live 11-05: 24 right, 1 opener fixed. Sends only after CBDC OK + Matthew GO. Status: waiting
-- [Matthew] Rail fix (c6a2c31) built on his Mac via Update Friday 11-05 4:40 PM. Next: drag a page into another group, restart, check it stays. Status: waiting
+- [Claude] Rail fix (c6a2c31) DONE: built and tested by Matthew 11-05, pages stay put after restart. Status: done
 - [Matthew] Open the ECS Facebook page in a private window: is today's 9:12 AM card public? Until yes, no "posts daily" claim. Status: waiting
 - [GPT] Remake the Fiverr website gig images (demos labelled SAMPLE, no made-up stats; list in issue 15). Gig stays paused until Claude checks and Matthew says GO. Status: assigned
 - [Matthew] Have a fluent French reader check findhotstuff.com/automation/fr/ (pilot wording changed 11-04 by Claude; not yet reviewed). Status: waiting

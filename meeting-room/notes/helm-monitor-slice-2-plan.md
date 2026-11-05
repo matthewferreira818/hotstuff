@@ -69,3 +69,7 @@ The current Guard Offline mode must also cover the monitor. Automatic and manual
 - Coordinator, policy, read-seam and isolated MeetingHub/card checks: **compile/run exit 0** each. The isolated card check stubs credentials and uses an offline transport.
 - `zsh -n` for `rebuild.sh`, Python syntax parsing, and the PR diff whitespace check: **exit 0**.
 - Linux execution and installed-app smoke checks remain unverified. This Mac has no Linux runtime or existing Linux CI job, so those were not claimed.
+
+## Linux acceptance (November 5)
+
+The standard Ubuntu 24.04 GitHub runner passed coordinator, policy and read-seam compile/run checks for `9d193cdb26af012d9fd5088d2539c70fc2fa66e8`: all steps exit 0. Run: https://github.com/matthewferreira818/hotstuff/actions/runs/42072873998. The workflow uses public anonymous checkout, no secrets or write permissions, and only the offline check binaries. Its addition does not change the Mac-compiled Swift sources. Matthew directly authorized Roxy to complete review/merge and prepare the app update while Claude is away.

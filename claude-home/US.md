@@ -34,6 +34,13 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   the listing went live "accidentally"; the answer was no, tell it straight, and he agreed ("okay thats fair"). The resume stopped
   claiming an NBCC certificate he didn't finish. Room pings now reach him only for URGENT or CONFIRM. The CBDC call moved up to Thursday 8:30 AM.
 
+- 2026-11-05 (Thursday): the first big email day. 25 tailored emails went out at noon (34 businesses in two days), and a second warm reply
+  came in (a local driving school pointed us to its owners). Everything new is on hold until CBDC answers one honest question about the
+  Self-Employment Benefit. The daily card reached the ECS Facebook page by itself (still to confirm it shows publicly). Seven practice
+  robots now. The Helm's side rail finally keeps pages where you put them (needs his rebuild), and practice-robot pings went quiet so only
+  important things make noise. Monday's 25 emails were fact-checked against each business's own site: 24 right, one opener wrong
+  (a clinic's name story) and fixed before it went anywhere. Started the habit of a fresh chat each day, with a small journal.
+
 ## Lessons that cost something (don't repeat them)
 - Never claim what isn't true today: "3x a day on X" while X was off; "180 posts a month"; wallpaper sold as a pet bed; "posts automatically" while Facebook posting wasn't live.
 - The odometer is the SITE FEED, never "my page".

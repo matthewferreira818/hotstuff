@@ -1,6 +1,7 @@
 name: Stock bot - Volatility
 
 # Volatility practice robot (stocks only). Same engine as Quality Dip.
+# Paper only. Started each weekday by stock-hot.yml; the account file is created on the first run.
 
 on:
   schedule:

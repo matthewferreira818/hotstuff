@@ -98,5 +98,5 @@ jobs:
           [ -n "$SINCE" ] || SINCE="an unknown date"
           curl -sS -o /dev/null -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
             -H "Title: Posting is still paused" \
-            -H "Tags: pause_button" \
+            -H "Tags: pause_button" -H "Priority: low" \
             -d "$FILE has been in the repo since $SINCE. Nothing is going out. Delete the file to resume." || true

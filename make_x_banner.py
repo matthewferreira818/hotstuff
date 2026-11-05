@@ -36,7 +36,7 @@ def main():
 
     max_w = W - tx - 40
     hero1 = "Your business posts every day."
-    hero2 = "You don't lift a finger."
+    hero2 = "You just approve it."
     hf = fit(d, hero1, 64, max_w, loader=_serif)
     d.text((tx, 164), hero1, font=hf, fill=LIGHT)
     d.text((tx, 252), hero2, font=hf, fill=GOLD)

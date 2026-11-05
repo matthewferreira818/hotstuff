@@ -1,0 +1,50 @@
+{
+  "_read_me": "Robot 5, Moonshot crypto. Same rule as Moonshot (stocks) on the big coins, 24/7, checked every 10 seconds. Costs: 0.5% of every trade (Matthew's KOHO crypto fee, 2026-11-04) plus 0.1% slippage. Compared with just holding Bitcoin. Practice money only; not backtested. Meme coins added 2026-11-04 at Matthew's ask (DOGE, SHIB, PEPE, FLOKI, WIF, PENGU, TRUMP, FARTCOIN): the wildest swings of all, and the easiest to lose on.",
+  "label": "Moonshot crypto",
+  "robot_id": "moonshot-crypto",
+  "market": "crypto",
+  "benchmark": "BTC-USD",
+  "benchmark_name": "Bitcoin",
+  "account_file": "account-moonshot-crypto.json",
+  "live_branch": "stock-live-moonshot-crypto",
+  "paused": false,
+  "symbols": [
+    "BTC-USD",
+    "ETH-USD",
+    "SOL-USD",
+    "XRP-USD",
+    "DOGE-USD",
+    "ADA-USD",
+    "AVAX-USD",
+    "LINK-USD",
+    "LTC-USD",
+    "DOT-USD",
+    "BCH-USD",
+    "SUI20947-USD",
+    "SHIB-USD",
+    "PEPE24478-USD",
+    "FLOKI-USD",
+    "WIF-USD",
+    "PENGU34466-USD",
+    "TRUMP35336-USD",
+    "FARTCOIN-USD"
+  ],
+  "rules": {
+    "lookback_days": 10,
+    "trend_days": 20,
+    "max_positions": 2,
+    "trail_pct": 15,
+    "min_hold_hours": 24,
+    "min_rise_pct": 5
+  },
+  "sizing": {
+    "min_bet": 50
+  },
+  "paper_costs": {
+    "fee_min": 0,
+    "fee_per_share": 0,
+    "fee_pct": 0.5,
+    "slippage_pct": 0.1
+  },
+  "check_every_seconds": 10
+}

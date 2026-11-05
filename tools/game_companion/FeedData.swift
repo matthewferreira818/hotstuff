@@ -82,6 +82,7 @@ enum FeedFormat {
   case "remember_this": return "Remembered"
   case "forget_this": return "Forgot"
   case "music": return "Music"
+  case "lockdown_now": return "Lockdown"
   default: return "Action"
   }
  }

@@ -1,7 +1,7 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 753.2,
+ "cash": 696.37,
  "spy_at_start": 777.22,
  "positions": {},
  "orders": [
@@ -743,6 +743,306 @@
    "qty": 130.630012,
    "price": 2.8971,
    "dollars": 376.46,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-29T18:55:15+00:00",
+   "symbol": "PLUG",
+   "side": "buy",
+   "status": "filled",
+   "qty": 263.110756,
+   "price": 1.4214,
+   "dollars": 376.6,
+   "fee": 2.61
+  },
+  {
+   "time": "2026-10-29T19:01:39+00:00",
+   "symbol": "RIOT",
+   "side": "buy",
+   "status": "filled",
+   "qty": 27.14838,
+   "price": 13.7437,
+   "dollars": 375.11,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-29T19:55:09+00:00",
+   "symbol": "PLUG",
+   "side": "sell",
+   "status": "filled",
+   "qty": 263.110756,
+   "price": 1.4286,
+   "dollars": 373.27,
+   "fee": 2.6
+  },
+  {
+   "time": "2026-10-29T19:55:09+00:00",
+   "symbol": "RIOT",
+   "side": "sell",
+   "status": "filled",
+   "qty": 27.14838,
+   "price": 13.8012,
+   "dollars": 372.69,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T18:32:33+00:00",
+   "symbol": "QBTS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 36.195773,
+   "price": 10.2703,
+   "dollars": 373.73,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T18:32:45+00:00",
+   "symbol": "ONDS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 59.672801,
+   "price": 6.2112,
+   "dollars": 372.63,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T19:26:11+00:00",
+   "symbol": "QBTS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 36.195773,
+   "price": 10.6094,
+   "dollars": 382.02,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T19:55:04+00:00",
+   "symbol": "ONDS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 59.672801,
+   "price": 6.3287,
+   "dollars": 375.66,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-03T16:22:50+00:00",
+   "symbol": "SMR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 71.000563,
+   "price": 5.3153,
+   "dollars": 379.38,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-03T16:31:33+00:00",
+   "symbol": "ACHR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 90.410191,
+   "price": 4.1592,
+   "dollars": 378.02,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-03T18:10:26+00:00",
+   "symbol": "SMR",
+   "side": "sell",
+   "status": "filled",
+   "qty": 71.000563,
+   "price": 5.3596,
+   "dollars": 378.55,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-03T19:09:49+00:00",
+   "symbol": "ONDS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 64.571247,
+   "price": 5.8408,
+   "dollars": 379.14,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-03T20:55:08+00:00",
+   "symbol": "ACHR",
+   "side": "sell",
+   "status": "filled",
+   "qty": 90.410191,
+   "price": 4.1459,
+   "dollars": 372.84,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-03T20:55:08+00:00",
+   "symbol": "ONDS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 64.571247,
+   "price": 5.7992,
+   "dollars": 372.47,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T14:51:19+00:00",
+   "symbol": "RIOT",
+   "side": "buy",
+   "status": "filled",
+   "qty": 24.164883,
+   "price": 15.3553,
+   "dollars": 373.05,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T14:53:38+00:00",
+   "symbol": "RIOT",
+   "side": "sell",
+   "status": "filled",
+   "qty": 24.164883,
+   "price": 15.7143,
+   "dollars": 377.74,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T14:54:01+00:00",
+   "symbol": "SMR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 69.400367,
+   "price": 5.3804,
+   "dollars": 375.39,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T14:54:25+00:00",
+   "symbol": "PLUG",
+   "side": "buy",
+   "status": "filled",
+   "qty": 244.242074,
+   "price": 1.5215,
+   "dollars": 374.04,
+   "fee": 2.42
+  },
+  {
+   "time": "2026-11-04T15:07:01+00:00",
+   "symbol": "PLUG",
+   "side": "sell",
+   "status": "filled",
+   "qty": 244.242074,
+   "price": 1.5594,
+   "dollars": 378.46,
+   "fee": 2.42
+  },
+  {
+   "time": "2026-11-04T15:43:56+00:00",
+   "symbol": "ONDS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 67.372919,
+   "price": 5.4905,
+   "dollars": 371.9,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:46:04+00:00",
+   "symbol": "SMR",
+   "side": "sell",
+   "status": "filled",
+   "qty": 69.400367,
+   "price": 5.2098,
+   "dollars": 359.57,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:46:20+00:00",
+   "symbol": "SMR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 70.08155,
+   "price": 5.2152,
+   "dollars": 367.48,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:58:47+00:00",
+   "symbol": "ONDS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 67.372919,
+   "price": 5.3147,
+   "dollars": 356.08,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:59:01+00:00",
+   "symbol": "ONDS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 66.616999,
+   "price": 5.3153,
+   "dollars": 356.08,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T16:04:27+00:00",
+   "symbol": "SMR",
+   "side": "sell",
+   "status": "filled",
+   "qty": 70.08155,
+   "price": 5.0499,
+   "dollars": 351.92,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T16:04:41+00:00",
+   "symbol": "PLUG",
+   "side": "buy",
+   "status": "filled",
+   "qty": 235.591228,
+   "price": 1.4835,
+   "dollars": 351.83,
+   "fee": 2.33
+  },
+  {
+   "time": "2026-11-04T17:58:36+00:00",
+   "symbol": "ONDS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 66.616999,
+   "price": 5.4645,
+   "dollars": 362.04,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T18:00:05+00:00",
+   "symbol": "CIFR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 54.337699,
+   "price": 6.5365,
+   "dollars": 357.17,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T20:55:02+00:00",
+   "symbol": "PLUG",
+   "side": "sell",
+   "status": "filled",
+   "qty": 235.591228,
+   "price": 1.4635,
+   "dollars": 342.46,
+   "fee": 2.33
+  },
+  {
+   "time": "2026-11-04T20:55:02+00:00",
+   "symbol": "CIFR",
+   "side": "sell",
+   "status": "filled",
+   "qty": 54.337699,
+   "price": 6.4585,
+   "dollars": 348.95,
    "fee": 1.99
   }
  ],

@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))  # repo root
 
 from ecs_site import ecs_url  # noqa: E402
-from post_card import render_card
+from ecs_card import render  # 2026-11-04 redesign: a look per kind of post
 
 # ?ref=ecs: the caption lands on X, Facebook, and manual posts alike, so the
 # tag names the funnel (ECS daily caption), not a single platform
@@ -21,39 +21,73 @@ SITE = ecs_url("ecs", bare=True)
 FEED_KEEP = 8   # how many past posts the website feed shows
 
 # (card message, caption) pairs. Card text stays short; captions carry the CTA.
-# Rotates by day-of-year so the feed never repeats back-to-back weeks.
+# Rewritten 2026-11-04 (Matthew: "they seem very similar to each other"): four
+# kinds, interleaved so no two days in a row feel alike: a free tip, a post idea
+# for one type of business, honest behind-the-scenes, and the offer as it
+# stands TODAY (7 free samples, owner OKs every post, $79 for a month, no
+# commitment after). The old "approve the style once / zero effort" lines were
+# retired: they described an offer we no longer make. Rule 1: every line here
+# must stay true; change it the day it stops being true.
 POOL = [
-    ("Your customers check your page before they choose you.",
-     "Quiet page, lost customer — it's that simple. East Coast Social keeps your business posting every single day, automatically. You approve the style once. 📍 Sackville · Memramcook · Shediac · Moncton ➜ {site}"),
-    ("A page that posts daily looks open. A quiet one looks closed.",
-     "When did your business last post? If you have to think about it, that's the problem we fix — daily posts, zero effort from you. ➜ {site}"),
-    ("Your day off shouldn't mean your page's day off.",
-     "The engine keeps posting when you're closed, on vacation, or slammed — daily branded posts, approved by you once. ➜ {site}"),
-    ("Most local pages die because nobody has time. Yours doesn't have to.",
-     "You run the business. The engine runs the feed. You approve the style once and never touch it again. ➜ {site}"),
-    ("One less job every single morning.",
-     "Posting daily is a part-time job nobody hired for. The engine does it — you approve the style once, then it's handled. ➜ {site}"),
-    ("Daily specials could announce themselves.",
-     "Restaurants, cafés, food trucks: your feature board is content. The engine turns it into daily posts your customers actually see. ➜ {site}"),
-    ("Fresh cuts, new arrivals, today's bake — that's a feed, not a chore.",
-     "Whatever you make every day is worth posting every day. We automate exactly that. ➜ {site}"),
-    ("What's your page been doing since spring?",
-     "If the answer is 'nothing', your customers noticed too. Daily automated posts, tuned to your business, approved by you once. ➜ {site}"),
-    ("Posting every day isn't discipline. It's automation.",
-     "The businesses that post daily aren't trying harder — they've stopped doing it by hand. ➜ {site}"),
-    ("Your competition posted today. Did you?",
-     "The engine never forgets, never gets busy, never takes a vacation. Daily branded posts for your business. ➜ {site}"),
-    ("One 20-minute chat. Then your page runs itself.",
-     "That's the whole setup: we talk about your business, you approve sample posts, the engine takes it from there. ➜ {site}"),
-    ("Built on our own store first. Proven every single day.",
-     "We don't sell anything we don't run ourselves — our own store's feed, catalog and daily cards run on this exact engine. ➜ {site}"),
+    ("Pin a post with your hours, address and phone.",
+     "Free tip for local businesses: pin one post to the top of your page with your hours, address and phone number. It's the first thing new customers look for. ➜ {site}"),
+    ("Post idea for bakeries: what came out of the oven this morning.",
+     "One photo, one line, every morning. \"Fresh this morning: cinnamon buns, sourdough, date squares.\" Simple posts like that remind people you're right there. ➜ {site}"),
+    ("We're looking for our first two local businesses.",
+     "East Coast Social is brand new, and we're starting small on purpose: two local businesses, done properly. If your Facebook page has gone quiet, we'd love to hear from you. ➜ {site}"),
+    ("7 free sample posts. Yours to keep, either way.",
+     "Here's how we start: we make you 7 sample posts from your own business, free. Nothing goes on your page, and you keep them whether or not you go further. ➜ {site}"),
+    ("A real photo beats a stock photo.",
+     "Free tip: customers want to see your actual shop, your actual team and your actual work. A slightly imperfect real photo builds more trust than a polished stock one. ➜ {site}"),
+    ("Post idea for plumbers and electricians: before and after.",
+     "A before-and-after photo of a job (with the customer's OK) shows your work better than any ad. Add one line: what you fixed and the town you were in. ➜ {site}"),
+    ("Built on our own store first.",
+     "We test everything on our own online store before we offer it to anyone else. Its feed has published a new post every day since August 7. You can check it yourself. ➜ {site}"),
+    ("Nothing goes up on your page without your OK.",
+     "With East Coast Social, you see every post before it's published. Don't like one? We change it or skip it. Your page, your call, always. ➜ {site}"),
+    ("Answer comments within a day.",
+     "Free tip: a quick reply to a comment or question tells everyone reading that you're open and you care. Even \"Thanks! See you Saturday\" counts. ➜ {site}"),
+    ("Post idea for farms: what's fresh this week.",
+     "A weekly \"what's fresh\" post with one photo and where to find you saves your regulars a trip for nothing and pulls in new ones. ➜ {site}"),
+    ("Made in Memramcook, for businesses around here.",
+     "East Coast Social is a one-person shop in Memramcook, NB, starting out making Facebook posts for local businesses in Shediac, Moncton, Dieppe, Sackville and nearby. ➜ {site}"),
+    ("$79 for a month of daily posts. No commitment after.",
+     "After your free samples, if you like them: $79 for a month of daily posts on your Facebook page. You approve each one. When the month ends, you decide if you want another. ➜ {site}"),
+    ("Changed your hours? Post it the same day.",
+     "Free tip: holiday hours, snow-day closures and winter schedules are some of the most useful posts you can make. People check your page before they drive over. ➜ {site}"),
+    ("Post idea for salons and barbers: today's openings.",
+     "\"Two openings left this afternoon, call or message to book.\" A quick post like that can fill a chair that would have stayed empty. ➜ {site}"),
+    ("Why we started East Coast Social.",
+     "So many good local businesses have Facebook pages that stopped posting, because the owner is busy running the business. That's the gap we want to fill, one business at a time. ➜ {site}"),
+    ("You tell us about your business. We write the posts.",
+     "How it works: a short chat about what you do, then we make your posts from your own details and photos. You OK each one before it goes up. ➜ {site}"),
+    ("Show the people behind the counter.",
+     "Free tip: a \"meet the team\" post, one person and one fun fact, gets people feeling like they already know you before they walk in. ➜ {site}"),
+    ("Post idea for B&Bs and inns: the view this morning.",
+     "A morning photo from your porch or window, plus what's happening nearby this weekend. It helps people picture their stay. ➜ {site}"),
+    ("Small and local, like you.",
+     "We're not an agency. It's Matthew, in Memramcook, making the posts himself with help from AI tools, and answering his own emails. ➜ {site}"),
+    ("A quiet page can look like a closed business.",
+     "Free tip: if your last post is months old, new customers may wonder if you're still open. Even one short post a week helps. ➜ {site}"),
+    ("Post idea for restaurants: today's special, one photo.",
+     "Your special board is already content. Snap it, post it, done. Regulars love knowing what's on before they come in. ➜ {site}"),
 ]
+
+
+# The card's look for each POOL entry, same order (ecs_card.THEMES).
+KINDS = ['tip', 'idea', 'story', 'offer', 'tip', 'idea', 'story', 'offer', 'tip', 'idea', 'story', 'offer', 'tip', 'idea', 'story', 'offer', 'tip', 'idea', 'story', 'tip', 'idea']
+assert len(KINDS) == len(POOL)
 
 
 def todays_post(today=None):
     today = today or dt.date.today()
     msg, cap = POOL[today.toordinal() % len(POOL)]
     return msg, cap.format(site=SITE)
+
+
+def todays_kind(today=None):
+    today = today or dt.date.today()
+    return KINDS[today.toordinal() % len(POOL)]
 
 
 def archive(card_path, msg, caption, today):
@@ -110,8 +144,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     msg, caption = todays_post()
     card = out / "card.png"
-    render_card("East Coast Social", msg, card,
-                footer=SITE, tagline="Done-for-you social media · NB")
+    render(todays_kind(), msg, card)
     (out / "caption.txt").write_text(caption, encoding="utf-8")
     print(f"card + caption written to {out}\n{msg}")
     try:

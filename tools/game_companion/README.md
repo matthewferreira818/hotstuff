@@ -832,3 +832,18 @@ Tested on Linux: `checks/DataChecks.swift` (the character lines, the memory rule
 timing) and `checks/ReviewChecks.swift` (her notes saved and forgotten, the Google switch surviving a restart). Live.swift, FridayOrb.swift
 and CompanionInterface.swift need a Mac compile; if Update Friday says BUILD FAILED, the old app stays installed: paste the errors back.
 Not done (paid, shelved until the business earns): live voices for Roxy and Claude in a board meeting, and an original custom voice.
+
+## Friday the guard (2026-11-02)
+
+Three new pages under GUARD on the left rail. Defensive only: Friday watches, warns, blocks and helps you report; she never attacks anything.
+
+- **Guard**: the shield, **Lockdown** (her hands, screen view, links, posts, clips and stream controls go off; she can still talk and help with
+  the checks; only your Unlock button lifts it, and she can lock it herself by voice but never unlock), **Offline mode**, **Run checks**
+  (FileVault, firewall, Gatekeeper, System Integrity Protection, automatic updates, things that start by themselves, apps using the internet;
+  Apple's own read-only commands), the **account sweep** (9 pages to check for leaks), the **keys** The Helm holds (Forget asks first), the
+  **bad-day kit** and the private **alert log** (this Mac only).
+- **Real or Fake?**: paste a message or alert; red flags are checked on this Mac only.
+- **Lab**: six lessons and four free practice sites, with ticks. Practise only on your own devices or sites built for practice.
+
+The app file is now `The Helm.app` (the update renames it; nothing else changes). If the Dock ever shows a question mark, drag The Helm from
+its folder to the Dock once.

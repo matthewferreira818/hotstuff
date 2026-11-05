@@ -26,8 +26,23 @@ jobs:
           if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC not set; no ping sent"; exit 0; fi
           MSG=$(printf '%s' "$BODY" | head -n 1 | cut -c1-230)
           # Code word (Matthew, 2026-10-24): a message to him containing URGENT goes out at top priority.
-          PRIO=default; TITLE="Meeting Room: a message for you"; TAGS=speech_balloon
-          if printf '%s' "$BODY" | grep -q 'URGENT'; then PRIO=urgent; TITLE="URGENT: Meeting Room needs you"; TAGS=rotating_light; fi
+          # Since 2026-11-04 (Matthew: "only the urgent and messages that need my confirmation"): a plain message to him sends NO push.
+          # Only URGENT (top priority) and CONFIRM (needs his OK, high priority) make noise. Write "CONFIRM: <what> - details".
+          if printf '%s' "$MSG" | grep -q 'CONFIRM:'; then
+            PRIO=high; TITLE="Needs your OK"; TAGS=raised_hand
+            WHAT=$(printf '%s' "$MSG" | sed -n 's/.*CONFIRM:[[:space:]]*//p' | sed 's/ [-—] .*//; s/\..*//' | cut -c1-60 \
+              | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null | tr -d '\r\n')
+            if [ -n "$WHAT" ]; then TITLE="Needs your OK: ${WHAT}"; fi
+          elif ! printf '%s' "$MSG" | grep -q 'URGENT'; then
+            echo "Plain message to Matthew: no push (only URGENT and CONFIRM ping)"; exit 0
+          fi
+          if printf '%s' "$MSG" | grep -q 'URGENT'; then PRIO=urgent; TITLE="URGENT: Meeting Room needs you"; TAGS=rotating_light
+            # The header says WHY (Matthew, 2026-11-04): write "URGENT: <reason> - details", e.g. "URGENT: Maplehurst said yes - ...".
+            # The reason (text after "URGENT:" up to " - ", " — " or the first period, max 60 chars) becomes the title.
+            REASON=$(printf '%s' "$MSG" | sed -n 's/.*URGENT:[[:space:]]*//p' | sed 's/ [-—] .*//; s/\..*//' | cut -c1-60 \
+              | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null | tr -d '\r\n')
+            if [ -n "$REASON" ]; then TITLE="URGENT: ${REASON}"; fi
+          fi
           code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
             -H "Title: ${TITLE}" \
             -H "Priority: ${PRIO}" \
@@ -38,8 +53,10 @@ jobs:
   # Every other new room message (Matthew, 2026-10-24: "can we add it to ntfy as well?"; 10-25: "only certain ntfy notifs give me
   # notification"): priority min, so it sits silently in the ntfy app with no buzz or sound. Pings to him, URGENT, leads and orders still buzz. A
   # push so he knows the room moved, even with the Mac closed. Skips his own posts and the ones already pinged above.
+  # OFF since 2026-11-04 (Matthew: "only important notifs make noise"; his Mac dinged on every room post even at priority min).
+  # Turn back on by deleting "false && " below.
   room-update:
-    if: ${{ github.event.issue.number == 15 && github.event.comment.user.login == 'matthewferreira818' && !contains(github.event.comment.body, '→ Matthew]') && !startsWith(github.event.comment.body, '**[Matthew') }}
+    if: ${{ false && github.event.issue.number == 15 && github.event.comment.user.login == 'matthewferreira818' && !contains(github.event.comment.body, '→ Matthew]') && !startsWith(github.event.comment.body, '**[Matthew') }}
     runs-on: ubuntu-latest
     steps:
       - name: Quiet room update

@@ -60,9 +60,9 @@ This is the closer — they're no longer imagining it, they're looking at it.
 
 ## Channel notes
 
-- **Ducks aren't Real** → email ducksarentreal@gmail.com
-- **Tidewater Books** → email tidewaterbooks@eastlink.ca
-- **Viandes LeBlanc** → email leblancmeat.32@gmail.com (French first)
+- **Ducks aren't Real** → email (address in the private prospect list)
+- **Tidewater Books** → email (address in the private prospect list)
+- **Viandes LeBlanc** → email (address in the private prospect list; French first)
 - Everyone else → Messenger thread where the DM lives.
 
 ## After the close

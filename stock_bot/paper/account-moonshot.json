@@ -1,0 +1,95 @@
+{
+ "started": "2026-11-04T16:58:30+00:00",
+ "start_cash": 1000.0,
+ "cash": 0.0,
+ "spy_at_start": 768.4,
+ "positions": {
+  "CVNA": {
+   "qty": 6.417840158043165,
+   "avg_entry_price": 77.9078,
+   "fill": 77.9078,
+   "peak": 78.26,
+   "bought": "2026-11-04T16:58:46+00:00"
+  },
+  "SOFI": {
+   "qty": 28.64108368695525,
+   "avg_entry_price": 17.4574,
+   "fill": 17.4574,
+   "peak": 17.555,
+   "bought": "2026-11-04T16:58:48+00:00"
+  }
+ },
+ "orders": [
+  {
+   "time": "2026-11-04T16:58:35+00:00",
+   "symbol": "CVNA",
+   "side": "buy",
+   "status": "filled",
+   "qty": 6.41784,
+   "price": 77.9078,
+   "dollars": 500.0,
+   "fee": 0.0
+  },
+  {
+   "time": "2026-11-04T16:58:46+00:00",
+   "symbol": "SOFI",
+   "side": "buy",
+   "status": "filled",
+   "qty": 28.641084,
+   "price": 17.4574,
+   "dollars": 500.0,
+   "fee": 0.0
+  }
+ ],
+ "deposited": 1000.0,
+ "spy_units": 1.3014055179593962,
+ "deposits": [],
+ "events": [
+  {
+   "time": "2026-11-04T16:58:31+00:00",
+   "kind": "start",
+   "text": "Moonshot robot started with 1,000 practice dollars."
+  },
+  {
+   "time": "2026-11-04T16:58:46+00:00",
+   "kind": "buy",
+   "text": "Bought CVNA $500.00 at 77.91: up 29.2% in 10 days, the hottest on the list"
+  },
+  {
+   "time": "2026-11-04T16:58:48+00:00",
+   "kind": "buy",
+   "text": "Bought SOFI $500.00 at 17.46: up 18.7% in 10 days, the hottest on the list"
+  },
+  {
+   "time": "2026-11-04T18:31:46+00:00",
+   "kind": "quiet",
+   "text": "Checked 34. Holding steady."
+  },
+  {
+   "time": "2026-11-04T18:35:28+00:00",
+   "kind": "start",
+   "text": "Checking 34 every 10 seconds."
+  },
+  {
+   "time": "2026-11-04T18:35:28+00:00",
+   "kind": "quiet",
+   "text": "Checked 34. Holding steady."
+  },
+  {
+   "time": "2026-11-04T19:37:33+00:00",
+   "kind": "quiet",
+   "text": "Checked 34. Holding steady."
+  },
+  {
+   "time": "2026-11-04T20:39:44+00:00",
+   "kind": "quiet",
+   "text": "Checked 34. Holding steady."
+  },
+  {
+   "time": "2026-11-04T21:00:33+00:00",
+   "kind": "stop",
+   "text": "Market closed."
+  }
+ ],
+ "bench_units": 1.3014055179593962
+}

@@ -148,6 +148,7 @@ actor MeetingMonitor {
  private let storage: MeetingMonitorStorage
  private let clock: () -> Date
  private let uptime: () -> TimeInterval
+ private let networkAllowed: @MainActor @Sendable () -> Bool
  private var lastClock: (Date,TimeInterval)?
  private var state: MeetingMonitorState
  private(set) var storageFailed = false
@@ -164,8 +165,9 @@ actor MeetingMonitor {
  // Separate in-memory generation also invalidates callbacks if saving Stop fails.
  private var generation: UInt64 = 0
  init(transport: MeetingMonitorTransport,storage: MeetingMonitorStorage,
-      clock: @escaping () -> Date = Date.init,uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime }) throws {
-  self.transport = transport; self.storage = storage; self.clock = clock; self.uptime = uptime
+      clock: @escaping () -> Date = Date.init,uptime: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
+      networkAllowed: @escaping @MainActor @Sendable () -> Bool = { true }) throws {
+  self.transport = transport; self.storage = storage; self.clock = clock; self.uptime = uptime; self.networkAllowed = networkAllowed
   state = try storage.load()
  }
  func snapshot() -> MeetingMonitorState { state }
@@ -255,7 +257,7 @@ actor MeetingMonitor {
   }
  }
  private func fetch(_ source: MeetingReadSource,run: UInt64,manual: Bool) async -> Bool {
-  guard run == generation, !storageFailed, normalize(), run == generation,
+  guard await networkAllowed(), run == generation, !storageFailed, normalize(), run == generation,
         manual || state.settings.mode != .off else { return false }
   let now = clock()
   let endpoint = source == .board ? state.board : state.comments

@@ -60,6 +60,7 @@ actor FakeMonitorTransport: MeetingMonitorTransport {
  }
  static func main() async throws {
   try await presentationAndManualSource()
+  try await offlineGate()
   try await offAndStop()
   try await pagination()
   try await limitsAndStorage()
@@ -94,6 +95,15 @@ actor FakeMonitorTransport: MeetingMonitorTransport {
   s.fail = true; await m.refresh(.manual)
   let failed = await updates.next()
   check(failed?.storageFailed == true,"observer exposes persistence failure")
+ }
+ static func offlineGate() async throws {
+  let s = MemoryMonitorStore(), c = TestClock(); let n = FakeMonitorTransport(s)
+  let m = try MeetingMonitor(transport:n,storage:s,clock:{c.now},uptime:{c.tick},networkAllowed:{false})
+  _ = await m.enableHourly()
+  await m.refresh(.automatic)
+  await m.refresh(.manual,source:.board)
+  check(await n.count() == 0,"offline mode blocks automatic and manual network reads")
+  check(await m.snapshot().budget.attempts.isEmpty,"offline mode does not spend request budget")
  }
  static func offAndStop() async throws {
   let s = MemoryMonitorStore(), c = TestClock(); let n = FakeMonitorTransport(s), m = try monitor(s,n,c)

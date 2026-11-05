@@ -16,6 +16,11 @@ fragment = room.split(marker)[0]
 assert 'struct MeetingMonitorCard: View' in fragment
 stubs = '''
 enum DesignPreview { static let enabled = false }
+@MainActor final class GuardHub: ObservableObject {
+ static let shared = GuardHub()
+ static var isOffline = false
+ @Published var offline = false
+}
 enum Keychain {
  static func exists(_ service: String) -> Bool { false }
  static func read(_ service: String) -> Data? { nil }

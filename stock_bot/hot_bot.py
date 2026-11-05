@@ -33,6 +33,7 @@ import os
 import sys
 import time
 import urllib.parse
+import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -50,6 +51,101 @@ SAVE_SECONDS = 120  # commit the account at most every 2 min (and at the end)
 def load_cfg():
     with open(CONFIG) as f:
         return json.load(f)
+
+
+SCAN_LISTS = ("day_losers", "day_gainers", "most_actives", "small_cap_gainers")
+
+
+def pick_movers(quotes, scan, keep=()):
+    """Pure: from Yahoo screener quotes, the day's biggest cheap movers.
+    Plain stocks only, priced in the scan's range, enough trading to get
+    in and out, moving at least min_move_pct either way; biggest move first.
+    `keep` (the fixed list) is skipped so it isn't counted twice."""
+    seen, out = set(keep), []
+    for q in quotes:
+        sym, price = q.get("symbol"), q.get("regularMarketPrice")
+        move = abs(q.get("regularMarketChangePercent") or 0)
+        if (not sym or sym in seen or "." in sym or "-" in sym
+                or q.get("quoteType", "EQUITY") != "EQUITY" or price is None
+                or not scan["min_price"] <= price <= scan["max_price"]
+                or (q.get("averageDailyVolume3Month") or 0) < scan["min_avg_volume"]
+                or move < scan["min_move_pct"]):
+            continue
+        seen.add(sym)
+        out.append((move, sym))
+    return [sym for _, sym in sorted(out, reverse=True)][:scan["max_extra"]]
+
+
+def scan_market(scan, keep):
+    """Ask Yahoo's free market-wide screens (every US stock) for today's
+    biggest gainers, losers and most traded, and keep the cheap movers."""
+    quotes = []
+    for name in SCAN_LISTS:
+        try:
+            q = urllib.parse.urlencode({"scrIds": name, "count": 100})
+            quotes += paper_broker._get("https://query1.finance.yahoo.com/v1/"
+                                        f"finance/screener/predefined/saved?{q}"
+                                        )["finance"]["result"][0]["quotes"]
+        except Exception as e:  # one list failing must not stop the scan
+            print(f"Scan list {name} skipped ({type(e).__name__}).")
+    return pick_movers(quotes, scan, keep)
+
+
+ALPACA_TRADES = "https://data.alpaca.markets/v2/stocks/trades/latest"
+FRESH_SECONDS = 120  # an Alpaca price older than this falls back to Yahoo
+
+
+def fresh_trades(data, now_ts, max_age=FRESH_SECONDS):
+    """Pure: {sym: price} from Alpaca's latest-trades reply, recent ones only."""
+    out = {}
+    for sym, t in (data.get("trades") or {}).items():
+        try:
+            ts = dt.datetime.fromisoformat(t["t"][:19] + "+00:00").timestamp()
+        except (KeyError, TypeError, ValueError):
+            continue
+        if t.get("p") and now_ts - ts <= max_age:
+            out[sym] = float(t["p"])
+    return out
+
+
+def use_live_feed(broker):
+    """Live prices (2026-11-04, Matthew's free Alpaca paper account): the
+    latest real trade from Alpaca's free real-time feed (IEX exchange),
+    Yahoo for anything Alpaca has no recent trade for. Keys come only from
+    the job's secret boxes and are never printed. Returns True if on."""
+    key, secret = os.environ.get("ALPACA_KEY"), os.environ.get("ALPACA_SECRET")
+    if not key or not secret:
+        return False
+    yahoo = broker.latest_prices
+    headers = {"APCA-API-KEY-ID": key, "APCA-API-SECRET-KEY": secret,
+               "User-Agent": "hot-hands-practice-bot"}
+    state = {"fails": 0}
+
+    def latest_prices(symbols):
+        symbols = list(dict.fromkeys(symbols))
+        out = {}
+        if state["fails"] < 20:
+            try:
+                for i in range(0, len(symbols), 100):
+                    q = urllib.parse.urlencode(
+                        {"symbols": ",".join(symbols[i:i + 100]), "feed": "iex"})
+                    req = urllib.request.Request(f"{ALPACA_TRADES}?{q}",
+                                                 headers=headers)
+                    with urllib.request.urlopen(req, timeout=10) as r:
+                        out.update(fresh_trades(json.load(r), time.time()))
+                state["fails"] = 0
+            except Exception as e:  # never print the request: it holds keys
+                state["fails"] += 1
+                print(f"Live feed check failed ({type(e).__name__}); "
+                      "using Yahoo for this one.")
+        missing = [x for x in symbols if x not in out]
+        if missing:
+            out.update(yahoo(missing))
+        broker._last_prices.update(out)
+        return out
+
+    broker.latest_prices = latest_prices
+    return True
 
 
 def day_bars(sym):
@@ -81,7 +177,7 @@ def decide(cfg, now_ts, start, end, prices, vwaps, held, cash, value,
             continue
         if mins_left <= r["flatten_minutes_before_close"]:
             sells.append((sym, "closing time, out before the bell"))
-        elif vwap and price >= vwap:
+        elif vwap and price >= vwap and price >= fill * (1 + r.get("min_gain_pct", 0) / 100):
             sells.append((sym, f"back up to its day average {vwap:.2f}"))
         elif price <= fill * (1 - r["stop_pct"] / 100):
             sells.append((sym, f"down {r['stop_pct']}% from the buy, cut it"))
@@ -214,11 +310,17 @@ def run():
         print("Market closed.")
         return 0
 
-    every = max(float(cfg.get("check_every_seconds", 10)), 5)
+    live = use_live_feed(broker)
+    every = max(float(cfg.get("check_every_seconds_live" if live else
+                              "check_every_seconds", 10)), 2)
+    scan = cfg.get("scan") or {}
+    fixed = list(cfg["stocks"])
     event(f"Market's open. Watching {len(cfg['stocks'])} cheap swingers every "
-          f"{every:g} seconds.", "start")
+          f"{every:g} seconds" + (" on the live feed" if live else "") + (", plus a whole-market scan for the day's "
+          "biggest cheap movers." if scan.get("on") else "."), "start")
     start = end = None
     last_vwap = last_snap = 0.0
+    last_scan = -1e9
     checks = errors = 0
     while True:
         now = time.monotonic()
@@ -226,9 +328,22 @@ def run():
             print("Hit the job time limit; the next scheduled run takes over.")
             break
         try:
+            if scan.get("on") and now - last_scan >= scan["every_minutes"] * 60:
+                last_scan = now
+                extra = scan_market(scan, fixed)
+                if extra:
+                    new = [x for x in extra if x not in cfg["stocks"]]
+                    cfg["stocks"] = fixed + extra
+                    last_vwap = 0.0  # fetch the new stocks' averages now
+                    event(f"Market scan: watching {len(cfg['stocks'])} stocks"
+                          + (f", new: {', '.join(new)}." if new else "."),
+                          "info")
             if now - last_vwap >= VWAP_SECONDS:
                 for sym in cfg["stocks"]:
-                    v, start, end = day_bars(sym)
+                    try:
+                        v, start, end = day_bars(sym)
+                    except Exception:  # one odd stock must not stop the rest
+                        continue
                     if v:
                         vwaps[sym] = v
                 last_vwap = now
@@ -348,6 +463,36 @@ def selftest():
     b = decide(cfg, mid, start, end, p, vw, {}, 150, 1000, {}, 0)[1]
     assert [(x[0], x[1]) for x in b] == [("ONDS", 150)], b
     assert decide(cfg, mid, start, end, p, vw, {}, 90, 1000, {}, 0)[1] == []
+    # Fee-aware exit (2026-11-04): back at VWAP but not yet 1.5% above the buy -> hold.
+    cfg2 = dict(cfg, rules=dict(cfg["rules"], min_gain_pct=1.5))
+    assert not decide(cfg2, mid, start, end, {"ONDS": 7.01}, vw, {"ONDS": 6.95}, 0, 0, {}, 1)[0]
+    assert decide(cfg2, mid, start, end, {"ONDS": 7.06}, vw, {"ONDS": 6.95}, 0, 0, {}, 1)[0]
+    # Market scan (2026-11-04): cheap, liquid, big movers only; biggest first.
+    sc = {"min_price": 2, "max_price": 25, "min_avg_volume": 2_000_000,
+          "min_move_pct": 4, "max_extra": 2}
+    qs = [{"symbol": "AAA", "regularMarketPrice": 5, "regularMarketChangePercent": -9,
+           "averageDailyVolume3Month": 5e6},
+          {"symbol": "BBB", "regularMarketPrice": 300, "regularMarketChangePercent": 20,
+           "averageDailyVolume3Month": 5e6},   # too pricey
+          {"symbol": "CCC", "regularMarketPrice": 4, "regularMarketChangePercent": 30,
+           "averageDailyVolume3Month": 1e5},   # too thinly traded
+          {"symbol": "DDD", "regularMarketPrice": 8, "regularMarketChangePercent": 12,
+           "averageDailyVolume3Month": 9e6},
+          {"symbol": "EEE", "regularMarketPrice": 8, "regularMarketChangePercent": 2,
+           "averageDailyVolume3Month": 9e6},   # barely moving
+          {"symbol": "ONDS", "regularMarketPrice": 7, "regularMarketChangePercent": -15,
+           "averageDailyVolume3Month": 9e7},   # already on the fixed list
+          {"symbol": "FFF", "regularMarketPrice": 6, "regularMarketChangePercent": 7,
+           "averageDailyVolume3Month": 9e6, "quoteType": "ETF"},
+          {"symbol": "GGG", "regularMarketPrice": 6, "regularMarketChangePercent": 5,
+           "averageDailyVolume3Month": 9e6}]
+    assert pick_movers(qs, sc, keep=["ONDS"]) == ["DDD", "AAA"], pick_movers(qs, sc, ["ONDS"])
+    # Live feed (2026-11-04): fresh trades kept, stale or broken ones dropped.
+    now = dt.datetime(2026, 11, 4, 16, 0, 0, tzinfo=dt.timezone.utc).timestamp()
+    data = {"trades": {"ONDS": {"t": "2026-11-04T15:59:30.123456789Z", "p": 6.5},
+                       "OLD": {"t": "2026-11-04T15:50:00Z", "p": 3.0},
+                       "BAD": {"p": 4.0}}}
+    assert fresh_trades(data, now) == {"ONDS": 6.5}, fresh_trades(data, now)
     print("selftest OK")
 
 

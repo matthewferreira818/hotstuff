@@ -16,7 +16,7 @@ CREDS = ["ECS_X_API_KEY", "ECS_X_API_SECRET",
 
 BIO = ("Done-for-you social media for local businesses in Sackville, "
        "Memramcook & greater Moncton. Your page posts every day — "
-       "you don't lift a finger.")
+       "you just approve it.")
 
 
 def main():

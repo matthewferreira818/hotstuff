@@ -35,7 +35,8 @@ def post_photo(page_id: str, token: str, image_path: Path, caption: str) -> str:
         f"{GRAPH}/{page_id}/photos", data=body,
         headers={"Content-Type": f"multipart/form-data; boundary={boundary}"})
     with urllib.request.urlopen(req, timeout=60) as resp:
-        return json.load(resp).get("post_id") or json.load(resp).get("id", "?")
+        data = json.load(resp)  # read once: a second read is empty and crashed
+    return data.get("post_id") or data.get("id", "?")
 
 
 def main():

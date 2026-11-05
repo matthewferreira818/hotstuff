@@ -66,7 +66,8 @@ enum StockData {
   robot.value = number(account["value"])
   robot.cash = number(account["cash"])
   robot.held = number(account["held"])
-  robot.spyValue = number(account["spy_value"])
+  // Moonshot robots compare with "bench_value" (SPY, or Bitcoin for crypto).
+  robot.spyValue = number(account["spy_value"] ?? account["bench_value"])
   robot.fees = number(account["fees"])
   robot.startCash = number(account["start_cash"])
   robot.trades = Int(number(account["trades"]))

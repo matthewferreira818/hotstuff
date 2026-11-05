@@ -54,7 +54,8 @@ import Cocoa
    do {
     let support = try FileManager.default.url(for:.applicationSupportDirectory,in:.userDomainMask,appropriateFor:nil,create:true)
     let directory = support.appendingPathComponent("GameCompanion/MeetingRoomMonitor",isDirectory:true)
-    monitor = try MeetingMonitor(transport:MeetingMonitorHTTP(),storage:MeetingMonitorFileStorage(directory:directory))
+    monitor = try MeetingMonitor(transport:MeetingMonitorHTTP(),storage:MeetingMonitorFileStorage(directory:directory),
+                                 networkAllowed:{ !GuardHub.isOffline })
    } catch { monitorProblem = true; return }
   }
   guard let monitor else { return }
@@ -115,6 +116,7 @@ import Cocoa
  }
  var monitorDetail: String {
   if monitorProblem { return "The monitor couldn’t save its state. Reads are paused. Restart the app after checking available disk space; if this remains, ask for help." }
+  if GuardHub.isOffline { return "Offline mode is on. Room reads pause until it’s turned off." }
   if let lease = monitorState.settings.lease { return "Fast checks until \(lease.expiresAt.formatted(date:.omitted,time:.shortened)); then hourly. Sleep and connection delays can make checks later." }
   if monitorState.settings.mode == .off { return "Automatic reads are off. You can refresh one source below." }
   return "Checks run while the app is open and this Mac is awake and online."
@@ -304,6 +306,7 @@ import Cocoa
 // All controls remain in the page's scroll area at compact window sizes.
 struct MeetingMonitorCard: View {
  @ObservedObject var meeting: MeetingHub
+ @ObservedObject var guardHub = GuardHub.shared
  var body: some View {
   GroupBox {
    VStack(alignment:.leading,spacing:10) {

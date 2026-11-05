@@ -66,7 +66,8 @@ extension CompanionInterfaceView {
    ScrollView(showsIndicators:false) {
     VStack(alignment:.leading,spacing:4) {
      hubRailButton(.home)
-     hubRailGroup("CREW",pages:[.friday,.helper,.meeting])
+     hubRailGroup("CREW",pages:[.friday,.helper,.meeting,.council])
+     hubRailGroup("GUARD",pages:[.shield,.realFake,.lab])
      hubRailGroup("BUSINESS",pages:[.stocks,.store,.ecs,.systems])
      hubRailGroup("STREAM",pages:[.stream,.game])
      hubRailGroup("SETUP",pages:[.launchpad,.accounts])
@@ -299,6 +300,10 @@ extension CompanionInterfaceView {
   case .meeting: hubMeeting
   case .stream: hubStream
   case .helper: hubHelper
+  case .shield: hubGuard
+  case .realFake: hubRealOrFake
+  case .lab: hubLab
+  case .council: hubCouncil
   }
  }
 }

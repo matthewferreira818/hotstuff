@@ -1,40 +1,24 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 1.66,
+ "cash": 367.02,
  "spy_at_start": 764.32,
  "positions": {
-  "HOOD": {
-   "qty": 1.0012484703148372,
-   "avg_entry_price": 99.8753
-  },
-  "MU": {
-   "qty": 0.11220961229098003,
-   "avg_entry_price": 891.1892
-  },
-  "CRWD": {
-   "qty": 0.4356488894864869,
-   "avg_entry_price": 229.5426
-  },
-  "ONDS": {
-   "qty": 16.53920403920404,
-   "avg_entry_price": 6.0462
-  },
-  "ARM": {
-   "qty": 0.43462396978021983,
-   "avg_entry_price": 230.084
-  },
   "ASTS": {
    "qty": 2.5834323987358294,
    "avg_entry_price": 38.7082
   },
-  "NVDA": {
-   "qty": 0.4639943508297219,
-   "avg_entry_price": 215.5199
+  "CRWD": {
+   "qty": 0.39774175534016304,
+   "avg_entry_price": 251.4194
   },
-  "RIOT": {
-   "qty": 7.703547436041536,
-   "avg_entry_price": 12.981
+  "HOOD": {
+   "qty": 1.1574901041741095,
+   "avg_entry_price": 86.3938
+  },
+  "ARM": {
+   "qty": 0.4832301249239361,
+   "avg_entry_price": 206.9407
   }
  },
  "orders": [
@@ -576,6 +560,106 @@
    "qty": 7.703547,
    "price": 12.7227,
    "dollars": 100.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-27T18:34:10+00:00",
+   "symbol": "CRWD",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.435649,
+   "price": 267.5722,
+   "dollars": 114.58,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T18:26:41+00:00",
+   "symbol": "HOOD",
+   "side": "sell",
+   "status": "filled",
+   "qty": 1.001248,
+   "price": 82.5773,
+   "dollars": 80.69,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T18:26:44+00:00",
+   "symbol": "ARM",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.434624,
+   "price": 199.7021,
+   "dollars": 84.81,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-10-30T18:26:45+00:00",
+   "symbol": "CRWD",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.397742,
+   "price": 246.4162,
+   "dollars": 100.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-03T14:30:18+00:00",
+   "symbol": "HOOD",
+   "side": "buy",
+   "status": "filled",
+   "qty": 1.15749,
+   "price": 84.6746,
+   "dollars": 100.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T14:30:17+00:00",
+   "symbol": "RIOT",
+   "side": "sell",
+   "status": "filled",
+   "qty": 7.703547,
+   "price": 15.6843,
+   "dollars": 118.83,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T14:30:19+00:00",
+   "symbol": "ARM",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.48323,
+   "price": 202.8226,
+   "dollars": 100.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:46:56+00:00",
+   "symbol": "ONDS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 16.539204,
+   "price": 5.4296,
+   "dollars": 87.81,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T15:52:08+00:00",
+   "symbol": "MU",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.11221,
+   "price": 800.8084,
+   "dollars": 87.87,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-04T20:55:11+00:00",
+   "symbol": "NVDA",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.463994,
+   "price": 199.9099,
+   "dollars": 90.77,
    "fee": 1.99
   }
  ],

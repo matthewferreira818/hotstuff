@@ -1,11 +1,15 @@
 # Meeting Room board
 
-_Last updated: 2026-10-24 by Claude_
+_Last updated: 2026-11-04 night by Claude_
 
 ## On the table
+- [Matthew] Thu 8:30 AM: call CBDC about the Self-Employment Benefit (call sheet in Helm-Private). Emails, Fiverr and $350 outreach wait for its answer. Status: waiting
+- [GPT] Remake the Fiverr website gig images (demos labelled SAMPLE, no made-up stats; list in issue 15). Gig stays paused until Claude checks and Matthew says GO. Status: assigned
+- [Matthew] Have a fluent French reader check findhotstuff.com/automation/fr/ (pilot wording changed 11-04 by Claude; not yet reviewed). Status: waiting
+- [Claude] Friday the guard is on master (Mac compile 9ecd64c exit 0): Guard, Real or Fake?, Lab pages, lockdown, app file renamed The Helm.app, Roxy's Ghost icon. Next: Matthew runs Update Friday. Status: waiting
 - [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
 - [Claude] Friday upgrade is on master (Mac compile of e8a2b2a exit 0): her character, a memory she writes, Spotify, speaking up, mellower voice, new icon. Next: Matthew runs Update Friday and tries her. Status: waiting
-- [GPT] Monitor integration ready in PR #26 (8929272): 57-source Mac compile exit 0; offline and compact/keyboard checks pass. Anonymous, default Off. Claude Linux review/merge next; no install or launch. Status: review
+- [GPT] Roxy took over PR #26 review on Nov 5. Candidate refreshed on master 81addf6; the Guard Offline mode is preserved. Full optimized 62-source Mac compile exit 0, 0 errors, 30 warnings; policy, coordinator, read-seam and isolated UI checks pass. No app install or launch. Linux checks remain unrun locally. Status: review
 - [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
 - [GPT] All app pages are on master: Home, Stocks (now with Hot hands), Store, ECS, Systems (Claude reviewed each; Mac compiles exit 0, 28 warnings; not launch-tested). Next: monitor slice 1 on gpt/helm-monitor-slice-1. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
@@ -14,7 +18,7 @@ _Last updated: 2026-10-24 by Claude_
 - [Claude] Crew page (findhotstuff.com/crew/, v3, noindex): waiting on Matthew's OK before the noindex comes off. GPT: please read its wording against rule 1. Status: waiting
 - [Claude] Outreach twice a week (Tuesday and Friday). Batch 1 is ready and waits for Matthew's go; batch 2 (5 follow-ups) waits for his pick under Questions. Status: waiting
 - [Claude] Later, not urgent: swap the older Apple calls in ClipEditor.swift for the newer ones, after the first clip test works (the old ones still work); GPT compile-checks the swap. Status: waiting
-- [Matthew] Read outreach batch 1 (marketing/east-coast-social/outreach/batch-2026-10-06.md: five Facebook messages, nothing sent) and say go. Then give Chrome Claude the prompt in outreach/cc-session-prompt.md with your footer filled in. Status: waiting
+- [Matthew] Read outreach batch 1 (helm-private: ecs/outreach-batches/batch-2026-10-06.md: five Facebook messages, nothing sent) and say go. Then give Chrome Claude the prompt in outreach/cc-session-prompt.md with your footer filled in. Status: waiting
 - [Matthew] Open the ECS Facebook page's About and pinned intro. If it says the store "posts three times a day" or similar, change it to "my own store's feed has published a new post every day since August 7". Status: waiting
 - [Matthew] Moncton group ad: it was still with the admins as of 10-05. Have Chrome Claude delete the stale Aug 19 pending post; no more posts there until the admins respond. Status: waiting
 - [Matthew] Four quick answers so the sales ledger is true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting

@@ -66,6 +66,8 @@ class PaperBroker:
         # Canada: US$0.99 + US$1.00 minimums, ~US$0.0099 a share combined).
         self.fee = float(costs.get("fee_min", costs.get("fee_per_trade", 1.0)))
         self.fee_per_share = float(costs.get("fee_per_share", 0.0))
+        # Percent-of-trade fee (crypto apps like KOHO: 0.5%), 2026-11-04.
+        self.fee_pct = float(costs.get("fee_pct", 0.0)) / 100
         self.slip = float(costs.get("slippage_pct", 0.1)) / 100
         self.path = path
         self.save_hook = save_hook if save_hook is not None else git_save
@@ -152,8 +154,9 @@ class PaperBroker:
     def cash(self):
         return float(self.acct["cash"])
 
-    def order_fee(self, qty):
-        return max(self.fee, self.fee_per_share * qty)
+    def order_fee(self, qty, notional=0.0):
+        return max(self.fee, self.fee_per_share * qty,
+                   getattr(self, "fee_pct", 0.0) * notional)
 
     def apply_deposits(self, plan, today=None):
         """Mirror Matthew's paycheque deposits. plan = {"amount_cad": 100,
@@ -200,7 +203,7 @@ class PaperBroker:
         price = self._price(symbol) * (1 + self.slip)
         if dollars > self.acct["cash"] + 1e-9:
             raise RuntimeError(f"not enough practice cash for {symbol}")
-        fee = self.order_fee((dollars - self.fee) / price)
+        fee = self.order_fee((dollars - self.fee) / price, dollars)
         spend = dollars - fee
         if spend <= 0:
             raise RuntimeError("buy is smaller than the fee")
@@ -208,14 +211,14 @@ class PaperBroker:
         pos = self.acct["positions"].get(symbol)
         if pos:
             total = pos["qty"] + qty
-            pos["avg_entry_price"] = round(
-                (pos["qty"] * pos["avg_entry_price"] + dollars) / total, 4)
+            pos["avg_entry_price"] = _px(
+                (pos["qty"] * pos["avg_entry_price"] + dollars) / total)
             pos["qty"] = total
         else:
             # The entry price includes the fee, so the bot's take-profit
             # and stop-loss measure what actually came out of pocket.
             self.acct["positions"][symbol] = {
-                "qty": qty, "avg_entry_price": round(dollars / qty, 4)}
+                "qty": qty, "avg_entry_price": _px(dollars / qty)}
         self.acct["cash"] = round(self.acct["cash"] - dollars, 2)
         self._record(symbol, "buy", qty, price, dollars, fee)
         self._save(f"Practice trade: buy {symbol}")
@@ -226,13 +229,17 @@ class PaperBroker:
         if not pos:
             raise RuntimeError(f"no practice position in {symbol}")
         price = self._price(symbol) * (1 - self.slip)
-        fee = self.order_fee(pos["qty"])
+        fee = self.order_fee(pos["qty"], pos["qty"] * price)
         proceeds = pos["qty"] * price - fee
         self.acct["cash"] = round(self.acct["cash"] + proceeds, 2)
         del self.acct["positions"][symbol]
         self._record(symbol, "sell", pos["qty"], price, proceeds, fee)
         self._save(f"Practice trade: sell {symbol}")
-        return {"status": "filled"}
+        # Real profit after BOTH fees (avg_entry_price already includes the buy fee).
+        profit = proceeds - pos["qty"] * pos["avg_entry_price"]
+        if profit > 0.005:
+            _money_ping(self.path, symbol, profit)
+        return {"status": "filled", "profit": round(profit, 2)}
 
     def _price(self, symbol):
         p = self.latest_prices([symbol]).get(symbol)
@@ -244,8 +251,34 @@ class PaperBroker:
         self.acct["orders"].append({
             "time": _now(), "symbol": symbol, "side": side,
             "status": "filled", "qty": round(qty, 6),
-            "price": round(price, 4), "dollars": round(dollars, 2),
+            "price": _px(price), "dollars": round(dollars, 2),
             "fee": round(fee, 2)})
+
+
+def _px(x):
+    """Round a price: 4 decimals, or 6 significant digits under $1 so
+    fraction-of-a-penny meme coins (SHIB, PEPE) don't round to $0."""
+    return round(x, 4) if abs(x) >= 1 else float(f"{x:.6g}")
+
+
+ROBOT_NAMES = {"account.json": "Dip robot", "account-momentum.json": "Momentum robot",
+               "account-hot.json": "Hot hands", "account-moonshot.json": "Moonshot",
+               "account-moonshot-crypto.json": "Moonshot crypto"}
+
+
+def _money_ping(path, symbol, profit):
+    """Matthew, 2026-11-04: "let me know when the bots make money". A sale that
+    made money after fees rings his phone (default priority, unlike routine
+    robot news). Practice money; never fails the trade."""
+    try:
+        sys.path.insert(0, HERE)
+        import stock_bot
+        name = ROBOT_NAMES.get(os.path.basename(path), "A robot")
+        stock_bot.notify(f"💰 {name} made ${profit:,.2f} (practice)",
+                         f"Sold {symbol} for a ${profit:,.2f} profit after fees. Practice money.",
+                         "default")
+    except Exception as e:  # a push must never break a trade
+        print(f"money ping skipped ({type(e).__name__})")
 
 
 def _now():

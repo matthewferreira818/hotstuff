@@ -58,3 +58,14 @@ The coordinator publishes payloads only after persistence succeeds, bounds the o
 - Linux rerun/review and merge belong to Claude. Installed-app smoke testing (actual network, sleep/resume and whole-window navigation) remains unverified; the isolated card check is not a production launch.
 
 Reproduce on Linux from `tools/game_companion`: compile/run the commands in `checks/MeetingMonitorCoordinatorChecks.swift`, `checks/MeetingMonitorChecks.swift` and `checks/MeetingReadSeamChecks.swift`. On Mac: `python3 checks/run_monitor_integration_checks.py /tmp/helm-monitor-integration-checks`. Do not use rebuild.sh as a compile-only test: it installs the app.
+
+## Refreshed review candidate (November 5)
+
+The prior head was 171 commits behind current master and had conflicts in `MeetingRoom.swift` and `rebuild.sh`. The integration was reconciled in a separate review worktree against master `81addf65a99f15c46e15da8187f0680782fd7894`. The source-registration list combines the monitor sources with the newer Guard and Council sources already on master.
+
+The current Guard Offline mode must also cover the monitor. Automatic and manual monitor requests now check `GuardHub.isOffline` before reserving budget or dispatching a read; a regression check covers the gate, and the card explains that reads pause while Offline is on. No token, network write, production install or app launch was added.
+
+- Full optimized 62-source Mac compile of source tree `6dc8dfa9ef5d1ae3e1234054b99a0d0c574f87d9`: **exit 0, 0 errors, 30 warnings**, target `arm64-apple-macos27.0`.
+- Coordinator, policy, read-seam and isolated MeetingHub/card checks: **compile/run exit 0** each. The isolated card check stubs credentials and uses an offline transport.
+- `zsh -n` for `rebuild.sh`, Python syntax parsing, and the PR diff whitespace check: **exit 0**.
+- Linux execution and installed-app smoke checks remain unverified. This Mac has no Linux runtime or existing Linux CI job, so those were not claimed.

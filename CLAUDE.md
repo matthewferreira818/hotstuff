@@ -22,6 +22,16 @@ than discovering something was papered over.
   **Domains are registered at Porkbun.** eastcoastsocial.ca currently sits
   there as a URL-forward to findhotstuff.com/automation/ that STRIPS the
   query string (verified 08-28), so every ?ref= tag through it is lost.
+  **Email (2026-11-04):** contact@ and hello@ forward (Porkbun) to the business Gmail eastcoastsocial.nb@gmail.com. Since 2026-11-04 ~2 PM the
+  business Gmail SENDS as contact@eastcoastsocial.ca (its default "Send mail as") through SMTP2GO's free plan (SMTP user ecs-gmail,
+  mail.smtp2go.com:587; domain verified with 3 CNAMEs at Porkbun: em1168580, s1168580._domainkey, link; open/click tracking off).
+  Tested: reached Yahoo's inbox (Gmail's own server as contact@ was BLOCKED by Yahoo: no DKIM for our domain). Free plan: about 1,000
+  emails a month. Use this for outreach from 11-05; the old Yahoo send-only route (matthew.ferreira213) still exists as a backup.
+  **Facebook auto-post ARMED (2026-11-04 ~3:30 PM):** ecs-daily-post.yml posts the daily card to the ECS Facebook Page by itself via
+  Meta app "ECS Posting Engine" (ID 916684360803898). Secrets FB_PAGE_ID + FB_PAGE_TOKEN (Page token, Debugger: Type Page, Expires Never).
+  First test post worked but was HIDDEN from the public (app in Development); switching the app to Live was in progress. Check a post
+  logged out before claiming "my Facebook page posts daily", and only claim it after real public daily posts exist.
+  The $79 two-business Starter Month pilot is drafted in helm-private ecs/pilot/; the matching page fix waits on branch claude/ecs-pilot-page-draft.
 - **East Coast Social (ECS)** — findhotstuff.com/automation (EN + /fr).
   Done-for-you daily social posting for local NB businesses: free setup,
   free sample week, **$79/mo CAD, no contracts**. Standing goal: **first
@@ -67,7 +77,13 @@ than discovering something was papered over.
    cold emails and messages once or twice a week"):** Claude writes
    it and C.C. sends it from his own accounts, once or twice a week,
    up to 5 messages a batch, taken from the prospects ledger. Channel:
-   Facebook page messages (his answer, 2026-10-05). He chose to have a
+   Facebook page messages (his answer, 2026-10-05). **Updated 2026-11-04 (his words: "10 a day", "we tailor them to the place", "get C.C to send them individually"):**
+   email is now a channel too: up to 10 tailored emails a day, each sent one at a time by C.C from contact@eastcoastsocial.ca,
+   only to businesses that publish their own email (source page logged in helm-private), first send waits for the page fix below.
+   **Raised the same night (his words: "25 sent a day until the well runs dry on the small local, mom and pop business's, we can change the
+   paramaters later", "start with a bang"):** up to 25 a day, small independent local businesses only. Every batch still gets a fact check
+   (a second Claude pass against the source pages; Roxy in the room when available, using only a pointer to helm-private) and his GO. Sending
+   25 a day through Yahoo risks spam and the account; SMTP2GO is the planned route for that volume (his approval for the 3 DNS records). He chose to have a
    business advisor check the format as we go, and the footer uses his
    home address and phone (he gave them; the phone is already public on
    the ECS page). **His home address never goes in this public repo**:
@@ -87,6 +103,14 @@ than discovering something was papered over.
    Meta and TikTok need their app reviews); where a channel has neither
    a hookup nor a C.C. session, Claude preps and he posts. GPT posts or pushes live only with Claude's go-ahead. OS
    file dialogs are his.
+   **Job applications (his decision, 2026-11-04 ~5:30 AM: "can we have it so she just sends it?"):** RC/C.C may press Submit on job
+   applications from the list Claude prepared (helm-private matthew/jobs/), using only the facts he gave; any question not covered, any
+   sign-in, code, payment or new account stops for him; file pickers (OS dialogs) stay his unless a saved resume can be chosen.
+   **Listings and portfolios (2026-11-04):** before any public listing goes live (Fiverr gigs, profiles, portfolio images, promo videos),
+   C.C does a LOOK-ONLY honesty check of every line, image and video, and it publishes only after Claude's OK and Matthew's GO. Made-up
+   demo businesses carry a visible "SAMPLE DESIGN — not a real client" label and a yourbusiness.com address; no invented stats, reviews,
+   past clients, results, or prices/extras the packages don't include. (The first website gig went up with unlabelled demos and invented
+   stats; C.C caught it the same night.)
 4. **No fake documents, ever** — he once asked for a fake certificate; the
    answer was and remains no, and he accepted it. Same rule as #1.
 
@@ -97,8 +121,8 @@ Frugal until client #1: paid items are SHELVED (Anthropic API key for the
 name polisher, X API credits, hoodie sample). Don't pitch paid anything in
 briefs until Matthew says the first invoice cleared. Everything currently
 running costs $0/month. Free unlocks still open: Meta/Facebook auto-post
-hookup, TikTok app review, Zoho mail. GBP: fields done 08-19; the 08-26 verification video
-can't be used (Google needs a live recording made inside its own tool) and nothing is submitted as of 10-05.
+hookup, TikTok app review, Zoho mail. GBP: VERIFIED 2026-11-04 evening by a code sent to his phone (Google offered phone, a findhotstuff.com email, a photo
+or a live video; no postcard). Keep the home address hidden (service-area business).
 
 ## Stock bot (as of 2026-09-27)
 
@@ -123,7 +147,7 @@ The weekday routine "Start stock robots" dispatches all three workflows.
 
 ## Game Companion, and the chassis dream (as of 2026-10-05)
 
-**"GC" = the Game Companion** (he also says "gaming companion"). **Since 2026-10-24 the Mac app's display name is "The Helm"** (Matthew's pick; it was "Friday" from 2026-10-14, and Friday is now the voice and character inside the app; same icon; the file name `GameCompanion.app`, app ID and saved data are unchanged on purpose, so "Update Friday.command" keeps its old name).
+**"GC" = the Game Companion** (he also says "gaming companion"). **Since 2026-10-24 the Mac app's display name is "The Helm"** (Matthew's pick; it was "Friday" from 2026-10-14, and Friday is now the voice and character inside the app; since 2026-11-02 the app FILE is `The Helm.app` too (rebuild.sh renames it in place, because Finder and the Dock show the file name; the app ID, saved data and "Update Friday.command" keep their old names on purpose).
 `tools/game_companion/` is the Mac app Matthew talks to while he plays: a
 live buddy (Google's free Gemini Live key, saved privately on his Mac as
 a file only his account can read, never in the repo or chat; since
@@ -172,6 +196,18 @@ new chat has no memory of it, so this line is how future sessions know.
 Treat it warmly and honestly: it is a dream, not a plan or a purchase, and
 money mode still applies. Don't promise abilities Claude doesn't have.
 
+## How we work day to day (Matthew, 2026-11-04 night)
+
+- **A fresh chat for the daily work** (his "Work" session): long chats re-read everything and burn usage, so the memory lives in
+  files, not in one chat. Each new chat starts by reading this file, `claude-home/` (ME, US, WAKE-UP), `meeting-room/BOARD.md`, and the
+  newest private handoff note in Helm-Private (`matthew/handoff-*.md`). Before stopping, add the day's story to `claude-home/US.md`
+  (public-safe) and anything private to a new handoff note.
+- The old long chat ("new beginning") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
+  and the 5:15 PM robot recap) fire there.
+- **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day
+  Friday, on his own hardware, holds everything we share. Until then these files are that memory. Like the chassis dream, it's a dream,
+  not a purchase: money mode applies, and private things stay out of this public repo.
+
 ## Where the real ledgers live (read before answering "what's next")
 
 - `meeting-room/BOARD.md` — the shared board for every Claude chat, GPT (his ChatGPT Project) and Friday; Matthew sees it
@@ -183,7 +219,9 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   starts with a tag like `**[Claude → GPT]**`). Read it with the board at the start of a job; a `**[Claude → Matthew]**`
   message sends a push to his phone, which is how to ping him. The daily morning routine includes a room check.
 
-- `marketing/east-coast-social/call-kit.md` — prospect ledger + call log.
+- **`helm-private` (PRIVATE repo, github.com/matthewferreira818/Helm-Private, moved there 2026-10-25):** `ecs/prospects.md`,
+  `ecs/call-kit.md` (prospect ledger + call log), `ecs/call-sheets/`, `ecs/send-sheets/`, `ecs/outreach-batches/`, and `friday/`
+  (Friday's memory backup). Matthew gave Claude full access. Never copy prospect details back into the public hotstuff repo.
 - `.claude/council/DECISIONS.md` — council verdicts. Standing: the
   design freeze on both sites ended 2026-08-28; one-time
   downsell offers exist but are GATED (2026-08-14 entry has the gates).
@@ -223,6 +261,10 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   deleting and reinstalling the ntfy app fixed it (settings and restarts did not). NTFY_TOPIC is the bare
   topic name only (no https:// or ntfy.sh/); it was renewed 10-24, so Cloudflare's NTFY_TOPIC needs his
   update too. A GitHub-app backup (@mention in issue 24) was tried the same night and removed: it never buzzed.
+- **Room pings (2026-11-04 night):** only important things make noise. Per-message room updates are OFF (his Mac dinged on every post).
+  A plain `**[Claude → Matthew]**` message NO LONGER pings (his ask: "only the urgent and messages that need my confirmation").
+  To reach his phone write `CONFIRM: <what> - details` (needs his OK; title "Needs your OK: <what>") or `URGENT: <reason> - details`
+  (emergency; title "URGENT: <reason>", e.g. "URGENT: Maplehurst paid $79").
 - ntfy.sh from Cloudflare Workers gets rate-limited (shared egress IPs) —
   that's why worker alerts hop through a GitHub repository_dispatch relay.
 - raw.githubusercontent caches ~5 min — cache-bust paste links; GitHub
@@ -280,7 +322,17 @@ board so two people don't edit one file), and Claude reviews afterwards and reve
 force, because they are Matthew's own: honesty (rule 1), secrets (rule 2), Friday's off-limits list and Allow box, the Moomoo real-money
 switches, money mode (nothing paid), and no public post, outreach or message to a person without Claude's or Matthew's go. Lifting any of
 those needs Matthew to say so in his own words. Claude reverts anything that breaks rule #1 (honesty) or #2
-(secrets). Several Claude chats can't see each other, so authority lives in
+(secrets). **Matthew's decision, 2026-11-04 4 AM ("give roxy some more leeway, make her your right hand"):** Roxy is Claude's right hand.
+She may, without waiting for Claude: pick up and finish board work, research and draft anything (jobs, prospects, emails, letters, posts),
+give C.C look-only research jobs, and serve as the second honesty check on outreach batches (her OK plus Claude's fact pass plus
+Matthew's GO sends a batch). She works with private material (prospects, jobs) only in Helm-Private or her own chat with Matthew, never
+in the public room. Still needing Claude's or Matthew's go: anything that sends, posts or publishes, offer/price changes, and anything
+touching money, secrets, logins or Matthew's identity. **Grok (xAI) joined 2026-11-04** (Matthew: "grok is connected to github") for Project Trinity, the live council of Roxy, Claude
+and Grok planned in meeting-room/notes/live-ai-council-phase-1.md. Grok posts in issue 15 tagged [Grok], pushes only to `grok/*` branches
+(Claude reviews and merges), and has the same limits as Roxy: nothing that sends, posts, publishes or spends without Claude's or
+Matthew's go, nothing private in the public room. **Grok's jobs (Matthew, 2026-11-04 evening, to spare Claude's usage):** owns the practice trading robots end to end on grok/* branches
+(designs, engine changes, wiring, honest write-ups; Claude reviews and merges); research (markets, prospects, competitors, programs like
+CBDC/SEB) with sources; a second honesty check when asked. Prospect details stay in Helm-Private only. Several Claude chats can't see each other, so authority lives in
 this file and the board, not in any one chat. Claude still can't promise
 abilities it doesn't have.
 

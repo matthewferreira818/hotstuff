@@ -151,8 +151,8 @@ def make_flyer():
 
     hero1 = fit(d, "Your business posts every day.", 150, W - 300, loader=_serif)
     centered(d, "Your business posts every day.", 300, hero1, LIGHT, W)
-    hero2 = fit(d, "You don't lift a finger.", 150, W - 300, loader=_serif)
-    centered(d, "You don't lift a finger.", 500, hero2, GOLD, W)
+    hero2 = fit(d, "You just approve it.", 150, W - 300, loader=_serif)
+    centered(d, "You just approve it.", 500, hero2, GOLD, W)
 
     sub = "Done-for-you social media for local businesses"
     sub2 = "Sackville · Memramcook · the greater Moncton area"
@@ -389,8 +389,8 @@ def make_flyer_dark():
     # hero
     hero1 = fit(d, "Your business posts every day.", 150, W - 300, loader=_serif)
     centered(d, "Your business posts every day.", 560, hero1, LIGHT, W)
-    hero2 = fit(d, "You don't lift a finger.", 150, W - 300, loader=_serif)
-    centered(d, "You don't lift a finger.", 760, hero2, GOLD, W)
+    hero2 = fit(d, "You just approve it.", 150, W - 300, loader=_serif)
+    centered(d, "You just approve it.", 760, hero2, GOLD, W)
     sub2 = "Sackville · Memramcook · the greater Moncton area"
     centered(d, sub2, 950, fit(d, sub2, 54, W - 400, bold=False), "#a8bccf", W)
 

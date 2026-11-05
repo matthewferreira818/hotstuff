@@ -107,7 +107,7 @@ enum HandsPlan {
   (["password","passkey","authenticate","touch id"],[],.short(60),"that's a password or security prompt"),
   (["sign in","log in","login","sign-in","log-in"],[],.short(40),"that looks like a login page"),
   (["system settings","system preferences","activity monitor"],[],.owner,"that's a system settings window"),
-  (["game companion"],[],.owner,"that's my own app, and she must not change her own switches"),
+  (["game companion","the helm"],[],.owner,"that's my own app, and she must not change her own switches"),
   (["terminal","iterm","ghostty"],["warp","kitty"],.owner,"that's a command line, and a typed command could do real damage")
  ]
 

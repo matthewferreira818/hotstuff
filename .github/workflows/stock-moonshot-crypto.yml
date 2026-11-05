@@ -1,0 +1,47 @@
+name: Stock bot (moonshot crypto)
+
+# Moonshot robot (moonshot-crypto): high risk, high reward, PRACTICE MONEY ONLY.
+# One run loops, checking every 10 seconds (stocks: market hours; crypto: around the
+# clock). Rules and costs in stock_bot/watchlist-moonshot-crypto.json.
+# Public logs: the script prints counts and practice trades only.
+
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: stock-moonshot-crypto
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write   # to queue the next run itself (GitHub's timer never fired this workflow)
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 358
+    steps:
+      - run: echo "T0=$(date +%s)" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Self-test
+        run: python stock_bot/moonshot.py --selftest
+      - name: Run
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python stock_bot/moonshot.py watchlist-moonshot-crypto.json
+      - name: Queue the next run (keeps crypto going around the clock)
+        # Only after a full-length run: a run that ended fast (paused, broken) must not loop.
+        if: success() && env.T0 != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ $(( $(date +%s) - T0 )) -gt 1800 ]; then
+            gh workflow run stock-moonshot-crypto.yml --ref master || echo "Could not queue the next run."
+          else
+            echo "Run was short; not queueing another."
+          fi

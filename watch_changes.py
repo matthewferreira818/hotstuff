@@ -146,7 +146,7 @@ def diff_alerts(prev: dict, cur: dict) -> list[tuple[str, str, str]]:
             label = CHANNEL_LABELS.get(tag, tag)
             first = " — first ever from this channel!" if old == 0 else ""
             alerts.append(("📈 Tagged visit", f"{label} (ref-{tag}): {n} total{first}",
-                           "high" if old == 0 else "default"))
+                           "high" if old == 0 else "low"))
 
     if cur["success"] > prev.get("success", 0):
         alerts.append(("🎉 CHECKOUT COMPLETED",
@@ -158,7 +158,7 @@ def diff_alerts(prev: dict, cur: dict) -> list[tuple[str, str, str]]:
             and prev.get("spike_day") != cur["today_str"]):
         alerts.append(("📊 Traffic spike",
                        f"{cur['today']} visits today vs ~{pace:.0f}/day pace. "
-                       f"Check the GoatCounter dashboard for the source.", "default"))
+                       f"Check the GoatCounter dashboard for the source.", "low"))
         cur["spike_day"] = cur["today_str"]
     else:
         cur["spike_day"] = prev.get("spike_day")
@@ -227,7 +227,7 @@ def main() -> None:
         alerts.append(("🔔 Change watcher test",
                        "The pipe works. Real pings only happen on: buy click, "
                        "tagged visit, checkout, traffic spike, stale catalog.",
-                       "default"))
+                       "low"))
 
     if not alerts:
         print("no changes worth a ping")

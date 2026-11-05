@@ -25,9 +25,13 @@ actor IntegrationMonitorTransport: MeetingMonitorTransport {
   var failures = 0
   func check(_ result: Bool,_ label: String) { if !result { failures += 1; print("FAIL: \(label)") } }
   let storage = IntegrationMonitorStore(), transport = IntegrationMonitorTransport()
-  let monitor = try MeetingMonitor(transport:transport,storage:storage)
+  let monitor = try MeetingMonitor(transport:transport,storage:storage,networkAllowed:{ !GuardHub.isOffline })
   let hub = MeetingHub(monitor:monitor)
   await hub.startMonitoring()
+  GuardHub.isOffline = true
+  await hub.refreshManually(source:.board)
+  check(await transport.count() == 0,"Guard Offline blocks the Meeting Room network read")
+  GuardHub.isOffline = false
   await hub.refresh(minGap:0) // Friday's legacy automatic entry point.
   check(await transport.count() == 0,"startup and Friday automatic caller respect Off")
   check(!hub.commentsLoaded && hub.board == nil && !hub.loading,"initial snapshot honest and not spinning")

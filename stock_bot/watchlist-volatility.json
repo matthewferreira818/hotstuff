@@ -1,0 +1,76 @@
+{
+  "_read_me": "Volatility robot (Grok, 2026-11-04). Practice money only. Stocks-only. Updated 2026-11-04: reduced bitcoin stack (kept COIN as the single crypto-linked name; swapped MARA and RIOT for unrelated high-vol names). Daily-range basis notes are in stock_bot/research/volatility-basis-2026-11-04.md. Expectation: larger moves when it hits, also larger losses. Whether it covers costs after fees is unknown until paper results accumulate. No projected return claimed.",
+  "broker": "practice",
+  "paused": false,
+  "check_every_seconds": 30,
+  "max_orders_per_day": 6,
+  "stocks": [
+    {
+      "symbol": "ONDS",
+      "buy_below": 0,
+      "buy_dip_pct": 12,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 12,
+      "sell_above": 0
+    },
+    {
+      "symbol": "SMCI",
+      "buy_below": 0,
+      "buy_dip_pct": 10,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 18,
+      "stop_loss_pct": 10,
+      "sell_above": 0
+    },
+    {
+      "symbol": "COIN",
+      "buy_below": 0,
+      "buy_dip_pct": 10,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 18,
+      "stop_loss_pct": 10,
+      "sell_above": 0
+    },
+    {
+      "symbol": "LCID",
+      "buy_below": 0,
+      "buy_dip_pct": 12,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 12,
+      "sell_above": 0
+    },
+    {
+      "symbol": "PLUG",
+      "buy_below": 0,
+      "buy_dip_pct": 12,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 12,
+      "sell_above": 0
+    }
+  ],
+  "sizing": {
+    "bet_pct_of_account": 15,
+    "min_bet": 100,
+    "max_per_stock_pct": 20
+  },
+  "paper_costs": {
+    "fee_min": 1.99,
+    "fee_per_share": 0.0099,
+    "slippage_pct": 0.1
+  },
+  "practice_deposits": null,
+  "account_file": "account-volatility.json",
+  "label": "Volatility",
+  "robot_id": "volatility",
+  "live_branch": "stock-live-volatility",
+  "benchmark": "SPY",
+  "benchmark_name": "SPY"
+}

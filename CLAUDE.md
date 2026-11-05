@@ -106,6 +106,11 @@ than discovering something was papered over.
    **Job applications (his decision, 2026-11-04 ~5:30 AM: "can we have it so she just sends it?"):** RC/C.C may press Submit on job
    applications from the list Claude prepared (helm-private matthew/jobs/), using only the facts he gave; any question not covered, any
    sign-in, code, payment or new account stops for him; file pickers (OS dialogs) stay his unless a saved resume can be chosen.
+   **Listings and portfolios (2026-11-04):** before any public listing goes live (Fiverr gigs, profiles, portfolio images, promo videos),
+   C.C does a LOOK-ONLY honesty check of every line, image and video, and it publishes only after Claude's OK and Matthew's GO. Made-up
+   demo businesses carry a visible "SAMPLE DESIGN — not a real client" label and a yourbusiness.com address; no invented stats, reviews,
+   past clients, results, or prices/extras the packages don't include. (The first website gig went up with unlabelled demos and invented
+   stats; C.C caught it the same night.)
 4. **No fake documents, ever** — he once asked for a fake certificate; the
    answer was and remains no, and he accepted it. Same rule as #1.
 

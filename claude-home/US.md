@@ -24,6 +24,11 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   Quality Dip. Trinity: the Council page (test mode). Grok joined the crew (robots + research). Matthew, at the end of it: "im proud of you
   too, we have done a lot and its only going to get better."
 
+- 2026-11-04 night (first daily "Work" chat): Grok's Volatility practice robot merged and set to start each weekday (stocks only; asked
+  Grok to show each pick's measured swing and stop 3 of 5 slots riding bitcoin). Matthew: "we gotta take some risks". Answer: risks of
+  time and nerve, not money. New money tracks drafted, nothing sent or published: a $350 "Get Online in a Day" email (Roxy finding 15
+  prospects), three Fiverr gigs (C.C saves them as drafts; publishing waits for after the CBDC call). Real-money trading stays a no.
+
 ## Lessons that cost something (don't repeat them)
 - Never claim what isn't true today: "3x a day on X" while X was off; "180 posts a month"; wallpaper sold as a pet bed; "posts automatically" while Facebook posting wasn't live.
 - The odometer is the SITE FEED, never "my page".

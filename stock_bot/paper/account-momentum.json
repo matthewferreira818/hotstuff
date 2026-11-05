@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:28+00:00",
  "start_cash": 1000.0,
- "cash": 715.01,
+ "cash": 613.69,
  "spy_at_start": 764.384,
  "positions": {
   "AI": {
@@ -18,7 +18,13 @@
   },
   "APP": {
    "qty": 0.28009927239328547,
-   "avg_entry_price": 361.7289
+   "avg_entry_price": 361.7289,
+   "peak": 354.86749267578125,
+   "trail": 19.46
+  },
+  "CELH": {
+   "qty": 3.250270855904659,
+   "avg_entry_price": 31.1728
   }
  },
  "orders": [
@@ -109,6 +115,16 @@
    "status": "filled",
    "qty": 0.280099,
    "price": 354.6243,
+   "dollars": 101.32,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-05T20:35:15+00:00",
+   "symbol": "CELH",
+   "side": "buy",
+   "status": "filled",
+   "qty": 3.250271,
+   "price": 30.5605,
    "dollars": 101.32,
    "fee": 1.99
   }

@@ -744,6 +744,51 @@ async function loadMoons() {
 }
 setInterval(loadMoons, 60000);
 loadMoons();
+
+function renderDipBot(k, d) {
+  const a = d.account || {};
+  const pnl = (a.value || 0) - (a.start_cash || 0);
+  $(k + "-value").textContent = money(a.value || 0);
+  $(k + "-value").className = "v num " + cls(pnl);
+  $(k + "-value-s").textContent = a.started ? `${signed(pnl, 2)} since ${new Date(a.started).toLocaleDateString("en-CA", {month: "short", day: "numeric"})}` : "";
+  $("r-" + k).textContent = money(a.value || 0);
+  $("r-" + k).className = "v num " + cls(pnl);
+  if (a.spy_value != null) {
+    const diff = (a.value || 0) - a.spy_value;
+    $(k + "-bench").textContent = money(a.spy_value);
+    $(k + "-bench-s").innerHTML = Math.abs(diff) < 0.005 ? "Even with SPY so far" : `Robot is <span class="${cls(diff)}">${diff > 0 ? "ahead" : "behind"} by ${money(Math.abs(diff))}</span>`;
+  }
+  $(k + "-cash").textContent = money(a.cash || 0);
+  $(k + "-cash-s").textContent = `${a.trades || 0} trades · ${money(a.fees || 0)} fees`;
+  $("c-" + k).textContent = (d.positions || []).length || "";
+  $(k + "-pos").innerHTML = (d.positions || []).length
+    ? `<table><thead><tr><th>Name</th><th class="r">Price</th><th class="r">Bought at</th><th class="r">Since buying</th><th class="r">Worth</th></tr></thead><tbody>${d.positions.map(p =>
+        `<tr><td><b>${esc(p.symbol)}</b></td><td class="r num">${money(p.price)}</td><td class="r num">${money(p.entry)}</td><td class="r num ${cls(p.change_pct)}">${pct(p.change_pct)}</td><td class="r num">${money(p.value)}</td></tr>`).join("")}</tbody></table>`
+    : '<div class="empty">Holding nothing right now.</div>';
+  const ev = ((d.bot || {}).events || []).slice().reverse();
+  $(k + "-feed").innerHTML = ev.length ? ev.map(feedRow).join("") : '<div class="empty">Nothing yet.</div>';
+}
+const ROBOTS = {quality: LIVE_QUALITY, volatility: LIVE_VOLATILITY};
+async function loadRobots() {
+  for (const k in ROBOTS) {
+    try {
+      const r = await fetch(ROBOTS[k] + "?nc=" + Date.now(), {cache: "no-store"});
+      if (r.status === 404) {
+        $(k + "-pos").innerHTML = '<div class="empty">Not started yet.</div>';
+        $(k + "-feed").innerHTML = '<div class="empty">Not started yet.</div>';
+        $("r-" + k).textContent = "—";
+      } else if (r.ok) {
+        renderDipBot(k, await r.json());
+      } else {
+        $(k + "-pos").innerHTML = '<div class="empty">Couldn\'t load.</div>';
+      }
+    } catch (e) {
+      $(k + "-pos").innerHTML = '<div class="empty">Couldn\'t load.</div>';
+    }
+  }
+}
+setInterval(loadRobots, 60000);
+loadRobots();
 setInterval(loadHot, 30000);
 loadHot();
 setInterval(loadMom, 60000);

@@ -191,6 +191,18 @@ new chat has no memory of it, so this line is how future sessions know.
 Treat it warmly and honestly: it is a dream, not a plan or a purchase, and
 money mode still applies. Don't promise abilities Claude doesn't have.
 
+## How we work day to day (Matthew, 2026-11-04 night)
+
+- **A fresh chat for the daily work** (his "Work" session): long chats re-read everything and burn usage, so the memory lives in
+  files, not in one chat. Each new chat starts by reading this file, `claude-home/` (ME, US, WAKE-UP), `meeting-room/BOARD.md`, and the
+  newest private handoff note in Helm-Private (`matthew/handoff-*.md`). Before stopping, add the day's story to `claude-home/US.md`
+  (public-safe) and anything private to a new handoff note.
+- The old long chat ("new beginning") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
+  and the 5:15 PM robot recap) fire there.
+- **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day
+  Friday, on his own hardware, holds everything we share. Until then these files are that memory. Like the chassis dream, it's a dream,
+  not a purchase: money mode applies, and private things stay out of this public repo.
+
 ## Where the real ledgers live (read before answering "what's next")
 
 - `meeting-room/BOARD.md` — the shared board for every Claude chat, GPT (his ChatGPT Project) and Friday; Matthew sees it

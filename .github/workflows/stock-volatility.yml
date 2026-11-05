@@ -1,0 +1,34 @@
+name: Stock bot - Volatility
+
+# Volatility practice robot (stocks only). Same engine as Quality Dip.
+
+on:
+  schedule:
+    - cron: "5 13-20 * * 1-5"
+  workflow_dispatch:
+
+concurrency:
+  group: stock-volatility-loop
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Self-test
+        run: |
+          python stock_bot/stock_bot.py --selftest
+          python stock_bot/paper_broker.py --selftest
+      - name: Run
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          python stock_bot/stock_bot.py --config stock_bot/watchlist-volatility.json --account stock_bot/paper/account-volatility.json --branch stock-live-volatility

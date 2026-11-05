@@ -17,6 +17,13 @@ Format per entry:
 
 ---
 
+## 2026-11-05 — Which 5 things to ADD and 5 to ALTER on findhotstuff.com in the next ~2 weeks, for a real shot at first holiday sales?
+- Seats (all on Sonnet): Operator GO-IF(3) · Marketer GO-IF(3) · Treasurer GO-IF(3) · Skeptic GO-IF(3) · Customer GO-IF(3)
+- Clash: all agree traffic (11 visitors/week) is the real limit; they split on whether the hours go to trust/conversion fixes (Customer, Skeptic) or to distribution and measurement (Marketer, Treasurer). Seat claims checked and REJECTED: shipping-country mismatch (worker list = the site's 24 countries), negative margins (refresh_products.py floor keeps >= $1 after worst-case shipping + Stripe), silent CJ failure (every paid order is logged and rings his phone; fulfilment is manual by design), Stripe page without a business name (it shows HotsTuff).
+- Right Hand's call: GO-IF: about 6 hours of Claude's work, on-site and automated only; no new promotion push until CBDC answers; Matthew's own hours stay on ECS and jobs. ADD: (1) plain "an order came in, here's what to do" runbook, (2) "what to expect" strip by Buy now matching the terms, (3) ref tags on /gifts/ and /c/ links, (4) category chips at the top of the home page, (5) "next refresh in X days" line. ALTER: (1) honest holiday order-by line on /gifts/ (no guarantee), (2) shorter first screen on phones so products show sooner, (3) TikTok drafts: post them or cut to one a day, (4) Pinterest pins point to stable pages, not rotating products, (5) success page: order reference, next steps, contact.
+- Matthew's decision: pending
+- Next moves: build ADD 2-5 + ALTER 1, 2, 4, 5 in the Work chat; runbook (ADD 1) next; Matthew answers the TikTok question
+
 ## 2026-09-26 — Build and sell a digital planner on Etsy, niched to dropshipping store finances?
 - Seats: Operator GO-IF(4) · Marketer GO-IF(4) · Treasurer GO-IF(4) · Customer GO-IF(4) · Skeptic **NO-GO(4)**
 - New standing fact, and it reframes the whole question: **Matthew told me today he has social anxiety** and is looking for work with "the least amount of interaction with other people." Some phone calls are fine; cold approaches are the hard part. That is the honest answer to why the ledger has been still for six weeks with eight finished sample packs sitting unused, and it is a hard design constraint from here on, not a preference to argue him out of. Every seat was briefed on it before answering. The morning brief stops carrying a cold-call list.

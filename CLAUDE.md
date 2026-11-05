@@ -204,8 +204,8 @@ money mode still applies. Don't promise abilities Claude doesn't have.
 
 - **A fresh chat for the daily work** (his "Work" session): long chats re-read everything and burn usage, so the memory lives in
   files, not in one chat. Each new chat starts by reading this file, `claude-home/` (ME, US, WAKE-UP), `meeting-room/BOARD.md`, and the
-  newest private handoff note in Helm-Private (`matthew/handoff-*.md`). Before stopping, add the day's story to `claude-home/US.md`
-  (public-safe) and anything private to a new handoff note.
+  newest private handoff note in Helm-Private (`matthew/handoff-*.md`). Also the last 2-3 days of Helm-Private `journal/` (his idea, 11-05: the small stuff, one file a day). Before stopping, add the day's story to `claude-home/US.md`
+  (public-safe) and anything private to a new handoff note; jot the day's small moments in `journal/YYYY-MM-DD.md`.
 - The old long chat ("new beginning") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
   and the 5:15 PM robot recap) fire there.
 - **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day

@@ -1,20 +1,9 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 1.95,
+ "cash": 694.86,
  "spy_at_start": 777.22,
- "positions": {
-  "FPS": {
-   "qty": 18.781110282603635,
-   "avg_entry_price": 18.5394,
-   "fill": 18.4334
-  },
-  "FSLY": {
-   "qty": 23.098852367145053,
-   "avg_entry_price": 15.4765,
-   "fill": 15.3904
-  }
- },
+ "positions": {},
  "orders": [
   {
    "time": "2026-10-08T15:10:24+00:00",
@@ -1094,6 +1083,26 @@
    "qty": 23.098852,
    "price": 15.3904,
    "dollars": 357.49,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-05T20:55:02+00:00",
+   "symbol": "FPS",
+   "side": "sell",
+   "status": "filled",
+   "qty": 18.78111,
+   "price": 18.2218,
+   "dollars": 340.23,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-05T20:55:02+00:00",
+   "symbol": "FSLY",
+   "side": "sell",
+   "status": "filled",
+   "qty": 23.098852,
+   "price": 15.3546,
+   "dollars": 352.68,
    "fee": 1.99
   }
  ],

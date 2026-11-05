@@ -38,8 +38,10 @@ jobs:
   # Every other new room message (Matthew, 2026-10-24: "can we add it to ntfy as well?"; 10-25: "only certain ntfy notifs give me
   # notification"): priority min, so it sits silently in the ntfy app with no buzz or sound. Pings to him, URGENT, leads and orders still buzz. A
   # push so he knows the room moved, even with the Mac closed. Skips his own posts and the ones already pinged above.
+  # OFF since 2026-11-04 (Matthew: "only important notifs make noise"; his Mac dinged on every room post even at priority min).
+  # Turn back on by deleting "false && " below.
   room-update:
-    if: ${{ github.event.issue.number == 15 && github.event.comment.user.login == 'matthewferreira818' && !contains(github.event.comment.body, '→ Matthew]') && !startsWith(github.event.comment.body, '**[Matthew') }}
+    if: ${{ false && github.event.issue.number == 15 && github.event.comment.user.login == 'matthewferreira818' && !contains(github.event.comment.body, '→ Matthew]') && !startsWith(github.event.comment.body, '**[Matthew') }}
     runs-on: ubuntu-latest
     steps:
       - name: Quiet room update

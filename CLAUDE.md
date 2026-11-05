@@ -31,8 +31,8 @@ than discovering something was papered over.
   Meta app "ECS Posting Engine" (ID 916684360803898). Secrets FB_PAGE_ID + FB_PAGE_TOKEN (Page token, Debugger: Type Page, Expires Never).
   First test post worked but was HIDDEN from the public (app in Development); switching the app to Live was in progress. Check a post
   logged out before claiming "my Facebook page posts daily", and only claim it after real public daily posts exist.
-  **2026-11-05:** the 9:12 AM card posted (Graph API OK) but did NOT show in Matthew's private-window check: likely still hidden
-  (Meta app in Development). No "posts daily" claim until a logged-out check shows the posts.
+  **2026-11-05: the 9:12 AM card is PUBLIC** (Matthew's Incognito screenshot, logged out, 4:47 PM). One day is not "daily": claim
+  "my Facebook page posts every day" only after about 7 public days in a row (earliest ~Nov 11).
   The $79 two-business Starter Month pilot is drafted in helm-private ecs/pilot/; the matching page fix waits on branch claude/ecs-pilot-page-draft.
 - **East Coast Social (ECS)** — findhotstuff.com/automation (EN + /fr).
   Done-for-you daily social posting for local NB businesses: free setup,

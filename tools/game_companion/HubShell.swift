@@ -66,11 +66,7 @@ extension CompanionInterfaceView {
    ScrollView(showsIndicators:false) {
     VStack(alignment:.leading,spacing:4) {
      hubRailButton(.home)
-     hubRailGroup("CREW",pages:[.friday,.helper,.meeting,.council])
-     hubRailGroup("GUARD",pages:[.shield,.realFake,.lab])
-     hubRailGroup("BUSINESS",pages:[.stocks,.store,.ecs,.systems])
-     hubRailGroup("STREAM",pages:[.stream,.game])
-     hubRailGroup("SETUP",pages:[.launchpad,.accounts])
+     ForEach(HubModel.railGroups,id:\.self) { label in hubRailGroup(label) }
     }
     .padding(.horizontal,hub.compact ? 4 : 10)
     .padding(.bottom,10)
@@ -97,17 +93,22 @@ extension CompanionInterfaceView {
   .overlay(alignment:.trailing) { Rectangle().fill(HubTheme.line).frame(width:1) }
  }
 
- func hubRailGroup(_ label: String,pages: [HubSection]) -> some View {
+ func hubRailGroup(_ label: String) -> some View {
   VStack(alignment:.leading,spacing:2) {
    if !hub.compact {
     Text(label).font(.system(size:11,weight:.bold,design:.rounded))
      .tracking(1.25).foregroundStyle(HubTheme.subtext)
      .padding(.leading,12).padding(.top,14).padding(.bottom,4)
      .accessibilityAddTraits(.isHeader)
+     .frame(maxWidth:.infinity,alignment:.leading)
+     .contentShape(Rectangle())
+     .onDrop(of:[UTType.text],delegate:RailGroupDropDelegate(group:label,hub:hub))
    } else {
     Rectangle().fill(HubTheme.line).frame(height:1).padding(.vertical,9).padding(.horizontal,10)
+     .contentShape(Rectangle())
+     .onDrop(of:[UTType.text],delegate:RailGroupDropDelegate(group:label,hub:hub))
    }
-   ForEach(hub.order.filter { pages.contains($0) }) { section in
+   ForEach(hub.pages(in:label)) { section in
     hubRailButton(section)
      .onDrag {
       hub.dragging = section

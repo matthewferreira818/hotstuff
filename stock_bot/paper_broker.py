@@ -268,15 +268,16 @@ ROBOT_NAMES = {"account.json": "Dip robot", "account-momentum.json": "Momentum r
 
 def _money_ping(path, symbol, profit):
     """Matthew, 2026-11-04: "let me know when the bots make money". A sale that
-    made money after fees rings his phone (default priority, unlike routine
-    robot news). Practice money; never fails the trade."""
+    made money after fees sends a push. Since 2026-11-05 it is SILENT (low priority):
+    his ask, "only important notifs make noise". It still shows in ntfy.
+    Practice money; never fails the trade."""
     try:
         sys.path.insert(0, HERE)
         import stock_bot
         name = ROBOT_NAMES.get(os.path.basename(path), "A robot")
         stock_bot.notify(f"💰 {name} made ${profit:,.2f} (practice)",
                          f"Sold {symbol} for a ${profit:,.2f} profit after fees. Practice money.",
-                         "default")
+                         "low")
     except Exception as e:  # a push must never break a trade
         print(f"money ping skipped ({type(e).__name__})")
 

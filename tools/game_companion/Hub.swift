@@ -119,8 +119,26 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var order: [HubSection] = HubModel.savedOrder() {
   didSet { UserDefaults.standard.set(order.map { $0.rawValue },forKey:"hub.order") }
  }
+ // Which rail group each page sits in. Dragging an icon onto a page in another group moves it into that group, and
+ // that is remembered too (before 2026-11-05 the groups were fixed, so a page dragged across snapped back).
+ @Published var groupOf: [HubSection: String] = HubModel.savedGroups() {
+  didSet {
+   var dict: [String: String] = [:]
+   for (section,label) in groupOf { dict[String(section.rawValue)] = label }
+   UserDefaults.standard.set(dict,forKey:"hub.groups")
+  }
+ }
  // The icon being dragged right now.
  @Published var dragging: HubSection?
+
+ static let railGroups = ["CREW","GUARD","BUSINESS","STREAM","SETUP"]
+ static let defaultGroups: [HubSection: String] = [
+  .friday:"CREW",.helper:"CREW",.meeting:"CREW",.council:"CREW",
+  .shield:"GUARD",.realFake:"GUARD",.lab:"GUARD",
+  .stocks:"BUSINESS",.store:"BUSINESS",.ecs:"BUSINESS",.systems:"BUSINESS",
+  .stream:"STREAM",.game:"STREAM",
+  .launchpad:"SETUP",.accounts:"SETUP",
+ ]
 
  static func savedOrder() -> [HubSection] {
   let saved = (UserDefaults.standard.array(forKey:"hub.order") as? [Int] ?? []).compactMap { HubSection(rawValue:$0) }
@@ -130,30 +148,63 @@ enum HubSection: Int, CaseIterable, Identifiable {
   return result
  }
 
- // Drops the dragged icon into the slot of the one it is over.
+ static func savedGroups() -> [HubSection: String] {
+  var result = defaultGroups
+  let saved = UserDefaults.standard.dictionary(forKey:"hub.groups") as? [String: String] ?? [:]
+  for (key,label) in saved {
+   if let raw = Int(key), let section = HubSection(rawValue:raw), section != .home, railGroups.contains(label) {
+    result[section] = label
+   }
+  }
+  return result
+ }
+
+ // The pages in one rail group, in the order they show.
+ func pages(in group: String) -> [HubSection] { order.filter { $0 != .home && groupOf[$0] == group } }
+
+ // The rail top to bottom, as it is drawn: Home, then each group.
+ var railOrder: [HubSection] { [.home] + HubModel.railGroups.flatMap { pages(in:$0) } }
+
+ // Drops the dragged icon into the slot of the one it is over, joining that icon's group.
  func move(_ item: HubSection,onto target: HubSection) {
-  guard item != target, let from = order.firstIndex(of:item), let to = order.firstIndex(of:target) else { return }
+  guard item != target, item != .home, target != .home,
+        let from = order.firstIndex(of:item), let to = order.firstIndex(of:target) else { return }
+  if let label = groupOf[target], groupOf[item] != label { groupOf[item] = label }
   var next = order
   next.remove(at:from)
   next.insert(item,at:to)
   order = next
  }
 
+ // Drops the dragged icon at the end of a group (used when it is let go over the group's title).
+ func move(_ item: HubSection,toEndOf group: String) {
+  guard item != .home, HubModel.railGroups.contains(group), let from = order.firstIndex(of:item) else { return }
+  groupOf[item] = group
+  var next = order
+  next.remove(at:from)
+  if let last = pages(in:group).filter({ $0 != item }).last, let at = next.firstIndex(of:last) {
+   next.insert(item,at:at + 1)
+  } else {
+   next.append(item)
+  }
+  order = next
+ }
+
+ // Move up / Move down: swaps with the neighbour you can see in the same group.
  func nudge(_ item: HubSection,by step: Int) {
-  guard let from = order.firstIndex(of:item) else { return }
-  let to = min(max(from + step,0),order.count - 1)
-  guard to != from else { return }
-  var next = order
-  next.remove(at:from)
-  next.insert(item,at:to)
-  order = next
+  guard let label = groupOf[item] else { return }
+  let visible = pages(in:label)
+  guard let at = visible.firstIndex(of:item) else { return }
+  let to = at + step
+  guard to >= 0, to < visible.count else { return }
+  move(item,onto:visible[to])
  }
 
- func resetOrder() { order = HubSection.allCases }
+ func resetOrder() { order = HubSection.allCases; groupOf = HubModel.defaultGroups }
 
  // Command-1 to Command-9 for the first nine icons on the rail, Command-0 for the tenth. They follow the order you set.
  func shortcut(for section: HubSection) -> Character? {
-  guard let index = order.firstIndex(of:section), index < 10 else { return nil }
+  guard let index = railOrder.firstIndex(of:section), index < 10 else { return nil }
   return index < 9 ? Character(String(index + 1)) : "0"
  }
 }
@@ -166,6 +217,19 @@ enum HubSection: Int, CaseIterable, Identifiable {
  func dropEntered(info: DropInfo) {
   guard let item = hub.dragging, item != target else { return }
   withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.move(item,onto:target) }
+ }
+ func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation:.move) }
+ func performDrop(info: DropInfo) -> Bool { hub.dragging = nil; return true }
+}
+
+// Lets a rail icon be dropped on a group's title, so it can join a group (even an empty one) at the end.
+@MainActor struct RailGroupDropDelegate: DropDelegate {
+ let group: String
+ let hub: HubModel
+ func validateDrop(info: DropInfo) -> Bool { hub.dragging != nil }
+ func dropEntered(info: DropInfo) {
+  guard let item = hub.dragging, hub.groupOf[item] != group else { return }
+  withAnimation(.spring(response:0.34,dampingFraction:0.8)) { hub.move(item,toEndOf:group) }
  }
  func dropUpdated(info: DropInfo) -> DropProposal? { DropProposal(operation:.move) }
  func performDrop(info: DropInfo) -> Bool { hub.dragging = nil; return true }

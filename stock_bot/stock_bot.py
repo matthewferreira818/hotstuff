@@ -394,7 +394,7 @@ def check(broker, cfg, closes, label, once, already):
     say(f"Placed {len(done)} order(s), {len(failed)} failed.",
         "; ".join(done + failed))
     notify(f"Stock bot ({label}): {len(done)} order(s) placed",
-           "\n".join(done + failed), "high" if failed else "default")
+           "\n".join(done + failed), "high" if (failed or live) else "low")  # practice orders silent, real ones loud (11-05)
     return len(done)
 
 

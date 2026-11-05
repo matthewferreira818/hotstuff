@@ -1,5 +1,5 @@
 {
-  "_read_me": "Volatility robot (Grok, 2026-11-04). Practice money only. Stocks-only version so it can reuse the same --config/--account/--branch wiring as Quality Dip. High-volatility names with wider stops. Expectation: larger moves when it hits, also larger losses. Whether it covers costs after fees is unknown until paper results accumulate. No projected return claimed.",
+  "_read_me": "Volatility robot (Grok, 2026-11-04). Practice money only. Stocks-only. Updated 2026-11-04: reduced bitcoin stack (kept COIN as the single crypto-linked name; swapped MARA and RIOT for unrelated high-vol names). Daily-range basis notes are in stock_bot/research/volatility-basis-2026-11-04.md. Expectation: larger moves when it hits, also larger losses. Whether it covers costs after fees is unknown until paper results accumulate. No projected return claimed.",
   "broker": "practice",
   "paused": false,
   "check_every_seconds": 30,
@@ -7,26 +7,6 @@
   "stocks": [
     {
       "symbol": "ONDS",
-      "buy_below": 0,
-      "buy_dip_pct": 12,
-      "dollars_per_buy": 150,
-      "max_position_dollars": 300,
-      "take_profit_pct": 20,
-      "stop_loss_pct": 12,
-      "sell_above": 0
-    },
-    {
-      "symbol": "MARA",
-      "buy_below": 0,
-      "buy_dip_pct": 12,
-      "dollars_per_buy": 150,
-      "max_position_dollars": 300,
-      "take_profit_pct": 20,
-      "stop_loss_pct": 12,
-      "sell_above": 0
-    },
-    {
-      "symbol": "RIOT",
       "buy_below": 0,
       "buy_dip_pct": 12,
       "dollars_per_buy": 150,
@@ -53,6 +33,26 @@
       "max_position_dollars": 300,
       "take_profit_pct": 18,
       "stop_loss_pct": 10,
+      "sell_above": 0
+    },
+    {
+      "symbol": "LCID",
+      "buy_below": 0,
+      "buy_dip_pct": 12,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 12,
+      "sell_above": 0
+    },
+    {
+      "symbol": "PLUG",
+      "buy_below": 0,
+      "buy_dip_pct": 12,
+      "dollars_per_buy": 150,
+      "max_position_dollars": 300,
+      "take_profit_pct": 20,
+      "stop_loss_pct": 12,
       "sell_above": 0
     }
   ],

@@ -27,7 +27,13 @@ jobs:
           MSG=$(printf '%s' "$BODY" | head -n 1 | cut -c1-230)
           # Code word (Matthew, 2026-10-24): a message to him containing URGENT goes out at top priority.
           PRIO=default; TITLE="Meeting Room: a message for you"; TAGS=speech_balloon
-          if printf '%s' "$BODY" | grep -q 'URGENT'; then PRIO=urgent; TITLE="URGENT: Meeting Room needs you"; TAGS=rotating_light; fi
+          if printf '%s' "$BODY" | grep -q 'URGENT'; then PRIO=urgent; TITLE="URGENT: Meeting Room needs you"; TAGS=rotating_light
+            # The header says WHY (Matthew, 2026-11-04): write "URGENT: <reason> - details", e.g. "URGENT: Maplehurst said yes - ...".
+            # The reason (text after "URGENT:" up to " - ", " — " or the first period, max 60 chars) becomes the title.
+            REASON=$(printf '%s' "$MSG" | sed -n 's/.*URGENT:[[:space:]]*//p' | sed 's/ [-—] .*//; s/\..*//' | cut -c1-60 \
+              | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null | tr -d '\r\n')
+            if [ -n "$REASON" ]; then TITLE="URGENT: ${REASON}"; fi
+          fi
           code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "https://ntfy.sh/${NTFY_TOPIC}" \
             -H "Title: ${TITLE}" \
             -H "Priority: ${PRIO}" \

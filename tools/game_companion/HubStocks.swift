@@ -25,12 +25,18 @@ extension CompanionInterfaceView {
      Text("Read-only public snapshots · account amounts in USD")
       .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
     }
-    HStack(spacing:8) {
-     hubStockChoice("Dip",index:0).accessibilityLabel("Dip robot")
-     hubStockChoice("Momentum",index:1).accessibilityLabel("Momentum robot")
-     hubStockChoice("Hot hands",index:2).accessibilityLabel("Hot hands robot")
-     hubStockChoice("Moonshot",index:3).accessibilityLabel("Moonshot robot")
-     hubStockChoice("Crypto",index:4).accessibilityLabel("Moonshot crypto robot")
+    VStack(spacing:8) {
+     HStack(spacing:8) {
+      hubStockChoice("Dip",index:0).accessibilityLabel("Dip robot")
+      hubStockChoice("Momentum",index:1).accessibilityLabel("Momentum robot")
+      hubStockChoice("Hot hands",index:2).accessibilityLabel("Hot hands robot")
+      hubStockChoice("Moonshot",index:3).accessibilityLabel("Moonshot robot")
+     }
+     HStack(spacing:8) {
+      hubStockChoice("Crypto",index:4).accessibilityLabel("Moonshot crypto robot")
+      hubStockChoice("Quality Dip",index:5).accessibilityLabel("Quality Dip robot")
+      hubStockChoice("Volatility",index:6).accessibilityLabel("Volatility robot")
+     }
     }
     .accessibilityElement(children:.contain).accessibilityLabel("Choose a practice robot")
     if let robot = stocks.current {

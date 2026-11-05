@@ -1,0 +1,51 @@
+name: Helm monitor offline Linux checks
+
+on:
+  push:
+    branches: [gpt/helm-monitor-integration, master]
+    paths:
+      - '.github/workflows/helm-monitor-checks.yml'
+      - 'tools/game_companion/MeetingData.swift'
+      - 'tools/game_companion/MeetingMonitorData.swift'
+      - 'tools/game_companion/MeetingMonitor.swift'
+      - 'tools/game_companion/checks/MeetingMonitorCoordinatorChecks.swift'
+      - 'tools/game_companion/checks/MeetingMonitorChecks.swift'
+      - 'tools/game_companion/checks/MeetingReadSeamChecks.swift'
+
+permissions: {}
+
+jobs:
+  offline-monitor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Read exact public candidate without credentials
+        env:
+          CANDIDATE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/matthewferreira818/hotstuff.git
+          git fetch --depth=1 origin "$CANDIDATE_SHA"
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_SHA"
+      - name: Compiler version
+        run: swiftc --version
+      - name: Coordinator checks
+        working-directory: tools/game_companion
+        run: |
+          set -euo pipefail
+          swiftc -parse-as-library MeetingData.swift MeetingMonitorData.swift MeetingMonitor.swift checks/MeetingMonitorCoordinatorChecks.swift -o /tmp/monitor-coordinator-checks
+          /tmp/monitor-coordinator-checks
+      - name: Policy checks
+        working-directory: tools/game_companion
+        run: |
+          set -euo pipefail
+          swiftc -parse-as-library MeetingMonitorData.swift checks/MeetingMonitorChecks.swift -o /tmp/monitor-policy-checks
+          /tmp/monitor-policy-checks
+      - name: Read seam checks
+        working-directory: tools/game_companion
+        run: |
+          set -euo pipefail
+          swiftc -parse-as-library MeetingData.swift checks/MeetingReadSeamChecks.swift -o /tmp/monitor-read-seam-checks
+          /tmp/monitor-read-seam-checks

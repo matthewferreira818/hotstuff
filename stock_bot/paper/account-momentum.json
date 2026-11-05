@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:28+00:00",
  "start_cash": 1000.0,
- "cash": 816.33,
+ "cash": 715.01,
  "spy_at_start": 764.384,
  "positions": {
   "AI": {
@@ -15,6 +15,10 @@
    "avg_entry_price": 90.0047,
    "peak": 88.16999816894531,
    "trail": 11.59
+  },
+  "APP": {
+   "qty": 0.28009927239328547,
+   "avg_entry_price": 361.7289
   }
  },
  "orders": [
@@ -96,6 +100,16 @@
    "qty": 1.139385,
    "price": 88.2582,
    "dollars": 102.55,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-05T20:35:13+00:00",
+   "symbol": "APP",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.280099,
+   "price": 354.6243,
+   "dollars": 101.32,
    "fee": 1.99
   }
  ],

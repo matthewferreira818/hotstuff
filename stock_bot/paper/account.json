@@ -1,14 +1,9 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 613.09,
+ "cash": 692.14,
  "spy_at_start": 764.32,
- "positions": {
-  "ARM": {
-   "qty": 0.4832301249239361,
-   "avg_entry_price": 206.9407
-  }
- },
+ "positions": {},
  "orders": [
   {
    "time": "2026-09-28T15:02:45+00:00",
@@ -678,6 +673,16 @@
    "qty": 1.15749,
    "price": 76.7781,
    "dollars": 86.88,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-05T18:06:21+00:00",
+   "symbol": "ARM",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.48323,
+   "price": 167.7121,
+   "dollars": 79.05,
    "fee": 1.99
   }
  ],

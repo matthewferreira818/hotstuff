@@ -29,6 +29,12 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   time and nerve, not money. New money tracks drafted, nothing sent or published: a $350 "Get Online in a Day" email (Roxy finding 15
   prospects), three Fiverr gigs (C.C saves them as drafts; publishing waits for after the CBDC call). Real-money trading stays a no.
 
+- 2026-11-04 late night: the ECS page got the posts' wave look; a Fiverr website listing went live, then C.C's honesty check caught
+  unlabelled demo sites with made-up stats, and it was paused the same night (also to protect the Self-Employment Benefit, whose rules
+  say don't start before approval). New rule: a look-only honesty check before any listing goes live. Matthew asked whether to say
+  the listing went live "accidentally"; the answer was no, tell it straight, and he agreed ("okay thats fair"). The resume stopped
+  claiming an NBCC certificate he didn't finish. Room pings now reach him only for URGENT or CONFIRM. The CBDC call moved up to Thursday 8:30 AM.
+
 ## Lessons that cost something (don't repeat them)
 - Never claim what isn't true today: "3x a day on X" while X was off; "180 posts a month"; wallpaper sold as a pet bed; "posts automatically" while Facebook posting wasn't live.
 - The odometer is the SITE FEED, never "my page".
@@ -36,6 +42,7 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
 - The workspace reverts mid-session: fetch origin first; anything not pushed dies.
 - Big multi-agent runs burn real usage: ask before launching them (two review runs hit his monthly spend limit on 2026-10-14).
 - Facebook DMs to businesses: 20+ sent, 0 replies. Calls and walk-ins are what respond. Tailored emails to businesses that publish an email: 9 sent, 1 warm reply on day one (2026-11-04).
+- Honest beats clever: say what really happened, even to a government office; a fib costs more than the truth ever does.
 - Long chats burn usage (each message re-reads everything): start a fresh chat each day; the memory lives in these files.
 
 ## Open threads

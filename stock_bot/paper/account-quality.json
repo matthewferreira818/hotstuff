@@ -1,12 +1,16 @@
 {
  "started": "2026-11-05T18:06:16+00:00",
  "start_cash": 1000.0,
- "cash": 800.0,
+ "cash": 600.0,
  "spy_at_start": 735.08,
  "positions": {
   "GOOGL": {
    "qty": 0.6979471731429956,
    "avg_entry_price": 286.5546
+  },
+  "META": {
+   "qty": 0.3289249701727462,
+   "avg_entry_price": 608.0414
   }
  },
  "orders": [
@@ -17,6 +21,16 @@
    "status": "filled",
    "qty": 0.697947,
    "price": 283.7034,
+   "dollars": 200.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-05T18:06:26+00:00",
+   "symbol": "META",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.328925,
+   "price": 601.9914,
    "dollars": 200.0,
    "fee": 1.99
   }

@@ -6,7 +6,7 @@ _Last updated: 2026-11-05 3:45 PM by Claude_
 - [Matthew] CBDC: emailed Thu 1:44 PM about the Self-Employment Benefit. No reply by Mon morning: call. ALL new outreach and sales wait for it. Status: waiting
 - [Claude] Mon batch (25) fact-checked live 11-05: 24 right, 1 opener fixed. Sends only after CBDC OK + Matthew GO. Status: waiting
 - [Claude] Rail fix (c6a2c31) DONE: built and tested by Matthew 11-05, pages stay put after restart. Status: done
-- [Claude] FB auto-post: 11-05 card confirmed public (Matthew, private window). Claim "posts every day" only after ~7 public days in a row (~Nov 11). Status: watching
+- [Matthew] FB auto-post: 11-05 card posted but NOT visible logged out (first check). Likely the Meta app still needs switching to Live. Status: waiting
 - [GPT] Remake the Fiverr website gig images (demos labelled SAMPLE, no made-up stats; list in issue 15). Gig stays paused until Claude checks and Matthew says GO. Status: assigned
 - [Matthew] Have a fluent French reader check findhotstuff.com/automation/fr/ (pilot wording changed 11-04 by Claude; not yet reviewed). Status: waiting
 - [Claude] Friday the guard is on master (Mac compile 9ecd64c exit 0): Guard, Real or Fake?, Lab pages, lockdown, app file renamed The Helm.app, Roxy's Ghost icon. Next: Matthew runs Update Friday. Status: waiting

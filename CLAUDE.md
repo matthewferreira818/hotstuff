@@ -144,6 +144,10 @@ Three practice robots run side by side (live page tabs): dip
 hands" (hot_bot.py), Matthew's same-day trading of cheap swingers like
 ONDS. EXP-0004 says hot hands loses after fees; it's a live experiment.
 The weekday routine "Start stock robots" dispatches all three workflows.
+**2026-11-05:** seven practice robots now (dip, momentum, hot hands, Moonshot, Moonshot crypto, Quality Dip, Volatility); stock-hot.yml also
+starts Moonshot, Quality Dip and Volatility. The starter routine needs Claude usage: on 11-05 the usage limit was hit and NOTHING started
+until Claude dispatched them by hand at 2 PM. **Claude owns the robots while Grok is away (until Nov 11).** To save usage (Matthew: "do what
+you think is right"), the Hourly room check is PAUSED and the stock drop alert runs twice a weekday (11:35 and 15:35 New York) instead of 9x.
 
 ## Game Companion, and the chassis dream (as of 2026-10-05)
 

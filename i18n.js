@@ -24,6 +24,7 @@
     "hero-sub": "HotsTuff récupère la liste des produits tendance de son fournisseur, CJ Dropshipping, et fait tourner une nouvelle sélection d'environ 200 produits tous les trois jours. Pas de catalogue figé et pas de stock qui dort sur une tablette : la sélection change selon un calendrier.",
     "hero-cta-shop": "Voir les tendances",
     "hero-cta-how": "Comment ça fonctionne",
+    "hero-cta-gifts": "🎁 Cadeaux à moins de 25 $",
     "hero-cta-automation": "✨ Automatisation pour votre entreprise",
     "trust-1": "<b>Paiement sécurisé</b><small>Transactions traitées par Stripe</small>",
     "trust-2": "<b>Livraison suivie gratuite</b><small>Sur les produits tendance — 24 pays</small>",
@@ -68,7 +69,7 @@
     "sort-trending": "🔥 Tendances d'abord",
     "sort-price-asc": "Prix : du moins cher au plus cher",
     "sort-price-desc": "Prix : du plus cher au moins cher",
-    "footer-note": "Soutien : <a href=\"mailto:ceohotstuff@yahoo.com\">ceohotstuff@yahoo.com</a>\n        · <a href=\"tel:+15068899737\">(506) 889-9737</a>\n        · <a href=\"c/\">Magasiner par catégorie</a>\n        · <a href=\"notes/\">Notes</a>\n        · <a href=\"automation/fr/\">Automatisation sociale pour votre entreprise</a>\n        · <a href=\"privacy/\">Confidentialité</a>\n        · <a href=\"terms/\">Conditions</a>",
+    "footer-note": "Soutien : <a href=\"mailto:ceohotstuff@yahoo.com\">ceohotstuff@yahoo.com</a>\n        · <a href=\"tel:+15068899737\">(506) 889-9737</a>\n        · <a href=\"c/\">Magasiner par catégorie</a>\n        · <a href=\"gifts/\">Cadeaux à moins de 25 $</a>\n        · <a href=\"notes/\">Notes</a>\n        · <a href=\"automation/fr/\">Automatisation sociale pour votre entreprise</a>\n        · <a href=\"privacy/\">Confidentialité</a>\n        · <a href=\"terms/\">Conditions</a>",
   };
 
   // Runtime strings used by script.js

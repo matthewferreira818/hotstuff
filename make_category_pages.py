@@ -113,6 +113,7 @@ CATEGORIES = [
 STATIC_URLS = [
     ("/", "daily", "1.0"),
     ("/c/", "weekly", "0.7"),
+    ("/gifts/", "weekly", "0.7"),
     ("/automation/", "weekly", "0.8"),
     ("/automation/fr/", "weekly", "0.8"),
     ("/build/", "monthly", "0.5"),
@@ -212,7 +213,13 @@ def render(slug, label, title, blurb, products, siblings):
 
     sib = " · ".join(
         f'<a href="{SITE}/c/{s}/">{l}</a>' for s, l in siblings if s != slug)
+    sib += f' · <a href="{SITE}/gifts/">Gifts under ${GIFT_MAX}</a>'
+    return page_html(f"/c/{slug}/", title, blurb, count_line, subnav, cards,
+                     f"More categories: {sib}")
 
+
+def page_html(path, title, blurb, count_line, subnav, cards, sib_line, note=""):
+    """One page layout for category pages and the gift page."""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -220,15 +227,15 @@ def render(slug, label, title, blurb, products, siblings):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)} · HotsTuff</title>
 <meta name="description" content="{html.escape(blurb[:155])}">
-<link rel="canonical" href="{SITE}/c/{slug}/">
+<link rel="canonical" href="{SITE}{path}">
 <meta property="og:title" content="{html.escape(title)} · HotsTuff">
 <meta property="og:description" content="{html.escape(blurb[:155])}">
-<meta property="og:url" content="{SITE}/c/{slug}/">
+<meta property="og:url" content="{SITE}{path}">
 <meta property="og:image" content="{SITE}/assets/og-card.png">
 <script type="application/ld+json">
 {{"@context":"https://schema.org","@type":"CollectionPage",
  "name":{json.dumps(title)},"description":{json.dumps(blurb)},
- "url":"{SITE}/c/{slug}/","isPartOf":{{"@type":"WebSite","name":"HotsTuff","url":"{SITE}"}}}}
+ "url":"{SITE}{path}","isPartOf":{{"@type":"WebSite","name":"HotsTuff","url":"{SITE}"}}}}
 </script>
 <style>
   :root {{ --bg:#12090d; --card:#1d1116; --ink:#f6eef1; --muted:#b9a4ac;
@@ -256,6 +263,7 @@ def render(slug, label, title, blurb, products, siblings):
   .cat-price {{ display:block; padding:0 12px; color:var(--amber); font-weight:700; }}
   nav.subnav {{ margin:0 0 30px; color:var(--muted); font-size:.92rem; }}
   nav.subnav a {{ text-decoration:none; }}
+  .note {{ color:var(--muted); font-size:.92rem; margin:-14px 0 26px; max-width:60ch; }}
   nav.subnav span {{ opacity:.6; }}
   section h2 {{ font-size:1.1rem; margin:34px 0 12px; scroll-margin-top:14px; }}
   section h2 .n {{ color:var(--muted); font-weight:400; font-size:.85rem; }}
@@ -269,10 +277,10 @@ def render(slug, label, title, blurb, products, siblings):
   <h1>{html.escape(title)}</h1>
   <p class="blurb">{html.escape(blurb)}</p>
   <p class="count">{count_line}</p>
-{subnav}
+{note}{subnav}
 {cards}
 </main>
-<nav class="sib"><div class="wrap">More categories: {sib}</div></nav>
+<nav class="sib"><div class="wrap">{sib_line}</div></nav>
 <footer class="wrap">
   Prices in USD · free shipping · 30-day guarantee ·
   <a href="{SITE}/">see the full shop</a><br>
@@ -282,6 +290,58 @@ def render(slug, label, title, blurb, products, siblings):
 </body>
 </html>
 """
+
+
+# Gift page (Matthew, 2026-11-05: "build the gift page"). Rebuilt with the
+# category pages on every 3-day refresh, straight from products.json, so every
+# price on it is the real one. No "perfect gift" or delivery-date promises:
+# shipping takes 1-3 weeks (terms page), and the page says so.
+GIFT_MAX = 25
+GIFT_SKIP_CATEGORIES = {"Wellness", "Beauty"}          # personal-care items
+GIFT_SKIP_WORDS = ("diaper", "weight loss", "bandage", "toothbrush", "slimming")
+
+
+def gift_items(products):
+    out = []
+    for p in products:
+        try:
+            price = float(p.get("price", 0))
+        except (TypeError, ValueError):
+            continue
+        name = (p.get("name", "") + " " + p.get("fullName", "")).lower()
+        if (0 < price < GIFT_MAX and p.get("category") not in GIFT_SKIP_CATEGORIES
+                and not any(w in name for w in GIFT_SKIP_WORDS)):
+            out.append(p)
+    return sorted(out, key=lambda p: float(p.get("price", 0)))
+
+
+def render_gifts(products, siblings):
+    items = gift_items(products)
+    bands = [("Under $15", [p for p in items if float(p["price"]) < 15]),
+             (f"$15 to ${GIFT_MAX}", [p for p in items if float(p["price"]) >= 15])]
+    bands = [(h, ps) for h, ps in bands if ps]
+    subnav = ""
+    if len(bands) > 1:
+        subnav = ('  <nav class="subnav">Jump to: '
+                  + " · ".join(f'<a href="#{anchor(h)}">{html.escape(h)}</a> <span>{len(ps)}</span>'
+                               for h, ps in bands) + "</nav>")
+    cards = "\n".join(
+        f'  <section>\n    <h2 id="{anchor(h)}">{html.escape(h)} <span class="n">{len(ps)}</span></h2>\n'
+        f'    <ul class="grid">\n{grid_of(ps)}\n    </ul>\n  </section>' for h, ps in bands)
+    if items:
+        count_line = (f"<strong>{len(items)}</strong> gift ideas under ${GIFT_MAX} right now, "
+                      "cheapest first. The selection changes every three days.")
+    else:
+        count_line = ("Nothing under the gift limit in the current rotation. The "
+                      "catalogue refreshes every three days, so check back.")
+    note = ('  <p class="note">Delivery typically takes 1–3 weeks '
+            f'(<a href="{SITE}/terms/">see our terms</a>), so if it\'s for a '
+            "certain date, order early.</p>\n")
+    sib = " · ".join(f'<a href="{SITE}/c/{s}/">{l}</a>' for s, l in siblings)
+    return page_html("/gifts/", f"Gifts under ${GIFT_MAX}",
+                     f"Gift ideas from the current HotsTuff lineup, all under ${GIFT_MAX} USD "
+                     "with free shipping. Picked automatically from the real prices.",
+                     count_line, subnav, cards, f"Shop by category: {sib}", note)
 
 
 def hub(siblings, counts):
@@ -319,6 +379,7 @@ def hub(siblings, counts):
   <p class="lede">The shop's lineup is rebuilt every three days from live
      trending data. These category pages don't move — only what's inside them
      does.</p>
+  <p><a href="{SITE}/gifts/">🎁 Gifts under ${GIFT_MAX}</a></p>
   <ul>
 {rows}
   </ul>
@@ -340,6 +401,10 @@ def main():
         (out / "index.html").write_text(page, encoding="utf-8")
         counts[label] = sum(1 for p in products if p.get("category") == label)
         print(f"  /c/{slug}/  {counts[label]} products")
+    gifts_dir = HERE / "gifts"
+    gifts_dir.mkdir(parents=True, exist_ok=True)
+    (gifts_dir / "index.html").write_text(render_gifts(products, siblings), encoding="utf-8")
+    print(f"  /gifts/  {len(gift_items(products))} products")
     OUT_ROOT.mkdir(parents=True, exist_ok=True)
     (OUT_ROOT / "index.html").write_text(hub(siblings, counts), encoding="utf-8")
     print(f"  /c/  hub with {len(CATEGORIES)} categories")

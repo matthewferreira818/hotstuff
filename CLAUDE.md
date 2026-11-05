@@ -256,6 +256,9 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   deleting and reinstalling the ntfy app fixed it (settings and restarts did not). NTFY_TOPIC is the bare
   topic name only (no https:// or ntfy.sh/); it was renewed 10-24, so Cloudflare's NTFY_TOPIC needs his
   update too. A GitHub-app backup (@mention in issue 24) was tried the same night and removed: it never buzzed.
+- **Room pings (2026-11-04 night):** only important things make noise. Per-message room updates are OFF (his Mac dinged on every post).
+  A `**[Claude → Matthew]**` message still pings; for a real emergency write `URGENT: <reason> - details` and the reason becomes
+  the push title (e.g. "URGENT: Maplehurst paid $79"). Tested and working.
 - ntfy.sh from Cloudflare Workers gets rate-limited (shared egress IPs) —
   that's why worker alerts hop through a GitHub repository_dispatch relay.
 - raw.githubusercontent caches ~5 min — cache-bust paste links; GitHub

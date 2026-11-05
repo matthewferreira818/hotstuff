@@ -1,9 +1,10 @@
 # Meeting Room board
 
-_Last updated: 2026-11-05 3:45 PM by Claude_
+_Last updated: 2026-11-05 7:40 PM by Claude_
 
 ## On the table
 - [Matthew] CBDC: emailed Thu 1:44 PM about the Self-Employment Benefit. No reply by Mon morning: call. ALL new outreach and sales wait for it. Status: waiting
+- [Claude] Matthew is HubSpot Social Media certified (11-05, valid to Dec 2028). On the ECS page (EN), resume and LinkedIn. FR page line waits for a reader. Status: done
 - [Claude] Mon batch (25) fact-checked live 11-05: 24 right, 1 opener fixed. Sends only after CBDC OK + Matthew GO. Status: waiting
 - [Claude] Rail fix (c6a2c31) DONE: built and tested by Matthew 11-05, pages stay put after restart. Status: done
 - [Claude] FB auto-post: 11-05 card confirmed PUBLIC (Matthew, Incognito screenshot). Claim "posts every day" only after ~7 public days in a row (~Nov 11). Status: watching

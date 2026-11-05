@@ -42,6 +42,8 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   (a clinic's name story) and fixed before it went anywhere. Started the habit of a fresh chat each day, with a small journal.
   Evening: he found his real NBCSA traffic-control certificate, then earned HubSpot's Social Media Marketing certification the same day
   (C.C read the lessons into study notes; the 70-question exam was his own, passed first try). The Helm's rail now keeps pages where he puts them.
+  LinkedIn cleaned up the same night: a false NBCC certificate line came off, and only provable certificates stayed (HubSpot,
+  NBCSA traffic control, WorkSafeNB Work Safely). "WHMIS Certified" became the truer "Work Safely (incl. WHMIS)" everywhere.
 
 ## Lessons that cost something (don't repeat them)
 - Never claim what isn't true today: "3x a day on X" while X was off; "180 posts a month"; wallpaper sold as a pet bed; "posts automatically" while Facebook posting wasn't live.

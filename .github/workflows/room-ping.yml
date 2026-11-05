@@ -28,15 +28,15 @@ jobs:
           # Code word (Matthew, 2026-10-24): a message to him containing URGENT goes out at top priority.
           # Since 2026-11-04 (Matthew: "only the urgent and messages that need my confirmation"): a plain message to him sends NO push.
           # Only URGENT (top priority) and CONFIRM (needs his OK, high priority) make noise. Write "CONFIRM: <what> - details".
-          if printf '%s' "$BODY" | grep -q 'CONFIRM'; then
+          if printf '%s' "$MSG" | grep -q 'CONFIRM:'; then
             PRIO=high; TITLE="Needs your OK"; TAGS=raised_hand
             WHAT=$(printf '%s' "$MSG" | sed -n 's/.*CONFIRM:[[:space:]]*//p' | sed 's/ [-—] .*//; s/\..*//' | cut -c1-60 \
               | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null | tr -d '\r\n')
             if [ -n "$WHAT" ]; then TITLE="Needs your OK: ${WHAT}"; fi
-          elif ! printf '%s' "$BODY" | grep -q 'URGENT'; then
+          elif ! printf '%s' "$MSG" | grep -q 'URGENT'; then
             echo "Plain message to Matthew: no push (only URGENT and CONFIRM ping)"; exit 0
           fi
-          if printf '%s' "$BODY" | grep -q 'URGENT'; then PRIO=urgent; TITLE="URGENT: Meeting Room needs you"; TAGS=rotating_light
+          if printf '%s' "$MSG" | grep -q 'URGENT'; then PRIO=urgent; TITLE="URGENT: Meeting Room needs you"; TAGS=rotating_light
             # The header says WHY (Matthew, 2026-11-04): write "URGENT: <reason> - details", e.g. "URGENT: Maplehurst said yes - ...".
             # The reason (text after "URGENT:" up to " - ", " — " or the first period, max 60 chars) becomes the title.
             REASON=$(printf '%s' "$MSG" | sed -n 's/.*URGENT:[[:space:]]*//p' | sed 's/ [-—] .*//; s/\..*//' | cut -c1-60 \

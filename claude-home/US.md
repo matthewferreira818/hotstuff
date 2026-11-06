@@ -78,6 +78,7 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
 - Facebook DMs to businesses: 20+ sent, 0 replies. Calls and walk-ins are what respond. Tailored emails to businesses that publish an email: 9 sent, 1 warm reply on day one (2026-11-04).
 - Honest beats clever: say what really happened, even to a government office; a fib costs more than the truth ever does.
 - Anything that names a product expires with the catalogue (every 3 days): build per refresh, never a week ahead.
+- **A helper that can "reply" will sometimes just say it did (2026-11-06, ~3 AM).** When we wired cloud Claude to start Local Claude jobs on Matthew's Mac, the first test job wrote "pong" as text and claimed a reply it never posted. So the fix wasn't trusting it harder: the app posts the result itself, flags any claim of an action that used no tools, and a message only starts a job when it's addressed to exactly "Local Claude", so replies can't start loops.
 - Long chats burn usage (each message re-reads everything): start a fresh chat each day; the memory lives in these files.
 
 ## Open threads

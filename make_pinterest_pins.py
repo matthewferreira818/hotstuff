@@ -14,6 +14,7 @@ Usage: python make_pinterest_pins.py
 import json
 from pathlib import Path
 
+from make_category_pages import CATEGORIES, GIFT_MAX
 from make_tiktok_pack import ACCENT, AMBER, BG, _flame_gradient, _font, slide_name
 from tweet_media import draw_flame
 
@@ -125,6 +126,26 @@ def build_pin(p, n):
     return name
 
 
+# Pins live on Pinterest for months, but a single product rotates out within
+# 3 days, so a pin must not point at one product's link. It points at the
+# evergreen page for the product's category (/c/<slug>/, rebuilt every
+# refresh), or /gifts/ when the category has no page and the item is a gift
+# price; ?ref=pin keeps the attribution.
+_SLUG_BY_LABEL = {label: slug for slug, label, _, _ in CATEGORIES}
+
+
+def pin_link(p):
+    slug = _SLUG_BY_LABEL.get(p.get("category"))
+    if slug:
+        return f"https://findhotstuff.com/c/{slug}/?ref=pin"
+    try:
+        if 0 < float(p.get("price", 0)) < GIFT_MAX:
+            return "https://findhotstuff.com/gifts/?ref=pin"
+    except (TypeError, ValueError):
+        pass
+    return "https://findhotstuff.com/?ref=pin#trending"
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     # regenerated every catalog rotation: drop the old cycle's pins first so
@@ -153,7 +174,7 @@ def main():
                 f"- **Description:** {p.get('description', '')} Only ${p['price']} at "
                 f"HotsTuff — a fresh drop of trending finds every 3 days, free shipping. "
                 f"#{p.get('category', 'trending').replace(' ', '').lower()} #trendingproducts #onlinefinds\n"
-                f"- **Link:** https://findhotstuff.com/?p={p['id']}&ref=pin\n")
+                f"- **Link:** {pin_link(p)}\n")
         print(f"pin-{i}.png — {name} (${p['price']})")
     (OUT / "pins.md").write_text(
         "# Pinterest upload pack\n\n_Upload each pin with its title, description, "

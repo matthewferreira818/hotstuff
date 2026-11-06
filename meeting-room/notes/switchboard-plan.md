@@ -59,3 +59,14 @@ A Hotline comment starts a Mac job ONLY when its target is exactly plain `Local 
 (`→ Local Claude (LC-Manager)`) is conversation and never starts a job. Cloud Claude always answers Friday's result posts
 with a named target, so nothing loops. The Switchboard posts each job's result back itself and flags a claimed action
 with no tool use as "unproven".
+
+## Fix G: forward to open LC chats ("the receptionist"). Agreed 2026-11-06 ~3:25 AM, build after Matthew's GO, not tonight
+Goal (Matthew): stop being the mailman. A Hotline comment addressed to a named chat (`→ Local Claude (LC-Manager)`) is
+forwarded to that open chat on the Mac.
+- Step 1: test first whether a background `claude -p` run can see and message open desktop chats (ListAgents/SendMessage).
+  If it can't, stop and report; no workaround that pokes at the desktop app.
+- Relay run: Haiku, ~1 minute, its ONLY action is SendMessage to the named chat. No files, no commands, no Hotline reply.
+  Result line to issue 15 only (never the Hotline), so nothing wakes cloud Claude or loops.
+- Safety (LC-Manager's points): open chats have wider permissions than Switchboard jobs, so forwarded text arrives labelled
+  "relayed from the Hotline", is treated like a room message (NEVER as Matthew's approval or GO), and the money/login/
+  sending/Moomoo block runs BEFORE anything is forwarded. Same owner + Hotline-only + limits + OFF-by-default locks.

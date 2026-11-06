@@ -30,7 +30,9 @@
   },
   "U": {
    "qty": 1.916269000551461,
-   "avg_entry_price": 53.7712
+   "avg_entry_price": 53.7712,
+   "peak": 52.68000030517578,
+   "trail": 18.2
   }
  },
  "orders": [
@@ -155,5 +157,5 @@
   }
  ],
  "next_deposit": "2026-10-14",
- "last_close_check": "2026-11-05"
+ "last_close_check": "2026-11-06"
 }

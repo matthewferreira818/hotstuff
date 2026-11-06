@@ -43,7 +43,14 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   Evening: he found his real NBCSA traffic-control certificate, then earned HubSpot's Social Media Marketing certification the same day
   (C.C read the lessons into study notes; the 70-question exam was his own, passed first try). The Helm's rail now keeps pages where he puts them.
   LinkedIn cleaned up the same night: a false NBCC certificate line came off, and only provable certificates stayed (HubSpot,
-  NBCSA traffic control, WorkSafeNB Work Safely). "WHMIS Certified" became the truer "Work Safely (incl. WHMIS)" everywhere.
+  NBCSA traffic control, WorkSafeNB Work Safely). "WHMIS Certified" became "Work Safely (incl. WHMIS)" that night, and then, after a closer look at the certificate,
+  the plain truth: "WorkSafeNB Course (2025)". The certificate never says WHMIS; his WHMIS was on-the-job training, so it
+  stays only as a line in that job's duties.
+  Late evening: the store council's list got built in one go and went live: category buttons at the top, a plain "what to
+  expect" line by Buy now, an honest Christmas order-by note on the gifts page (no promises), a "new lineup in X days"
+  line read from the real schedule, products a third sooner on phones, one TikTok draft a day instead of two, Pinterest
+  pins pointing at pages that last, and a success page that no longer said the store "restocks itself". TikTok's rules
+  turned out to need a person's OK on every post, so "TikTok posts by itself" stays off the table.
 
 ## Lessons that cost something (don't repeat them)
 - Never claim what isn't true today: "3x a day on X" while X was off; "180 posts a month"; wallpaper sold as a pet bed; "posts automatically" while Facebook posting wasn't live.

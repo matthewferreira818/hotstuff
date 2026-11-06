@@ -34,3 +34,8 @@ NOT on master. Goes to master only after Matthew's GO and LC-Manager's gate.
 - Plain words: "Meeting Room" and "snapshots" wording removed from Home.
 - ROLLBACK: same as above; or revert the polish commit(s) on friday-phase1-crew.
 - Not tested: the Filter menu items (menus can't be screenshotted), the token path with a real saved key on the crew strip (this Mac's test copy read the room without error but the strip's 3-min cadence was not timed), -O release build.
+
+## Phase 1 polish round 2
+- Friday page (Simple mode): orb, then the chat box, then ONE Voice button; voice/hands/clip controls and the Google Live pill appear only when Voice is opened or voice is on. Advanced mode keeps the old layout (deckFridayFull).
+- Store tab: orders journey line on top ("Orders: not tracked yet · Goal: first sale", same source as Home), plain visitor wording (Visitors today / This week / This month), "as of <time>, from GoatCounter".
+- ROLLBACK: revert the polish-2 commit on friday-phase1-crew. Not tested: Voice controls with a live session on, Store with a real Stripe key, Sources/Catalog/Sales sub-tabs wording, -O build.

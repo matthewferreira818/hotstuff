@@ -5,7 +5,11 @@ import AppKit
 // close); under them sit four small cards: the three orb states with the current one marked, what she is doing, memory and music.
 // Nothing here starts anything by itself.
 extension CompanionInterfaceView {
- var deckFriday: some View {
+ @ViewBuilder var deckFriday: some View {
+  if hub.simple { simpleFriday } else { deckFridayFull }
+ }
+
+ var deckFridayFull: some View {
   GeometryReader { geo in
    let tight = hub.compact || geo.size.height < 560
    let showCards = !hub.compact && geo.size.height >= 640

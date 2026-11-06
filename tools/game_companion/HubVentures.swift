@@ -39,10 +39,10 @@ extension CompanionInterfaceView {
       .buttonStyle(.plain).disabled(ventures.loading || DesignPreview.enabled)
       .accessibilityLabel("Refresh public visitor counters and catalog")
      }
-     Text("Public visitor counts and the published product list")
+     Text("Your shop: visitors, orders and what it sells.")
       .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
     }
-    StoreSnapshotDashboard(store:ventures.store,catalog:ventures.catalog,loading:ventures.loading,ago:hubAgo,salesContent:hubSalesBlock)
+    StoreSnapshotDashboard(store:ventures.store,catalog:ventures.catalog,loading:ventures.loading,ago:hubAgo,asOf:simpleAsOf(ventures.storeAt,"GoatCounter (the visitor counter)",failed:ventures.storeFailed),orders:simpleOrdersLine,salesContent:hubSalesBlock)
    }
    .padding(.horizontal,hub.compact ? 16 : 32).padding(.top,4).padding(.bottom,24)
   }
@@ -131,6 +131,8 @@ private struct StoreSnapshotDashboard<SalesContent: View>: View {
  let catalog: CatalogStats?
  let loading: Bool
  let ago: (Date?) -> String
+ let asOf: String                       // "as of <time>, from <source>" or "unknown (couldn't reach <source>)"
+ let orders: (String,String)            // the same orders line as Home
  let salesContent: SalesContent
  @StateObject private var page = StoreSnapshotPageState()
 
@@ -162,17 +164,24 @@ private struct StoreSnapshotDashboard<SalesContent: View>: View {
 
  private var overview: some View {
   VStack(alignment:.leading,spacing:16) {
-   heading("Visitors",detail:"Unique visitors reported by the public counters")
+   VStack(alignment:.leading,spacing:3) {
+    Text(orders.0 + (orders.0.contains("Goal") ? "" : " · Goal: first sale")).font(.system(size:16,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+    Text(orders.1).font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+   }
+   .padding(16).frame(maxWidth:.infinity,alignment:.leading).storeSnapshotCard()
+   .accessibilityElement(children:.combine)
+   heading("Visitors",detail:"People who visited your store, counted by the public visitor counter")
    if let store = store {
     HStack(alignment:.top,spacing:10) {
-     visitorMetric("Today",count:store.today,note:"UTC date")
-     visitorMetric("7 days",count:store.week,note:"Including today")
-     visitorMetric("30 days",count:store.month,note:"Including today")
+     visitorMetric("Visitors today",count:store.today,note:"counter day")
+     visitorMetric("This week",count:store.week,note:"last 7 days, with today")
+     visitorMetric("This month",count:store.month,note:"last 30 days, with today")
     }
-    Text("The reader requests date ranges using UTC. A counter day can differ from your local day.")
+    Text(asOf).font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+    Text("The counter starts its day a few hours before yours does, so \"today\" can look a little off.")
      .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
    } else {
-    unavailable("Visitor counts",detail:"Use Refresh to try the public counters again.")
+    unavailable("Visitors: unknown",detail:asOf + ". Use Refresh to try again.")
    }
    Button { page.tab = .sources } label: {
     HStack(spacing:10) {
@@ -206,7 +215,7 @@ private struct StoreSnapshotDashboard<SalesContent: View>: View {
    } else {
     unavailable("Product catalog",detail:"Use Refresh to try the published product list again.")
    }
-   Text("Counts reflect the loaded data. Visitor counts are not orders; orders and revenue are under Sales.")
+   Text("These are visitors, not orders. Orders and money are on the Sales tab.")
     .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
   }
  }

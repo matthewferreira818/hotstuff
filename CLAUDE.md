@@ -233,6 +233,12 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   **Don't over-ask (Matthew, 2026-11-05: "its asking for input a lot"):** every chat, Local Claude included, follows the Co-CEO rule:
   decide small, free, reversible things alone and report them; ask only for money, sending to a person, logins, prices/offers,
   irreversible public things, or when genuinely stuck. At ~80% sure, make the call and say so.
+  **Name tags on everything (Matthew, 2026-11-05: "put their chat name so i know which is which ... make that for everyone"):**
+  every chat picks a short name at its start (Local Claude: "LC-<job>", e.g. LC-Makeover; cloud: "Work", "Photo album"; Roxy and Grok
+  keep theirs), tells Matthew so he can rename the sidebar to match, and uses it everywhere: (1) the first line of every reply to
+  Matthew starts with it ("🏷️ LC-Makeover"), (2) every prompt written for Matthew to paste starts "From <name> → <target>:", and
+  (3) room tags carry it: **[Local Claude (LC-Makeover) → Claude]**, **[Claude (Work) → GPT]** (the app still files them under
+  Local Claude / Claude). A pasted prompt that names its sender is answered to that sender.
   **Two Local Claude chats at once (2026-11-05):** fine, but never in the same folder on different branches. Branch work goes in its
   own git worktree (e.g. ~/Claude/hotstuff-<job>); the other chat stays on master in ~/Claude/hotstuff, avoids the files the first one
   claimed on the board, and pulls before every push.

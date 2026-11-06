@@ -32,7 +32,7 @@ extension CompanionInterfaceView {
    let tag = run.isRunning ? "RUN" : (run.isFailing ? "FAIL" : (run.conclusion == "success" ? "OK" : "END"))
    lines.append(DeckTapeLine(id:"r-\(run.name)-\(time.timeIntervalSince1970)",date:time,tag:tag,text:run.name,tone:run.isFailing ? 3 : (run.isRunning ? 0 : 1)))
   }
-  for message in meeting.messages.suffix(14) {
+  for message in meeting.messages.suffix(8) {
    guard let time = message.date else { continue }
    let who = MeetingData.display(MeetingData.canonical(message.author) ?? message.author)
    lines.append(DeckTapeLine(id:"m-\(message.id)",date:time,tag:"ROOM",text:"[\(who)] " + MeetingData.brief(message.text,limit:110),tone:0))
@@ -70,7 +70,7 @@ extension CompanionInterfaceView {
        Circle().fill(HubTheme.green).frame(width:7,height:7).opacity(Int(timeline.date.timeIntervalSince1970) % 2 == 0 ? 1 : 0.35)
       }
       Spacer(minLength:0)
-      Text(hub.refreshedAt.map { "refreshed \(hubAgo($0))" } ?? "loading…").font(DeckMono.font(10.5)).foregroundStyle(HubTheme.subtext)
+      Text((hub.refreshedAt ?? (ventures.lastRefresh == .distantPast ? nil : ventures.lastRefresh)).map { "refreshed \(hubAgo($0))" } ?? "loading…").font(DeckMono.font(10.5)).foregroundStyle(HubTheme.subtext)
      }
      .padding(.horizontal,14).padding(.vertical,10)
      .overlay(alignment:.bottom) { Rectangle().fill(HubTheme.line).frame(height:1) }

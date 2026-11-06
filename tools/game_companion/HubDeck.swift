@@ -185,6 +185,10 @@ extension CompanionInterfaceView {
   HStack(alignment:.firstTextBaseline,spacing:10) {
    Text(hub.section.title).font(.system(size:24,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
    Text(hub.section.blurb).font(.system(size:12.5)).foregroundStyle(HubTheme.subtext).lineLimit(1)
+   if hub.section == .stocks {
+    Text("PAPER TRADING · NO REAL MONEY").font(DeckMono.font(10.5,.bold)).foregroundStyle(HubTheme.amber)
+     .padding(.horizontal,8).padding(.vertical,3).background(HubTheme.amber.opacity(0.14),in:RoundedRectangle(cornerRadius:4))
+   }
    Spacer(minLength:0)
    if let at = hub.refreshedAt { Text("updated \(hubAgo(at))").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.subtext) }
   }

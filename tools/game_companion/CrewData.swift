@@ -84,7 +84,7 @@ enum CrewData {
   return nil
  }
 
- static func build(messages: [RoomMessage],runs: [AutomationRun]?,now: Date = Date()) -> [CrewMember] {
+ static func build(messages: [RoomMessage],runs: [AutomationRun]?,snapshots: [String:StockRobot] = [:],now: Date = Date()) -> [CrewMember] {
   var result: [CrewMember] = []
 
   // People and agents: from the room thread.
@@ -127,6 +127,9 @@ enum CrewData {
   // Scheduled workers: from GitHub's public runs (latest run per workflow).
   func worker(_ id: String,_ name: String,_ role: String,_ kind: CrewKind,_ workflow: String) -> CrewMember {
    guard let run = runs?.first(where:{ $0.name == workflow }) else {
+    if let snap = snapshots[id], let updated = snap.updated {
+     return CrewMember(id:id,name:name,role:role,kind:kind,state:.idle,detail:"\(snap.paused ? "PAUSED · " : "")snapshot updated \(ago(updated,now:now)) (no workflow run in the loaded list)",since:updated,awayUntil:nil)
+    }
     return CrewMember(id:id,name:name,role:role,kind:kind,state:.unknown,detail:runs == nil ? "runs not loaded" : "no recent run found",since:nil,awayUntil:nil)
    }
    if run.isRunning { return CrewMember(id:id,name:name,role:role,kind:kind,state:.working,detail:"running now",since:run.created,awayUntil:nil,url:run.url) }

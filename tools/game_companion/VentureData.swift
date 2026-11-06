@@ -78,7 +78,7 @@ struct AutomationRun: Identifiable {
 enum VentureData {
  static let counters = "https://theycallmemattyb.goatcounter.com/counter/"
  static let feed = "https://findhotstuff.com/automation/feed/"
- static let runsURL = "https://api.github.com/repos/matthewferreira818/hotstuff/actions/runs?per_page=60"
+ static let runsURL = "https://api.github.com/repos/matthewferreira818/hotstuff/actions/runs?per_page=100"
 
  // The same channel tags traffic_report.py uses: pages fire a "ref-<tag>" event when someone arrives from that channel.
  static let channelList: [(String,String)] = [

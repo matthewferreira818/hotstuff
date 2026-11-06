@@ -109,7 +109,7 @@ const DROP_ROWS = [
   { key: "rowJewelry", en: "Jewelry picks", items: () => inCategory("Jewelry"), link: "c/jewelry/?ref=row" },
   { key: "rowKitchen", en: "Kitchen helpers", items: () => inCategory("Kitchen"), link: "c/kitchen/?ref=row" },
   // true trend order, whole catalogue, nothing filtered out
-  { key: "rowTrending", en: "Trending right now", items: () => byTrend(allProducts), link: null },
+  { key: "rowTrending", en: "Popular with sellers", items: () => byTrend(allProducts), link: null },
 ];
 const ROW_MAX = 12;
 function buildDropCard(p) {
@@ -242,7 +242,7 @@ function focusLinkedProduct() {
     const note = document.createElement("div");
     note.className = "order-banner order-banner-canceled";
     note.textContent = T("linkedGone",
-      "That item has rotated out of the catalog — here's what's trending right now.");
+      "That item has rotated out of the catalog — here's the latest drop.");
     const rows = document.getElementById("drop-rows");
     (rows || grid).parentElement.insertBefore(note, rows || grid);
     return;
@@ -388,7 +388,7 @@ function renderGrid() {
   if (visible.length === 0) {
     grid.appendChild(emptyState(q
       ? T("noMatches", "No matches — try fewer or different words.")
-      : "No trending products right now — check back soon."));
+      : "No products right now — check back soon."));
     return;
   }
   visible.forEach((product, i) => {
@@ -521,9 +521,9 @@ function buildCard(p) {
   // The trend score used to sit here beside the price. "95" out of what? It
   // meant nothing to a shopper and took the second-most valuable spot on the
   // card to say it. The score still decides which products get picked and
-  // drives the "Trending first" sort -- it just isn't shown as a bare number.
+  // drives the "Most listed by sellers" sort -- it just isn't shown as a bare number.
   // It stays on the detail sheet, where someone who opened a product has room
-  // for it and the "Trending" badge above already sets the context.
+  // for it and the "Hot pick" badge above already sets the context.
   footer.append(priceEl);
 
   const buyButton = document.createElement("button");

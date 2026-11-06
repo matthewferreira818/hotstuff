@@ -1,7 +1,7 @@
 {
-  "name": "HotsTuff — Trending Finds",
+  "name": "HotsTuff — Small finds",
   "short_name": "HotsTuff",
-  "description": "Shop what's trending right now. A fresh lineup of products every few days, free shipping, secure Stripe checkout.",
+  "description": "Small finds, a fresh lineup every 3 days from our supplier's trending list. Free shipping, secure Stripe checkout.",
   "id": "/",
   "start_url": "/?source=app",
   "scope": "/",
@@ -16,7 +16,7 @@
   ],
   "shortcuts": [
     {
-      "name": "Trending now",
+      "name": "Latest drop",
       "url": "/?source=app#trending",
       "icons": [{ "src": "assets/icons/icon-192.png", "sizes": "192x192" }]
     },

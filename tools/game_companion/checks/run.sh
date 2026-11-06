@@ -36,3 +36,13 @@ xcrun swiftc -parse-as-library -target arm64-apple-macos14.0 "$D/SwitchboardData
 "$T/sb" | grep -E "^FAIL|ALL|passed|failed" | tail -3
 xcrun swiftc -parse-as-library -target arm64-apple-macos14.0 "$D"/{MeetingData,SwitchboardData,FridayBrainData,SwitchboardPingData}.swift "$D/checks/SwitchboardPingChecks.swift" -o "$T/pg" 2>&1 | grep error
 "$T/pg" | grep -E "^FAIL|ALL|passed|failed" | tail -3
+# Job cards: the Helm's reader (JobRules) and the crew's tool (tools/crew/job.py) agree
+{ printf 'import Foundation\n'; awk '/^struct CrewJob/,/^}/' "$D/HubCommandJobs.swift"; awk '/^enum JobRules/,/^}/' "$D/HubCommandJobs.swift"; } > "$T/jobs.swift"
+cp "$D/checks/jobs_check.swift" "$T/main.swift"
+xcrun swiftc -target arm64-apple-macos14.0 "$T/jobs.swift" "$T/main.swift" -o "$T/jb" 2>&1 | grep error
+"$T/jb"
+J="$T/jobs-tool"; JP="$D/../crew/job.py"
+JID=$(CREW_JOBS_DIR="$J" python3 "$JP" new LC-Test "check" --by Friday)
+CREW_JOBS_DIR="$J" python3 "$JP" done "$JID" --by LC-Test 2>/dev/null && echo "FAIL job.py let 'done' through without proof" || echo "PASS job.py refuses 'done' without proof"
+CREW_JOBS_DIR="$J" python3 "$JP" done "$JID" --by LC-Test --proof "x" >/dev/null && CREW_JOBS_DIR="$J" python3 "$JP" start "$JID" --by LC-Test 2>/dev/null && echo "FAIL job.py changed a finished job" || echo "PASS job.py won't touch a finished job"
+[ "$(stat -f %Lp "$J")" = "700" ] && echo "PASS jobs folder is private (700)" || echo "FAIL jobs folder is not 700"

@@ -33,7 +33,8 @@ enum LocalBrainRules {
  // Claude's own words when a plan's limit is reached (seen in the CLI's result text). Lower-cased match.
  static func limitHit(_ data: Data) -> Bool {
   let t = String(decoding:data,as:UTF8.self).lowercased()
-  return ["usage limit","limit reached","hit your limit","you've reached your"]   // not "rate limit": a short hiccup isn't a reason to switch brains.contains { t.contains($0) }
+  // Not "rate limit": a short hiccup isn't a reason to switch brains.
+  return ["usage limit","limit reached","hit your limit","you've reached your"].contains { t.contains($0) }
  }
 
  static let system = """

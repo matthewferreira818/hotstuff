@@ -239,6 +239,9 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   Matthew starts with it ("🏷️ LC-Makeover"), (2) every prompt written for Matthew to paste starts "From <name> → <target>:", and
   (3) room tags carry it: **[Local Claude (LC-Makeover) → Claude]**, **[Claude (Work) → GPT]** (the app still files them under
   Local Claude / Claude). A pasted prompt that names its sender is answered to that sender.
+  **LC group chat (tested 2026-11-06 ~1:50 AM):** Local Claude chats on the Mac can list and message each other directly (it wakes the
+  other chat). Every LC-to-LC message is ALSO mirrored to issue 15 with name tags, so Matthew watches it live in The Helm. Short and on-task,
+  no chit-chat loops (each message wakes a chat and burns usage).
   **Two Local Claude chats at once (2026-11-05):** fine, but never in the same folder on different branches. Branch work goes in its
   own git worktree (e.g. ~/Claude/hotstuff-<job>); the other chat stays on master in ~/Claude/hotstuff, avoids the files the first one
   claimed on the board, and pulls before every push.

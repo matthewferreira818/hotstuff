@@ -79,7 +79,7 @@ extension CompanionInterfaceView {
  var deckMemoryCard: some View {
   let recent = Array(conversation.notes.suffix(3).reversed())
   return deckCard {
-   deckLabel(conversation.memoryEnabled ? "MEMORY · \(conversation.notes.count) NOTES" : "MEMORY · OFF")
+   deckLabel(conversation.memoryEnabled ? "MEMORY · \(conversation.notes.count) \(conversation.notes.count == 1 ? "NOTE" : "NOTES")" : "MEMORY · OFF")
    if !conversation.memoryEnabled {
     Text("Memory is off. Notes are only saved if you turn it on in Settings.").font(.system(size:12)).foregroundStyle(HubTheme.subtext)
    } else if recent.isEmpty {

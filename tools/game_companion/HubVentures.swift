@@ -39,8 +39,10 @@ extension CompanionInterfaceView {
       .buttonStyle(.plain).disabled(ventures.loading || DesignPreview.enabled)
       .accessibilityLabel("Refresh public visitor counters and catalog")
      }
-     Text("Your shop: visitors, orders and what it sells.")
-      .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+     if !hub.simple {
+      Text("Your shop: visitors, orders and what it sells.")
+       .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+     }
     }
     StoreSnapshotDashboard(store:ventures.store,catalog:ventures.catalog,loading:ventures.loading,ago:hubAgo,asOf:simpleAsOf(ventures.storeAt,"GoatCounter (the visitor counter)",failed:ventures.storeFailed),orders:simpleOrdersLine,salesContent:hubSalesBlock)
    }

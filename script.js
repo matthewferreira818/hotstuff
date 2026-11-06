@@ -522,8 +522,7 @@ function buildCard(p) {
   // meant nothing to a shopper and took the second-most valuable spot on the
   // card to say it. The score still decides which products get picked and
   // drives the "Most listed by sellers" sort -- it just isn't shown as a bare number.
-  // It stays on the detail sheet, where someone who opened a product has room
-  // for it and the "Hot pick" badge above already sets the context.
+  // Since 2026-11-06 it is not shown on the detail sheet either (see openProductSheet).
   footer.append(priceEl);
 
   const buyButton = document.createElement("button");
@@ -627,10 +626,10 @@ function openProductSheet(p) {
   sheetCur.className = "price-cur";
   sheetCur.textContent = " USD";
   price.appendChild(sheetCur);
-  const trend = document.createElement("span");
-  trend.className = "sheet-trend";
-  trend.textContent = `${T("sheetTrend", "Trend score")} ${Number.isFinite(Number(p.trendScore)) ? p.trendScore : "—"}`;
-  meta.append(price, trend);
+  // No score on screen (Co-CEO, 2026-11-06): trendScore is CJ's seller-listing
+  // count squeezed into 60-99, so a bare number read as a rating it isn't.
+  // It stays only as the internal sort key.
+  meta.append(price);
 
   const buyButton = document.createElement("button");
   buyButton.className = "btn btn-primary card-buy";

@@ -14,7 +14,7 @@ import AppKit
 
  // .handoff: this wake goes to a BACKUP (Friday / LC-Manager) because `original` chat was closed; `rest` are the backups still to try.
  // .held: a later probe, delivering the copy kept for the chat that was closed.
- enum Kind { case room(Int64),dm([String]),handoff(origin: Int64,original: String,body: String,rest: [String],ref: String),held(String) }
+ enum Kind { case room(Int64),dm([String]),handoff(origin: Int64,original: String,body: String,rest: [String],ref: String),held(String),job(String),jobBackup(String) }
  struct Job { var chat: String; var text: String; var kind: Kind }
  @Published private(set) var held: [PingRules.Held] = []
  private var probeLoop: Task<Void,Never>?
@@ -155,6 +155,24 @@ import AppKit
 
  // MARK: the queue
 
+ // Crew job cards (JobHealing.swift): wake the job's own chat with the job id only. Same caps and cooldowns as every wake.
+ @discardableResult func submitJob(id: String,chat: String,now: Date = Date()) -> Bool {
+  guard PingRules.gate(chat:chat,now:now,last:lastWake,sent:sent) == .go else { return false }
+  lastWake[SwitchboardRules.NameMatch.loose(chat)] = now
+  sent.append(now)
+  queue.append(Job(chat:chat,text:JobHeal.wakeText(id:id),kind:.job(id)))
+  pump()
+  return true
+ }
+
+ @discardableResult func submitJobBackup(id: String,backup: String,text: String,now: Date = Date()) -> Bool {
+  guard PingRules.gate(chat:backup,now:now,last:[:],sent:sent) == .go else { return false }
+  sent.append(now)
+  queue.append(Job(chat:backup,text:text,kind:.jobBackup(id)))
+  pump()
+  return true
+ }
+
  private func pump() {
   guard !running, !queue.isEmpty else { return }
   running = true
@@ -190,6 +208,12 @@ import AppKit
     Switchboard.shared.logPing("\(original) is closed and \(job.chat) couldn't take \(ref): \(state).")
     startHandOff(chat:original,original:body,rest:rest,origin:origin,ref:ref)
    }
+  case .job(let id):
+   Switchboard.shared.logPing("Job \(id): woke \(job.chat): \(state).")   // id and chat only, never the job's title
+   if state == "delivered" { _ = JobHeal.recordResend(id:id) }
+   if state == "not open" { JobWatcher.shared.handBack(id:id,chat:job.chat,closed:true) }
+  case .jobBackup(let id):
+   Switchboard.shared.logPing("Job \(id): handed to \(job.chat) as backup: \(state).")
   case .held(let id):
    guard let h = held.first(where:{ $0.id == id }) else { return }
    if state == "delivered" {

@@ -49,3 +49,9 @@ JID2=$(CREW_JOBS_DIR="$J" python3 "$JP" new LC-Owner "owner check" --by Friday)
 CREW_JOBS_DIR="$J" python3 "$JP" done "$JID2" --by LC-Other --proof x 2>/dev/null && echo "FAIL job.py let another chat finish someone else's job" || echo "PASS only the assigned chat can finish its job"
 CREW_JOBS_DIR="$J" python3 "$JP" fail "$JID2" --by Friday --why "test" >/dev/null && echo "PASS whoever assigned it may fail it" || echo "FAIL the assigner couldn't fail its own job"
 [ "$(stat -f %Lp "$J")" = "700" ] && echo "PASS jobs folder is private (700)" || echo "FAIL jobs folder is not 700"
+# Self-healing handoffs (JobHeal rules); PingRules.backups is stubbed, the watcher itself is UI-side
+{ printf 'import Foundation\n'; awk '/^struct CrewJob/,/^}/' "$D/HubCommandJobs.swift"; awk '/^enum JobRules/,/^}/' "$D/HubCommandJobs.swift"; awk '/^enum JobHeal/,/^}/' "$D/JobHealing.swift"; } > "$T/jh.swift"
+printf 'enum PingRules { static func backups(for chat: String) -> [String] { chat == "Friday" ? ["LC-Manager"] : ["Friday"] } }\n' > "$T/jhstub.swift"
+cp "$D/checks/jobheal_check.swift" "$T/main.swift"
+xcrun swiftc -target arm64-apple-macos14.0 "$T/jhstub.swift" "$T/jh.swift" "$T/main.swift" -o "$T/jhx" 2>&1 | grep error
+"$T/jhx"

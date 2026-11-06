@@ -82,6 +82,7 @@ private struct SwitchboardState: Codable {
   }
   FridayDM.shared.start()   // the private Friday-and-me DM engine (works with the switch ON or OFF)
   WakeRunner.shared.start() // resumes probing for copies held for a closed chat
+  JobWatcher.shared.start()  // crew job cards: resend / hand to backup when a job gets no "got it" (JobHealing.swift)
   SwitchboardTestHooks.boot(self)
  }
 

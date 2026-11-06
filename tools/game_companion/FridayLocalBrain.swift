@@ -33,7 +33,7 @@ enum LocalBrainRules {
  // Claude's own words when a plan's limit is reached (seen in the CLI's result text). Lower-cased match.
  static func limitHit(_ data: Data) -> Bool {
   let t = String(decoding:data,as:UTF8.self).lowercased()
-  return ["usage limit","limit reached","hit your limit","you've reached your","rate_limit","rate limit"].contains { t.contains($0) }
+  return ["usage limit","limit reached","hit your limit","you've reached your"]   // not "rate limit": a short hiccup isn't a reason to switch brains.contains { t.contains($0) }
  }
 
  static let system = """
@@ -121,8 +121,9 @@ enum LocalBrainMemory {
     return .init(ok:false,text:"I can't think offline right now: Ollama answered, but not with words. Is the \(LocalBrainRules.model) model still installed?",note:"Claude couldn't run (\(why))")
    }
    let plain = text.replacingOccurrences(of:"**",with:"").replacingOccurrences(of:"`",with:"")
-   let tool = FridayBrainRules.claimsOwnAction(plain) ? " " + FridayBrainRules.toolNote : ""
-   return .init(ok:true,text:LocalBrainRules.label + " " + plain + tool,note:note)
+   // Same place as the Claude path: a "she claims she did something" warning goes in the grey note, not in her words.
+   let tool = FridayBrainRules.claimsOwnAction(plain) ? " · " + FridayBrainRules.toolNote : ""
+   return .init(ok:true,text:LocalBrainRules.label + " " + plain,note:note + tool)
   } catch {
    UsageLedger.shared.record(who:"Friday (local brain)",job:LocalBrainRules.model,started:began,ok:false,data:Data())
    return .init(ok:false,text:"I can't think offline right now: Ollama isn't answering on this Mac. Open the Ollama app and ask again.",note:"Claude couldn't run (\(why))")

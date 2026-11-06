@@ -8,6 +8,7 @@ The Helm's Command Core > Crew Station reads the same file and shows each job's 
 
 Usage (any crew chat on this Mac; --by is who you are, e.g. LC-Pixels):
   job.py new <to> "<short title>" --by Friday         -> prints the job id (J-...)
+      add --after "YYYY-MM-DD HH:MM" (Moncton time) for a job meant for later: nobody chases it before then
   job.py ack <id> --by <you>                           "got it"
   job.py start <id> --by <you>
   job.py done <id> --by <you> --proof "<commit/link/screenshot path>"
@@ -52,7 +53,7 @@ def fold(evs):
         if not jid or not kind:
             continue
         if kind == "assigned":
-            jobs[jid] = {"id": jid, "to": e.get("to", ""), "by": e.get("by", ""), "title": e.get("title", ""), "assigned": e.get("at"),
+            jobs[jid] = {"id": jid, "to": e.get("to", ""), "by": e.get("by", ""), "title": e.get("title", ""), "assigned": e.get("at"), "after": e.get("after"),
                          "ack": None, "started": None, "done": None, "failed": None, "proof": None, "why": None, "resends": 0,
                          "ack_implied": False, "started_implied": False}
             continue
@@ -120,6 +121,7 @@ def main(argv):
     p.add_argument("--proof", default="")
     p.add_argument("--why", default="")
     p.add_argument("--all", action="store_true")
+    p.add_argument("--after", default="")
     a = p.parse_args(argv)
     jobs = fold(events())
 
@@ -131,10 +133,21 @@ def main(argv):
             fail("a job needs a crew member and a title")
         if not a.by:
             fail("say who is assigning it: --by <you>")
+        after = None
+        if a.after.strip():
+            try:
+                from zoneinfo import ZoneInfo
+                local = datetime.datetime.strptime(a.after.strip(), "%Y-%m-%d %H:%M").replace(tzinfo=ZoneInfo("America/Moncton"))
+            except Exception:
+                fail('--after must look like "2026-11-07 09:00" (Moncton time)')
+            after = local.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         jid = "J-" + time.strftime("%m%d-%H%M%S")
         while jid in jobs:
             jid += "x"
-        append({"id": jid, "event": "assigned", "at": now_iso(), "to": to, "by": one_line(a.by, 40), "title": title})
+        ev = {"id": jid, "event": "assigned", "at": now_iso(), "to": to, "by": one_line(a.by, 40), "title": title}
+        if after:
+            ev["after"] = after
+        append(ev)
         print(jid)
         return
 
@@ -185,7 +198,8 @@ def main(argv):
             st = stage(j)
             if not a.all and st in ("done", "failed"):
                 continue
-            print(f'{j["id"]}  {st:8}  -> {j["to"]:12}  {j["title"]}')
+            later = f'  (not before {j["after"]})' if j.get("after") else ""
+            print(f'{j["id"]}  {st:8}  -> {j["to"]:12}  {j["title"]}{later}')
         return
 
     fail("unknown command (new, ack, start, done, fail, resend, show, list)")

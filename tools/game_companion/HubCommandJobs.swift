@@ -12,6 +12,7 @@ struct CrewJob: Identifiable, Equatable {
  var by: String
  var title: String
  var assigned: Date
+ var after: Date?             // "not before": a job meant for later is never chased or flagged before this time
  var ack: Date?
  var started: Date?
  var done: Date?
@@ -45,7 +46,7 @@ enum JobRules {
          let id = j["id"] as? String, let kind = j["event"] as? String, let at = (j["at"] as? String).flatMap(iso.date(from:)) else { continue }
    if kind == "assigned" {
     if jobs[id] == nil { order.append(id) }
-    jobs[id] = CrewJob(id:id,to:j["to"] as? String ?? "",by:j["by"] as? String ?? "",title:j["title"] as? String ?? "",assigned:at)
+    jobs[id] = CrewJob(id:id,to:j["to"] as? String ?? "",by:j["by"] as? String ?? "",title:j["title"] as? String ?? "",assigned:at,after:(j["after"] as? String).flatMap(iso.date(from:)))
     continue
    }
    guard var job = jobs[id] else { continue }
@@ -64,7 +65,8 @@ enum JobRules {
  }
 
  static func noAnswer(_ job: CrewJob,now: Date) -> Bool {
-  job.stage == .assigned && now.timeIntervalSince(job.lastResend ?? job.assigned) > noAnswerAfter
+  if let a = job.after, now < a { return false }
+  return job.stage == .assigned && now.timeIntervalSince(max(job.lastResend ?? job.assigned,job.after ?? .distantPast)) > noAnswerAfter
  }
 
  // Open jobs first (newest first), then the newest finished ones.
@@ -98,6 +100,7 @@ enum JobRules {
 struct CoreJobsCard: View {
  @ObservedObject var model = CrewJobsModel.shared
  private static let time: DateFormatter = { let f = DateFormatter(); f.dateFormat = "h:mm a"; return f }()
+ private static let day: DateFormatter = { let f = DateFormatter(); f.dateFormat = "EEE h:mm a"; return f }()
 
  private func chip(_ label: String,_ at: Date?,_ color: Color,implied: Bool = false) -> some View {
   let on = at != nil || implied
@@ -126,6 +129,9 @@ struct CoreJobsCard: View {
      ViewThatFits(in:.horizontal) {
       HStack(spacing:10) { stageChips(j) }
       VStack(alignment:.leading,spacing:3) { stageChips(j) }
+     }
+     if let a = j.after, a > now {
+      Text("Not before \(Self.day.string(from:a)): nobody chases it until then").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)
      }
      if let to = j.handedTo, let at = j.handedAt {
       Text("Handed to \(to) at \(Self.time.string(from:at)): \(j.to) never said 'got it'").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.amber)

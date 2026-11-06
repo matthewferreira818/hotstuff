@@ -230,6 +230,9 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   ~/Claude/Helm-Private; a start-of-chat hook pulls both and prints Moncton time + the newest handoff; Sonnet medium by default;
   ~/hotstuff (the app's build folder), ~/.ssh, key/token/secret files, moomoo, rm -rf and ALL force-pushes are blocked. So its push
   pattern is plain: commit, `git pull --rebase`, `git push origin master` (no session branch, no force).
+  **Don't over-ask (Matthew, 2026-11-05: "its asking for input a lot"):** every chat, Local Claude included, follows the Co-CEO rule:
+  decide small, free, reversible things alone and report them; ask only for money, sending to a person, logins, prices/offers,
+  irreversible public things, or when genuinely stuck. At ~80% sure, make the call and say so.
 - The old long chat ("new beginning") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
   and the 5:15 PM robot recap) fire there.
 - **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day

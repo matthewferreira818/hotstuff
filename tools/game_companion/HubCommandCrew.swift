@@ -123,6 +123,8 @@ struct CoreCrewView: View {
   t = t.replacingOccurrences(of:"^\\s*(\\[[^\\]]*\\]\\s*)+",with:"",options:.regularExpression)            // leading [Owner] tags
   t = t.replacingOccurrences(of:"\\s*Status:.*$",with:"",options:[.regularExpression,.caseInsensitive])
   t = t.replacingOccurrences(of:"\\s+",with:" ",options:.regularExpression).trimmingCharacters(in:CharacterSet(charactersIn:" -–—:;,."))
+  t = t.replacingOccurrences(of:"^\\([^)]*\\)\\s*",with:"",options:.regularExpression)                        // a leading "(LC-Manager owns)" note
+  for sep in [" (",": "] { if let r = t.range(of:sep), t.distance(from:t.startIndex,to:r.lowerBound) >= 12 { t = String(t[..<r.lowerBound]) } }
   if let dot = t.range(of:". ") , t.distance(from:t.startIndex,to:dot.lowerBound) >= 12 { t = String(t[..<dot.lowerBound]) }
   if t.count <= limit { return t }
   let head = String(t.prefix(limit))

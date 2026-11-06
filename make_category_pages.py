@@ -147,7 +147,7 @@ def write_sitemap(out_path):
 
 
 CARD = """      <li class="cat-card">
-        <a href="{site}/?p={pid}" class="cat-link">
+        <a href="{site}/?p={pid}&amp;ref={ref}" class="cat-link">
           {img}
           <span class="cat-name">{name}</span>
           <span class="cat-price">${price} USD</span>
@@ -162,10 +162,13 @@ def anchor(name):
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
-def grid_of(items):
+def grid_of(items, ref="cat"):
+    """ref tags the store link so GoatCounter can tell which page sent the
+    visitor: "gifts" from /gifts/, "cat" from /c/<slug>/ pages (the store's
+    ?p= deep link ignores extra params and the ref is counted on arrival)."""
     return "\n".join(
         CARD.format(
-            site=SITE, pid=html.escape(str(p.get("id", ""))),
+            site=SITE, ref=ref, pid=html.escape(str(p.get("id", ""))),
             name=html.escape(p.get("name", "")),
             price=f'{float(p.get("price", 0)):.2f}',
             img=(f'<img src="{html.escape(p["image"])}" alt="{html.escape(p.get("name",""))}" '
@@ -315,6 +318,40 @@ def gift_items(products):
     return sorted(out, key=lambda p: float(p.get("price", 0)))
 
 
+# Christmas order-by note on /gifts/ (2026-11-05 council). Honest, no delivery
+# promise: terms say orders are processed in 1-3 business days and delivery
+# typically takes 1-3 weeks, so "about Nov 30" is a best-chance date only.
+# Built in only during the season (Nov 1 - Dec 10), and the page also hides it
+# itself after Dec 10 in the visitor's browser, because the page is only
+# rebuilt every 3 days. French shows when the visitor's saved/browser
+# language is French (same hotstuff-lang choice the store uses).
+XMAS_EN = ("For Christmas, order by about Nov 30 to give it the best chance. "
+           "We can't guarantee delivery dates.")
+XMAS_FR = ("Pour Noël, commandez d'ici le 30 novembre environ pour avoir les "
+           "meilleures chances. On ne peut pas garantir les dates de livraison.")
+
+
+def christmas_note(today=None):
+    today = today or date.today()
+    if not (date(today.year, 11, 1) <= today <= date(today.year, 12, 10)):
+        return ""
+    hide_after = f"{today.year}-12-10"
+    return (f'  <p class="note" id="xmas-note" data-hide-after="{hide_after}" '
+            f'data-fr="{html.escape(XMAS_FR, quote=True)}">{html.escape(XMAS_EN)}</p>\n'
+            """  <script>
+  (function () {
+    var el = document.getElementById("xmas-note");
+    if (!el) return;
+    var d = el.getAttribute("data-hide-after").split("-");
+    if (new Date() > new Date(+d[0], +d[1] - 1, +d[2], 23, 59, 59)) { el.hidden = true; return; }
+    var lang = "";
+    try { lang = new URLSearchParams(location.search).get("lang") || localStorage.getItem("hotstuff-lang") || ""; } catch (e) {}
+    if (!lang) lang = (navigator.language || "").toLowerCase().slice(0, 2);
+    if (lang === "fr") { el.textContent = el.getAttribute("data-fr"); el.lang = "fr"; }
+  })();
+  </script>\n""")
+
+
 def render_gifts(products, siblings):
     items = gift_items(products)
     bands = [("Under $15", [p for p in items if float(p["price"]) < 15]),
@@ -327,7 +364,7 @@ def render_gifts(products, siblings):
                                for h, ps in bands) + "</nav>")
     cards = "\n".join(
         f'  <section>\n    <h2 id="{anchor(h)}">{html.escape(h)} <span class="n">{len(ps)}</span></h2>\n'
-        f'    <ul class="grid">\n{grid_of(ps)}\n    </ul>\n  </section>' for h, ps in bands)
+        f'    <ul class="grid">\n{grid_of(ps, "gifts")}\n    </ul>\n  </section>' for h, ps in bands)
     if items:
         count_line = (f"<strong>{len(items)}</strong> gift ideas under ${GIFT_MAX} right now, "
                       "cheapest first. The selection changes every three days.")
@@ -336,7 +373,7 @@ def render_gifts(products, siblings):
                       "catalogue refreshes every three days, so check back.")
     note = ('  <p class="note">Delivery typically takes 1–3 weeks '
             f'(<a href="{SITE}/terms/">see our terms</a>), so if it\'s for a '
-            "certain date, order early.</p>\n")
+            "certain date, order early.</p>\n" + christmas_note())
     sib = " · ".join(f'<a href="{SITE}/c/{s}/">{l}</a>' for s, l in siblings)
     return page_html("/gifts/", f"Gifts under ${GIFT_MAX}",
                      f"Gift ideas from the current HotsTuff lineup, all under ${GIFT_MAX} USD "

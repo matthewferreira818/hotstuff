@@ -13,7 +13,7 @@
       <a class="brand" href="/">
         <span class="brand-mark">H</span>HotsTuff
       </a>
-      <a class="btn btn-ghost" href="/#trending">← Back to the shop</a>
+      <a class="btn btn-ghost" href="/#trending" data-t="back">← Back to the shop</a>
     </div>
   </header>
 
@@ -22,8 +22,8 @@
       <circle cx="26" cy="26" r="24" fill="none"/>
       <path d="M14 27l8 8 16-16" fill="none"/>
     </svg>
-    <h1>Order confirmed — <span class="brand-accent">thank you!</span></h1>
-    <p class="success-sub" id="success-sub">
+    <h1 data-t="h1">Order confirmed — <span class="brand-accent">thank you!</span></h1>
+    <p class="success-sub" id="success-sub" data-t="sub">
       Your payment went through and your order is officially in motion.
     </p>
 
@@ -39,53 +39,55 @@
           <span class="order-amount" id="order-amount"></span>
         </div>
         <div class="order-row" id="order-options-row" hidden>
-          <span class="order-label">Options</span>
+          <span class="order-label" data-t="options">Options</span>
           <span id="order-options"></span>
         </div>
         <div class="order-row" id="order-receipt-row" hidden>
-          <span class="order-label">🧾 Receipt</span>
-          <span>Emailed to <b id="order-email"></b></span>
+          <span class="order-label" data-t="receipt">🧾 Receipt</span>
+          <span><span data-t="emailedto">Emailed to</span> <b id="order-email"></b></span>
         </div>
         <div class="order-row" id="order-ship-row" hidden>
-          <span class="order-label">📦 Ships to</span>
+          <span class="order-label" data-t="shipsto">📦 Ships to</span>
           <span id="order-ship"></span>
         </div>
         <div class="order-ref" id="order-ref"></div>
       </div>
       <div id="order-fallback" hidden>
-        <p class="order-fallback-text">
+        <p class="order-fallback-text" data-t="fallback">
           Payment received! Full details — including your receipt — are on their
           way to the email you used at checkout.
         </p>
+        <div class="order-ref" id="order-ref-fallback"></div>
       </div>
     </section>
 
     <section class="next-steps">
-      <h2>What happens next</h2>
+      <h2 data-t="next">What happens next</h2>
       <ol class="steps">
         <li class="step done">
           <span class="step-icon">✅</span>
-          <b>Order confirmed</b>
-          <small>Today — payment received and your order is logged.</small>
+          <b data-t="s1b">Order confirmed</b>
+          <small data-t="s1s">Today — payment received and your order is logged.</small>
         </li>
         <li class="step">
           <span class="step-icon">📦</span>
-          <b>Processing</b>
-          <small>We place it with our supplier within 1–3 business days.</small>
+          <b data-t="s2b">Processing</b>
+          <small data-t="s2s">Orders are processed within 1–3 business days.</small>
         </li>
         <li class="step">
           <span class="step-icon">🚚</span>
-          <b>On its way</b>
-          <small>Tracking lands in your inbox; delivery typically takes 1–3 weeks.</small>
+          <b data-t="s3b">On its way</b>
+          <small data-t="s3s">Items ship directly from our supplier. Tracking is emailed when available, and delivery typically takes 1–3 weeks.</small>
         </li>
       </ol>
     </section>
 
     <p class="success-note">
-      Spot a typo in your shipping address? Contact us right away and we'll fix
-      it before your order ships.<br>
+      <span data-t="note">Spot a typo in your shipping address? Contact us right away and we'll fix
+      it before your order ships. Questions about your order? Contact us and have your order
+      reference handy. Details are in our <a href="/terms/">terms</a>.<br>
       Your order is handled personally by Matthew in New Brunswick, Canada —
-      a real human reads every message.<br>
+      a real human reads every message.</span><br>
       📞 <a href="tel:+15068899737">(506) 889-9737</a> ·
       ✉️ <a href="mailto:ceohotstuff@yahoo.com">ceohotstuff@yahoo.com</a>
     </p>
@@ -97,16 +99,54 @@
       <a href="/automation/?ref=buyer">Meet the engine →</a></p>
     </section>
 
-    <a class="btn btn-primary btn-lg" href="/#trending">Keep browsing what's hot</a>
+    <a class="btn btn-primary btn-lg" href="/#trending" data-t="keep">Keep browsing what's hot</a>
   </main>
 
   <footer class="footer">
     <div class="footer-inner">
       <span>© <span id="year"></span> HotsTuff</span>
-      <span class="footer-note">30-day money-back guarantee · Secure checkout by Stripe</span>
+      <span class="footer-note" data-t="foot">30-day money-back guarantee · Secure checkout by Stripe</span>
     </div>
   </footer>
 
+  <script>
+    /* French for this page, same language choice as the store (?lang=, the
+       saved hotstuff-lang, then the browser language). English text stays in
+       the markup; this only swaps it when the visitor's language is French. */
+    (function () {
+      var FR = {
+        back: "← Retour à la boutique",
+        h1: "Commande confirmée — <span class=\"brand-accent\">merci!</span>",
+        sub: "Votre paiement a été accepté et votre commande est officiellement en cours.",
+        options: "Options",
+        receipt: "🧾 Reçu",
+        emailedto: "Envoyé à",
+        shipsto: "📦 Livré à",
+        fallback: "Paiement reçu! Tous les détails, y compris votre reçu, sont en route vers le courriel que vous avez utilisé au paiement.",
+        next: "La suite",
+        s1b: "Commande confirmée",
+        s1s: "Aujourd'hui — paiement reçu et commande enregistrée.",
+        s2b: "Traitement",
+        s2s: "Les commandes sont traitées en 1 à 3 jours ouvrables.",
+        s3b: "En route",
+        s3s: "Les articles partent directement de notre fournisseur. Le suivi est envoyé par courriel lorsqu'il est disponible, et la livraison prend habituellement 1 à 3 semaines.",
+        note: "Une faute dans votre adresse de livraison? Contactez-nous tout de suite et on la corrigera avant l'expédition. Une question sur votre commande? Contactez-nous avec votre référence de commande. Les détails sont dans nos <a href=\"/terms/\">conditions</a>.<br>Votre commande est traitée personnellement par Matthew, au Nouveau-Brunswick, Canada — une vraie personne lit chaque message.",
+        keep: "Continuer à explorer les tendances",
+        foot: "Garantie de remboursement de 30 jours · Paiement sécurisé par Stripe"
+      };
+      var lang = "";
+      try { lang = new URLSearchParams(location.search).get("lang") || localStorage.getItem("hotstuff-lang") || ""; } catch (e) {}
+      if (!lang) lang = (navigator.language || "").toLowerCase().slice(0, 2);
+      window.HT_SUCCESS_LANG = lang === "fr" ? "fr" : "en";
+      if (lang !== "fr") return;
+      document.documentElement.lang = "fr";
+      document.title = "Commande confirmée — HotsTuff";
+      document.querySelectorAll("[data-t]").forEach(function (el) {
+        var t = FR[el.getAttribute("data-t")];
+        if (t) el.innerHTML = t;
+      });
+    })();
+  </script>
   <script>
     const CHECKOUT_API = "https://wavelist-checkout.wavelist-mf818.workers.dev";
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -117,9 +157,21 @@
       const fallback = document.getElementById("order-fallback");
       const sessionId = new URLSearchParams(window.location.search).get("session_id");
 
+      // The order reference is the last 10 characters of the Stripe session
+      // id in this page's own URL (the customer's own link; the id is never
+      // shown in full). Shown even if the summary lookup fails.
+      const refText = () => (window.HT_SUCCESS_LANG === "fr"
+        ? "Référence de commande : …" + sessionId.slice(-10) + " — gardez-la si vous nous contactez."
+        : "Order ref: …" + sessionId.slice(-10) + " — keep this if you contact support.");
+      const showRef = (id) => {
+        if (!sessionId) return;
+        document.getElementById(id).textContent = refText();
+        window.HT_REF_ID = id;
+      };
       const showFallback = () => {
         skeleton.hidden = true;
         fallback.hidden = false;
+        showRef("order-ref-fallback");
       };
 
       if (!sessionId) return showFallback();
@@ -164,8 +216,7 @@
             .join(" · ");
           document.getElementById("order-ship-row").hidden = false;
         }
-        document.getElementById("order-ref").textContent =
-          "Order ref: …" + sessionId.slice(-10) + " — keep this if you contact support.";
+        showRef("order-ref");
 
         skeleton.hidden = true;
         details.hidden = false;

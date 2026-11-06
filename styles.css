@@ -1446,7 +1446,8 @@ a.merch-card {
   /* the Automation button in the header is repeated below the products */
   .nav-links a.nav-automation { display: none; }
   .nav-links { display: none; }
-  .nav-inner { padding: 10px 16px 10px; row-gap: 0; }
+  .nav-inner { padding: 10px 16px 10px; row-gap: 0; flex-wrap: nowrap; gap: 10px; }
+  .nav-inner > .btn-primary { padding: 9px 12px; font-size: 14px; white-space: nowrap; }
   section.trending { padding-top: 24px; }
   .section-head { margin-bottom: 20px; }
   .section-head h2 { font-size: 24px; }

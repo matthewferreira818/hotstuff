@@ -220,6 +220,35 @@ import Foundation
    expect((rows?.count ?? 0) > 0,"parsed \(rows?.count ?? 0) real comments; owner-authored: \(rows?.filter { $0.login == SwitchboardRules.ownerLogin }.count ?? 0)")
   }
 
+  print("\n== Switch ON can only come from the Touch ID / password success path or the test-copy hook (source scan)")
+  let folder = URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent()
+  let files = ((try? FileManager.default.contentsOfDirectory(atPath:folder.path)) ?? []).filter { $0.hasSuffix(".swift") }
+  var sources: [String: [String]] = [:]
+  for f in files { sources[f] = ((try? String(contentsOf:folder.appendingPathComponent(f),encoding:.utf8)) ?? "").components(separatedBy:"\n") }
+  func code(_ lines: [String]) -> [(Int,String)] { lines.enumerated().filter { !$0.element.trimmingCharacters(in:.whitespaces).hasPrefix("//") }.map { ($0.offset,$0.element) } }
+  let hub = code(sources["HubSwitchboard.swift"] ?? [])
+  expect(!hub.isEmpty,"HubSwitchboard.swift found for the scan (\(files.count) Swift files read)")
+  expect(!sources.contains { _,lines in code(lines).contains { $0.1.contains("setOn(") } },"no call to the old setOn( anywhere")
+  expect(hub.contains { $0.1.contains("private func apply(") },"the one function that changes the switch (apply) is private, so no other file can call it")
+  let ons = hub.filter { $0.1.contains("apply(true") }
+  expect(ons.count == 2,"exactly 2 places call apply(true…) (found \(ons.count))")
+  let auth = ons.filter { $0.1.contains("ON-PATH: auth") }, test = ons.filter { $0.1.contains("ON-PATH: test") }
+  expect(auth.count == 1 && test.count == 1,"they are the marked auth path and the marked test hook path")
+  if let a = auth.first {
+   let before = (sources["HubSwitchboard.swift"] ?? [])[max(0,a.0 - 2)..<a.0].joined(separator:"\n")
+   expect(before.contains("if success {"),"the auth path sits directly inside `if success {` of the LocalAuthentication callback")
+  }
+  if let t = test.first {
+   let before = (sources["HubSwitchboard.swift"] ?? [])[max(0,t.0 - 2)..<t.0].joined(separator:"\n")
+   expect(before.contains("guard SwitchboardTestHooks.active"),"the test path is guarded by the test-bundle check (dead in the real Helm)")
+  }
+  expect(hub.contains { $0.1.contains(".deviceOwnerAuthentication,localizedReason:") },"ON asks macOS for Touch ID or the Mac password (LocalAuthentication)")
+  expect(!hub.contains { $0.1.contains("on = true") || $0.1.contains(".on = true") },"nothing assigns on = true directly")
+  expect(hub.filter { $0.1.contains("forKey:Switchboard.onKey") && $0.1.contains(".set(") }.count == 1,"the saved ON state is written in exactly one place (apply)")
+  expect(!sources.contains { f,lines in f != "HubSwitchboard.swift" && code(lines).contains { $0.1.contains("switchboard.on\"") || $0.1.contains("Switchboard.onKey") } },"no other file touches the saved switch state")
+  expect(!hub.contains { $0.1.contains(".alert(\"Turn on the Switchboard") },"the old click-through alert confirm is gone")
+  expect(hub.contains { $0.1.contains("func turnOff()") },"turning OFF stays one click with no password")
+
   print("\n\(failures == 0 ? "ALL PASS" : "\(failures) FAILED")")
   exit(failures == 0 ? 0 : 1)
  }

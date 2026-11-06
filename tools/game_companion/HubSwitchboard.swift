@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import LocalAuthentication
 
 // Friday's Switchboard: the runner (checks GitHub, starts and stops the one job) and its panel on the Friday page.
 // Every rule lives in SwitchboardData.swift; every limit in SwitchboardLimits. README: SWITCHBOARD.md next to this file.
@@ -40,7 +41,7 @@ private struct SwitchboardState: Codable {
  @Published private(set) var relaysToday = 0
  private var runningRelay: (comment: SwitchboardComment,name: String)?
  // Panel UI flags live here: this SDK's @State is a macro the command-line build can't expand.
- @Published var confirmOn = false
+ @Published private(set) var authenticating = false
  @Published var showLog = false
 
  private var state = SwitchboardState()
@@ -74,7 +75,9 @@ private struct SwitchboardState: Codable {
   SwitchboardTestHooks.boot(self)
  }
 
- func setOn(_ value: Bool,by source: String = "the switch on the Friday page") {
+ // THE ONLY PLACE THE SWITCH CHANGES. Private on purpose: ON can come from exactly two call sites (marked `ON-PATH`), the macOS
+ // Touch ID / Mac password sheet succeeding, or the test hook in a TEST copy. checks/SwitchboardChecks.swift scans this file for that.
+ private func apply(_ value: Bool,by source: String) {
   guard value != on else { return }
   on = value
   UserDefaults.standard.set(value,forKey:Switchboard.onKey)
@@ -88,6 +91,40 @@ private struct SwitchboardState: Codable {
    add("off","Switchboard OFF (turned off by \(source)).")
    if runningJob != nil { stopJob(reason:"stopped (switch turned off)") }
   }
+ }
+
+ // OFF is the safe direction: one click, no password.
+ func turnOff() { apply(false,by:"the toggle (off)") }
+
+ // ON needs the person at the Mac: the system's Touch ID / Mac password sheet. Clicks and keystrokes made by software (including Friday's
+ // own hands) can't answer it. Cancel, failure or no way to ask = it stays OFF and the log says why.
+ func requestOn() {
+  guard !on, !authenticating else { return }
+  let context = LAContext()
+  var problem: NSError?
+  guard context.canEvaluatePolicy(.deviceOwnerAuthentication,error:&problem) else {
+   add("refused","Switchboard stays OFF: this Mac can't ask for Touch ID or a password (\(problem?.localizedDescription ?? "unknown reason")).")
+   return
+  }
+  authenticating = true
+  SwitchboardTestHooks.armCancel(context)   // test copies only; does nothing in the real Helm
+  context.evaluatePolicy(.deviceOwnerAuthentication,localizedReason:"Turn on Friday's Switchboard") { success,error in
+   Task { @MainActor in
+    self.authenticating = false
+    if success {
+     self.apply(true,by:"Touch ID or Mac password") // ON-PATH: auth
+    } else {
+     let why = (error as? LAError)?.code == .appCancel ? "cancelled by the app (test hook)" : (error?.localizedDescription ?? "not accepted")
+     self.add("refused","Switchboard stays OFF: Touch ID or Mac password \(why).")
+    }
+   }
+  }
+ }
+
+ // Test copies only (the hook checks the app ID): lets a test turn it on without a password.
+ func testTurnOn() {
+  guard SwitchboardTestHooks.active else { return }
+  apply(true,by:"the test hook switchboard.testTurnOn (test copy only)") // ON-PATH: test
  }
 
  private func startLoop() {
@@ -368,7 +405,7 @@ struct SwitchboardPanel: View {
      Button { sb.stopJob() } label: { Label("Stop job",systemImage:"stop.fill").font(.system(size:11.5,weight:.medium)) }
       .buttonStyle(.bordered).tint(HubTheme.crimson)
     }
-    Toggle("Switchboard",isOn:Binding(get:{ sb.on },set:{ value in if value { sb.confirmOn = true } else { sb.setOn(false) } }))
+    Toggle("Switchboard",isOn:Binding(get:{ sb.on },set:{ value in if value { sb.requestOn() } else { sb.turnOff() } }))
      .toggleStyle(.switch).labelsHidden()
      .accessibilityLabel("Switchboard switch")
      .accessibilityValue(sb.on ? "on" : "off")
@@ -395,19 +432,13 @@ struct SwitchboardPanel: View {
   .padding(compact ? 12 : 16).frame(maxWidth:.infinity,alignment:.topLeading)
   .background(HubTheme.card,in:RoundedRectangle(cornerRadius:10))
   .overlay(RoundedRectangle(cornerRadius:10).stroke(sb.on ? HubTheme.green.opacity(0.45) : HubTheme.line,lineWidth:1))
-  .alert("Turn on the Switchboard?",isPresented:$sb.confirmOn) {
-   Button("Turn on") { sb.setOn(true) }
-   Button("Cancel",role:.cancel) {}
-  } message: {
-   Text("Friday will start a Local Claude job on this Mac for each NEW comment on the Hotline (PR 35) that starts **[Claude … → Local Claude]** from your account. Issue 15 never starts a job; it only gets the start and result lines. One at a time, at most \(SwitchboardLimits.perHour) an hour and \(SwitchboardLimits.perDay) a day, each stopped at \(Int(SwitchboardLimits.jobTimeout / 60)) minutes. Your normal permission list applies. A comment addressed to a named chat, like **→ Local Claude (LC-Manager)**, is only passed on to that open chat (at most \(SwitchboardLimits.relayPerHour) an hour), labelled as relayed and not your approval. Money, logins, messages to people and Moomoo are always refused.")
-  }
   .sheet(isPresented:$sb.showLog) { SwitchboardLogSheet(sb:sb) }
  }
 
  private var summary: String {
   let claude = sb.claudeVersion.map { "Claude Code \($0.replacingOccurrences(of:" (Claude Code)",with:""))" } ?? "Claude Code not found"
   let limits = "Jobs \(sb.startsThisHour)/\(SwitchboardLimits.perHour) this hour · \(sb.startsToday)/\(SwitchboardLimits.perDay) today · Relays \(sb.relaysThisHour)/\(SwitchboardLimits.relayPerHour) · \(sb.relaysToday)/\(SwitchboardLimits.relayPerDay) · \(claude)"
-  if !sb.on { return "Off. Friday starts no jobs. Turn on to let tagged messages from cloud Claude start Local Claude jobs here.\n\(limits)" }
+  if !sb.on { return "Off. Friday starts no jobs and passes no messages. Turning it on asks for Touch ID or your Mac password; then tagged Hotline messages from cloud Claude can start Local Claude jobs here, and messages named for an open chat are passed on to it.\n\(limits)" }
   let checked = sb.lastCheck.map { "last check \(Self.time.string(from:$0))" } ?? "first check starting"
   return "On. Watching the Hotline every \(Switchboard.intervalText) · \(checked).\n\(limits)"
  }
@@ -469,7 +500,8 @@ struct SwitchboardLogSheet: View {
 
 // For screenshots and the in-app dry run on a TEST copy (its own app ID). In the real Helm (local.mattyb.gamecompanion) every hook
 // below is dead: `active` is false, so nothing here reads a setting, injects a comment or writes a picture.
-//   switchboard.testTurnOn   (bool)    turn the switch ON at launch through the normal setOn(true)
+//   switchboard.testTurnOn   (bool)    turn the switch ON at launch without a password (apply(true) via testTurnOn)
+//   switchboard.testAuthCancel (bool)  cancel the Touch ID / password sheet 1 s after it appears (so a test needs no one at the Mac)
 //   switchboard.testComments (path)    a JSON list of fake comments mixed into each check: [{id,thread,login,body,ago,edited}]
 //   switchboard.testShowLog  (bool)    open the full log sheet
 //   switchboard.testFastPoll (bool)    check every 30 s instead of 1 min
@@ -481,12 +513,17 @@ enum SwitchboardTestHooks {
   return id != realHelmID && id.hasPrefix("local.mattyb.helm")
  }
 
+ @MainActor static func armCancel(_ context: LAContext) {
+  guard active, UserDefaults.standard.bool(forKey:"switchboard.testAuthCancel") else { return }
+  Task { try? await Task.sleep(nanoseconds:1_000_000_000); context.invalidate() }
+ }
+
  private struct Fake: Codable { var id: Int64; var thread: Int; var login: String; var body: String; var ago: Double; var edited: Double }
 
  @MainActor static func boot(_ sb: Switchboard) {
   guard active else { return }
   let d = UserDefaults.standard
-  if d.bool(forKey:"switchboard.testTurnOn") { sb.setOn(true,by:"the test hook switchboard.testTurnOn") }
+  if d.bool(forKey:"switchboard.testTurnOn") { sb.testTurnOn() }
   if d.bool(forKey:"switchboard.testShowLog") {
    Task { try? await Task.sleep(nanoseconds:5_000_000_000); sb.showLog = true }
   }

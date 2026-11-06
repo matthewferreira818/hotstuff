@@ -1,0 +1,126 @@
+{
+ "note": "Written by Claude (New beginning) on 2026-11-06 BEFORE any model ran. who = accepted names, lowercased letters/digits only. A cc name is copied, not asked.",
+ "answers": {
+  "m01": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m02": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m03": {
+   "asks_action": true,
+   "who": [
+    "everyone"
+   ]
+  },
+  "m04": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m05": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m06": {
+   "asks_action": true,
+   "who": [
+    "lcmanager"
+   ]
+  },
+  "m07": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m08": {
+   "asks_action": true,
+   "who": [
+    "lcwork"
+   ]
+  },
+  "m09": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m10": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m11": {
+   "asks_action": true,
+   "who": [
+    "lcmanager"
+   ]
+  },
+  "m12": {
+   "asks_action": true,
+   "who": [
+    "friday"
+   ]
+  },
+  "m13": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m14": {
+   "asks_action": true,
+   "who": [
+    "matthew",
+    "roxy"
+   ]
+  },
+  "m15": {
+   "asks_action": true,
+   "who": [
+    "everyone"
+   ]
+  },
+  "m16": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m17": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m18": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m19": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "m20": {
+   "asks_action": true,
+   "who": [
+    "roxy"
+   ]
+  }
+ }
+}

@@ -22,6 +22,26 @@ OUT = HERE / "marketing" / "pinterest"
 W, H = 1000, 1500
 PIN_COUNT = 10
 SITE = "findhotstuff.com"
+
+
+def stable_link(p):
+    """Council 2026-11-05: a pin lives for months, a product for ~3 days. Point
+    pins at pages that stay: the product's category page (/c/<slug>/), else
+    /gifts/ for items under the gift limit, else the store. ?ref=pin kept."""
+    try:
+        from make_category_pages import CATEGORIES, GIFT_MAX
+        slugs = {label: slug for slug, label, _, _ in CATEGORIES}
+    except Exception:
+        slugs, GIFT_MAX = {}, 25
+    slug = slugs.get(p.get("category"))
+    if slug:
+        return f"https://findhotstuff.com/c/{slug}/?ref=pin"
+    try:
+        if float(p.get("price", 0)) < GIFT_MAX:
+            return "https://findhotstuff.com/gifts/?ref=pin"
+    except (TypeError, ValueError):
+        pass
+    return "https://findhotstuff.com/?ref=pin"
 INK_L, MUTED = "#f7f2ee", "#a3958f"
 
 # Standing merch slot: the last pin of every pack points at the live Printify
@@ -153,7 +173,7 @@ def main():
                 f"- **Description:** {p.get('description', '')} Only ${p['price']} at "
                 f"HotsTuff — a fresh drop of trending finds every 3 days, free shipping. "
                 f"#{p.get('category', 'trending').replace(' ', '').lower()} #trendingproducts #onlinefinds\n"
-                f"- **Link:** https://findhotstuff.com/?p={p['id']}&ref=pin\n")
+                f"- **Link:** {stable_link(p)}\n")
         print(f"pin-{i}.png — {name} (${p['price']})")
     (OUT / "pins.md").write_text(
         "# Pinterest upload pack\n\n_Upload each pin with its title, description, "

@@ -301,10 +301,11 @@ def post():
             ok2 = push_draft(access, agent_urls, agent_caption, "agent pack", topic)
 
     if ok and ok2:
-        ntfy(topic, "TikTok drafts ready",
-             f"Both of today's packs ({stamp}) are in your TikTok inbox as "
-             "drafts. Open each, add a sound, paste its caption from the "
-             "ping above, tap Post.",
+        what = {"both": "Both of today's packs", "product": "Today's product pack",
+                "agent": "Today's agent pack"}.get(which, "Today's draft")
+        ntfy(topic, "TikTok draft ready" if which != "both" else "TikTok drafts ready",
+             f"{what} ({stamp}) is in your TikTok inbox as a draft. Open it, "
+             "add a sound, paste the caption from the ping above, tap Post.",
              "default", "rocket")
     return 0
 

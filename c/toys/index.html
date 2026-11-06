@@ -15,38 +15,55 @@
  "name":"Trending toys and games","description":"Toys and games from the same three-day rotation as the rest of the shop. No age ratings or safety certifications are claimed here, because this shop can't verify them \u2014 the supplier's full product title is shown on every listing so you can see exactly what is being described.",
  "url":"https://findhotstuff.com/c/toys/","isPartOf":{"@type":"WebSite","name":"HotsTuff","url":"https://findhotstuff.com"}}
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
 <style>
-  :root { --bg:#12090d; --card:#1d1116; --ink:#f6eef1; --muted:#b9a4ac;
-          --line:rgba(246,238,241,.14); --hot:#ff4d6d; --amber:#ffa62b; }
+  /* Boutique look, matching the store front (2026-11-06). Content unchanged. */
+  :root { --bg:#fbf8f3; --card:#ffffff; --ink:#2b2622; --muted:#7d746b;
+          --line:rgba(43,38,34,.12); --hot:#e11d48; --amber:#f59e0b;
+          --serif:"Fraunces",Georgia,"Times New Roman",serif; }
   * { box-sizing:border-box; }
   body { margin:0; background:var(--bg); color:var(--ink); line-height:1.6;
-         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
-  a { color:var(--amber); }
-  .wrap { max-width:1040px; margin:0 auto; padding:0 20px; }
-  header.bar { border-bottom:1px solid var(--line); padding:14px 0; }
-  header.bar a { color:var(--ink); text-decoration:none; font-weight:700; }
-  h1 { font-size:clamp(1.6rem,4.5vw,2.3rem); margin:28px 0 10px; }
-  .blurb { color:var(--muted); max-width:60ch; margin:0 0 6px; }
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; }
+  a { color:var(--hot); }
+  .wrap { max-width:1120px; margin:0 auto; padding:0 20px; }
+  header.bar { position:sticky; top:0; z-index:5; background:rgba(251,248,243,.92); backdrop-filter:blur(10px);
+               border-bottom:1px solid var(--line); padding:12px 0; }
+  header.bar a { color:var(--ink); text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:8px; }
+  header.bar a::before { content:"H"; display:inline-grid; place-items:center; width:28px; height:28px; border-radius:8px;
+               background:linear-gradient(135deg,var(--hot),var(--amber)); color:#fff; font-size:14px; font-weight:800; }
+  h1 { font-family:var(--serif); font-weight:600; letter-spacing:-.01em;
+       font-size:clamp(1.9rem,4.5vw,2.7rem); line-height:1.15; margin:30px 0 10px; }
+  .blurb { color:var(--muted); max-width:62ch; margin:0 0 6px; }
   .count { color:var(--muted); font-size:.92rem; margin:0 0 26px; }
   ul.grid { list-style:none; padding:0; margin:0 0 40px;
-            display:grid; gap:16px;
-            grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); }
-  .cat-card { background:var(--card); border:1px solid var(--line);
-              border-radius:14px; overflow:hidden; }
-  .cat-link { display:block; text-decoration:none; color:inherit; padding-bottom:12px; }
-  .cat-card img { width:100%; height:auto; aspect-ratio:1/1; object-fit:cover; display:block; }
-  .cat-noimg { display:grid; place-items:center; aspect-ratio:1/1; font-size:2.4rem;
-               background:linear-gradient(135deg,#2a1620,#1d1116); }
-  .cat-name { display:block; padding:10px 12px 2px; font-weight:600; font-size:.95rem; }
-  .cat-price { display:block; padding:0 12px; color:var(--amber); font-weight:700; }
+            display:grid; gap:22px 16px;
+            grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); }
+  .cat-card { background:none; border:0; }
+  .cat-link { display:block; text-decoration:none; color:inherit; }
+  .cat-card img { width:100%; height:auto; aspect-ratio:1/1; object-fit:cover; display:block;
+                  border-radius:18px; border:1px solid var(--line); background:#fff; transition:transform .25s; }
+  .cat-link:hover img { transform:scale(1.02); }
+  .cat-noimg { display:grid; place-items:center; aspect-ratio:1/1; font-size:2.4rem; border-radius:18px;
+               background:#efe9df; border:1px solid var(--line); }
+  .cat-name { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+              padding:10px 2px 2px; font-weight:500; font-size:.93rem; line-height:1.35; }
+  .cat-price { display:block; padding:2px 2px 0; color:var(--ink); font-weight:700; }
   nav.subnav { margin:0 0 30px; color:var(--muted); font-size:.92rem; }
-  nav.subnav a { text-decoration:none; }
-  .note { color:var(--muted); font-size:.92rem; margin:-14px 0 26px; max-width:60ch; }
+  nav.subnav a { text-decoration:none; font-weight:600; }
+  .note { color:var(--muted); font-size:.92rem; margin:-14px 0 26px; max-width:62ch;
+          background:#fff; border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
   nav.subnav span { opacity:.6; }
-  section h2 { font-size:1.1rem; margin:34px 0 12px; scroll-margin-top:14px; }
-  section h2 .n { color:var(--muted); font-weight:400; font-size:.85rem; }
+  section h2 { font-family:var(--serif); font-weight:600; font-size:1.5rem; margin:34px 0 14px; scroll-margin-top:70px; }
+  section h2 .n { color:var(--muted); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-weight:400; font-size:.85rem; }
   nav.sib { border-top:1px solid var(--line); padding:22px 0; color:var(--muted); font-size:.94rem; }
   footer { color:var(--muted); font-size:.86rem; padding:10px 0 40px; }
+  @media (max-width:640px) {
+    ul.grid { grid-template-columns:1fr 1fr; gap:18px 12px; }
+    .cat-card img, .cat-noimg { border-radius:14px; }
+    h1 { margin-top:22px; }
+  }
 </style>
 </head>
 <body>
@@ -137,7 +154,7 @@
 <footer class="wrap">
   Prices in USD · free shipping · 30-day guarantee ·
   <a href="https://findhotstuff.com/">see the full shop</a><br>
-  Selection last refreshed 2026-11-06.
+  Selection last refreshed 2026-11-04.
 </footer>
 <script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>

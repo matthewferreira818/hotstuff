@@ -128,7 +128,7 @@ private struct SwitchboardState: Codable {
 
  // GitHub goes through Matthew's own `gh` login (the same one every Local Claude uses). The Switchboard never holds or stores a key.
  // Arguments are an array, no shell, so a comment's text can't become a command.
- static let ghPath = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Claude/bin/gh").path
+ nonisolated static let ghPath = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Claude/bin/gh").path
 
  private func gh(_ args: [String]) async -> (ok: Bool,out: Data) {
   guard FileManager.default.isExecutableFile(atPath:Self.ghPath) else { return (false,Data()) }

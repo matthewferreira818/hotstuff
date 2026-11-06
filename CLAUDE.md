@@ -27,6 +27,9 @@ than discovering something was papered over.
   mail.smtp2go.com:587; domain verified with 3 CNAMEs at Porkbun: em1168580, s1168580._domainkey, link; open/click tracking off).
   Tested: reached Yahoo's inbox (Gmail's own server as contact@ was BLOCKED by Yahoo: no DKIM for our domain). Free plan: about 1,000
   emails a month. Use this for outreach from 11-05; the old Yahoo send-only route (matthew.ferreira213) still exists as a backup.
+  **Gmail connector (2026-11-05 ~9:15 PM, his choice):** Claude chats can READ the business Gmail (eastcoastsocial.nb) through the claude.ai
+  Gmail connector: check for CBDC, prospect replies, unsubscribes and bounces (about twice a day). Sending, replying, drafting into a thread
+  he'll send, deleting or labelling stays his OK each time (rule 3: messages to individual people go through him). His personal Gmail is NOT connected.
   **Facebook auto-post ARMED (2026-11-04 ~3:30 PM):** ecs-daily-post.yml posts the daily card to the ECS Facebook Page by itself via
   Meta app "ECS Posting Engine" (ID 916684360803898). Secrets FB_PAGE_ID + FB_PAGE_TOKEN (Page token, Debugger: Type Page, Expires Never).
   First test post worked but was HIDDEN from the public (app in Development); switching the app to Live was in progress. Check a post

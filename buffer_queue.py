@@ -116,10 +116,30 @@ def create_post(key: str, channel: str, day: dict) -> str:
     return res["post"]["id"]
 
 
+def key_check(key: str) -> None:
+    """Dry-run proof that the secret is wired up, without revealing it: say
+    whether it exists, then make READ-ONLY calls (account -> channels) to
+    show it works and a TikTok channel is connected. Never creates posts,
+    never prints the key or any id."""
+    if not key:
+        print("BUFFER_API_KEY secret: MISSING")
+        return
+    print("BUFFER_API_KEY secret: present")
+    try:
+        tiktok_channel(key)
+        print("Buffer key check (read-only): key works, exactly 1 TikTok channel connected")
+    except SystemExit as exc:
+        print(f"Buffer key check (read-only) FAILED: {exc}")
+    except requests.RequestException as exc:
+        print(f"Buffer key check (read-only) FAILED: {exc.__class__.__name__}")
+
+
 def main():
     plan_file = latest_plan()
     if not plan_file:
         print("No plan.json yet. Nothing to queue.")
+        if os.environ.get("BUFFER_POSTING", "").strip().lower() != "on":
+            key_check(os.environ.get("BUFFER_API_KEY", "").strip())
         return
     plan = json.loads(plan_file.read_text(encoding="utf-8"))
     now = datetime.now(timezone.utc)
@@ -134,6 +154,7 @@ def main():
         print(f"POSTING OFF ({why}). Would queue {len(todo)} video(s):")
         for d in todo:
             print(f"  {d['due_at']}  {d['url']}\n    {d['caption']}")
+        key_check(key)
         return
 
     if not todo:

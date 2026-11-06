@@ -72,6 +72,19 @@ def validate_facts(facts: object) -> dict:
         for name in ("site_feed", "x", "facebook", "instagram", "tiktok", "pinterest"):
             if channels[name] not in {"active", "off", "pending", "drafts_only", "packs_only"}:
                 raise ValueError("Channel state is not recognized")
+        rates = facts.get("posting_frequencies", {})
+        if not isinstance(rates, dict):
+            raise ValueError("posting_frequencies must be a scoped object")
+        for channel, evidence in rates.items():
+            if channel not in {"x", "facebook", "instagram", "tiktok", "pinterest"}:
+                raise ValueError("Frequency evidence must name a social channel; site rates use feed")
+            _integer(evidence["posts"], "posting frequency", 1)
+            if evidence["per"] not in {"hour", "day", "week"}:
+                raise ValueError("Frequency evidence must use hour, day or week")
+            if _date(evidence["verified_on"], "frequency verification") > verified:
+                raise ValueError("Frequency evidence cannot be newer than the snapshot")
+            if not isinstance(evidence["source"], str) or not evidence["source"].strip():
+                raise ValueError("Frequency evidence needs a reviewed source")
         for key in ("products", "scheduled_jobs", "health_checks", "paying_clients"):
             _integer(facts["counts"][key], f"counts.{key}")
         _integer(facts["catalog_refresh_days"], "catalog_refresh_days", 1)
@@ -82,7 +95,18 @@ def validate_facts(facts: object) -> dict:
             raise ValueError("monthly_prices must be a nonempty list")
         for price in offer["monthly_prices"]:
             _integer(price, "monthly price", 1)
-        _integer(offer["setup_total"], "offer.setup_total", 1)
+        _integer(offer["setup_total"], "offer.setup_total")
+        if "posting_frequency" in offer:
+            rate = offer["posting_frequency"]
+            if rate["channel"] not in {"facebook", "instagram", "x", "tiktok", "pinterest"}:
+                raise ValueError("The offer rate must name a social channel")
+            _integer(rate["posts"], "offer posting frequency", 1)
+            if rate["per"] not in {"hour", "day", "week"}:
+                raise ValueError("The offer rate must use hour, day or week")
+            if _date(rate["verified_on"], "offer rate verification") > verified:
+                raise ValueError("The offer rate cannot be newer than the snapshot")
+            if not isinstance(rate["source"], str) or not rate["source"].strip():
+                raise ValueError("The offer rate needs a reviewed source")
         for key in ("approved_statistics", "approved_testimonials"):
             if not isinstance(facts[key], list) or any(not isinstance(s, str) or not s.strip() for s in facts[key]):
                 raise ValueError(f"{key} must contain only nonempty, reviewed public phrases")
@@ -105,8 +129,21 @@ CHANNELS = {"x": r"\bx\b|\btwitter\b", "facebook": r"\bfacebook\b|\bfb\b",
             "instagram": r"\binstagram\b", "tiktok": r"\btik\s*tok\b",
             "pinterest": r"\bpinterest\b"}
 POSTING = r"\b(?:post(?:s|ed|ing)?|publish(?:es|ed|ing)?|autopost(?:s|ed|ing)?|auto-post(?:s|ed|ing)?|shar(?:e|es|ed|ing)|runs?)\b"
-FREQUENCY = r"\b(?:daily|every (?:single )?day|each day|per day|a day|day after day|\d+\s*[x×])\b"
+# Rates are not channel status: a single public post or a schedule is not proof
+# that a channel actually publishes at a recurring frequency.
+FREQUENCY = re.compile(
+    rf"\b(?:(?P<count>{NUMBER})\s*(?:times?|posts?|[x×])?\s*"
+    rf"(?:(?:a|an|per|each|every)\s+|/\s*)(?P<count_unit>hours?|days?|weeks?)"
+    rf"|(?P<adverb_count>{NUMBER})\s*(?:[x×]|times?|posts?)?\s*(?P<count_adverb>hourly|daily|weekly)"
+    rf"|(?:every|each)\s+(?:single\s+)?(?:(?P<interval>{NUMBER})\s+)?(?P<interval_unit>hours?|days?|weeks?)"
+    rf"|(?P<adverb>hourly|daily|weekly|day after day))\b",
+    re.IGNORECASE,
+)
 SITE_FEED = r"\b(?:(?:my|our) (?:own )?store['’]s feed|(?:my|our) (?:own )?(?:site|website)(?:['’]s)? feed|(?:site|website)[ -]feed)\b"
+CLIENT_PAGE = r"\byour\s+(?:(?:facebook|instagram|x|twitter|tik\s*tok|pinterest)\s+)?(?:business|page|feed)\b"
+OWN_PAGE = r"\b(?:my|our)\s+(?:own\s+)?(?:business|page|feed|account)\b"
+OFFER_WORDING = rf"{CLIENT_PAGE}|\bfor every day of (?:the )?month\b|\bi post them\b|\bfor a month of daily posts\b"
+DELIVERY_HISTORY = r"\b(?:posted|published|already|since|yesterday|today)\b"
 
 
 def _number(s: str) -> int:
@@ -115,6 +152,123 @@ def _number(s: str) -> int:
 
 def _sentences(text: str) -> list[str]:
     return [s.strip() for s in re.split(r"[.!?](?:\s+|$)|;", text) if s.strip()]
+
+
+def _rate(match: re.Match) -> tuple[int, str, int]:
+    """Return posts, time unit, interval without inferring hourly distribution."""
+    adverbs = {"hourly": "hour", "daily": "day", "weekly": "week", "day after day": "day"}
+    if match["count"]:
+        return _number(match["count"]), match["count_unit"].rstrip("s"), 1
+    if match["adverb_count"]:
+        return _number(match["adverb_count"]), adverbs[match["count_adverb"]], 1
+    if match["interval_unit"]:
+        return 1, match["interval_unit"].rstrip("s"), _number(match["interval"] or "one")
+    return 1, adverbs[match["adverb"]], 1
+
+
+def _named_channels(text: str) -> set[str]:
+    # The x in "one x a day" is a multiplier, not the X social account.
+    without_rates = FREQUENCY.sub(" ", text)
+    return {name for name, pattern in CHANNELS.items() if re.search(pattern, without_rates)}
+
+
+def _client_offer_scopes(clause: str) -> set[str]:
+    targets = set()
+    for target in re.findall(CLIENT_PAGE, clause):
+        targets |= _named_channels(target)
+    return {f"client_offer:{target}" for target in targets} if targets else {"client_offer"}
+
+
+def _subject_scopes(clause: str) -> set[str]:
+    """Recognize subject-only list items, never whole statements like 'X is off'."""
+    if re.fullmatch(r"i post them", clause.strip()):
+        return {"client_offer"}  # "I post them, one a day."
+    own_text = re.sub(CLIENT_PAGE, "", clause)
+    scopes = _named_channels(own_text) | ({"site_feed"} if re.search(SITE_FEED, clause) else set())
+    if re.search(OWN_PAGE, clause):
+        scopes.add("unnamed_own_page")
+    if re.search(CLIENT_PAGE, clause):
+        scopes |= _client_offer_scopes(clause)
+    rest = re.sub(SITE_FEED, "", own_text)
+    for pattern in CHANNELS.values():
+        rest = re.sub(pattern, "", rest)
+    rest = re.sub(r"\b(?:my|our|the|own|page|pages|feed|feeds|account|accounts|both|on|'s)\b", "", rest)
+    return scopes if not re.search(r"\w", rest) else set()
+
+
+def _frequency_findings(text: str, facts: dict, as_of: date) -> list[Finding]:
+    findings = []
+    # Preserve line-wrapped rates ("every\nhour"), but keep separate caption lines scoped.
+    text = FREQUENCY.sub(lambda m: re.sub(r"\s+", " ", m[0]), text)
+    verb = r"(?:auto[- ]?)?(?:post(?:s|ed|ing)?|publish(?:es|ed|ing)?|shar(?:e|es|ed|ing))"
+    historical = rf"\b(?:used to|previously|in the past(?: we| it| they| i)?|stopped|paused|shelved)\s+{verb}\b"
+    pending_scopes: set[str] = set()
+    # Evidence and negations belong to a clause, never to the whole paragraph.
+    clauses = [c.strip() for c in re.split(r",|\n+|\b(?:and|but|while|although|however)\b", text) if c.strip()]
+    for i, clause in enumerate(clauses):
+        mentions = list(FREQUENCY.finditer(clause))
+        offer_scope = bool(re.search(OFFER_WORDING, clause)) and not re.search(DELIVERY_HISTORY, clause)
+        channels = _named_channels(re.sub(CLIENT_PAGE, "", clause) if offer_scope else clause)
+        site = bool(re.search(SITE_FEED, clause))
+        scopes = channels | ({"site_feed"} if site else set())
+        if re.search(OWN_PAGE, clause):
+            scopes.add("unnamed_own_page")
+        if offer_scope:
+            scopes |= _client_offer_scopes(clause)
+        if not mentions:
+            # Keep compound subjects: "Facebook and our site feed post daily".
+            # An unrelated complete clause ("Facebook is off") must not carry over.
+            subjects = _subject_scopes(clause)
+            if subjects:
+                pending_scopes |= subjects
+            else:
+                pending_scopes.clear()
+            continue
+        scopes |= pending_scopes
+        pending_scopes.clear()
+        # A rate can precede the final subject: "post daily on Facebook and Instagram".
+        for following in clauses[i + 1:]:
+            subjects = _subject_scopes(following)
+            if not subjects:
+                break
+            scopes |= subjects
+        remainder = FREQUENCY.sub("", clause).strip(" .!:?—-()")
+        if not (re.search(POSTING, clause) or scopes or not remainder):
+            continue  # "Open every day" and "daily specials" are not posting claims.
+        if len(re.findall(rf"\b{verb}\b", clause)) == 1 and re.search(rf"\b(?:do not|don't|does not|doesn't|never|not yet|no longer)\s+{verb}\b|{historical}", clause):
+            continue
+        fresh = _date(facts["verified_on"], "verified_on") == as_of
+        for mention in mentions:
+            rate = _rate(mention)
+            supported = bool(scopes)
+            for scope in scopes:
+                if scope == "unnamed_own_page":
+                    supported = False
+                elif scope == "client_offer" or scope.startswith("client_offer:"):
+                    evidence = facts["offer"].get("posting_frequency")
+                    target = scope.partition(":")[2]
+                    supported &= bool(evidence) and fresh and (
+                        evidence["verified_on"] == as_of.isoformat()
+                        and not re.search(DELIVERY_HISTORY, clause)
+                        and rate == (evidence["posts"], evidence["per"], 1)
+                        and (not target or target == evidence["channel"])
+                    )
+                elif scope == "site_feed":
+                    live = facts["channels"][scope] == "active"
+                    recent = _date(facts["feed"]["last"], "feed.last") >= as_of - timedelta(days=1)
+                    supported &= fresh and live and recent and rate == (facts["feed"]["posts_per_day"], "day", 1)
+                else:
+                    live = facts["channels"][scope] == "active"
+                    evidence = facts.get("posting_frequencies", {}).get(scope)
+                    supported &= bool(evidence) and fresh and live and (
+                        evidence["verified_on"] == as_of.isoformat()
+                        and rate == (evidence["posts"], evidence["per"], 1)
+                    )
+            if not supported:
+                findings.append(Finding("POST_FREQUENCY", "The posting frequency lacks matching, current evidence for the stated feed, channel or client offer. Review the facts and scope."))
+            if not scopes or "unnamed_own_page" in scopes:
+                findings.append(Finding("UNCLEAR_FEED", "Name the feed or channel; an unnamed page has no reviewed posting frequency."))
+    return findings
 
 
 def check_text(text: str, facts: dict, as_of: date | None = None) -> list[Finding]:
@@ -147,18 +301,19 @@ def check_text(text: str, facts: dict, as_of: date | None = None) -> list[Findin
         known_quote = original.strip() in facts["approved_testimonials"]
         site = bool(re.search(SITE_FEED, s))
         posting = bool(re.search(POSTING, s))
-        frequency = bool(re.search(FREQUENCY, s))
+        frequency = bool(FREQUENCY.search(s))
+        for finding in _frequency_findings(s, facts, as_of):
+            add(finding.code, finding.message)
         # These local denials are exempt; one denial must not excuse other clauses.
         denial = bool(re.search(r"\b(?:do not|don't|does not|doesn't|never|not yet|no longer)\s+(?:auto[- ]?)?(?:post(?:s|ed)?|publish(?:es|ed)?|shar(?:e|es|ed))\b", s))
         if re.search(r"\b(?:and|but|while|although)\b|,", s):
             denial = False  # A mixed clause needs review; do not hide a positive claim.
         past = bool(re.search(r"\b(?:used to|previously|in the past|stopped|paused|shelved)\b", s))
         drafting = bool(re.search(r"\b(?:drafts?|drafting|packs? only|sample(?:s)? only)\b", s))
-        has_channel = False
-        for channel, pattern in CHANNELS.items():
-            if not re.search(pattern, s):
+        named_channels = _named_channels(re.sub(CLIENT_PAGE, "", s))
+        for channel in CHANNELS:
+            if channel not in named_channels:
                 continue
-            has_channel = True
             if posting and not denial and not past:
                 state = facts["channels"][channel]
                 if state != "active" and not (drafting and not frequency and not re.search(r"\b(?:public|live)\b", s) and state in {"drafts_only", "packs_only"}):
@@ -166,17 +321,9 @@ def check_text(text: str, facts: dict, as_of: date | None = None) -> list[Findin
         if re.search(r"\b(?:every|all)\s+(?:social )?(?:platforms?|channels?)\b|\beverywhere\b", s) and posting and not denial:
             if any(v != "active" for k, v in facts["channels"].items() if k != "site_feed"):
                 add("ALL_CHANNELS", "Several social channels are off or awaiting setup; posting everywhere is unsupported.")
-        if posting and frequency and not site and not has_channel and not denial and not past:
-            add("UNCLEAR_FEED", "Daily posting must name the own store's site feed; a generic page or unnamed channel is not proven.")
         if site and posting and not denial:
             if facts["channels"]["site_feed"] != "active":
                 add("FEED_NOT_LIVE", "The site-feed channel is not confirmed active.")
-            for m in re.finditer(rf"\b({NUMBER})\s*(?:times|posts|x|×)?\s*(?:a|per|each|every)\s+day\b", s):
-                if _number(m.group(1)) != feed["posts_per_day"]:
-                    add("POST_FREQUENCY", "The site feed publishes one card per dated day; this daily frequency does not match.")
-            for m in re.finditer(rf"\b({NUMBER})\s*[x×]\s*(?:daily|a day|per day)\b", s):
-                if _number(m.group(1)) != feed["posts_per_day"]:
-                    add("POST_FREQUENCY", "The site's claimed posts-per-day number does not match the facts.")
         for m in re.finditer(rf"\b(?:every (?:single )?day|daily|consecutive(?:ly)?|straight)\s+(?:for\s+)?({NUMBER})\s+days\b|\b({NUMBER})\s+(?:consecutive|straight)\s+days\b|\bfor\s+({NUMBER})\s+days\s+(?:straight|in a row)\b", s):
             n = _number(next(g for g in m.groups() if g is not None))
             if n != feed["total"]:
@@ -264,3 +411,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

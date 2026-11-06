@@ -11,16 +11,20 @@ from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
-from claims_check import check_text, load_facts, main, validate_facts
+if __package__:
+    from .claims_check import check_text, load_facts, main, validate_facts
+else:
+    from claims_check import check_text, load_facts, main, validate_facts
 
 TODAY = date(2026, 10, 5)
+FIXTURE = Path(__file__).with_name("claims_facts_test_fixture.json")
 
 
 class ClaimsChecks(unittest.TestCase):
     def setUp(self):
         # The tests run against a frozen copy of the facts (the 62-day situation GPT audited), so they keep meaning the same
         # thing when the real tools/claims_facts.json is updated.
-        self.facts = load_facts(Path(__file__).with_name("claims_facts_test_fixture.json"))
+        self.facts = load_facts(FIXTURE)
 
     def codes(self, text, facts=None, day=TODAY):
         return {f.code for f in check_text(text, facts or self.facts, day)}
@@ -80,6 +84,236 @@ class ClaimsChecks(unittest.TestCase):
 
     def test_once_daily(self):
         self.assertEqual(set(), self.codes("My own store's feed posts once a day."))
+
+    def test_frequency_headlines_need_named_evidence(self):
+        for text in ['3x a day', 'every hour', 'posts daily', 'every day', 'Daily posts']:
+            with self.subTest(text=text):
+                self.assertTrue({'POST_FREQUENCY', 'UNCLEAR_FEED'} <= self.codes(text))
+
+    def test_daily_rate_spellings(self):
+        for rate in ['3x a day', '3× a day', '3 x per day', 'three times a day',
+                     '3 posts/day', 'three times daily', 'twice daily', '3x daily']:
+            with self.subTest(rate=rate):
+                self.assertIn('POST_FREQUENCY', self.codes(f"Our store's feed posts {rate}."))
+        for rate in ['daily', 'every day', 'every single day', 'each day', 'day after day',
+                     'once a day', 'one x a day', '1 post per day', 'once daily']:
+            with self.subTest(rate=rate):
+                self.assertEqual(set(), self.codes(f"Our store's feed publishes {rate}."))
+
+    def test_other_units_do_not_borrow_daily_feed_evidence(self):
+        for rate in ['hourly', 'every hour', 'each hour', 'once an hour', '3 times per hour',
+                     'every two hours', 'every week', 'weekly', 'every 24 hours']:
+            with self.subTest(rate=rate):
+                self.assertIn('POST_FREQUENCY', self.codes(f'Our website feed posts {rate}.'))
+
+    def active_facebook(self):
+        facts = copy.deepcopy(self.facts)
+        facts['channels']['facebook'] = 'active'
+        return facts
+
+    def evidenced_facebook(self):
+        facts = self.active_facebook()
+        facts['posting_frequencies'] = {'facebook': {
+            'posts': 1, 'per': 'day', 'verified_on': TODAY.isoformat(),
+            'source': 'Synthetic reviewed public-post archive for this test only',
+        }}
+        return facts
+
+    def test_active_channel_is_not_frequency_proof(self):
+        for rate in ['daily', 'every day', 'every hour', '3x a day']:
+            with self.subTest(rate=rate):
+                self.assertIn('POST_FREQUENCY', self.codes(f'Facebook posts {rate}.', self.active_facebook()))
+        self.assertNotIn('CHANNEL_NOT_LIVE', self.codes('Facebook posted today.', self.active_facebook()))
+
+    def test_matching_channel_evidence_only_supports_its_rate(self):
+        facts = self.evidenced_facebook()
+        self.assertEqual(set(), self.codes('We publish on Facebook every day.', facts))
+        self.assertIn('POST_FREQUENCY', self.codes('We publish on Facebook every hour.', facts))
+        self.assertIn('POST_FREQUENCY', self.codes('We publish on Facebook 3x a day.', facts))
+        self.assertIn('POST_FREQUENCY', self.codes('We publish on Instagram daily.', facts))
+        facts['posting_frequencies']['facebook'].update(posts=2, per='hour')
+        self.assertEqual(set(), self.codes('We publish on Facebook twice an hour.', facts))
+        self.assertIn('POST_FREQUENCY', self.codes('We publish on Facebook hourly.', facts))
+
+    def test_old_or_inactive_frequency_evidence_does_not_approve(self):
+        facts = self.evidenced_facebook()
+        facts['posting_frequencies']['facebook']['verified_on'] = '2026-10-04'
+        self.assertIn('POST_FREQUENCY', self.codes('Facebook posts daily.', facts))
+        facts = self.evidenced_facebook()
+        facts['channels']['facebook'] = 'off'
+        self.assertIn('POST_FREQUENCY', self.codes('Facebook posts daily.', facts))
+        self.assertIn('POST_FREQUENCY', self.codes('Facebook posts daily.', self.evidenced_facebook(), date(2026, 10, 6)))
+
+    def test_stale_feed_cannot_support_recurring_claim(self):
+        facts = copy.deepcopy(self.facts)
+        facts['verified_on'] = '2026-10-07'
+        self.assertIn('POST_FREQUENCY', self.codes('Our website feed posts daily.', facts, date(2026, 10, 7)))
+
+    def test_scope_does_not_leak_across_clauses_or_lines(self):
+        for text in [
+            'Our site feed posts daily, Facebook posts daily.',
+            'Our site feed posts daily and Facebook posts every hour.',
+            'Our site feed posts daily; Facebook posts every day.',
+            'Our site feed posts daily. Facebook posts daily.',
+            'Our site feed posts daily\nFacebook posts every hour.',
+            'Our site feed posts daily and every hour.',
+        ]:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.active_facebook()))
+
+    def test_frequency_denials_and_historical_wording(self):
+        for text in ["We don't post on Facebook daily.", 'We never publish hourly on Facebook.',
+                     'We used to publish on Facebook every hour.']:
+            with self.subTest(text=text):
+                self.assertNotIn('POST_FREQUENCY', self.codes(text))
+        for text in ["We don't post daily on X but Facebook posts daily.",
+                     'We used to post hourly on X and Facebook posts every day.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.active_facebook()))
+
+    def test_past_adjective_does_not_hide_current_frequency(self):
+        for text in ['Our previously inactive Facebook page posts daily.',
+                     'Our paused Facebook page posts daily.',
+                     'We stopped using templates: Facebook posts daily.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.active_facebook()))
+
+    def test_compound_subjects_cannot_borrow_another_scopes_evidence(self):
+        for text in ['Facebook and my own store\'s feed post daily.',
+                     'Facebook, our website feed posts daily.',
+                     'Our Facebook page and our site feed publish every day.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.active_facebook()))
+        facts = self.evidenced_facebook()
+        facts['channels']['instagram'] = 'active'
+        for text in ['Instagram and Facebook post daily.',
+                     'We post daily on Facebook and Instagram.',
+                     'We post daily on Facebook, and Instagram.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, facts))
+        self.assertNotIn('POST_FREQUENCY', self.codes('Facebook is off and our website feed posts daily.'))
+
+    def test_not_yet_is_a_local_denial(self):
+        self.assertNotIn('POST_FREQUENCY', self.codes('We do not yet publish on Facebook daily.'))
+
+    def test_denial_cannot_hide_a_second_posting_verb(self):
+        for text in ["We don't post on X because Facebook posts daily.",
+                     "Facebook doesn't post once a day: it posts every hour."]:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.active_facebook()))
+
+    def test_wrapped_frequency_phrases_still_checked(self):
+        for text in ['My page posts every\nhour.', 'My page posts 3x\na day.',
+                     'Facebook posts every\nsingle day.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.active_facebook()))
+
+    def test_unrelated_daily_copy_is_not_a_posting_rate(self):
+        for text in ['We are open every day.', 'Ask about our daily specials.', 'Please visit every day.']:
+            with self.subTest(text=text):
+                self.assertNotIn('POST_FREQUENCY', self.codes(text))
+
+    def test_quote_allowlist_does_not_supply_frequency_evidence(self):
+        facts = self.active_facebook()
+        facts['approved_statistics'] = ['Facebook posts every hour']
+        self.assertIn('POST_FREQUENCY', self.codes('Facebook posts every hour.', facts))
+
+    def test_frequency_evidence_validation(self):
+        for evidence in [None, [], {'unknown': {}}, {'facebook': None},
+                         {'facebook': {'posts': True, 'per': 'day', 'verified_on': '2026-10-05', 'source': 'test'}},
+                         {'facebook': {'posts': 1, 'per': 'minute', 'verified_on': '2026-10-05', 'source': 'test'}},
+                         {'facebook': {'posts': 1, 'per': 'day', 'verified_on': '2026-10-06', 'source': 'test'}},
+                         {'facebook': {'posts': 1, 'per': 'day', 'verified_on': '2026-10-05', 'source': ''}}]:
+            facts = copy.deepcopy(self.facts)
+            facts['posting_frequencies'] = evidence
+            with self.subTest(evidence=evidence), self.assertRaises(ValueError):
+                validate_facts(facts)
+
+    def test_zero_setup_price_is_valid(self):
+        facts = copy.deepcopy(self.facts)
+        facts['offer']['setup_total'] = 0
+        self.assertEqual(facts, validate_facts(facts))
+        self.assertNotIn('PRICE_OR_MONEY_PROOF', self.codes('Setup is $0.', facts))
+
+    def offer_facts(self):
+        facts = copy.deepcopy(self.facts)
+        facts['offer']['posting_frequency'] = {
+            'channel': 'facebook', 'posts': 1, 'per': 'day',
+            'verified_on': TODAY.isoformat(), 'source': 'Synthetic reviewed offer for this test',
+        }
+        return facts
+
+    def test_client_offer_wording_passes_without_own_channel_history(self):
+        for text in [
+            'Your business posts every day. You just approve it.',
+            'I post them, one a day.',
+            'A post for every day of the month on your Facebook page.',
+            '$79 for a month of daily posts on your Facebook page',
+            '$79 for a month of daily posts',
+        ]:
+            with self.subTest(text=text):
+                self.assertEqual(set(), self.codes(text, self.offer_facts()))
+
+    def test_offer_rate_does_not_approve_wrong_rate_or_channel(self):
+        for text in ['Your Facebook page posts 3x a day.', 'Your page posts every hour.',
+                     'Your Instagram page posts daily.', 'Your TikTok page posts daily.',
+                     'Your X page posts daily.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+
+    def test_offer_does_not_excuse_own_or_mixed_channel_claims(self):
+        for text in ['Our Facebook page posts every day.', '3x a day on X.',
+                     'Every hour on TikTok.',
+                     'Your business posts every day and our Facebook page posts every hour.',
+                     'I post them, one a day, and TikTok posts every hour.',
+                     'Your Facebook page and our Facebook page post daily.',
+                     'Our Facebook page and your business post daily.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+        for text in ['Your Instagram page and our website feed post daily.',
+                     'Our website feed posts daily and your TikTok page.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+
+    def test_client_delivery_history_is_not_an_offer(self):
+        for text in ['Your Facebook page has posted every day for 62 days.',
+                     'Your business already posts daily.',
+                     'Your page has published daily since August 4.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+
+    def test_client_marker_does_not_override_an_unnamed_own_page(self):
+        for text in ['Our page posts every day for your business.',
+                     'My page posts daily for your business.',
+                     'Our page and your business post every day.']:
+            with self.subTest(text=text):
+                self.assertTrue({'POST_FREQUENCY', 'UNCLEAR_FEED'} <= self.codes(text, self.offer_facts()))
+
+    def test_carried_offer_scope_cannot_approve_delivery_history(self):
+        for text in ['Your Facebook page, posted daily since August 7.',
+                     'I post them, one a day since August 7.',
+                     'Your Facebook page, has posted every day.',
+                     'Your Facebook page and our website feed posted daily since August 7.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+
+    def test_offer_rate_needs_current_evidence(self):
+        self.assertIn('POST_FREQUENCY', self.codes('Your business posts every day.'))
+        facts = self.offer_facts()
+        facts['offer']['posting_frequency']['verified_on'] = '2026-10-04'
+        self.assertIn('POST_FREQUENCY', self.codes('Your business posts every day.', facts))
+        self.assertIn('POST_FREQUENCY', self.codes('Your business posts every day.', self.offer_facts(), date(2026, 10, 6)))
+
+    def test_offer_rate_validation(self):
+        for bad in [None, [], {}, {'channel': 'unknown'},
+                    {'channel': 'facebook', 'posts': True, 'per': 'day', 'verified_on': '2026-10-05', 'source': 'test'},
+                    {'channel': 'facebook', 'posts': 1, 'per': 'minute', 'verified_on': '2026-10-05', 'source': 'test'},
+                    {'channel': 'facebook', 'posts': 1, 'per': 'day', 'verified_on': '2026-10-06', 'source': 'test'},
+                    {'channel': 'facebook', 'posts': 1, 'per': 'day', 'verified_on': '2026-10-05', 'source': ''}]:
+            facts = self.offer_facts()
+            facts['offer']['posting_frequency'] = bad
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                validate_facts(facts)
 
     def test_off_channels(self):
         for channel in ['X', 'Twitter', 'Facebook', 'Instagram', 'TikTok', 'Pinterest']:
@@ -211,7 +445,7 @@ class ClaimsChecks(unittest.TestCase):
     def test_cli_json_exit_and_no_draft_echo(self):
         output = io.StringIO()
         with redirect_stdout(output):
-            status = main(['--text', 'We post on X daily.', '--as-of', '2026-10-05', '--json'])
+            status = main(['--text', 'We post on X daily.', '--as-of', '2026-10-05', '--json', '--facts', str(FIXTURE)])
         self.assertEqual(1, status)
         result = json.loads(output.getvalue())
         self.assertFalse(result['approved'])
@@ -220,7 +454,7 @@ class ClaimsChecks(unittest.TestCase):
 
     def test_cli_stdin(self):
         with patch('sys.stdin', io.StringIO('See findhotstuff.com/automation.')), redirect_stdout(io.StringIO()):
-            self.assertEqual(0, main(['--as-of', '2026-10-05']))
+            self.assertEqual(0, main(['--as-of', '2026-10-05', '--facts', str(FIXTURE)]))
 
     def test_cli_bad_facts_fail_closed(self):
         with tempfile.TemporaryDirectory() as d:
@@ -232,3 +466,4 @@ class ClaimsChecks(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

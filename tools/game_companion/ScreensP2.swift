@@ -144,6 +144,7 @@ extension CompanionInterfaceView {
  static let shared = FridayMeModel()
  @Published var open = true
  @Published var draft = ""
+ @Published var images: [String] = []   // picture paths in the private DM folder, waiting to be sent
 }
 
 struct FridayMeSection: View {
@@ -151,9 +152,9 @@ struct FridayMeSection: View {
  @ObservedObject var dm = FridayDM.shared
  var reduceMotion = false
 
- struct Line: Identifiable { var id: String; var at: Date; var mine: Bool; var text: String }
+ struct Line: Identifiable { var id: String; var at: Date; var mine: Bool; var text: String; var images: [String] = [] }
  var lines: [Line] {
-  (dm.sent.map { Line(id:"s-" + $0.id,at:$0.at,mine:true,text:$0.text) } + dm.replies.map { Line(id:"r-" + $0.id,at:$0.at,mine:false,text:$0.text) })
+  (dm.sent.map { Line(id:"s-" + $0.id,at:$0.at,mine:true,text:$0.text,images:$0.images ?? []) } + dm.replies.map { Line(id:"r-" + $0.id,at:$0.at,mine:false,text:$0.text) })
    .sorted { $0.at < $1.at }
  }
  var thinking: Bool {
@@ -196,19 +197,40 @@ struct FridayMeSection: View {
     .onAppear { proxy.scrollTo("end",anchor:.bottom) }
     .onChange(of:lines.count) { _,_ in proxy.scrollTo("end",anchor:.bottom) }
    }
-   HStack(spacing:8) {
-    TextField("Message Friday… for example: what needs me today?",text:$model.draft)
+   if !model.images.isEmpty {
+    ScrollView(.horizontal) {
+     HStack(spacing:8) {
+      ForEach(model.images,id:\.self) { path in
+       ZStack(alignment:.topTrailing) {
+        if let img = NSImage(contentsOfFile:path) { Image(nsImage:img).resizable().scaledToFill().frame(width:56,height:56).clipShape(RoundedRectangle(cornerRadius:8)) }
+        Button { model.images.removeAll { $0 == path } } label: { Image(systemName:"xmark.circle.fill").foregroundStyle(.white, .black.opacity(0.7)) }
+         .buttonStyle(.plain).accessibilityLabel("Remove picture")
+       }
+      }
+     }
+    }.scrollIndicators(.hidden)
+   }
+   HStack(alignment:.bottom,spacing:8) {
+    Button { attachPicture() } label: {
+     Image(systemName:"photo").font(.system(size:15)).foregroundStyle(HubTheme.text).frame(width:HubTheme.minTarget,height:HubTheme.minTarget)
+      .background(HubTheme.control,in:RoundedRectangle(cornerRadius:8))
+    }.buttonStyle(.plain).accessibilityLabel("Attach a picture").help("Attach a picture (or paste one)")
+    TextField("Message Friday… for example: what needs me today?",text:$model.draft,axis:.vertical)
+     .lineLimit(1...10)
      .textFieldStyle(.plain).font(.system(size:13))
-     .padding(.horizontal,10).frame(minHeight:HubTheme.minTarget)
+     .padding(.horizontal,10).padding(.vertical,8).frame(minHeight:HubTheme.minTarget)
      .background(HubTheme.control,in:RoundedRectangle(cornerRadius:8))
      .overlay(RoundedRectangle(cornerRadius:8).stroke(HubTheme.controlOutline,lineWidth:1))
      .onSubmit { sendNow() }
+     .onPasteCommand(of:[.png,.tiff,.image]) { providers in pasteImages(providers) }
+     .onDrop(of:[.fileURL,.image],isTargeted:nil) { providers in pasteImages(providers); return true }
      .accessibilityLabel("Message Friday")
     Button { sendNow() } label: {
      Text("Send").font(.system(size:13,weight:.semibold)).foregroundStyle(HubTheme.background).padding(.horizontal,14).frame(height:HubTheme.minTarget)
-      .background(HubTheme.green.opacity(model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? 0.4 : 1),in:RoundedRectangle(cornerRadius:8))
-    }.buttonStyle(.plain).disabled(model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty)
+      .background(HubTheme.green.opacity(canSend ? 1 : 0.4),in:RoundedRectangle(cornerRadius:8))
+    }.buttonStyle(.plain).disabled(!canSend)
    }
+   Text("Return sends. Long messages are fine. Add a picture with the photo button, paste, or drop it in.").font(.system(size:10.5)).foregroundStyle(HubTheme.subtext)
   }
   .padding(12)
   .background(HubTheme.card,in:RoundedRectangle(cornerRadius:12))
@@ -216,18 +238,43 @@ struct FridayMeSection: View {
  }
 
  func sendNow() {
+  guard canSend else { return }
   let text = model.draft.trimmingCharacters(in:.whitespacesAndNewlines)
-  guard !text.isEmpty else { return }
-  if dm.send(text) != nil { model.draft = "" }
+  if dm.send(text,images:model.images) != nil { model.draft = ""; model.images = [] }
+ }
+
+ var canSend: Bool { !model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || !model.images.isEmpty }
+
+ func addImage(_ img: NSImage) {
+  guard let tiff = img.tiffRepresentation, let rep = NSBitmapImageRep(data:tiff), let png = rep.representation(using:.png,properties:[:]) else { return }
+  if let path = dm.saveImage(png) { model.images.append(path) }
+ }
+
+ func attachPicture() {
+  let p = NSOpenPanel(); p.allowedContentTypes = [.image]; p.allowsMultipleSelection = true
+  if p.runModal() == .OK { for u in p.urls { if let i = NSImage(contentsOf:u) { addImage(i) } } }
+ }
+
+ func pasteImages(_ providers: [NSItemProvider]) {
+  for pr in providers {
+   if pr.canLoadObject(ofClass:NSImage.self) {
+    _ = pr.loadObject(ofClass:NSImage.self) { obj,_ in if let i = obj as? NSImage { DispatchQueue.main.async { addImage(i) } } }
+   }
+  }
  }
 
  func bubble(_ line: Line) -> some View {
   HStack {
    if line.mine { Spacer(minLength:40) }
    VStack(alignment:line.mine ? .trailing : .leading,spacing:2) {
-    Text(line.text).font(.system(size:13.5)).foregroundStyle(line.mine ? HubTheme.background : HubTheme.text).textSelection(.enabled)
-     .padding(.horizontal,12).padding(.vertical,8)
-     .background(line.mine ? HubTheme.green : HubTheme.control,in:RoundedRectangle(cornerRadius:14))
+    VStack(alignment:.leading,spacing:6) {
+     ForEach(line.images,id:\.self) { path in
+      if let img = NSImage(contentsOfFile:path) { Image(nsImage:img).resizable().scaledToFit().frame(maxWidth:220,maxHeight:180).clipShape(RoundedRectangle(cornerRadius:8)) }
+     }
+     if !line.text.isEmpty { Text(line.text).font(.system(size:13.5)).foregroundStyle(line.mine ? HubTheme.background : HubTheme.text).textSelection(.enabled) }
+    }
+    .padding(.horizontal,12).padding(.vertical,8)
+    .background(line.mine ? HubTheme.green : HubTheme.control,in:RoundedRectangle(cornerRadius:14))
     Text((line.mine ? "You" : "Friday") + " · " + Self.time.string(from:line.at)).font(.system(size:10.5)).foregroundStyle(HubTheme.subtext)
     if line.mine, let note = dm.note(forMessage:String(line.id.dropFirst(2))) { Text(note).font(.system(size:11)).foregroundStyle(HubTheme.amber) }
    }

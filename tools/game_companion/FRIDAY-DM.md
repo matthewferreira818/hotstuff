@@ -21,3 +21,7 @@ On "new DM, read ~/Claude/friday-dm/inbox.jsonl": read the inbox, answer the new
 - The full loop WAS seen once with a test DM: the wake was delivered to the open "Friday" chat and she appended a reply line to outbox.jsonl within about a minute (shape checked against {id, replyTo, at, text}). The test inbox/outbox/status were cleared afterwards. Not tested: several DMs at once, a long conversation, the screen.
 - The screen side (LC-Pixels). Lines the Friday chat writes with a bad shape are skipped silently.
 - Anyone who can read the Mac user's files can read the DMs (700/600 stops other Mac users, not Matthew's own processes).
+
+## Pictures and long messages (LC-Pixels, 2026-11-06, Matthew's bug report)
+- Text cap raised from 4000 to 20000 characters (it used to cut longer messages without saying).
+- An inbox line may now also carry `"images": ["/Users/.../Claude/friday-dm/images/img-….png"]` (private folder 700, files 600). **Friday: open those paths with your Read tool to see the pictures.** A message can be pictures only (`text` empty). Never copy them anywhere public.

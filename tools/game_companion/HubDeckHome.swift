@@ -97,7 +97,7 @@ extension CompanionInterfaceView {
     hubHomeSection("Your ventures",detail:"Numbers from the loaded snapshots")
     LazyVGrid(columns:[GridItem(.adaptive(minimum:175),spacing:12)],spacing:12) {
      hubHomeVenture(.store,title:"HotsTuff",metric:ventures.store.map { String($0.week) } ?? "—",unit:"visitors · last 7 days",detail:hubStoreHeadline)
-     hubHomeVenture(.ecs,title:"East Coast Social",metric:ventures.feed.map { String($0.total) } ?? "—",unit:"published feed posts",detail:hubEcsHeadline)
+     hubHomeVenture(.ecs,title:"East Coast Social",metric:ventures.feed.map { String($0.total) } ?? "—",unit:"cards on the site feed",detail:hubEcsHeadline)
      hubHomeVenture(.stocks,title:"Stock bot",metric:(stocks.dip ?? stocks.momentum).map { hubMoney($0.value) } ?? "—",unit:"practice-account snapshot",detail:hubStockHeadline)
     }
     Button { meeting.confirmCall = true } label: {

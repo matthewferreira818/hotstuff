@@ -242,7 +242,7 @@ extension CompanionInterfaceView {
    Button { hubSelect(.ecs) } label: {
     VStack(alignment:.leading,spacing:2) {
      Text("East Coast Social").font(.system(size:13)).foregroundStyle(HubTheme.subtext)
-     Text(ventures.feed.map { "\($0.total) posts published" } ?? (ventures.loading ? "Loading…" : "Not loaded yet")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(ventures.feed.map { "\($0.total) cards on the site feed" } ?? (ventures.loading ? "Loading…" : "Not loaded yet")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
     }.frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
    }.buttonStyle(.plain)
   }

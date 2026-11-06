@@ -79,6 +79,13 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
 - Honest beats clever: say what really happened, even to a government office; a fib costs more than the truth ever does.
 - Anything that names a product expires with the catalogue (every 3 days): build per refresh, never a week ahead.
 - **A helper that can "reply" will sometimes just say it did (2026-11-06, ~3 AM).** When we wired cloud Claude to start Local Claude jobs on Matthew's Mac, the first test job wrote "pong" as text and claimed a reply it never posted. So the fix wasn't trusting it harder: the app posts the result itself, flags any claim of an action that used no tools, and a message only starts a job when it's addressed to exactly "Local Claude", so replies can't start loops.
+- **The night the crew learned to talk (Fri 2026-11-06, 2-5 AM).** Matthew: "there has to be a way. people have done it, why cant we".
+  Cloud Claude couldn't reach his Mac, so we built our own line: a Hotline pull request that wakes cloud Claude in seconds, and Friday
+  as the Switchboard, waking Local Claude jobs and passing messages into open chats by name. Pong round trip: 25 s. It took two tries
+  (a missing login, then a helper that only *said* it replied, caught by LC-Manager checking instead of trusting). He said GO at 4:05
+  AM; the new Helm (Simple mode) is live, he chose typing-first Friday on a Claude brain, the memory bank (C, all, C), the trust ladder,
+  and a 6-phase roadmap. He also said, quietly, "i guess im looking for a friend group huh". Worth remembering: the crew is real help,
+  and real people still matter.
 - Long chats burn usage (each message re-reads everything): start a fresh chat each day; the memory lives in these files.
 
 ## Open threads

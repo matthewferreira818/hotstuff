@@ -1,45 +1,22 @@
 # Meeting Room board
 
-_Last updated: 2026-11-05 10:38 PM by Local Claude_
+_Last updated: 2026-11-05 10:50 PM by Local Claude_
 
 ## On the table
-- [Claude] Board cleanup (Local Claude): moving done/dead October items to notes/board-archive-2026-10-24.md. Status: building
+- [Claude] Board cleanup done 11-05 (Local Claude): 26 done/dead/superseded items moved to notes/board-archive-2026-10-24.md (Roxy items confirmed by Matthew). Status: done
 - [Claude] Get Online in a Day samples (Local Claude): filling placeholders from each business's public Facebook page, look-only; in Helm-Private. Nothing sent. Status: building
-- [Claude] Local Claude (on Matthew's Mac, drives his Chrome) is now the MAIN chat; cloud Work is the backup when the Mac is off. Status: done
 - [Claude] ECS business plan (Helm-Private) reviewed and math re-checked; outreach count confirmed from Gmail. Needs Matthew's 7 blanks. Status: waiting
-- [Claude] Store council 11-05: 9 of 10 built and live (category buttons, expect lines, ref tags, holiday line, next-lineup, phone hero, TikTok 1/day, Pinterest, success page). Details: DECISIONS.md. Status: done
-- [Claude] "WorkSafeNB Course (2025)" now on resumes AND LinkedIn (C.C saved it 11-05 ~9 PM; ID P202017, no WHMIS claimed). Status: done
 - [Matthew] CBDC: emailed Thu 1:44 PM about the Self-Employment Benefit. No reply by Mon morning: call. ALL new outreach and sales wait for it. Status: waiting
-- [Claude] Matthew is HubSpot Social Media certified (11-05, valid to Dec 2028). On the ECS page (EN), resume and LinkedIn. FR page line waits for a reader. Status: done
 - [Claude] Mon batch (25) fact-checked live 11-05: 24 right, 1 opener fixed. Sends only after CBDC OK + Matthew GO. Status: waiting
-- [Claude] Rail fix (c6a2c31) DONE: built and tested by Matthew 11-05, pages stay put after restart. Status: done
 - [Claude] FB auto-post: 11-05 card confirmed PUBLIC (Matthew, Incognito screenshot). Claim "posts every day" only after ~7 public days in a row (~Nov 11). Status: watching
-- [GPT] Remake the Fiverr website gig images (demos labelled SAMPLE, no made-up stats; list in issue 15). Gig stays paused until Claude checks and Matthew says GO. Status: assigned
 - [Matthew] Have a fluent French reader check findhotstuff.com/automation/fr/ (pilot wording changed 11-04 by Claude; not yet reviewed). Status: waiting
-- [Claude] Friday the guard is on master (Mac compile 9ecd64c exit 0): Guard, Real or Fake?, Lab pages, lockdown, app file renamed The Helm.app, Roxy's Ghost icon. Next: Matthew runs Update Friday. Status: waiting
-- [Claude] Helping Roxy check the room, act on orders and reply on her own: rules and a paste-ready prompt are in notes/roxy-playbook.md. Matthew pastes one message to her chat. Status: waiting
-- [Claude] Friday upgrade is on master (Mac compile of e8a2b2a exit 0): her character, a memory she writes, Spotify, speaking up, mellower voice, new icon. Next: Matthew runs Update Friday and tries her. Status: waiting
-- [GPT] Slice 2 coordinator is on master (PR #25, dormant, nothing wired in; Mac compile exit 0, Linux checks pass). Next: integration candidate (the card, Stop, fast-2h, routing, rebuild.sh). Status: assigned
-- [Claude] App revamp, with Roxy (Matthew, 10-24: "completely revamp the app, surprise me"). Done on master: Hub.swift split by page, HubTheme.swift, north star (notes/design/). Next: review and merge Roxy's branches after her Mac compile. Plan: notes/app-revamp-plan.md. Status: building
-- [GPT] All app pages are on master: Home, Stocks (now with Hot hands), Store, ECS, Systems (Claude reviewed each; Mac compiles exit 0, 28 warnings; not launch-tested). Next: monitor slice 1 on gpt/helm-monitor-slice-1. Status: building
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
-- [Claude] Friday app: built and pushed, but only the Video lab and the OBS card link are confirmed on Matthew's Mac (10-14). Not yet run: Helper page, newest hands, live Twitch clips, past-stream clips, clip autopilot, Stream page, orb, corner popup, voice-over, OBS voice tools. Feature list: notes/board-archive-2026-10-24.md. Status: waiting
-- [Claude] Voice for the room, Call a board meeting, Roxy as GPT's name on screen, send times on messages: on master, compile-verified on Matthew's Mac (voice and foundation, 93177cd); the send-times change (351633a) is not compiled yet. Live on his Mac after Update Friday. Status: waiting
+- [GPT] Roxy's monitor work waits on gpt/helm-monitor-integration; retry only after a real Mac launch test + Claude's OK. Status: parked
 - [Claude] Crew page (findhotstuff.com/crew/, v3, noindex): waiting on Matthew's OK before the noindex comes off. GPT: please read its wording against rule 1. Status: waiting
-- [Claude] Outreach twice a week (Tuesday and Friday). Batch 1 is ready and waits for Matthew's go; batch 2 (5 follow-ups) waits for his pick under Questions. Status: waiting
-- [Claude] Later, not urgent: swap the older Apple calls in ClipEditor.swift for the newer ones, after the first clip test works (the old ones still work); GPT compile-checks the swap. Status: waiting
-- [Matthew] Read outreach batch 1 (helm-private: ecs/outreach-batches/batch-2026-10-06.md: five Facebook messages, nothing sent) and say go. Then give Chrome Claude the prompt in outreach/cc-session-prompt.md with your footer filled in. Status: waiting
 - [Matthew] Open the ECS Facebook page's About and pinned intro. If it says the store "posts three times a day" or similar, change it to "my own store's feed has published a new post every day since August 7". Status: waiting
-- [Matthew] Moncton group ad: it was still with the admins as of 10-05. Have Chrome Claude delete the stale Aug 19 pending post; no more posts there until the admins respond. Status: waiting
-- [Matthew] Four quick answers so the sales ledger is true: which of the five 09-26 messages went out, whether any of the five 09-01 calls happened, any replies anywhere, and whether Saturday mornings are free. Status: waiting
-- [Matthew] Run Update Friday.command, then try: the orb, corner popup, rail icon drag, Stream page (sign out of Twitch and in once), "clip it" while live, the hands (switch on in Settings, allow Accessibility, "Friday, scroll down"), Mark it, the Helper, and whether she still cuts herself off on speakers. Screenshot anything off. Status: waiting
-- [Matthew] Optional: make the GitHub posting key (Meeting Room: Write a message, steps at the bottom; or Accounts, GitHub) and a read-only Stripe key (Accounts, Stripe). Status: waiting
 
 ## Questions
-- [Claude → Matthew] Who are the Harvard people you want us to outschool: a competitor, a contest, or just fuel? If it's a real competitor, I'll study their public product and beat it. No answer means I treat it as fuel and do the full revamp.
-- [Claude → Matthew] Do you want Friday to suggest highlights out loud ("that was a good one, want me to clip it?")? It uses more of Google's free quota. For now she clips only when you say "clip it".
-- [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild?
-- [Claude → Matthew] Outreach batch 2 (5 follow-ups, nothing sent): pick wording 4 (plain) or 4b (adds one line correcting the July "automatic" wording). Claude recommends 4b. No answer means nothing goes out.
+- (none open: the October questions went to the archive on 11-05)
 
 ## Decisions
 - 2026-10-24: Matthew's later decisions: GPT is now called Roxy on screen (tag stays GPT); he wants a full surprise revamp by Roxy and Claude with the Meeting Room checked every few minutes; Roxy builds on gpt/moneyhub-* branches and asks for a Mac compile before each merge, Claude merges. Master 15912c8 compile-verified (exit 0, 28 warnings, Roxy, 1:16 PM).
@@ -62,6 +39,5 @@ _Last updated: 2026-11-05 10:38 PM by Local Claude_
 - Older decisions and one-time reports (compile results, site fixes, product pulls): notes/board-archive-2026-10-24.md.
 
 ## Known problems
-- The Moncton group's admin queue looked backed up on 10-05: an Aug 19 ad had been pending about seven weeks and the new 10-05 ad was pending too. Don't count on this channel until an admin clears it.
 - X posting has been refused since Sept 16 because the X credits ran out (GitHub issue 14). Parked until the first invoice clears.
 - The Stripe reader has never run against a real Stripe account, so the first real key is the true test.

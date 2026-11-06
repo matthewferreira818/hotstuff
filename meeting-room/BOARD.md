@@ -1,8 +1,9 @@
 # Meeting Room board
 
-_Last updated: 2026-11-05 10:44 PM by Local Claude_
+_Last updated: 2026-11-05 10:55 PM by Local Claude_
 
 ## On the table
+- [Claude] Phone touch-ups live (c9d5977): store header in one row with an Automation pill, app bubble only after the first products, chip rows fade right; ECS "Email me" button EN+FR. sw v25. Status: done
 - [Claude] Board cleanup done 11-05 (Local Claude): 26 done/dead/superseded items moved to notes/board-archive-2026-10-24.md (Roxy items confirmed by Matthew). Status: done
 - [Claude] Get Online in a Day samples: 5 filled from public Facebook pages (sources logged, Helm-Private). Prep only, nothing sent. Craft shop's FB says temporarily closed. Status: done
 - [Claude] ECS business plan (Helm-Private) reviewed and math re-checked; outreach count confirmed from Gmail. Needs Matthew's 7 blanks. Status: waiting

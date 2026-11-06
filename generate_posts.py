@@ -66,25 +66,25 @@ def ad_name(raw: str, category: str) -> str:
     short = " ".join(words).strip()
     while short and short.rsplit(" ", 1)[-1].lower() in CONNECTORS:
         short = short.rsplit(" ", 1)[0].rstrip(" ,")
-    return short or (raw or "Trending Find")
+    return short or (raw or "This week's find")
 
 
 # --- Tone / flavor tables --------------------------------------------------
 HOOKS = {
-    "Kitchen": ["Your kitchen just got an upgrade", "The kitchen gadget everyone's grabbing", "Small upgrade, big difference"],
+    "Kitchen": ["Your kitchen just got an upgrade", "A handy kitchen gadget", "Small upgrade, big difference"],
     "Home": ["Instant cozy upgrade", "Your space is about to feel so much better", "The coziest thing you'll buy this week"],
     "Beauty": ["Add this to the routine", "A little self-care upgrade", "The easy glow-up"],
     "Fitness": ["Level up your setup", "Progress from your living room", "The easy win for your routine"],
     "Electronics": ["The gadget you didn't know you needed", "Tiny gadget, huge difference", "It solves such an annoying problem"],
-    "Toys": ["Guaranteed to be a hit", "The gift that always lands", "Instant fun unlocked"],
-    "Pet": ["Your pet's about to be spoiled", "Your dog or cat will thank you", "Pet-parent essential"],
-    "Fashion": ["The piece people notice", "Effortless and on-trend", "Your new go-to"],
-    "Jewelry": ["The piece people ask about", "Simple, sweet, and it stands out", "A gift that actually lands"],
+    "Toys": ["Instant fun unlocked", "A fun gift idea", "Playtime, sorted"],
+    "Pet": ["Your pet's about to be spoiled", "A little treat for your pet", "Pet-parent essential"],
+    "Fashion": ["Easy to style", "Effortless and easy to wear", "Your new go-to"],
+    "Jewelry": ["Simple, sweet, and it stands out", "A small, giftable piece", "A thoughtful little gift"],
     "Sports": ["Game-day ready", "Built for the outdoors", "Gear up"],
-    "*": ["Trending right now", "This week's must-have", "Everyone's grabbing this"],
+    "*": ["New in this week's lineup", "This week's find", "Here before it rotates out"],
 }
 TAGS = {
-    "Kitchen": "#kitchengadgets #tiktokmademebuyit",
+    "Kitchen": "#kitchengadgets #homefinds",
     "Home": "#cozyhome #homefinds",
     "Beauty": "#beauty #selfcare",
     "Fitness": "#fitness #homegym",
@@ -93,31 +93,31 @@ TAGS = {
     "Fashion": "#fashion #ootd",
     "Jewelry": "#jewelry #giftideas",
     "Sports": "#sports #fitness",
-    "*": "#trending #tiktokmademebuyit",
+    "*": "#finds #giftideas",
 }
 FB_LINES = {
     "Kitchen": ["One of those little kitchen upgrades you didn't know you needed until you had it.", "Makes an everyday task genuinely nicer — and it's a fun one to gift."],
     "Home": ["The kind of small thing that instantly makes a room feel cozier.", "A tiny touch that changes the whole vibe of a space."],
     "Electronics": ["A tiny gadget that quietly solves an everyday annoyance.", "The kind of thing you'll wonder how you lived without."],
-    "Pet": ["Your dog or cat is about to claim this as their favorite thing.", "Because our pets deserve to be a little spoiled."],
-    "Fashion": ["Simple, versatile, and the kind of thing that gets noticed.", "Easy to wear, easy to love."],
-    "Jewelry": ["Simple and sweet — the kind of piece people actually ask about.", "A thoughtful little gift that doesn't break the bank."],
-    "Fitness": ["Perfect for squeezing a little more into your day without the gym.", "Small, simple, and it actually gets used."],
+    "Pet": ["A little extra comfort for your dog or cat.", "Because our pets deserve to be a little spoiled."],
+    "Fashion": ["Simple, versatile, and easy to wear.", "Easy to wear, easy to love."],
+    "Jewelry": ["Simple and sweet — an easy piece to gift.", "A thoughtful little gift that doesn't break the bank."],
+    "Fitness": ["Perfect for squeezing a little more into your day without the gym.", "Small and simple."],
     "Sports": ["Built for the people who'd rather be moving than sitting still.", "Ready when you are."],
-    "*": ["One of this week's trending finds — here before it rotates out.", "Fresh in this week and moving fast."],
+    "*": ["One of this week's finds — here before it rotates out.", "New in this week's lineup."],
 }
 # TikTok = fun & casual (lowercase, playful). {p} = price.
 TT_CAPTIONS = {
-    "Kitchen": "ok this is actually genius 🥤 only {p} #tiktokmademebuyit #kitchengadgets",
-    "Home": "turning my room into a whole vibe for {p} 🌙 #tiktokmademebuyit #cozy",
-    "Beauty": "adding this to my routine immediately {p} ✨ #tiktokmademebuyit #beautytok",
-    "Fitness": "building strength from my couch ngl 💪 {p} #tiktokmademebuyit #fittok",
-    "Electronics": "why did nobody tell me about this 🤯 {p} #tiktokmademebuyit #gadgets",
-    "Pet": "she claimed it in 4 seconds fr 🐾 {p} #petsoftiktok #tiktokmademebuyit",
-    "Fashion": "the fit is fitting 🔥 {p} #tiktokmademebuyit #fashiontok",
-    "Jewelry": "wait it GLOWS?? 🌙✨ {p} #tiktokmademebuyit #jewelrytok",
-    "Sports": "needed this one fr {p} 🙌 #tiktokmademebuyit",
-    "*": "ok i actually need this 👀 {p} #tiktokmademebuyit #trending",
+    "Kitchen": "ok this is actually genius 🥤 only {p} #kitchengadgets",
+    "Home": "turning my room into a whole vibe for {p} 🌙 #cozy",
+    "Beauty": "adding this to my routine immediately {p} ✨ #beautytok",
+    "Fitness": "building strength from my couch ngl 💪 {p} #fittok",
+    "Electronics": "why did nobody tell me about this 🤯 {p} #gadgets",
+    "Pet": "for the pet who has everything 🐾 {p} #petsoftiktok",
+    "Fashion": "the fit is fitting 🔥 {p} #fashiontok",
+    "Jewelry": "a little sparkle for {p} ✨ #jewelrytok",
+    "Sports": "needed this one fr {p} 🙌 #sportstok",
+    "*": "found this in this week's drop 👀 {p} #finds",
 }
 TT_CONCEPT = {
     "Kitchen": "Quick demo — show it working in one 8-sec shot. Trending sound.",

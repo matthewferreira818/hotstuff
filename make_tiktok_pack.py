@@ -142,7 +142,7 @@ def build_slide(product, rank):
     draw.text((hx + fw + 16, 182), "HotsTuff", font=wm_font, fill=ACCENT)
 
     # rank badge on the flame gradient
-    badge = f"#{rank} TRENDING"
+    badge = f"FIND #{rank}"  # not "TRENDING": rank = supplier listing count (honesty sweep 11-06)
     badge_font = _font(40, True)
     bw = draw.textlength(badge, font=badge_font)
     pill_w, pill_h = int(bw) + 76, 76
@@ -202,9 +202,9 @@ CAT_TAGS = {
     "Auto": "#cartok",
     "Bags": "#bagtok",
     "Outdoor": "#outdoortok",
-    "*": "#trendingfinds",
+    "*": "#finds",
 }
-BASE_TAGS = "#tiktokmademebuyit #trending"
+BASE_TAGS = "#giftideas #finds"
 
 
 def _pack_tags(products):
@@ -228,7 +228,7 @@ def write_captions(products):
         ("Variant 2 — POV hook",
          f"POV: your fyp finally delivered 🔥 slide 1 is the {top} btw {tags}"),
         ("Variant 3 — ranked-list hook",
-         f"ranked this week's trending finds so you don't have to 😮‍💨 which one are you grabbing {tags}"),
+         f"this week's finds, ranked by how many sellers list them 😮‍💨 which one's your pick {tags}"),
     ]
 
     L = []
@@ -239,7 +239,7 @@ def write_captions(products):
     L.append("\n## 🖼️ Slides\n")
     for i, p in enumerate(products, 1):
         L.append(f"{i}. `slide-{i:02d}.png` — {p['_ad']} — {price(p)} "
-                 f"({p.get('category', 'Trending Finds')})")
+                 f"({p.get('category', 'Everyday Finds')})")
     L.append("\n\n## 📝 Captions — pick one, paste as-is\n")
     for label, text in variants:
         L.append(f"**{label}**\n")

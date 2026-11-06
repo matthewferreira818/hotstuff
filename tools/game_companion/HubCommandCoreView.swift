@@ -215,10 +215,14 @@ struct CoreRoomView: View {
  }
 
  var body: some View {
-  HStack(alignment:.top,spacing:14) {
-   VStack(spacing:10) { card(0,"laptopcomputer"); card(1,"wifi"); Spacer(minLength:0) }.frame(width:196)
-   hero.frame(minWidth:320,maxWidth:.infinity,maxHeight:.infinity)
-   VStack(spacing:10) { card(2,"person.2"); card(3,"waveform.path.ecg"); Spacer(minLength:0) }.frame(width:196)
+  GeometryReader { geo in
+   let col = min(270,max(196,geo.size.width * 0.17))
+   HStack(alignment:.center,spacing:14) {
+    VStack(spacing:10) { card(0,"laptopcomputer"); card(1,"wifi") }.frame(width:col)
+    hero.frame(minWidth:320,maxWidth:.infinity,maxHeight:min(geo.size.height,520))
+    VStack(spacing:10) { card(2,"person.2"); card(3,"waveform.path.ecg") }.frame(width:col)
+   }
+   .frame(width:geo.size.width,height:geo.size.height)
   }
   .padding(.horizontal,22).padding(.top,4).padding(.bottom,8)
  }
@@ -249,7 +253,7 @@ struct CoreRoomView: View {
 
  func geometry(_ size: CGSize) -> (center: CGPoint,r: CGFloat) {
   let c = CGPoint(x:size.width / 2,y:size.height / 2 - 2)
-  return (c,min(size.width * 0.40,size.height * 0.36))
+  return (c,min(size.width * 0.38,size.height * 0.36,190))
  }
 
  func hubPoint(_ index: Int,_ size: CGSize,_ t: Double) -> CGPoint {
@@ -319,6 +323,7 @@ struct CoreRoomView: View {
       ctx.fill(Path(ellipseIn:CGRect(x:g.center.x - g.r * 1.18,y:g.center.y - g.r * 1.18,width:g.r * 2.36,height:g.r * 2.36)),
                with:.radialGradient(Gradient(colors:[CoreStyle.crimson.opacity(0.10),Color.white.opacity(0.012),.clear]),center:g.center,startRadius:0,endRadius:g.r * 1.18))
       ctx.stroke(Path(ellipseIn:CGRect(x:g.center.x - g.r,y:g.center.y - g.r,width:g.r * 2,height:g.r * 2)),with:.color(Color.white.opacity(0.10)),lineWidth:1.2)
+      ctx.stroke(Path(ellipseIn:CGRect(x:g.center.x - g.r * 0.62,y:g.center.y - g.r * 0.62,width:g.r * 1.24,height:g.r * 1.24)),with:.color(Color.white.opacity(0.05)),style:StrokeStyle(lineWidth:1,dash:[2,5]))
       ctx.stroke(Path(ellipseIn:CGRect(x:g.center.x - g.r * 1.16,y:g.center.y - g.r * 1.16,width:g.r * 2.32,height:g.r * 2.32)),with:.color(Color.white.opacity(0.04)),lineWidth:1)
       // a slow sweep along the main ring: decoration only
       if !reduceMotion {

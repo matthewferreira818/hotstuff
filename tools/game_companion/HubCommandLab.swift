@@ -215,181 +215,388 @@ enum ScopeRules {
  @Published var openExperiment: String?
 }
 
+// Research notes for the lab: plain text, this Mac only.
+@MainActor final class LabNotes: ObservableObject {
+ static let shared = LabNotes()
+ private let url = FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/CommandCore/research-notes.txt")
+ @Published var text: String { didSet { try? text.write(to:url,atomically:true,encoding:.utf8) } }
+ init() { text = (try? String(contentsOf:FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/CommandCore/research-notes.txt"),encoding:.utf8)) ?? "" }
+}
+
+// Cyber Lab, redesigned after Matthew's notes ("keep the engineering, redesign the cockpit"): device library left, the selected device drawn in the
+// centre with its real readings around it, a compact Tool Vault right, small Experiments / Learn / Research panels underneath.
+// The drawing is a picture of the KIND of device; every word and number on and around it is a real reading or says plainly that it isn't connected.
 struct CoreLabView: View {
  @ObservedObject var store: LabStore
  @ObservedObject var ui = LabUI.shared
+ @ObservedObject var monitor = SystemMonitor.shared
+ @ObservedObject var notes = LabNotes.shared
+ @ObservedObject var guardHub = GuardHub.shared
  var macFacts: [(String,String)]
+ var askFriday: (String) -> Void
 
- private func card<C: View>(_ title: String,@ViewBuilder _ content: () -> C) -> some View {
-  CoreCard(title:coreTitle(title)) { content() }
- }
  private func pill(_ text: String,_ color: Color = CoreStyle.teal,_ action: @escaping () -> Void) -> some View {
-  Button(action:action) { Text(text).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(color).padding(.horizontal,11).padding(.vertical,5).overlay(Capsule().stroke(color.opacity(0.6),lineWidth:1)) }.buttonStyle(.plain)
+  Button(action:action) { Text(text).font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(color).padding(.horizontal,10).padding(.vertical,4).overlay(Capsule().stroke(color.opacity(0.55),lineWidth:1)) }.buttonStyle(.plain)
  }
  private func ago(_ d: Date) -> String { let s = Int(Date().timeIntervalSince(d)); return s < 90 ? "just now" : (s < 3600 ? "\(s / 60) min ago" : (s < 86400 ? "\(s / 3600) h ago" : "\(s / 86400) d ago")) }
-
  var selectedDevice: LabDevice? { store.devices.first { $0.id == ui.selected } }
 
  var body: some View {
-  ScrollView {
-   VStack(alignment:.leading,spacing:12) {
-    HStack(alignment:.top,spacing:14) {
-     devicesCard.frame(width:235)
-     centerCard
-     toolsCard.frame(width:265)
+  GeometryReader { geo in
+   let wide = geo.size.width > 1100
+   VStack(spacing:10) {
+    HStack(alignment:.top,spacing:10) {
+     library.frame(width:wide ? 220 : 190)
+     workspace.frame(maxWidth:.infinity)
+     vault.frame(width:wide ? 300 : 250)
     }
-    experimentsCard
-    learningCard
+    .frame(maxHeight:.infinity)
+    HStack(alignment:.top,spacing:10) {
+     experiments
+     learning
+     research
+    }
+    .frame(height:wide ? 170 : 150)
    }
-   .padding(.horizontal,22).padding(.vertical,4)
+   .padding(.horizontal,22).padding(.top,2).padding(.bottom,8)
+  }
+  .onAppear { monitor.start() }
+  .onDisappear { monitor.stop() }
+ }
+
+ // MARK: device library
+
+ var library: some View {
+  CoreCard(title:"Devices",icon:"square.stack.3d.up") {
+   ScrollView {
+    VStack(spacing:6) {
+     deviceRow(id:"this-mac",name:"This Mac",sub:"connected · local",symbol:"laptopcomputer",dot:CoreStyle.emerald)
+     ForEach(store.devices) { d in deviceRow(id:d.id,name:d.name,sub:"record only · \(d.platform.rawValue)",symbol:d.platform.symbol,dot:Color.white.opacity(0.3)) }
+     if let usb = store.usb, !usb.isEmpty {
+      Text("ON USB NOW").font(.system(size:10,weight:.semibold,design:.rounded)).tracking(1.2).foregroundStyle(CoreStyle.dim).frame(maxWidth:.infinity,alignment:.leading).padding(.top,4)
+      ForEach(Array(usb.prefix(4).enumerated()),id:\.offset) { _,n in
+       HStack(spacing:7) { Image(systemName:"cable.connector").font(.system(size:11)).foregroundStyle(CoreStyle.teal); Text(n).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.85)).lineLimit(1); Spacer(minLength:0) }
+      }
+     }
+     if ui.adding { addForm } else {
+      HStack { pill("+ Add device") { ui.adding = true }; pill(store.running ? "…" : "USB") { store.scanUSB() }.disabled(store.running); Spacer(minLength:0) }.padding(.top,4)
+     }
+    }
+   }
   }
  }
 
- // MARK: devices
-
- var devicesCard: some View {
-  card("DEVICES · \(store.devices.count + 1)") {
-   deviceRow(id:"this-mac",name:"This Mac",sub:"macOS \(ProcessInfo.processInfo.operatingSystemVersion.majorVersion).\(ProcessInfo.processInfo.operatingSystemVersion.minorVersion) · automatic",symbol:"laptopcomputer",dot:CoreStyle.emerald)
-   ForEach(store.devices) { d in deviceRow(id:d.id,name:d.name,sub:d.platform.rawValue + " · added by you",symbol:d.platform.symbol,dot:CoreStyle.dim) }
-   if ui.adding {
-    VStack(alignment:.leading,spacing:6) {
-     TextField("Name (e.g. Old iPhone)",text:$ui.name).textFieldStyle(.roundedBorder)
-     Picker("",selection:$ui.platform) { ForEach(LabPlatform.allCases) { Text($0.label).tag($0) } }.labelsHidden()
-     TextField("Private address (optional, e.g. 192.168.1.20)",text:$ui.address).textFieldStyle(.roundedBorder)
-     TextField("Notes",text:$ui.notes).textFieldStyle(.roundedBorder)
-     Toggle("This device is mine",isOn:$ui.owned).font(.system(size:12.5,design:.rounded)).toggleStyle(.checkbox)
-     HStack {
-      pill("Add") { store.add(name:ui.name,platform:ui.platform,address:ui.address,notes:ui.notes,owned:ui.owned); ui.name = ""; ui.address = ""; ui.notes = ""; ui.owned = false; ui.adding = false }
-      pill("Cancel",CoreStyle.dim) { ui.adding = false }
-     }
-    }
-   } else {
-    pill("+ Add a device you own") { ui.adding = true }
+ var addForm: some View {
+  VStack(alignment:.leading,spacing:5) {
+   TextField("Name",text:$ui.name).textFieldStyle(.roundedBorder).font(.system(size:12))
+   Picker("",selection:$ui.platform) { ForEach(LabPlatform.allCases) { Text($0.label).tag($0) } }.labelsHidden().font(.system(size:12))
+   TextField("Private address (optional)",text:$ui.address).textFieldStyle(.roundedBorder).font(.system(size:12))
+   TextField("Notes",text:$ui.notes).textFieldStyle(.roundedBorder).font(.system(size:12))
+   Toggle("This device is mine",isOn:$ui.owned).font(.system(size:11.5,design:.rounded)).toggleStyle(.checkbox)
+   HStack {
+    pill("Add") { store.add(name:ui.name,platform:ui.platform,address:ui.address,notes:ui.notes,owned:ui.owned); ui.name = ""; ui.address = ""; ui.notes = ""; ui.owned = false; ui.adding = false }
+    pill("Cancel",CoreStyle.dim) { ui.adding = false }
    }
   }
+  .padding(.top,4)
  }
 
  func deviceRow(id: String,name: String,sub: String,symbol: String,dot: Color) -> some View {
   let on = ui.selected == id
-  return Button { ui.selected = id } label: {
+  return Button { withAnimation(.easeOut(duration:0.2)) { ui.selected = id } } label: {
    HStack(spacing:9) {
-    Image(systemName:symbol).font(.system(size:15)).foregroundStyle(on ? CoreStyle.crimson : CoreStyle.ink.opacity(0.8)).frame(width:20)
+    Image(systemName:symbol).font(.system(size:14)).foregroundStyle(on ? Color.white : CoreStyle.ink.opacity(0.7)).frame(width:20)
     VStack(alignment:.leading,spacing:1) {
-     Text(name).font(.system(size:13.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
-     Text(sub).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+     Text(name).font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
+     Text(sub).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
     }
     Spacer(minLength:4)
-    Circle().fill(dot).frame(width:7,height:7)
+    Circle().fill(dot).frame(width:6,height:6)
    }
-   .padding(8).frame(maxWidth:.infinity,alignment:.leading)
-   .background(RoundedRectangle(cornerRadius:10).fill(on ? CoreStyle.crimson.opacity(0.10) : Color.clear))
-   .overlay(RoundedRectangle(cornerRadius:10).stroke(on ? CoreStyle.crimson.opacity(0.55) : Color.white.opacity(0.05),lineWidth:1))
+   .padding(.horizontal,8).padding(.vertical,7).frame(maxWidth:.infinity,alignment:.leading)
+   .background(RoundedRectangle(cornerRadius:8).fill(on ? Color.white.opacity(0.06) : Color.clear))
+   .overlay(alignment:.leading) { if on { RoundedRectangle(cornerRadius:1).fill(CoreStyle.crimson).frame(width:2).padding(.vertical,6) } }
    .contentShape(Rectangle())
   }.buttonStyle(.plain)
  }
 
- // MARK: the selected device
+ // MARK: the device workspace
 
- var centerCard: some View {
-  Group {
-   if ui.selected == "this-mac" {
-    card("THIS MAC · LOCAL, MEASURED NOW") {
-     ForEach(Array(macFacts.enumerated()),id:\.offset) { _,f in row(f.0,f.1) }
-     Divider().overlay(Color.white.opacity(0.06))
-     Text("CONNECTED PHONES AND OTHER USB DEVICES").font(.system(size:10.5,weight:.semibold,design:.rounded)).tracking(1.5).foregroundStyle(CoreStyle.dim)
-     if let usb = store.usb {
-      if usb.isEmpty { Text("macOS reports no USB devices right now.").font(.system(size:13,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.8)) }
-      ForEach(Array(usb.enumerated()),id:\.offset) { _,n in Text("• " + n).font(.system(size:13,design:.rounded)).foregroundStyle(CoreStyle.ink) }
-      if let at = store.usbAt { Text("from macOS's own USB report, \(ago(at))").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim) }
-     } else {
-      Text(store.usbFailed ? "macOS didn't return a USB report." : "Not looked yet. Plug a phone in by cable, then look.").font(.system(size:13,design:.rounded)).foregroundStyle(CoreStyle.dim)
-     }
-     pill(store.running ? "looking…" : "Look for USB devices") { store.scanUSB() }.disabled(store.running)
-    }
-   } else if let d = selectedDevice {
-    card("\(d.name.uppercased()) · ADDED BY YOU") {
-     row("Platform",d.platform.label); row("Owned by you",d.owned ? "yes (you ticked it)" : "not ticked",d.owned ? 1 : 2)
-     row("Address",d.address.isEmpty ? "none saved" : d.address); row("Added",ago(d.added))
-     if !d.notes.isEmpty { row("Notes",d.notes) }
-     row("Connector",d.platform.connector)
-     Text("Nothing is probing this device. It is only a record until a connector for its platform exists.").font(.system(size:12.5,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.75)).fixedSize(horizontal:false,vertical:true)
-     HStack(spacing:8) {
-      pill(store.running ? "running…" : "Nmap quick port check") { store.nmapCheck(d) }.disabled(store.running)
-      pill("Remove",CoreStyle.crimson) { let id = d.id; ui.selected = "this-mac"; store.remove(id) }
-     }
-     if let why = ScopeRules.refusal(for:d) { Text("The port check is off for this device: \(why)").font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim).fixedSize(horizontal:false,vertical:true) }
-     if !store.note.isEmpty { Text(store.note).font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.teal) }
-    }
-   } else {
-    card("DEVICE") { Text("Pick a device on the left.").font(.system(size:13,design:.rounded)).foregroundStyle(CoreStyle.dim) }
-   }
-  }
- }
-
- func row(_ k: String,_ v: String,_ tone: Int = 0) -> some View {
-  HStack(alignment:.firstTextBaseline) {
-   Text(k).font(.system(size:12.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
-   Spacer(minLength:8)
-   Text(v).font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(tone == 1 ? CoreStyle.emerald : (tone == 2 ? CoreStyle.amber : CoreStyle.ink)).multilineTextAlignment(.trailing)
-  }
- }
-
- // MARK: tools
-
- var toolsCard: some View {
-  card("TOOLS · FOUND ON THIS MAC") {
-   ForEach(store.tools) { t in
+ var workspace: some View {
+  let isMac = ui.selected == "this-mac"
+  let d = selectedDevice
+  let platform: LabPlatform = isMac ? .macOS : (d?.platform ?? .other)
+  return VStack(spacing:10) {
+   HStack(alignment:.firstTextBaseline) {
     VStack(alignment:.leading,spacing:2) {
-     HStack(spacing:8) {
-      Circle().fill(t.installed ? CoreStyle.emerald : Color.clear).overlay(Circle().stroke(t.installed ? CoreStyle.emerald : CoreStyle.dim,lineWidth:1)).frame(width:8,height:8)
-      Text(t.name).font(.system(size:13.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink)
-      Spacer(minLength:4)
-      Text(t.installed ? "installed" : "not found").font(.system(size:11.5,design:.rounded)).foregroundStyle(t.installed ? CoreStyle.emerald : CoreStyle.dim)
-     }
-     Text(t.role + " · " + t.detail).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).fixedSize(horizontal:false,vertical:true)
-     HStack(spacing:8) {
-      if t.installed, let path = t.appPath { pill("Open") { NSWorkspace.shared.open(URL(fileURLWithPath:path)) } }
-      pill("About",CoreStyle.dim) { if let u = URL(string:t.infoURL) { NSWorkspace.shared.open(u) } }
+     HStack(spacing:6) {
+      Circle().fill(isMac ? CoreStyle.emerald : Color.white.opacity(0.3)).frame(width:6,height:6)
+      Text(isMac ? "Connected · readings are live" : "Not connected · a record you added · \(platform.connector)").font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
      }
     }
-    Divider().overlay(Color.white.opacity(0.05))
-   }
-   pill("Look again") { store.detectTools() }
-  }
- }
-
- // MARK: experiments + learning
-
- var experimentsCard: some View {
-  card("EXPERIMENT HISTORY · THIS MAC ONLY") {
-   if store.experiments.isEmpty { Text("No experiments yet. A check you run from a device you added shows up here with its time and result.").font(.system(size:13,design:.rounded)).foregroundStyle(CoreStyle.dim) }
-   ForEach(store.experiments.suffix(6).reversed()) { e in
-    Button { ui.openExperiment = ui.openExperiment == e.id ? nil : e.id } label: {
-     VStack(alignment:.leading,spacing:3) {
-      HStack {
-       Text("\(e.tool) · \(e.device)").font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink)
-       Spacer(minLength:6)
-       Text(ago(e.at)).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
-      }
-      Text(e.summary).font(.system(size:12.5,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.8))
-      if ui.openExperiment == e.id, !e.output.isEmpty { Text(e.output).font(DeckMono.font(11)).foregroundStyle(CoreStyle.ink.opacity(0.75)).textSelection(.enabled).fixedSize(horizontal:false,vertical:true) }
-     }
-     .contentShape(Rectangle())
+    Spacer()
+    Button { askFriday(isMac ? "Look at this Mac's readings in Command Core and tell me anything worth doing." : "Explain how we could safely look at my \(platform.label) device (\(d?.name ?? "")) and what Command Core would need.") } label: {
+     Label("Ask Friday about this",systemImage:"sparkles").font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal)
     }.buttonStyle(.plain)
    }
+   GeometryReader { g in
+    let side = min(g.size.width * 0.55,g.size.height * 0.62)
+    VStack(spacing:10) {
+     Spacer(minLength:0)
+     deviceArt(platform:platform,isMac:isMac,size:side)
+     HStack(spacing:8) {
+      Text(isMac ? "This Mac" : (d?.name ?? "Device")).font(.system(size:16,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink)
+      Text(isMac ? "Active" : "Record only").font(.system(size:10.5,weight:.medium,design:.rounded)).foregroundStyle(isMac ? CoreStyle.emerald : CoreStyle.dim)
+       .padding(.horizontal,8).padding(.vertical,2).overlay(Capsule().stroke((isMac ? CoreStyle.emerald : CoreStyle.dim).opacity(0.6),lineWidth:1))
+     }
+     Text(factLine(isMac:isMac,d:d)).font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+     if isMac {
+      HStack(spacing:8) { ForEach(rightFacts(isMac:true,d:nil),id:\.0) { f in miniStat(f.0,f.1,f.2) } }
+     }
+     HStack(spacing:8) { ForEach(store.tools) { t in toolChip(t) } }
+     Spacer(minLength:0)
+    }
+    .frame(width:g.size.width,height:g.size.height)
+   }
+   HStack(spacing:8) {
+    if isMac {
+     pill(guardHub.checking ? "checking…" : "Run Mac checks") { Task { await guardHub.runChecks() } }.disabled(guardHub.checking || guardHub.locked)
+     pill(store.running ? "looking…" : "Look for USB devices") { store.scanUSB() }.disabled(store.running)
+    } else if let d {
+     pill(store.running ? "running…" : "Nmap quick port check") { store.nmapCheck(d) }.disabled(store.running || ScopeRules.refusal(for:d) != nil)
+     pill("Remove",CoreStyle.crimson) { let id = d.id; ui.selected = "this-mac"; store.remove(id) }
+     if let why = ScopeRules.refusal(for:d) { Text("Port check off: \(why)").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1) }
+    }
+    Spacer(minLength:0)
+    if !store.note.isEmpty { Text(store.note).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.teal).lineLimit(1) }
+   }
+  }
+  .padding(13).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.top)
+  .background(RoundedRectangle(cornerRadius:11).fill(HubTheme.hex(0x0E0E11)))
+  .overlay(RoundedRectangle(cornerRadius:11).stroke(Color.white.opacity(0.065),lineWidth:1))
+ }
+
+ func factLine(isMac: Bool,d: LabDevice?) -> String {
+  if isMac {
+   let os = macFacts.first { $0.0 == "macOS" }.map { "macOS " + $0.1 } ?? "macOS"
+   let chip = macFacts.first { $0.0 == "Chip" }?.1 ?? ""
+   let mem = macFacts.first { $0.0 == "Memory" }?.1 ?? ""
+   return [os,chip,mem.isEmpty ? "" : mem + " RAM",CoreFacts.freeDiskGB().map { "\(Int($0.rounded())) GB free" } ?? ""].filter { !$0.isEmpty }.joined(separator:" · ")
+  }
+  guard let d else { return "" }
+  return [d.platform.label,d.owned ? "yours" : "ownership not ticked",d.address.isEmpty ? "" : d.address,"not connected"].filter { !$0.isEmpty }.joined(separator:" · ")
+ }
+
+ func miniStat(_ k: String,_ v: String,_ tone: Int) -> some View {
+  VStack(spacing:1) {
+   Text(v).font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(tone == 1 ? CoreStyle.emerald : (tone == 2 ? CoreStyle.amber : CoreStyle.ink)).lineLimit(1)
+   Text(k).font(.system(size:10,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+  }
+  .padding(.horizontal,10).padding(.vertical,5)
+  .background(RoundedRectangle(cornerRadius:7).fill(Color.white.opacity(0.03)))
+  .overlay(RoundedRectangle(cornerRadius:7).stroke(Color.white.opacity(0.05),lineWidth:1))
+ }
+
+ // Small tool tiles under the device (reference). Status is what was found on this Mac.
+ func toolChip(_ t: LabTool) -> some View {
+  let icon = ["nmap":"dot.radiowaves.left.and.right","wireshark":"waveform.path","zap":"bolt.shield","kali":"terminal"][t.id] ?? "wrench.and.screwdriver"
+  return Button { if t.installed, let path = t.appPath { NSWorkspace.shared.open(URL(fileURLWithPath:path)) } else if let u = URL(string:t.infoURL) { NSWorkspace.shared.open(u) } } label: {
+   VStack(spacing:4) {
+    Image(systemName:icon).font(.system(size:16)).foregroundStyle(t.installed ? CoreStyle.emerald : Color.white.opacity(0.5))
+    Text(t.name).font(.system(size:10.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.85)).lineLimit(1)
+    Circle().fill(t.installed ? CoreStyle.emerald : Color.clear).overlay(Circle().stroke(t.installed ? CoreStyle.emerald : CoreStyle.dim,lineWidth:1)).frame(width:5,height:5)
+   }
+   .frame(width:72,height:62)
+   .background(RoundedRectangle(cornerRadius:9).fill(Color.white.opacity(0.03)))
+   .overlay(RoundedRectangle(cornerRadius:9).stroke(Color.white.opacity(0.06),lineWidth:1))
+  }
+  .buttonStyle(.plain)
+  .help(t.installed ? "Open \(t.name)" : "\(t.name) isn't installed on this Mac: opens its website")
+ }
+
+ func factTile(_ k: String,_ v: String,_ tone: Int) -> some View {
+  VStack(alignment:.leading,spacing:2) {
+   Text(k).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
+   Text(v).font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(tone == 1 ? CoreStyle.emerald : (tone == 2 ? CoreStyle.amber : CoreStyle.ink)).lineLimit(2).minimumScaleFactor(0.8)
+  }
+  .padding(.horizontal,10).padding(.vertical,7).frame(maxWidth:.infinity,alignment:.leading)
+  .background(RoundedRectangle(cornerRadius:8).fill(Color.white.opacity(0.03)))
+  .overlay(RoundedRectangle(cornerRadius:8).stroke(Color.white.opacity(0.05),lineWidth:1))
+ }
+
+ func leftFacts(isMac: Bool,d: LabDevice?) -> [(String,String,Int)] {
+  if isMac {
+   let os = macFacts.first { $0.0 == "macOS" }.map { "macOS " + $0.1 } ?? "macOS"
+   let chip = macFacts.first { $0.0 == "Chip" }?.1 ?? "unknown"
+   let mem = macFacts.first { $0.0 == "Memory" }?.1 ?? "?"
+   return [("System",os,0),("Chip",chip,0),("Memory",mem,0),("Up for",CoreFacts.uptimeText(ProcessInfo.processInfo.systemUptime),0)]
+  }
+  guard let d else { return [] }
+  return [("Platform",d.platform.label,0),("Yours",d.owned ? "yes (ticked)" : "not ticked",d.owned ? 1 : 2),("Address",d.address.isEmpty ? "none saved" : d.address,0),("Added",ago(d.added),0)]
+ }
+
+ func rightFacts(isMac: Bool,d: LabDevice?) -> [(String,String,Int)] {
+  if isMac {
+   let c = CoreFacts.summarize(guardHub.results)
+   return [
+    ("CPU now",monitor.cpu.map { "\(Int(($0 * 100).rounded()))%" } ?? "measuring…",0),
+    ("Memory used",monitor.memUsedGB.map { String(format:"%.1f GB",$0) } ?? "measuring…",0),
+    ("Free disk",CoreFacts.freeDiskGB().map { "\(Int($0.rounded())) GB" } ?? "?",0),
+    ("Guard",guardHub.results.isEmpty ? "not checked" : (c.warn == 0 ? "all \(c.ok) ok" : "\(c.warn) to look at"),guardHub.results.isEmpty ? 0 : (c.warn == 0 ? 1 : 2)),
+   ]
+  }
+  guard let d else { return [] }
+  return [("Connector",d.platform == .other ? "none" : "planned",0),("Readings","none: not connected",0),("Notes",d.notes.isEmpty ? "–" : d.notes,0)]
+ }
+
+ // A drawing of the kind of device, with real readings on its screen.
+ @ViewBuilder func deviceArt(platform: LabPlatform,isMac: Bool,size: CGFloat) -> some View {
+  let glow = isMac ? CoreStyle.crimson : Color.white.opacity(0.2)
+  switch platform {
+  case .iOS, .android:
+   ZStack {
+    RoundedRectangle(cornerRadius:26).fill(LinearGradient(colors:[HubTheme.hex(0x1A1A1E),HubTheme.hex(0x0C0C0E)],startPoint:.top,endPoint:.bottom))
+    RoundedRectangle(cornerRadius:26).stroke(glow.opacity(0.7),lineWidth:1.5)
+    VStack(spacing:6) {
+     Capsule().fill(Color.black).frame(width:44,height:10).padding(.top,10)
+     Spacer()
+     Image(systemName:platform.symbol).font(.system(size:26,weight:.light)).foregroundStyle(Color.white.opacity(0.35))
+     Text("not connected").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)
+     Spacer()
+    }
+   }
+   .frame(width:min(140,size * 0.42),height:min(270,size * 0.82))
+   .shadow(color:glow.opacity(0.25),radius:18)
+  default:
+   VStack(spacing:0) {
+    ZStack {
+     RoundedRectangle(cornerRadius:10).fill(LinearGradient(colors:[HubTheme.hex(0x1B0B0F),HubTheme.hex(0x09090B)],startPoint:.top,endPoint:.bottom))
+     RoundedRectangle(cornerRadius:10).stroke(glow.opacity(0.8),lineWidth:1.4)
+     if isMac {
+      VStack(spacing:6) {
+       Image(systemName:"apple.logo").font(.system(size:24)).foregroundStyle(CoreStyle.crimson)
+       HStack(spacing:14) {
+        screenStat("CPU",monitor.cpu.map { "\(Int(($0 * 100).rounded()))%" } ?? "…")
+        screenStat("MEM",monitor.memUsedGB.map { String(format:"%.1f",$0) + "G" } ?? "…")
+        screenStat("DISK",CoreFacts.freeDiskGB().map { "\(Int($0.rounded()))G" } ?? "…")
+       }
+       Text("live").font(.system(size:9.5,design:.rounded)).foregroundStyle(CoreStyle.emerald.opacity(0.8))
+      }
+     } else {
+      VStack(spacing:4) {
+       Image(systemName:platform.symbol).font(.system(size:24,weight:.light)).foregroundStyle(Color.white.opacity(0.35))
+       Text("not connected").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)
+      }
+     }
+    }
+    .frame(width:min(380,size * 1.2),height:min(230,size * 0.72))
+    Trapezoid().fill(LinearGradient(colors:[HubTheme.hex(0x2A2A2F),HubTheme.hex(0x121214)],startPoint:.top,endPoint:.bottom))
+     .frame(width:min(440,size * 1.38),height:12)
+   }
+   .shadow(color:glow.opacity(0.28),radius:22)
   }
  }
 
- var learningCard: some View {
-  card("LEARN · LINKS THAT OPEN IN YOUR BROWSER") {
-   HStack(spacing:8) {
-    ForEach([("TryHackMe","https://tryhackme.com"),("Hack The Box","https://www.hackthebox.com"),("OWASP","https://owasp.org"),("Kali docs","https://www.kali.org/docs/"),("Nmap guide","https://nmap.org/book/man.html"),("Wireshark docs","https://www.wireshark.org/docs/")],id:\.0) { l in
-     pill(l.0) { if let u = URL(string:l.1) { NSWorkspace.shared.open(u) } }
-    }
-    Spacer(minLength:0)
-   }
-   Text("Practise only on your own devices or on sites built for practice. Signing up for any of these is your hands.").font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
+ func screenStat(_ k: String,_ v: String) -> some View {
+  VStack(spacing:1) {
+   Text(v).font(.system(size:15,weight:.light,design:.rounded)).foregroundStyle(CoreStyle.ink)
+   Text(k).font(.system(size:9,weight:.semibold,design:.rounded)).tracking(1).foregroundStyle(CoreStyle.dim)
   }
+ }
+
+ // MARK: Tool Vault
+
+ var vault: some View {
+  CoreCard(title:"Tool Vault",icon:"shippingbox") {
+   ScrollView {
+    VStack(spacing:7) {
+     ForEach(store.tools) { t in toolTile(t) }
+     HStack(spacing:8) {
+      Image(systemName:"plus.circle").foregroundStyle(CoreStyle.dim)
+      Text("More free tools later: each one is added as its own module.").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)
+     }.padding(.top,2)
+     HStack { pill("Check again") { store.detectTools() }; Spacer(minLength:0) }
+    }
+   }
+  }
+ }
+
+ func toolTile(_ t: LabTool) -> some View {
+  let icon = ["nmap":"dot.radiowaves.left.and.right","wireshark":"waveform.path","zap":"bolt.shield","kali":"terminal"][t.id] ?? "wrench.and.screwdriver"
+  let purpose = ["nmap":"Find open ports on your own devices","wireshark":"Watch your own network traffic","zap":"Test your own web apps","kali":"Security lab system, in a virtual machine"][t.id] ?? t.role
+  return HStack(alignment:.top,spacing:10) {
+   ZStack {
+    RoundedRectangle(cornerRadius:8).fill(Color.white.opacity(0.04)).frame(width:34,height:34)
+    Image(systemName:icon).font(.system(size:15)).foregroundStyle(t.installed ? CoreStyle.emerald : Color.white.opacity(0.45))
+   }
+   VStack(alignment:.leading,spacing:3) {
+    HStack(spacing:6) {
+     Text(t.name).font(.system(size:12.5,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.ink)
+     Text(t.installed ? "installed" : "not installed").font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(t.installed ? CoreStyle.emerald : CoreStyle.dim)
+      .padding(.horizontal,6).padding(.vertical,1).background(Capsule().fill((t.installed ? CoreStyle.emerald : Color.white).opacity(0.08)))
+    }
+    Text(purpose).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.7)).lineLimit(2)
+    HStack(spacing:10) {
+     if t.installed, let path = t.appPath { Button("Open") { NSWorkspace.shared.open(URL(fileURLWithPath:path)) }.buttonStyle(.plain).font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal) }
+     Button("About") { if let u = URL(string:t.infoURL) { NSWorkspace.shared.open(u) } }.buttonStyle(.plain).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.teal)
+     Button("Ask Friday") { askFriday("Explain \(t.name) in plain words: what it's for, how I'd use it safely on my own devices, and whether it's worth installing on my 8 GB Mac.") }.buttonStyle(.plain).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.teal)
+    }
+   }
+   Spacer(minLength:0)
+  }
+  .padding(8).background(RoundedRectangle(cornerRadius:9).fill(Color.white.opacity(0.025)))
+ }
+
+ // MARK: small panels underneath
+
+ var experiments: some View {
+  CoreCard(title:"Experiments",icon:"flask") {
+   ScrollView {
+    VStack(alignment:.leading,spacing:6) {
+     if store.experiments.isEmpty { Text("None yet. A check you run on a device you added lands here with its time and result.").font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
+     ForEach(store.experiments.suffix(5).reversed()) { e in
+      Button { ui.openExperiment = ui.openExperiment == e.id ? nil : e.id } label: {
+       VStack(alignment:.leading,spacing:2) {
+        HStack { Text("\(e.tool) · \(e.device)").font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1); Spacer(minLength:4); Text(ago(e.at)).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
+        Text(e.summary).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.75))
+        if ui.openExperiment == e.id, !e.output.isEmpty { Text(e.output).font(DeckMono.font(10)).foregroundStyle(CoreStyle.ink.opacity(0.7)).textSelection(.enabled).fixedSize(horizontal:false,vertical:true) }
+       }.contentShape(Rectangle())
+      }.buttonStyle(.plain)
+     }
+    }
+   }
+  }
+ }
+
+ var learning: some View {
+  CoreCard(title:"Learn",icon:"graduationcap") {
+   let links = [("TryHackMe","https://tryhackme.com"),("Hack The Box","https://www.hackthebox.com"),("OWASP","https://owasp.org"),("Kali docs","https://www.kali.org/docs/"),("Nmap guide","https://nmap.org/book/man.html"),("Wireshark docs","https://www.wireshark.org/docs/")]
+   LazyVGrid(columns:[GridItem(.flexible()),GridItem(.flexible())],alignment:.leading,spacing:6) {
+    ForEach(links,id:\.0) { l in
+     Button { if let u = URL(string:l.1) { NSWorkspace.shared.open(u) } } label: {
+      HStack(spacing:5) { Image(systemName:"arrow.up.right.square").font(.system(size:10)); Text(l.0).font(.system(size:11.5,design:.rounded)) }.foregroundStyle(CoreStyle.teal)
+     }.buttonStyle(.plain)
+    }
+   }
+   Text("Practise only on your own gear or practice sites.").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
+  }
+ }
+
+ var research: some View {
+  CoreCard(title:"Research notes",icon:"note.text") {
+   TextEditor(text:$notes.text).font(.system(size:12,design:.rounded)).scrollContentBackground(.hidden).foregroundStyle(CoreStyle.ink)
+    .background(RoundedRectangle(cornerRadius:6).fill(Color.white.opacity(0.03)))
+   Text("Saved on this Mac as you type.").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
+  }
+ }
+}
+
+struct Trapezoid: Shape {
+ func path(in r: CGRect) -> Path {
+  var p = Path()
+  p.move(to:CGPoint(x:r.minX + r.width * 0.06,y:r.minY)); p.addLine(to:CGPoint(x:r.maxX - r.width * 0.06,y:r.minY))
+  p.addLine(to:CGPoint(x:r.maxX,y:r.maxY)); p.addLine(to:CGPoint(x:r.minX,y:r.maxY)); p.closeSubpath()
+  return p
  }
 }
 
@@ -412,6 +619,6 @@ extension CompanionInterfaceView {
    actionTitle:"Look for USB devices",run:{ LabStore.shared.scanUSB() }),at:0)
   obs.append(CoreObservation(tone:0,text:"\(installed) of 4 lab tools found on this Mac.",why:"Nmap, Wireshark, OWASP ZAP and a VM app for Kali. I never install anything myself; that stays your call.",source:"app and program search, now"))
   return coreFrame("Cyber Lab","Your devices, tools and experiments · authorized, your own equipment only",observations:obs,
-                   content:AnyView(CoreLabView(store:store,macFacts:facts)))
+                   content:AnyView(CoreLabView(store:store,macFacts:facts,askFriday:{ q in FridayBrain.shared.draft = q; CoreShellUI.shared.drawerOpen = true })))
  }
 }

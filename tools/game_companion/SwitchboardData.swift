@@ -82,33 +82,101 @@ enum SwitchboardRules {
  static func normalized(_ name: String) -> String { name.lowercased().replacingOccurrences(of:"_",with:"-").trimmingCharacters(in:.whitespaces) }
  static let selfNames: Set<String> = ["lc-switchboard","friday","switchboard"]
 
- // Lock 7: hard block, checked BEFORE anything starts. Whole words, any case. Over-blocking is on purpose: a refused job
- // is cheap (the sender rewords it or Matthew does it), a wrong job isn't.
- static let blocked: [(String,[String])] = [
-  ("money or payments",["money","payment","payments","pay","paid","paying","payout","paypal","stripe","invoice","invoices","refund",
-                        "refunds","bank","banking","e-transfer","etransfer","interac","purchase","purchases","buy","buying","sell","selling",
-                        "checkout","price","prices","pricing","credit card","debit card","card number","wire transfer","crypto","bitcoin",
-                        "subscription","subscribe","billing","budget"]),
-  ("logins or passwords",["password","passwords","passcode","passphrase","login","logins","log in","log into","sign in","sign-in","signin",
-                          "sign up","signup","2fa","mfa","otp","verification code","api key","token","tokens","secret","secrets",
-                          "credential","credentials","oauth","keychain","ssh"]),
-  ("sending to a person",["email","emails","e-mail","gmail","outlook","inbox","dm","dms","direct message","sms","text message","texting",
-                          "whatsapp","messenger","send to","send it to","send this to","send them","send him","send her","send a message",
-                          "message him","message her","message them","call him","call her","call them","phone","outreach","cold email",
-                          "linkedin message","reply to the client","contact the client","contact form"]),
-  ("Moomoo",["moomoo","futu","brokerage","broker"]),
- ]
+ // Lock 7: hard block, checked BEFORE anything starts (rewritten after the first polish round: the old version refused any comment that merely
+ // MENTIONED a word like "password" or "key", and blocked 6 ordinary Co-CEO notes in one morning).
+ //
+ // THE RULE, in plain words: a line is refused only when it ASKS Local Claude to do something (it reads like an instruction: it starts with
+ // an action verb such as "pay", "email", "log in", "check", or with "please", "can you", "you should"…) AND that same sentence is about money,
+ // logins/secrets, contacting a person, or Moomoo. Reports, status notes and discussion are never refused ("Amazon refund ~Nov 16 is Matthew's
+ // to check", "CBDC hold: no sending until GO", "no secrets in the diff"). A sentence that forbids ("don't send…", "never log in…") isn't a request.
+ // Words are matched whole (no hits inside other words). Messages to our own crew (Hotline, room, board, an LC chat) aren't "sending to a person".
+ // Known limit: an instruction that starts with a verb that isn't on the list below is read as a note. That is defence in depth only: a job still
+ // runs with Matthew's allow list (dontAsk), and a relay has no tools at all.
+ struct HardBlock: Equatable { var category: String; var line: String }
 
- static func blockReason(_ body: String) -> String? {
-  let text = body.lowercased()
-  if text.range(of:#"\$\s?\d"#,options:.regularExpression) != nil { return "money or payments" }
-  for (reason,words) in blocked {
-   for word in words {
-    let escaped = NSRegularExpression.escapedPattern(for:word)
-    if text.range(of:"(?<![a-z0-9])\(escaped)(?![a-z0-9])",options:.regularExpression) != nil { return reason }
+ static let requestVerbs: Set<String> = [
+  "pay","buy","purchase","order","transfer","refund","charge","bill","invoice","donate","subscribe","checkout","spend","tip","wire","send","email","e-mail",
+  "dm","text","call","phone","contact","message","reply","reach","nudge","pitch","follow","invite","notify","ping","forward","share","post","tweet","publish",
+  "log","login","sign","signin","authenticate","reset","enter","type","paste","reveal","print","show","read","copy","use","find","fetch","get","grab","dump",
+  "give","hand","leak","set","create","add","change","update","raise","lower","drop","make","open","check","look","pull","trade","sell","place","close","buy",
+  "withdraw","deposit","cancel","book","schedule","approve","confirm","authorize","grant","install","download","upload","delete","remove","move","run","do",
+  "list","go","visit","browse","review","verify","test","fix","build","start","stop","tell","ask","write","draft","prepare","arrange","organize","hire"]
+ static let politeMarkers = ["please","can you","could you","would you","will you","go ahead","i need you to","i want you to","you should","you must",
+                             "you need to","let's","lets ","make sure you","have you","i'd like you to","ask local claude"]
+ static let fillers: Set<String> = ["and","then","also","now","next","first","finally","so","ok","okay","yes","just","todo","test","task","job"]
+
+ static let categories: [(name: String,terms: [String],ownCrewIsFine: Bool)] = [
+  ("money or payments",["money","payment","payments","pay","paying","paypal","stripe","invoice","invoices","refund","refunds","bank","banking","e-transfer",
+                        "etransfer","interac","wire transfer","bank transfer","purchase","buy","buying","sell","selling","checkout","price","prices","pricing",
+                        "credit card","debit card","card number","crypto","bitcoin","subscription","subscribe","billing"],false),
+  ("logins or passwords",["password","passwords","passcode","passphrase","2fa","otp","verification code","api key","secret key","private key","access token",
+                          "ssh key","credential","credentials","keychain","oauth","log in","log into","login to","login into","sign in","sign-in","sign into",
+                          "sign up","signup"],false),
+  ("sending to a person",["email","emails","e-mail","dm","dms","direct message","sms","whatsapp","text him","text her","text them","call him","call her",
+                          "call them","phone","contact","reach out","nudge","pitch","outreach","send to","send it to","send this to","send them","send him",
+                          "send her","message him","message her","message them","follow up with"],true),
+  ("Moomoo",["moomoo","futu","brokerage","broker"],false),
+ ]
+ static let ownCrewWords = ["hotline","room","board","issue","pull request","pr","lc-","lc_","local claude","claude","friday","roxy","gpt","grok","crew","chat","thread","everyone"]
+
+ static func whole(_ term: String,in text: String) -> Bool {
+  text.range(of:"(?<![a-z0-9])\(NSRegularExpression.escapedPattern(for:term))(?![a-z0-9])",options:.regularExpression) != nil
+ }
+
+ // The words of the comment after its [tag], split into sentences (a bullet, a line, or a stop followed by a space).
+ static func sentences(_ body: String) -> [String] {
+  var rest = body
+  if body.hasPrefix(tagStart), let close = body.firstIndex(of:"]") { rest = String(body[body.index(after:close)...]) }
+  rest = rest.replacingOccurrences(of:"**",with:" ")
+  let marked = rest.replacingOccurrences(of:#"(?<=[.!?;])\s+|\n+"#,with:"\u{1}",options:.regularExpression)
+  return marked.components(separatedBy:"\u{1}").map { $0.trimmingCharacters(in:.whitespaces).lowercased() }.filter { !$0.isEmpty }
+ }
+
+ static func isRequest(_ sentence: String) -> Bool {
+  var s = sentence.replacingOccurrences(of:#"^[\s\-*>#"'`_(\[]*(\d+[.)\]]\s*)?"#,with:"",options:.regularExpression)
+  if s.hasPrefix("don't") || s.hasPrefix("dont") || s.hasPrefix("do not") || s.hasPrefix("never") || s.hasPrefix("stop") || s.hasPrefix("no ") { return false }
+  if politeMarkers.contains(where:{ s.contains($0) }) { return true }
+  var words = s.split(whereSeparator:{ $0 == " " || $0 == "," || $0 == ":" }).map(String.init)
+  while let first = words.first, fillers.contains(first.trimmingCharacters(in:.punctuationCharacters)) { words.removeFirst() }
+  s = words.joined(separator:" ")
+  guard let first = words.first?.trimmingCharacters(in:.punctuationCharacters) else { return false }
+  return requestVerbs.contains(first)
+ }
+
+ // The instruction's own verb: "call the dentist" -> call, "Can you text Dana" -> text. A contact verb first is a contact request even when the
+ // sentence has none of the words in the list above (the person's name can be anything).
+ static let peopleVerbs: Set<String> = ["call","text","phone","contact","nudge","pitch","dm","email","e-mail","sms","whatsapp"]
+ static func leadVerb(_ sentence: String) -> String {
+  var s = sentence.replacingOccurrences(of:#"^[\s\-*>#"'`_(\[]*(\d+[.)\]]\s*)?"#,with:"",options:.regularExpression)
+  for marker in politeMarkers { if let r = s.range(of:marker) { s = String(s[r.upperBound...]); break } }
+  var words = s.split(whereSeparator:{ $0 == " " || $0 == "," || $0 == ":" }).map { $0.trimmingCharacters(in:.punctuationCharacters) }
+  while let first = words.first, fillers.contains(first) { words.removeFirst() }
+  return words.first ?? ""
+ }
+
+ static func hardBlock(_ body: String) -> HardBlock? {
+  for sentence in sentences(body) where isRequest(sentence) {
+   if sentence.range(of:#"\$\s?\d"#,options:.regularExpression) != nil { return HardBlock(category:"money or payments",line:sentence) }
+   if peopleVerbs.contains(leadVerb(sentence)) && !ownCrewWords.contains(where:{ whole($0,in:sentence) }) { return HardBlock(category:"sending to a person",line:sentence) }
+   for c in categories {
+    if c.ownCrewIsFine && ownCrewWords.contains(where:{ whole($0,in:sentence) }) { continue }
+    if c.terms.contains(where:{ whole($0,in:sentence) }) { return HardBlock(category:c.name,line:sentence) }
    }
   }
   return nil
+ }
+
+ static func blockMessage(_ b: HardBlock) -> String {
+  let snippet = b.line.count > 80 ? String(b.line.prefix(79)) + "…" : b.line
+  return "hard block: a line asks Local Claude to act on \(b.category): \"\(snippet)\". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him"
+ }
+
+ // Result lines go public only if they can't leak (publishing a result is different from reading a request, so this stays broad: any mention).
+ static let sensitiveWords: [String] = ["money","payment","paypal","stripe","invoice","bank","password","passcode","passphrase","2fa","otp","api key",
+                                         "token","secret","credential","keychain","ssh","login","log in","sign in","moomoo","futu","brokerage"]
+ static func mentionsSensitive(_ text: String) -> Bool {
+  let t = text.lowercased()
+  return t.range(of:#"\$\s?\d"#,options:.regularExpression) != nil || sensitiveWords.contains { whole($0,in:t) }
  }
 
  static func startsInLastHour(_ starts: [Date],now: Date) -> Int { starts.filter { now.timeIntervalSince($0) < 3600 && $0 <= now }.count }
@@ -126,7 +194,7 @@ enum SwitchboardRules {
   if c.createdAt < armedAt { return .refuse("posted before the switch was turned on",mirror:false) }
   if now.timeIntervalSince(c.createdAt) > SwitchboardLimits.maxAge { return .refuse("older than 6 hours",mirror:false) }
   if c.updatedAt.timeIntervalSince(c.createdAt) > SwitchboardLimits.editGrace { return .refuse("edited after posting; post a fresh comment instead",mirror:true) }
-  if let reason = blockReason(c.body) { return .refuse("hard block: mentions \(reason) (those stay Matthew's)",mirror:true) }
+  if let block = hardBlock(c.body) { return .refuse(blockMessage(block),mirror:true) }
   if running >= SwitchboardLimits.maxRunning { return .wait("a job is already running") }
   if let name = relay {
    if startsInLastHour(relayStarts,now:now) >= SwitchboardLimits.relayPerHour { return .refuse("limit: \(SwitchboardLimits.relayPerHour) relays in the last hour",mirror:true) }
@@ -347,7 +415,7 @@ enum SwitchboardRules {
   let line = firstLine(text.replacingOccurrences(of:"**",with:""),limit:140)
   if line.isEmpty { return "(no result text)" }
   if line.contains("/Users/") || line.contains("~/") || line.range(of:#"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"#,options:.regularExpression) != nil
-     || blockReason(line) != nil { return "(result kept in the Friday log)" }
+     || mentionsSensitive(line) { return "(result kept in the Friday log)" }
   return line
  }
 

@@ -41,7 +41,7 @@ import Foundation
    k("fix G: nested parens are nothing",comment("**[Claude → Local Claude (LC (x))]** hi"),[],[],0,"ignore"),
    k("fix G: relay hard block (money) refused, not relayed",comment("**[Claude → Local Claude (LC-Manager)]** pay the invoice",thread:35),[],[],0,"refuse:money"),
    k("fix G: relay hard block (login)",comment("**[Claude → Local Claude (LC-Manager)]** log in to Buffer",thread:35),[],[],0,"refuse:logins"),
-   k("fix G: relay hard block (Moomoo)",comment("**[Claude → Local Claude (LC-Manager)]** moomoo status",thread:35),[],[],0,"refuse:Moomoo"),
+   k("fix G: relay hard block (Moomoo)",comment("**[Claude → Local Claude (LC-Manager)]** check the moomoo status",thread:35),[],[],0,"refuse:Moomoo"),
    k("fix G: relay hard block (send to a person)",comment("**[Claude → Local Claude (LC-Manager)]** email Dana",thread:35),[],[],0,"refuse:sending"),
    k("fix G: relay edited after posting refused",comment("**[Claude → Local Claude (LC-Manager)]** hi",thread:35,edited:120),[],[],0,"refuse"),
    k("fix G: relay waits while something runs",comment("**[Claude → Local Claude (LC-Manager)]** hi",thread:35),[],[],1,"wait"),
@@ -96,6 +96,44 @@ import Foundation
 
   let old = SwitchboardRules.verdict(comment(good,ago:7 * 3600),seen:[],armedAt:now.addingTimeInterval(-86400),now:now,starts:[],running:0,calendar:cal)
   expect(old == .refuse("older than 6 hours",mirror:false),"switch: on since yesterday, comment 7 hours old -> \(old)")
+
+  print("\n== Lock 7 rewrite: refuse REQUESTS about money/logins/people/Moomoo, never notes about them")
+  func verdictOf(_ body: String,thread: Int = 35) -> SwitchboardVerdict {
+   SwitchboardRules.verdict(comment(body,thread:thread),seen:[],armedAt:armed,now:now,starts:[],running:0,calendar:cal)
+  }
+  func refused(_ v: SwitchboardVerdict) -> String? { if case .refuse(let why,_) = v { return why }; return nil }
+  func passes(_ v: SwitchboardVerdict) -> Bool { if case .relay = v { return true }; if case .run = v { return true }; return false }
+  let tag = "**[Claude (New beginning) → Local Claude (LC-Manager)]** "
+  // 1. The real Co-CEO comments from the Hotline that Friday refused on Nov 6 (fixture = their public text).
+  let fixture = URL(fileURLWithPath:#filePath).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("checks/fixtures/hotline-refused-2026-11-06.json")
+  if let data = FileManager.default.contents(atPath:fixture.path), let rows = (try? JSONSerialization.jsonObject(with:data)) as? [[String:Any]] {
+   expect(rows.count >= 6,"fixture holds the real refused Hotline comments (\(rows.count))")
+   for row in rows {
+    let id = (row["id"] as? NSNumber)?.int64Value ?? 0, body = row["body"] as? String ?? ""
+    let v = verdictOf(body)
+    expect(passes(v),"real Co-CEO comment \(id) now passes as a relay (\(String(body.dropFirst(60).prefix(50)).replacingOccurrences(of:"\n",with:" "))…) -> \(v)")
+   }
+  } else { expect(false,"fixture checks/fixtures/hotline-refused-2026-11-06.json is missing") }
+  // 2. Ordinary crew notes that merely mention the topics.
+  let notes = ["Amazon refund ~Nov 16 is Matthew's to check.","CBDC hold: no sending until GO.","Reviewed the branch: no secrets, no passwords and no tokens in the code.",
+               "Matthew's Buffer login stays his; the key lives in a GitHub secret.","The Stripe payment link is still waiting on Matthew's OK.",
+               "Don't email anyone until Matthew says GO.","Moomoo trading stays Matthew's. Practice robots only.","Never log in to anything for him.",
+               "Price changes happen at the Saturday refresh. Check the board for what's waiting.","The dentist outreach is on HOLD, so nothing goes out.",
+               "Token follow-up noted: the crew strip will use the saved key."]
+  for n in notes { expect(passes(verdictOf(tag + n)),"note passes: \(n)") }
+  // 3. Real requests are still refused, each with a reason the sender can act on.
+  let asks = ["set up the Stripe payment link","change the mug to $19","reset the Shopify password","log in to Buffer and check","email the dentist the sample",
+              "DM the cafe on Instagram","check MooMoo positions","Please pay the invoice","Can you send the invoice to Dana?","Buy the domain today",
+              "Trade 10 shares on Moomoo","Call the dentist and book a time","Text Dana the sample photo","Sign in to Shopify and change the price",
+              "Paste the API key here","Enter the password and continue","Transfer $50 to the supplier"]
+  for a in asks {
+   let why = refused(verdictOf(tag + a))
+   expect(why != nil,"request still refused: \(a) -> \(why.map { String($0.prefix(70)) } ?? "NOT REFUSED")")
+  }
+  let sample = refused(verdictOf(tag + "email the dentist the sample")) ?? ""
+  expect(sample.contains("sending to a person") && sample.contains("\"email the dentist the sample\"") && sample.contains("reword it as a note"),"the refusal says which line, which topic, and how to rephrase: \(sample)")
+  expect(passes(verdictOf(tag + "tidy the board and reply \"pong\" on the Hotline")) && passes(verdictOf(tag + "message LC-Manager that the board is tidy")),"normal asks to the crew still pass (reply on the Hotline, message an LC chat)")
+  expect(!SwitchboardRules.mentionsSensitive("Posted the update to the board") && SwitchboardRules.mentionsSensitive("The token was refused"),"result lines still stay private if they mention secrets")
 
   print("\n== Lock 3: the command line")
   let args = SwitchboardRules.arguments(prompt:SwitchboardRules.prompt(for:comment(good)))

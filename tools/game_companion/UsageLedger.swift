@@ -17,7 +17,7 @@ struct UsageEntry: Codable, Identifiable, Equatable {
  var who: String            // "Friday (brain)", "Switchboard job", "Relay to LC-Manager", "Wake: LC-Pixels"
  var job: String            // "#12", "question", a chat name: a label, never message text
  var seconds: Double        // measured by The Helm (start to end)
- var ok: Bool
+ var ok: Bool               // PROVEN success: a relay/wake only when delivery was proven, a job/answer only when the engine said ok
  var model: String?         // from the engine's modelUsage keys; nil = not reported
  var inputTokens: Int?      // usage.input_tokens
  var outputTokens: Int?     // usage.output_tokens

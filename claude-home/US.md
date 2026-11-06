@@ -54,8 +54,17 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   ~9:30 PM: first Claude running on his own Mac ("browser hands") passed its first look-only test of the store, and spotted
   "Pet-approved, parent-approved." That led to 59 product blurbs that hinted at buyers we don't have ("people keep adding to
   cart", "repeat buyers", "smiles guaranteed"); all rewritten to say only what's true the same night.
+  Late night (~9:45 PM to midnight), Local Claude on his Mac became the MAIN chat: it got its own copies of both repos and his own
+  GitHub login (he typed it himself), a start-of-chat routine (pull both repos, show the Moncton time and the newest handoff), and a
+  hard "no" list (secrets, Moomoo, force-push, the app's build folder). The board shed 26 old October items. Five "Get Online in a Day"
+  website samples got real facts from each business's own public Facebook page, with every source logged. Phone touch-ups went live
+  (a one-row header, the app bubble waits until you've seen products, chips that fade at the edge, an "Email me" button on ECS), plus a
+  cache fix so returning visitors actually got them. Then a store makeover: three mockups built from the real catalogue, Matthew mixed
+  his favourite two, and findhotstuff.com went live as "Boutique" photo tiles over "The latest drop" swipe rows, with search, in EN and FR
+  (smoke test 15/15). His word for the night: "You're asking me a lot." Since then, small reversible calls get made and reported, not asked.
 
 ## Lessons that cost something (don't repeat them)
+- Two chats, one folder: never switch branches in a shared folder. Each branch job gets its own copy (a git worktree), and the board says which files it touches.
 - Never claim what isn't true today: "3x a day on X" while X was off; "180 posts a month"; wallpaper sold as a pet bed; "posts automatically" while Facebook posting wasn't live.
 - The odometer is the SITE FEED, never "my page".
 - The container's clock is UTC; Matthew's day is Moncton time.

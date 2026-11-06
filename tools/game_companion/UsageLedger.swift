@@ -78,7 +78,7 @@ enum UsageLedgerRules {
   let rep = s.runs - s.notReported
   var t = "\(label): \(s.runs) run\(s.runs == 1 ? "" : "s") · tokens reported for \(rep) of \(s.runs)"
   if rep > 0 { t += " · \(tokens(s.tokensIn)) in · \(tokens(s.tokensOut)) out" }
-  if s.failed > 0 { t += " · \(s.failed) failed" }
+  if s.failed > 0 { t += " · \(s.failed) not proven" }   // !ok = didn't finish OR delivery not proven: not always "failed"
   return t
  }
 }
@@ -128,7 +128,7 @@ struct UsageLedgerSummary: View {
    if let last = ledger.entries.last {
     Text("Newest: \(last.who) \(last.job) at \(Self.time.string(from:last.at)) · \(Int(last.seconds.rounded())) s · "
          + (last.reported ? "\(UsageLedgerRules.tokens(last.tokensIn ?? 0)) in, \(UsageLedgerRules.tokens(last.outputTokens ?? 0)) out" : "not reported")
-         + (last.ok ? "" : " · failed"))
+         + (last.ok ? "" : " · not proven"))
      .font(.system(size:11)).foregroundStyle(HubTheme.subtext).lineLimit(1)
    }
    Text("Counts what The Helm started on this Mac. No prices: on a Max plan these use your plan's limits.")

@@ -279,7 +279,7 @@ extension CompanionInterfaceView {
   case .realFake: hubRealOrFake
   case .lab: hubLab
   case .council: hubCouncil
-  case .hacking: deckHackLive
+  case .hacking: hackRoom
   case .crewStation: deckCrewStation
   case .memory: fridayMemoryPage
   }

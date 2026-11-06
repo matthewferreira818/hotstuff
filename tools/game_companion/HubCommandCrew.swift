@@ -7,7 +7,11 @@ import AppKit
 // CONFIRM: or URGENT:. The only button opens the Meeting Room (where he answers); there are no fake Review/Later buttons and no progress bars.
 
 struct CoreCrewView: View {
- var crew: [CrewMember]
+ var baseCrew: [CrewMember]
+ @ObservedObject var live = LiveSessionsModel.shared
+ @Environment(\.coreWidth) private var width
+ var merged: (crew: [CrewMember],closed: [String]) { LiveSessions.apply(live.sessions,to:baseCrew) }
+ var crew: [CrewMember] { merged.crew }
  var tasks: [BoardItem]
  var questions: [BoardItem]
  var confirms: [RoomMessage]
@@ -38,19 +42,26 @@ struct CoreCrewView: View {
 
  var body: some View {
   ScrollView {
-   HStack(alignment:.top,spacing:12) {
-    VStack(spacing:12) {
-     stationCard
-     tasksCard
-    }.frame(maxWidth:.infinity)
-    VStack(spacing:12) {
-     listCard
-     approvalsCard
-    }.frame(width:320)
+   Group {
+    if width >= 1400 {
+     HStack(alignment:.top,spacing:12) {
+      stationCard.frame(maxWidth:.infinity)
+      listCard.frame(width:300)
+      VStack(spacing:12) { approvalsCard; tasksCard }.frame(width:320)
+     }
+    } else if width >= 720 {
+     HStack(alignment:.top,spacing:12) {
+      VStack(spacing:12) { stationCard; tasksCard }.frame(maxWidth:.infinity)
+      VStack(spacing:12) { listCard; approvalsCard }.frame(width:300)
+     }
+    } else {
+     VStack(spacing:12) { stationCard; approvalsCard; listCard; tasksCard }
+    }
    }
    .padding(.horizontal,24).padding(.bottom,16)
   }
   .scrollIndicators(.hidden)
+  .onAppear { LiveSessionsModel.shared.start() }
  }
 
  func node(_ m: CrewMember,size: CGFloat) -> some View {
@@ -85,11 +96,11 @@ struct CoreCrewView: View {
     .background(HubTheme.hex(0x08080A),in:RoundedRectangle(cornerRadius:8))
     .overlay(RoundedRectangle(cornerRadius:8).stroke(Color.white.opacity(0.07),lineWidth:1))
    PixelCrewCard(crew:crew,visits:visits).frame(height:96,alignment:.top)
-   HStack(spacing:12) {
+   LazyVGrid(columns:[GridItem(.adaptive(minimum:118),spacing:10,alignment:.leading)],alignment:.leading,spacing:4) {
     ForEach([(CrewState.working,"typing"),(.idle,"asleep"),(.away,"away"),(.failing,"run failed"),(.unknown,"no data")],id:\.1) { e in
      HStack(spacing:5) { Circle().fill(color(e.0)).frame(width:7,height:7); Text(e.1).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
     }
-    HStack(spacing:4) { Text("✉").font(.system(size:10)).foregroundStyle(CoreStyle.dim); Text("walking: messaged in 15 min").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
+    HStack(spacing:4) { Text("✉").font(.system(size:10)).foregroundStyle(CoreStyle.dim); Text("walking: messaged").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
    }
   }
   .padding(13).frame(maxWidth:.infinity,alignment:.topLeading)
@@ -111,6 +122,9 @@ struct CoreCrewView: View {
       Text(m.detail).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(2).fixedSize(horizontal:false,vertical:true)
      }
     }
+   }
+   if !merged.closed.isEmpty {
+    Text("Closed right now (no open chat on this Mac): " + merged.closed.joined(separator:", ")).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim).fixedSize(horizontal:false,vertical:true)
    }
   }
  }
@@ -151,7 +165,7 @@ struct CoreCrewView: View {
       Text(Self.ownerChip(t.owner)).font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal).lineLimit(1)
        .padding(.horizontal,7).padding(.vertical,2).overlay(Capsule().stroke(CoreStyle.teal.opacity(0.5),lineWidth:1))
      }
-     Text(t.status.isEmpty ? "—" : t.status).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1).frame(minWidth:56,alignment:.trailing)
+     Text(t.status.isEmpty ? "—" : Self.cleanTitle(String(t.status.split(separator:"(").first ?? ""),limit:24)).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1).frame(minWidth:56,alignment:.trailing)
     }
    }
    if tasks.count > 5 { Text("+ \(tasks.count - 5) more on the board").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
@@ -184,7 +198,7 @@ struct CoreCrewView: View {
 extension CompanionInterfaceView {
  var commandCoreCrew: some View {
   let messages = PixelCrew.merged(meeting.messages,meeting.chat.messages)
-  let crew = PixelCrew.withFriday(deckCrewReal,messages:messages)
+  let crew = LiveSessions.apply(LiveSessionsModel.shared.sessions,to:PixelCrew.withFriday(deckCrewReal,messages:messages)).crew
   let visits = deckPixelVisits(crew:crew,messages:messages)
   let needs = meeting.needs
   let tasks = (meeting.board?.sections.first { $0.title.lowercased() == "on the table" }?.items ?? []).filter { !$0.isDone }
@@ -199,6 +213,6 @@ extension CompanionInterfaceView {
    obs.insert(CoreObservation(tone:2,text:"\(needs.questions.count + confirms.count) thing\(needs.questions.count + confirms.count == 1 ? "" : "s") waiting on your OK.",why:"They're listed in the Waiting on you card.",source:"Board and room, now",actionTitle:"Open Meeting Room",run:{ hubSelect(.meeting) }),at:0)
   }
   return coreFrame("Crew Station","\(working) working · \(away.count) away · \(failing.count) failing. Real signals only.",tone:failing.isEmpty ? 0 : 3,observations:obs,
-                   content:AnyView(CoreCrewView(crew:crew,tasks:tasks,questions:needs.questions,confirms:confirms,visits:visits,reduceMotion:reduceMotion,boardKnown:meeting.board != nil,openMeeting:{ hubSelect(.meeting) })))
+                   content:AnyView(CoreCrewView(baseCrew:crew,tasks:tasks,questions:needs.questions,confirms:confirms,visits:visits,reduceMotion:reduceMotion,boardKnown:meeting.board != nil,openMeeting:{ hubSelect(.meeting) })))
  }
 }

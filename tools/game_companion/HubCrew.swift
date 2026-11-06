@@ -212,7 +212,7 @@ struct CrewStationView: View {
  func seated(_ m: CrewMember) -> Bool { look(m) == .person }
 
  private static func hx(_ v: UInt32) -> Color { HubTheme.hex(v) }
- private static let floorA = hx(0x1F2023), floorB = hx(0x1B1C1F), seam = hx(0x121315)
+ private static let floorA = hx(0x24252A), floorB = hx(0x1E1F23), seam = hx(0x111214)
  private static let wall = hx(0x2C2E33), wallHi = hx(0x4B4E55), wallLo = hx(0x151618)
  private static let metal = hx(0x34363B), metalHi = hx(0x4C4F56), metalLo = hx(0x1C1D21)
  private static let screenOn = hx(0x5FE0EE), hazard = hx(0xB89A4E)
@@ -423,6 +423,10 @@ struct CrewStationView: View {
   g.translateBy(x:(size.width - Self.logical.width * scale) / 2 + drift.x * scale,y:(size.height - Self.logical.height * scale) / 2 + drift.y * scale)
   g.scaleBy(x:scale,y:scale)
   drawRooms(g,t:t)
+  for room in Self.rooms {
+   let r = room.rect
+   g.fill(Path(r),with:.radialGradient(Gradient(colors:[Color.white.opacity(0.055),Color.white.opacity(0)]),center:CGPoint(x:r.midX,y:r.midY - 10),startRadius:0,endRadius:max(r.width,r.height) * 0.62))
+  }
   let all = Self.spots(crew)
   let flash = Int(t * 2) % 2 == 0
   let px: CGFloat = 4
@@ -436,6 +440,14 @@ struct CrewStationView: View {
    switch m.state {
    case .working:
     drawDesk(g,d,m,flash:flash,t:t)
+    if m.detail.hasPrefix(LiveSessions.busyPrefix), let since = m.since {
+     let label = "RUN " + LiveSessions.timer(since,now:Date())
+     let w = CGFloat(label.count) * 5.2 + 8
+     let tag = CGRect(x:d.x - w / 2,y:d.y - 44,width:w,height:12)
+     g.fill(Path(roundedRect:tag,cornerRadius:2),with:.color(Self.hx(0x0C1A14).opacity(0.9)))
+     g.stroke(Path(roundedRect:tag,cornerRadius:2),with:.color(Self.hx(0x2FD39A).opacity(0.6)),lineWidth:1)
+     g.draw(Text(label).font(.system(size:8,weight:.bold,design:.monospaced)).foregroundColor(Self.hx(0x2FD39A)),at:CGPoint(x:tag.midX,y:tag.midY),anchor:.center)
+    }
     if seated(m) { personBack(g,m,at:p.feet,px:px,typing:true,asleep:false,dim:1); chairBack(g,d) }
     else { figure(g,m,at:p.feet,px:px,step:false,armsUp:Int(t * 4 + Self.seed(m.id)) % 2 == 0,dim:1,flash:flash,t:t) }
    case .idle:
@@ -478,8 +490,8 @@ struct CrewStationView: View {
    }
   }
   if let friday = all.first(where:{ $0.member.kind == .friday }) {
-   g.draw(Text("Friday").font(.system(size:9,weight:.semibold,design:.monospaced)).foregroundColor(Noir.crimsonLight),at:CGPoint(x:Self.core.x,y:Self.core.y + Self.coreRadius + 3),anchor:.top)
-   if friday.member.state != .working { g.draw(Text("resting").font(.system(size:7.5,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:Self.core.x,y:Self.core.y + Self.coreRadius + 15),anchor:.top) }
+   g.draw(Text("Friday").font(.system(size:9,weight:.semibold,design:.monospaced)).foregroundColor(Noir.crimsonLight),at:CGPoint(x:Self.core.x - Self.coreRadius - 10,y:Self.core.y - 6),anchor:.trailing)
+   if friday.member.state != .working { g.draw(Text("resting").font(.system(size:7.5,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:Self.core.x - Self.coreRadius - 10,y:Self.core.y + 7),anchor:.trailing) }
   }
   // the walkers last, so they pass in front of desks
   for (s,p) in walkers.sorted(by:{ $0.1.feet.y < $1.1.feet.y }) {
@@ -491,7 +503,10 @@ struct CrewStationView: View {
     g.draw(Text(String(repeating:".",count:1 + Int(t * 3) % 3)).font(.system(size:10,weight:.heavy,design:.monospaced)).foregroundColor(HubTheme.hex(0x101413)),at:CGPoint(x:b.midX,y:b.midY - 2),anchor:.center)
    }
   }
-  // the picked character gets an amber outline
+  // a soft vignette, darker at the hull
+  let L = Self.logical
+  g.fill(Path(CGRect(origin:.zero,size:L)),with:.radialGradient(Gradient(colors:[Color.black.opacity(0),Color.black.opacity(0.42)]),center:CGPoint(x:L.width / 2,y:L.height / 2),startRadius:L.height * 0.38,endRadius:L.width * 0.62))
+  // the picked character gets a crimson outline
   if let id = pick.selected, let s = all.first(where:{ $0.member.id == id }) {
    if s.member.kind == .friday {
     let r = Self.coreRadius + 5

@@ -23,6 +23,10 @@ struct CoreVerifyView: View {
   return s < 90 ? "just now" : (s < 3600 ? "\(s / 60) min ago" : (s < 86400 ? "\(s / 3600) h ago" : "\(s / 86400) d ago"))
  }
 
+ @Environment(\.coreWidth) private var width
+
+ @ViewBuilder var result: some View { if let r = guardHub.fakeReport { resultCard(r) } else { emptyResult } }
+
  var empty: Bool { guardHub.fakeText.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty }
 
  func tint(_ r: FakeCheckReport) -> Color { r.flags.isEmpty ? CoreStyle.teal : (r.flags.count <= 2 ? CoreStyle.amber : CoreStyle.crimson) }
@@ -31,14 +35,15 @@ struct CoreVerifyView: View {
   ScrollView {
    VStack(alignment:.leading,spacing:12) {
     inputCard
-    HStack(alignment:.top,spacing:12) {
-     VStack(spacing:12) {
-      if let r = guardHub.fakeReport { resultCard(r) } else { emptyResult }
-     }.frame(maxWidth:.infinity)
-     VStack(spacing:12) {
-      sourcesCard
-      recentCard
-     }.frame(width:290)
+    if width >= 1080 {
+     HStack(alignment:.top,spacing:12) { result.frame(maxWidth:.infinity); sourcesCard.frame(width:280); recentCard.frame(width:280) }
+    } else if width >= 720 {
+     HStack(alignment:.top,spacing:12) {
+      result.frame(maxWidth:.infinity)
+      VStack(spacing:12) { sourcesCard; recentCard }.frame(width:280)
+     }
+    } else {
+     result; sourcesCard; recentCard
     }
     Text("A red-flag check can't prove something is real. When it matters, check it yourself through a site or number you already know.")
      .font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)

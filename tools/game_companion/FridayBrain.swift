@@ -85,8 +85,10 @@ import AppKit
   }
   FridayBrainTestHooks.saveContext(context,prompt:prompt)   // test copies only
 
+  let began = Date()
   let out = await runProcess(exe,args)
   var answer = FridayBrainRules.answer(from:out.data,exitCode:out.code,timedOut:out.timedOut)
+  UsageLedger.shared.record(who:"Friday (brain)",job:model,started:began,ok:answer.ok,data:out.data)   // labels only, never her words
   var notes = warnings
   if model == FridayBrainLimits.hardModel { notes.append("Opus, because you said \"think hard\"") }
   if let n = answer.note { notes.append(n) }

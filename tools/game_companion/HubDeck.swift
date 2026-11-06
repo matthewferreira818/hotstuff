@@ -236,6 +236,7 @@ extension CompanionInterfaceView {
   case .lab: return "Cyber Lab"
   case .realFake: return "Verification"
   case .crewStation: return "Crew Station"
+  case .memory: return "Memory"
   default: return section.title.uppercased()
   }
  }

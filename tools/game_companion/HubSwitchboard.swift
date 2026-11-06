@@ -18,6 +18,8 @@ private struct SwitchboardState: Codable {
  var starts: [Date] = []
  var jobCount = 0
  var relayStarts: [Date]? = nil   // optional so an old state.json still loads
+ var seenRoom: [Int64]? = nil      // OLD field (before 2026-11-06): read once into roomPing, then left empty
+ var roomPing: RoomPingLedger? = nil   // room pings: own arming time + seen ids (SwitchboardPingData.swift)
 }
 
 @MainActor final class Switchboard: ObservableObject {
@@ -62,6 +64,7 @@ private struct SwitchboardState: Codable {
 
  private init() {
   if let d = try? Data(contentsOf:stateURL), let s = try? JSONDecoder().decode(SwitchboardState.self,from:d) { state = s }
+  if state.roomPing == nil { state.roomPing = RoomPingLedger(armedAt:.distantFuture,seen:state.seenRoom ?? []); state.seenRoom = nil }
   if let d = try? Data(contentsOf:logURL), let l = try? JSONDecoder().decode([SwitchboardLogEntry].self,from:d) { log = l }
   recount()
  }
@@ -71,7 +74,14 @@ private struct SwitchboardState: Codable {
   guard !booted else { return }
   booted = true
   claudeVersion = Self.checkClaude().version
-  if on { startLoop() }
+  if on {
+   // Left ON from a previous run: room pings start from THIS launch, never for messages posted while the app was closed.
+   state.roomPing?.relaunch(stillOn:true,now:Date()); save()
+   add("note","Switchboard was left ON: room pings cover messages from this launch on.")
+   startLoop()
+  }
+  FridayDM.shared.start()   // the private Friday-and-me DM engine (works with the switch ON or OFF)
+  WakeRunner.shared.start() // resumes probing for copies held for a closed chat
   SwitchboardTestHooks.boot(self)
  }
 
@@ -82,7 +92,9 @@ private struct SwitchboardState: Codable {
   on = value
   UserDefaults.standard.set(value,forKey:Switchboard.onKey)
   if value {
-   state.armedAt = Date()   // only comments posted from now on can start a job
+   let now = Date()
+   state.armedAt = now   // only comments posted from now on can start a job
+   state.roomPing = state.roomPing ?? RoomPingLedger(); state.roomPing?.arm(now:now)   // ...or ping anyone
    save()
    add("on","Switchboard ON (turned on by \(source)). Watching the Hotline every \(Switchboard.intervalText).")
    startLoop()
@@ -172,7 +184,39 @@ private struct SwitchboardState: Codable {
     await start(c,relay:name)
    }
   }
+  await pingRoom()
  }
+
+ // MARK: room pings (Phase 2). New owner messages on issue 15 addressed to a chat BY NAME wake that open chat with a link. Never starts a job.
+ private func pingRoom() async {
+  var ledger = state.roomPing ?? RoomPingLedger()
+  guard let rows = await fetch(thread:SwitchboardRules.roomIssue,since:ledger.since(now:Date())) else {
+   add("error","Couldn't read the room (issue 15) for pings; trying again next check.")
+   return
+  }
+  let todo = ledger.pass(rows,now:Date())
+  state.roomPing = ledger
+  if !todo.isEmpty { save() }   // seen ids saved BEFORE anything is woken, so a crash or relaunch can't repeat a wake
+  for (c,route) in todo {
+   switch route {
+   case .none:
+    break
+   case .wake(let chats):
+    add("ping","Room message \(c.id): waking \(chats.joined(separator:", ")).")   // names only, never the words
+    WakeRunner.shared.submitRoom(commentID:c.id,chats:chats,link:c.url)
+   case .hotlinePointer:
+    let ok = await post(PingRules.pointerText(link:c.url),thread:SwitchboardRules.hotline)
+    add("ping","Room message \(c.id): pointer to cloud Claude on the Hotline \(ok ? "posted" : "failed").")
+    WakeRunner.shared.recordPointer(commentID:c.id,posted:ok)
+   }
+  }
+ }
+
+ // The wake runner's log lines (names and outcomes only).
+ func logPing(_ text: String) { add("ping",text) }
+
+ // One line on the Hotline (PR 35) so cloud Claude sees a hand-off. Names and a reference only, never message words.
+ func postHotline(_ text: String) async -> Bool { await post(text,thread:SwitchboardRules.hotline) }
 
  // GitHub goes through Matthew's own `gh` login (the same one every Local Claude uses). The Switchboard never holds or stores a key.
  // Arguments are an array, no shell, so a comment's text can't become a command.
@@ -318,6 +362,8 @@ private struct SwitchboardState: Codable {
 
  private func finished(job: Int,code: Int32,began: Date,out: URL) {
   let minutes = max(0,Int(Date().timeIntervalSince(began) / 60 + 0.5))
+  UsageLedger.shared.record(who:runningRelay.map { "Relay to \($0.name)" } ?? "Switchboard job",job:"#\(job)",started:began,ok:code == 0,
+                            data:(try? Data(contentsOf:out)) ?? Data())
   if let r = runningRelay {
    runningRelay = nil
    let data = (try? Data(contentsOf:out)) ?? Data()
@@ -326,6 +372,10 @@ private struct SwitchboardState: Codable {
    add(result.delivered ? "done" : (result.unproven ? "unproven" : "failed"),
        "Relay \(job) of comment \(r.comment.id) to \(r.name): \(result.delivered ? "delivered" : (result.detail.isEmpty ? "not delivered" : result.detail)) (\(minutes) min)")
    stopReason = nil; process = nil; runningJob = nil; runningSince = nil; runningTitle = ""
+   if !result.delivered && !result.unproven && result.detail.contains("isn't open") {
+    // The chat is closed: hand the message to the backup manager at once and keep a copy for when it reopens (Co-CEO, Matthew: "no waiting").
+    WakeRunner.shared.handOff(chat:r.name,original:SwitchboardRules.relayMessage(r.comment),origin:r.comment.id,ref:"Hotline comment \(r.comment.id)")
+   }
    let line = SwitchboardRules.mirrorRelay(r.comment,name:r.name,result:result)
    // Fix H (cloud Claude, 07:25): relay receipts go to issue 15 ONLY. A Hotline post would wake cloud Claude on every relay
    // (usage), and a named reply to it would be relayed again (loop risk).
@@ -425,6 +475,7 @@ struct SwitchboardPanel: View {
      ForEach(recent) { row($0) }
     }
    }
+   UsageLedgerSummary(compact:compact).padding(.top,compact ? 0 : 4)
    Button { sb.showLog = true } label: {
     Text(compact ? "Switchboard log (\(sb.log.count)) ›" : "Full log (\(sb.log.count)) ›").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.teal)
    }.buttonStyle(.plain)
@@ -528,6 +579,17 @@ enum SwitchboardTestHooks {
   guard active else { return }
   let d = UserDefaults.standard
   if d.bool(forKey:"switchboard.testTurnOn") { sb.testTurnOn() }
+  // Phase 2 engine test hooks (test copies only, this whole function is behind `guard active`):
+  //   ping.testWake (chat name)  wake that open chat once, with a link to nowhere ("engine test"); needs no switch, no room message
+  //   dm.testSend  (text)        write one DM into the private inbox and wake "Friday"
+  if let chat = d.string(forKey:"ping.testWake") {
+   d.removeObject(forKey:"ping.testWake")
+   Task { try? await Task.sleep(nanoseconds:3_000_000_000); WakeRunner.shared.submitRoom(commentID:1,chats:[chat],link:"https://github.com/matthewferreira818/hotstuff/issues/15 (engine test, please ignore)") }
+  }
+  if let text = d.string(forKey:"dm.testSend") {
+   d.removeObject(forKey:"dm.testSend")
+   Task { try? await Task.sleep(nanoseconds:3_000_000_000); FridayDM.shared.send(text) }
+  }
   if d.bool(forKey:"switchboard.testShowLog") {
    Task { try? await Task.sleep(nanoseconds:5_000_000_000); sb.showLog = true }
   }

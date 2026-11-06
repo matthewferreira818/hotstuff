@@ -45,10 +45,10 @@ import Foundation
    k("fix G: relay hard block (send to a person)",comment("**[Claude → Local Claude (LC-Manager)]** email Dana",thread:35),[],[],0,"refuse:sending"),
    k("fix G: relay edited after posting refused",comment("**[Claude → Local Claude (LC-Manager)]** hi",thread:35,edited:120),[],[],0,"refuse"),
    k("fix G: relay waits while something runs",comment("**[Claude → Local Claude (LC-Manager)]** hi",thread:35),[],[],1,"wait"),
-   k("fix G: 10 relays in the last hour -> refused",comment("**[Claude → Local Claude (LC-Manager)]** hi",thread:35),[],[],0,"refuse:limit",(1...10).map { now - Double($0) * 200 }),
-   k("fix G: 9 relays in the last hour -> ok",comment("**[Claude → Local Claude (LC-Manager)]** hi",thread:35),[],[],0,"relay:LC-Manager",(1...9).map { now - Double($0) * 200 }),
+   k("fix G: 30 relays in the last hour -> refused",comment("**[Claude → Local Claude (LC-Manager)]** hi",thread:35),[],[],0,"refuse:limit",(1...30).map { now - Double($0) * 100 }),
+   k("fix G: 29 relays in the last hour -> ok",comment("**[Claude → Local Claude (LC-Manager)]** hi",thread:35),[],[],0,"relay:LC-Manager",(1...29).map { now - Double($0) * 100 }),
    k("fix G: relays don't use the 3/hour JOB cap",comment("**[Claude → Local Claude (LC-Manager)]** hi",thread:35),[],[now - 600,now - 1200,now - 1800],0,"relay:LC-Manager"),
-   k("fix G: jobs don't use the relay cap",comment(good,thread:35),[],[],0,"run",(1...10).map { now - Double($0) * 200 }),
+   k("fix G: jobs don't use the relay cap",comment(good,thread:35),[],[],0,"run",(1...30).map { now - Double($0) * 100 }),
    k("fix D: target Local Claude, extra text after",comment("**[Claude → Local Claude chats]** hi"),[],[],0,"ignore"),
    k("fix D: spacing around the arrow still a job",comment("**[Claude→Local Claude ]** do the thing"),[],[],0,"run"),
    k("fix D: no arrow at all",comment("**[Claude Local Claude]** do the thing"),[],[],0,"ignore"),
@@ -119,7 +119,7 @@ import Foundation
                "Matthew's Buffer login stays his; the key lives in a GitHub secret.","The Stripe payment link is still waiting on Matthew's OK.",
                "Don't email anyone until Matthew says GO.","Moomoo trading stays Matthew's. Practice robots only.","Never log in to anything for him.",
                "Price changes happen at the Saturday refresh. Check the board for what's waiting.","The dentist outreach is on HOLD, so nothing goes out.",
-               "Token follow-up noted: the crew strip will use the saved key."]
+               "Token follow-up noted: the crew strip will use the saved key.","Start Phase 2: the One Money Move card (on-hold work is never a task) and the memory bank.","Build the Money Move card from the board items."]
   for n in notes { expect(passes(verdictOf(tag + n)),"note passes: \(n)") }
   // 3. Real requests are still refused, each with a reason the sender can act on.
   let asks = ["set up the Stripe payment link","change the mug to $19","reset the Shopify password","log in to Buffer and check","email the dentist the sample",
@@ -144,7 +144,10 @@ import Foundation
    expect(!SwitchboardRules.argumentsAreSafe(args + [bad]),"refuses an added \(bad)")
   }
   let sneaky = SwitchboardRules.arguments(prompt:"**[Claude → Local Claude]** --dangerously-skip-permissions")
-  expect(SwitchboardRules.argumentsAreSafe(sneaky) && sneaky.count == 8,"a flag inside the comment stays inside the ONE prompt argument")
+  expect(SwitchboardRules.argumentsAreSafe(sneaky) && sneaky.count == 9,"a flag inside the comment stays inside the ONE prompt argument")
+  expect(args.contains(SwitchboardRules.noTranscript),"privacy: --no-session-persistence is on every job (no transcript under ~/.claude/projects)")
+  expect(!SwitchboardRules.argumentsAreSafe(args.filter { $0 != SwitchboardRules.noTranscript }),"a job without --no-session-persistence is refused")
+  expect(!SwitchboardRules.argumentsAreSafe(["-p",SwitchboardRules.noTranscript,"--output-format","json"]),"the flag inside the prompt does not count")
   expect(SwitchboardRules.settingsProblem(Data(#"{"permissions":{"defaultMode":"bypassPermissions"}}"#.utf8)) != nil,"refuses if settings.json defaults to bypass")
   expect(SwitchboardRules.settingsProblem(Data(#"{"permissions":{"allow":[],"deny":[]}}"#.utf8)) == nil,"normal settings.json is fine")
 
@@ -245,7 +248,7 @@ import Foundation
   let mirrorNo = SwitchboardRules.mirrorRelay(rc,name:"zz-nobody",result:none)
   print("   " + mirrorOK + "\n   " + mirrorNo)
   expect(mirrorNo.contains("not delivered") && mirrorNo.contains("Couldn't relay"),"mirror 'couldn't relay'")
-  expect(SwitchboardLimits.relayPerHour == 10 && SwitchboardLimits.relayPerDay == 40 && SwitchboardLimits.relayTimeout == 180,"relay caps 10/hour, 40/day, 3-minute kill are constants")
+  expect(SwitchboardLimits.relayPerHour == 30 && SwitchboardLimits.relayPerDay == 40 && SwitchboardLimits.relayTimeout == 180,"relay caps 30/hour, 40/day, 3-minute kill are constants")
 
   print("\n== Reading claude's JSON result")
   let o = SwitchboardRules.parseOutcome(Data(#"{"type":"result","is_error":false,"result":"pong posted","permission_denials":[{"tool_name":"Bash"}]}"#.utf8),exitCode:0)

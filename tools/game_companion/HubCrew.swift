@@ -65,7 +65,7 @@ struct CrewStationView: View {
 
  // Where a character stands right now. A visitor follows the hallway: out of its room, along the hall, into the other room.
  func place(_ s: Spot,all: [Spot],t: Double) -> Place {
-  let home = CGPoint(x:s.desk.x + 10,y:s.desk.y + 12)
+  let home = seated(s.member) ? CGPoint(x:s.desk.x,y:s.desk.y + 38) : CGPoint(x:s.desk.x + 36,y:s.desk.y + 16)
   guard !reduceMotion, s.member.kind != .friday, let v = visits.first(where:{ $0.from == s.member.id }),
         let target = all.first(where:{ $0.member.id == v.to }) else { return Place(feet:home,walking:false,talking:false,away:false) }
   let w = PixelCrew.walk(t + Self.seed(s.member.id).truncatingRemainder(dividingBy:20))
@@ -206,43 +206,214 @@ struct CrewStationView: View {
   if !awake { g.draw(Text("z").font(.system(size:11,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:c.x + 22,y:c.y - 26 - CGFloat(Int(t) % 3) * 3),anchor:.center) }
  }
 
- private func drawRooms(_ g: GraphicsContext) {
-  // the hallway that joins every room, and the doorways into it
-  let hall = CGRect(x:12,y:Self.hallY - 30,width:736,height:60)
-  g.fill(Path(roundedRect:hall,cornerRadius:4),with:.color(HubTheme.hex(0x161B19)))
-  g.stroke(Path(roundedRect:hall,cornerRadius:4),with:.color(HubTheme.line),style:StrokeStyle(lineWidth:1,dash:[3,3]))
-  for room in Self.rooms {
-   g.fill(Path(roundedRect:room.rect,cornerRadius:5),with:.color(room.tint))
-   var x = room.rect.minX
-   while x < room.rect.maxX { g.stroke(Path { p in p.move(to:CGPoint(x:x,y:room.rect.minY)); p.addLine(to:CGPoint(x:x,y:room.rect.maxY)) },with:.color(Color.white.opacity(0.03)),lineWidth:1); x += 20 }
-   g.stroke(Path(roundedRect:room.rect,cornerRadius:5),with:.color(HubTheme.hex(0x44524B)),lineWidth:2)
-   let gap = room.rect.minY > Self.hallY ? CGRect(x:room.door.x - 16,y:hall.maxY - 2,width:32,height:room.rect.minY - hall.maxY + 4)
-                                          : CGRect(x:room.door.x - 16,y:room.rect.maxY - 2,width:32,height:hall.minY - room.rect.maxY + 4)
-   g.fill(Path(gap),with:.color(HubTheme.hex(0x161B19)))
-   g.draw(Text(room.name).font(.system(size:10,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:room.rect.minX + 10,y:room.rect.minY + 12),anchor:.leading)
+ // MARK: the deck (our own art, in the spirit of a top-down sci-fi station: metal hull, tiled floors, bulkheads, workstations)
+
+ // People sit at their desk with their back to us; robots, the ghost and the watchers stand beside it.
+ func seated(_ m: CrewMember) -> Bool { look(m) == .person }
+
+ private static func hx(_ v: UInt32) -> Color { HubTheme.hex(v) }
+ private static let floorA = hx(0x1F2023), floorB = hx(0x1B1C1F), seam = hx(0x121315)
+ private static let wall = hx(0x2C2E33), wallHi = hx(0x4B4E55), wallLo = hx(0x151618)
+ private static let metal = hx(0x34363B), metalHi = hx(0x4C4F56), metalLo = hx(0x1C1D21)
+ private static let screenOn = hx(0x5FE0EE), hazard = hx(0xB89A4E)
+
+ private func rect(_ g: GraphicsContext,_ x: CGFloat,_ y: CGFloat,_ w: CGFloat,_ h: CGFloat,_ c: Color) { g.fill(Path(CGRect(x:x,y:y,width:w,height:h)),with:.color(c)) }
+
+ // A tiled floor: 32-point plates, each a touch lighter or darker, with seams and corner bolts.
+ private func floor(_ g: GraphicsContext,_ r: CGRect) {
+  let tile: CGFloat = 32
+  var y = r.minY
+  while y < r.maxY {
+   var x = r.minX
+   while x < r.maxX {
+    let w = min(tile,r.maxX - x), h = min(tile,r.maxY - y)
+    let k = Int(Self.seed("\(Int(x))-\(Int(y))")) % 3
+    rect(g,x,y,w,h,k == 0 ? Self.floorA : Self.floorB)
+    rect(g,x,y,w,1,Self.seam); rect(g,x,y,1,h,Self.seam)
+    rect(g,x + 1,y + 1,w - 2,1,Color.white.opacity(0.025))
+    if w > 6 && h > 6 { rect(g,x + 3,y + 3,1.5,1.5,Self.hx(0x2C2D31)); rect(g,x + w - 4.5,y + h - 4.5,1.5,1.5,Self.hx(0x2C2D31)) }
+    x += tile
+   }
+   y += tile
   }
-  // Friday's core sits on the hallway
-  let c = Self.core, r = Self.coreRadius
-  g.fill(Path(ellipseIn:CGRect(x:c.x - r,y:c.y - r,width:r * 2,height:r * 2)),with:.color(HubTheme.hex(0x1A1416)))
-  g.stroke(Path(ellipseIn:CGRect(x:c.x - r,y:c.y - r,width:r * 2,height:r * 2)),with:.color(Noir.crimson.opacity(0.6)),lineWidth:2)
-  g.draw(Text("CORE").font(.system(size:8,weight:.bold,design:.monospaced)).foregroundColor(Noir.crimsonLight.opacity(0.8)),at:CGPoint(x:c.x,y:c.y - r - 7),anchor:.center)
+ }
+
+ // A bulkhead band with a lit top edge and a shadowed bottom edge.
+ private func bulkhead(_ g: GraphicsContext,_ r: CGRect) {
+  rect(g,r.minX,r.minY,r.width,r.height,Self.wall)
+  rect(g,r.minX,r.minY,r.width,1.5,Self.wallHi)
+  rect(g,r.minX,r.maxY - 2,r.width,2,Self.wallLo)
+ }
+
+ private func plant(_ g: GraphicsContext,_ x: CGFloat,_ y: CGFloat) {
+  g.fill(Path(ellipseIn:CGRect(x:x - 9,y:y + 6,width:18,height:6)),with:.color(Color.black.opacity(0.35)))
+  rect(g,x - 6,y - 2,12,9,Self.hx(0x4A3A2B)); rect(g,x - 6,y - 2,12,2,Self.hx(0x5E4B38))
+  let leaf = Self.hx(0x3F8A4F), dark = Self.hx(0x2B6338)
+  for (dx,dy,c) in [(-8.0,-10.0,dark),(-4.0,-16.0,leaf),(2.0,-14.0,leaf),(5.0,-8.0,dark),(-2.0,-8.0,leaf),(-10.0,-5.0,leaf),(7.0,-15.0,dark),(0.0,-20.0,leaf)] {
+   rect(g,x + CGFloat(dx),y + CGFloat(dy),5,5,c)
+  }
+ }
+
+ private func cabinet(_ g: GraphicsContext,_ x: CGFloat,_ y: CGFloat,t: Double) {
+  rect(g,x,y,18,34,Self.hx(0x17181B)); rect(g,x,y,18,1.5,Self.metalHi); rect(g,x + 17,y,1,34,Self.metalLo)
+  for i in 0..<4 {
+   rect(g,x + 3,y + 4 + CGFloat(i) * 7,12,4,Self.hx(0x222428))
+   let on = (Int(t * 1.3 + Double(i) * 1.7 + Double(x)) % 4) != 0
+   rect(g,x + 12,y + 5 + CGFloat(i) * 7,2,2,on ? HubTheme.hex(0x3FD8A0).opacity(0.85) : HubTheme.hex(0x1E3A30))
+  }
+ }
+
+ private func dish(_ g: GraphicsContext,_ x: CGFloat,_ y: CGFloat) {
+  g.fill(Path(ellipseIn:CGRect(x:x - 13,y:y + 10,width:26,height:7)),with:.color(Color.black.opacity(0.35)))
+  rect(g,x - 2,y,4,12,Self.metal)
+  g.fill(Path(ellipseIn:CGRect(x:x - 14,y:y - 18,width:28,height:22)),with:.color(Self.hx(0xB9BDC5)))
+  g.fill(Path(ellipseIn:CGRect(x:x - 10,y:y - 15,width:20,height:15)),with:.color(Self.hx(0x8E939C)))
+  rect(g,x - 1,y - 12,2,7,Self.hx(0x5C6068))
+ }
+
+ private func wallPanels(_ g: GraphicsContext,_ r: CGRect,t: Double) {
+  var x = r.minX + 10
+  var i = 0
+  while x + 30 < r.maxX - 6 {
+   rect(g,x,r.minY + 3,30,r.height - 6,Self.hx(0x25272B)); rect(g,x,r.minY + 3,30,1,Self.hx(0x3A3D43))
+   let blink = (Int(t * 0.9 + Double(i) * 2.3) % 5) != 0
+   rect(g,x + 24,r.minY + 6,3,2,(i % 3 == 0 ? HubTheme.hex(0x3FD8A0) : HubTheme.hex(0x5FA8D3)).opacity(blink ? 0.75 : 0.2))
+   x += 40; i += 1
+  }
+ }
+
+ private func drawRooms(_ g: GraphicsContext,t: Double) {
+  let L = Self.logical
+  // the hull: a chamfered metal frame with rivets
+  rect(g,0,0,L.width,L.height,Self.hx(0x09090B))
+  let c: CGFloat = 22
+  let hull = Path { p in
+   p.move(to:CGPoint(x:c,y:2)); p.addLine(to:CGPoint(x:L.width - c,y:2)); p.addLine(to:CGPoint(x:L.width - 2,y:c))
+   p.addLine(to:CGPoint(x:L.width - 2,y:L.height - c)); p.addLine(to:CGPoint(x:L.width - c,y:L.height - 2)); p.addLine(to:CGPoint(x:c,y:L.height - 2))
+   p.addLine(to:CGPoint(x:2,y:L.height - c)); p.addLine(to:CGPoint(x:2,y:c)); p.closeSubpath()
+  }
+  g.fill(hull,with:.color(Self.hx(0x26272B)))
+  g.stroke(hull,with:.color(Self.hx(0x4A4D54)),lineWidth:2)
+  var rx: CGFloat = 30
+  while rx < L.width - 30 { rect(g,rx,6,2,2,Self.hx(0x5A5D64)); rect(g,rx,L.height - 8,2,2,Self.hx(0x5A5D64)); rx += 26 }
+  var ry: CGFloat = 30
+  while ry < L.height - 30 { rect(g,6,ry,2,2,Self.hx(0x5A5D64)); rect(g,L.width - 8,ry,2,2,Self.hx(0x5A5D64)); ry += 26 }
+
+  // the hallway: a grated walkway with rails and hazard edges
+  let hall = CGRect(x:12,y:Self.hallY - 30,width:736,height:60)
+  rect(g,hall.minX,hall.minY,hall.width,hall.height,Self.hx(0x18191C))
+  var gy = hall.minY + 8
+  while gy < hall.maxY - 8 { rect(g,hall.minX,gy,hall.width,1.5,Self.hx(0x222327)); gy += 5 }
+  var tx = hall.minX
+  while tx < hall.maxX { rect(g,tx,hall.minY,6,5,Self.metal); rect(g,tx,hall.maxY - 5,6,5,Self.metal); rect(g,tx,hall.minY,6,1,Self.metalHi); tx += 10 }
+
+  for room in Self.rooms {
+   let r = room.rect
+   floor(g,r)
+   // bulkheads: a thick top wall with panels, thin side and bottom walls
+   let top = CGRect(x:r.minX,y:r.minY,width:r.width,height:22)
+   bulkhead(g,top); wallPanels(g,top,t:t)
+   bulkhead(g,CGRect(x:r.minX,y:r.minY,width:5,height:r.height)); bulkhead(g,CGRect(x:r.maxX - 5,y:r.minY,width:5,height:r.height))
+   bulkhead(g,CGRect(x:r.minX,y:r.maxY - 5,width:r.width,height:5))
+   // the doorway onto the hall, with hazard stripes on the sill
+   let below = r.minY > Self.hallY
+   let gap = below ? CGRect(x:room.door.x - 18,y:hall.maxY,width:36,height:r.minY - hall.maxY + 23)
+                   : CGRect(x:room.door.x - 18,y:r.maxY - 6,width:36,height:hall.minY - r.maxY + 7)
+   rect(g,gap.minX,gap.minY,gap.width,gap.height,Self.hx(0x18191C))
+   let sill = below ? gap.maxY - 4 : gap.minY
+   var hxp = gap.minX
+   var on = true
+   while hxp < gap.maxX { rect(g,hxp,sill,4,4,on ? Self.hazard.opacity(0.55) : Self.hx(0x141416)); hxp += 4; on.toggle() }
+   g.draw(Text(room.name).font(.system(size:8,weight:.bold,design:.monospaced)).foregroundColor(Self.hx(0x9A9EA6)),at:CGPoint(x:r.minX + 10,y:r.minY + 11),anchor:.leading)
+  }
+  // props: our own, decoration only (they show no numbers)
+  plant(g,32,326); plant(g,728,326)        // the two ends of the hallway
+  plant(g,452,604)                           // trading floor, bottom-right corner
+  dish(g,700,232)                            // AI lounge, bottom-right corner
+  for i in 0..<3 { cabinet(g,676 + CGFloat(i) * 22,560,t:t) }   // engine room, bottom-right corner
+
+  // Friday's core: a reactor pad on the hallway
+  let fc = Self.core, fr = Self.coreRadius
+  g.fill(Path(ellipseIn:CGRect(x:fc.x - fr - 4,y:fc.y - fr - 4,width:(fr + 4) * 2,height:(fr + 4) * 2)),with:.color(Self.metalLo))
+  g.fill(Path(ellipseIn:CGRect(x:fc.x - fr,y:fc.y - fr,width:fr * 2,height:fr * 2)),with:.color(Self.hx(0x2A2B30)))
+  g.stroke(Path(ellipseIn:CGRect(x:fc.x - fr,y:fc.y - fr,width:fr * 2,height:fr * 2)),with:.color(Self.metalHi),lineWidth:1.5)
+  for k in 0..<8 {
+   let a = Double(k) * .pi / 4
+   rect(g,fc.x + CGFloat(cos(a)) * (fr - 5) - 1.5,fc.y + CGFloat(sin(a)) * (fr - 5) - 1.5,3,3,Self.hx(0x5A5D64))
+  }
+  g.fill(Path(ellipseIn:CGRect(x:fc.x - fr + 9,y:fc.y - fr + 9,width:(fr - 9) * 2,height:(fr - 9) * 2)),with:.color(Self.hx(0x121214)))
  }
 
  private func screenColor(_ m: CrewMember,flash: Bool) -> Color {
   switch m.state {
-  case .working: return HubTheme.green.opacity(0.85)
-  case .failing: return flash ? Color(red:0.95,green:0.3,blue:0.3) : HubTheme.hex(0x5A1E1E)
-  case .idle: return HubTheme.hex(0x1E2724)
-  case .away: return HubTheme.hex(0x1A2230)
-  case .unknown: return HubTheme.hex(0x181D1B)
+  case .working: return Self.screenOn
+  case .failing: return flash ? Color(red:0.95,green:0.3,blue:0.3) : Self.hx(0x5A1E1E)
+  case .idle: return Self.hx(0x16252A)
+  case .away: return Self.hx(0x111418)
+  case .unknown: return Self.hx(0x101113)
   }
  }
 
- private func drawDesk(_ g: GraphicsContext,_ d: CGPoint,_ m: CrewMember,flash: Bool) {
-  g.fill(Path(roundedRect:CGRect(x:d.x - 26,y:d.y - 6,width:52,height:18),cornerRadius:2),with:.color(HubTheme.hex(0x3A4640)))
-  g.fill(Path(CGRect(x:d.x - 25,y:d.y - 23,width:22,height:16)),with:.color(HubTheme.hex(0x0C100E)))
-  g.fill(Path(CGRect(x:d.x - 24,y:d.y - 22,width:20,height:14)),with:.color(screenColor(m,flash:flash)))
-  g.fill(Path(CGRect(x:d.x - 16,y:d.y - 7,width:4,height:2)),with:.color(HubTheme.hex(0x0C100E)))
+ // A workstation seen from above: desk, monitor at the back, keyboard, a small thing of theirs, and a chair in front.
+ private func drawDesk(_ g: GraphicsContext,_ d: CGPoint,_ m: CrewMember,flash: Bool,t: Double) {
+  g.fill(Path(ellipseIn:CGRect(x:d.x - 34,y:d.y + 4,width:68,height:16)),with:.color(Color.black.opacity(0.35)))
+  if m.state == .working { g.fill(Path(ellipseIn:CGRect(x:d.x - 38,y:d.y - 34,width:76,height:56)),with:.color(Self.screenOn.opacity(0.08))) }
+  rect(g,d.x - 30,d.y - 12,60,22,Self.metal)
+  rect(g,d.x - 30,d.y - 12,60,1.5,Self.metalHi)
+  rect(g,d.x - 30,d.y + 7,60,3,Self.metalLo)
+  // monitor
+  rect(g,d.x - 15,d.y - 26,30,17,Self.hx(0x111215))
+  let sc = screenColor(m,flash:flash)
+  rect(g,d.x - 13,d.y - 24,26,12,sc)
+  if m.state == .working {
+   rect(g,d.x - 11,d.y - 22,14,1.5,Self.hx(0x0E3B44).opacity(0.8)); rect(g,d.x - 11,d.y - 19,20,1.5,Self.hx(0x0E3B44).opacity(0.8))
+   rect(g,d.x - 11,d.y - 16,CGFloat(6 + Int(t * 4) % 12),1.5,Self.hx(0x0E3B44).opacity(0.8))
+  }
+  rect(g,d.x - 3,d.y - 9,6,2,Self.hx(0x0D0E10))
+  // keyboard
+  rect(g,d.x - 11,d.y - 5,22,5,Self.hx(0x1F2125))
+  var kx = d.x - 10
+  while kx < d.x + 10 { rect(g,kx,d.y - 4,1.5,1.2,Self.hx(0x3A3D44)); rect(g,kx,d.y - 2,1.5,1.2,Self.hx(0x3A3D44)); kx += 3 }
+  // a small thing of theirs (mug or papers), the same each time
+  if Int(Self.seed(m.id)) % 2 == 0 { rect(g,d.x + 18,d.y - 8,5,5,Self.hx(0xD9D6CF)); rect(g,d.x + 23,d.y - 7,1.5,3,Self.hx(0xD9D6CF)) }
+  else { rect(g,d.x - 27,d.y - 9,9,7,Self.hx(0xC9C6BC)); rect(g,d.x - 26,d.y - 7,6,1,Self.hx(0x8E8B84)) }
+  // chair seat
+  if seated(m) || m.state == .away || m.state == .unknown {
+   g.fill(Path(roundedRect:CGRect(x:d.x - 10,y:d.y + 14,width:20,height:13),cornerRadius:3),with:.color(Self.hx(0x26282D)))
+  }
+ }
+
+ // The chair back, drawn over a seated person's lower back.
+ private func chairBack(_ g: GraphicsContext,_ d: CGPoint) {
+  g.fill(Path(roundedRect:CGRect(x:d.x - 12,y:d.y + 25,width:24,height:8),cornerRadius:2),with:.color(Self.hx(0x30333A)))
+  rect(g,d.x - 11,d.y + 25,22,1.2,Self.hx(0x4C5058))
+  rect(g,d.x - 1.5,d.y + 33,3,4,Self.hx(0x1C1D21))
+  rect(g,d.x - 8,d.y + 37,16,2,Self.hx(0x1C1D21))
+ }
+
+ // A seated person from behind: hair, shoulders, arms forward on the keyboard (typing) or folded with the head down (asleep).
+ private func personBack(_ ctx: GraphicsContext,_ m: CrewMember,at feet: CGPoint,px: CGFloat,typing: Bool,asleep: Bool,dim: Double) {
+  var c = ctx
+  c.opacity = dim
+  func block(_ x: Int,_ y: Int,_ w: Int,_ h: Int,_ color: Color) {
+   c.fill(Path(CGRect(x:feet.x + CGFloat(x - 3) * px,y:feet.y - CGFloat(10 - y) * px,width:CGFloat(w) * px,height:CGFloat(h) * px)),with:.color(color))
+  }
+  let col = palette(m.name)
+  let hair = m.id == "Grok" ? HubTheme.hex(0x15151B) : col.hair
+  let shirt = m.id == "Grok" ? HubTheme.hex(0x2E2E38) : tint(m)
+  let drop = asleep ? 1 : 0
+  if asleep { block(-1,3,8,2,shirt) }                                         // arms folded on the desk
+  else {
+   let l = typing && Int(Date().timeIntervalSinceReferenceDate * 6) % 2 == 0 ? 0 : 1
+   block(-1,3 + l,1,3,shirt); block(6,4 - l,1,3,shirt)
+   block(-1,2 + l,1,1,col.skin); block(6,3 - l,1,1,col.skin)
+  }
+  block(1,1 + drop,4,3,hair); block(0,2 + drop,1,1,col.skin); block(5,2 + drop,1,1,col.skin)
+  if Int(Self.seed(m.name + "hair")) % 3 == 2 { block(1,4 + drop,4,1,hair) }  // long hair
+  if m.id == "Cloud Claude" { block(0,0 + drop,2,1,.white); block(2,-1 + drop,3,2,.white); block(4,0 + drop,2,1,.white) }
+  block(2,4 + drop,2,1,col.skin)
+  block(0,5,6,3,shirt)
+  block(0,5,6,1,Color.white.opacity(0.08))
  }
 
  func draw(_ ctx: GraphicsContext,size: CGSize,t: Double) {
@@ -251,7 +422,7 @@ struct CrewStationView: View {
   var g = ctx
   g.translateBy(x:(size.width - Self.logical.width * scale) / 2 + drift.x * scale,y:(size.height - Self.logical.height * scale) / 2 + drift.y * scale)
   g.scaleBy(x:scale,y:scale)
-  drawRooms(g)
+  drawRooms(g,t:t)
   let all = Self.spots(crew)
   let flash = Int(t * 2) % 2 == 0
   let px: CGFloat = 4
@@ -261,44 +432,49 @@ struct CrewStationView: View {
    let d = s.desk
    if m.kind == .friday { drawFriday(g,m,t:t); continue }
    let p = place(s,all:all,t:t)
-   if p.away { drawDesk(g,d,m,flash:flash); walkers.append((s,p)); continue }
+   if p.away { drawDesk(g,d,m,flash:flash,t:t); if seated(m) { chairBack(g,d) }; walkers.append((s,p)); continue }
    switch m.state {
    case .working:
-    figure(g,m,at:p.feet,px:px,step:false,armsUp:Int(t * 4 + Self.seed(m.id)) % 2 == 0,dim:1,flash:flash,t:t)
-    drawDesk(g,d,m,flash:flash)
-    let dots = Int(t * 3) % 4
-    g.draw(Text(String(repeating:".",count:max(1,dots))).font(.system(size:12,weight:.heavy,design:.monospaced)).foregroundColor(HubTheme.green),at:CGPoint(x:d.x - 24,y:d.y - 30),anchor:.leading)
+    drawDesk(g,d,m,flash:flash,t:t)
+    if seated(m) { personBack(g,m,at:p.feet,px:px,typing:true,asleep:false,dim:1); chairBack(g,d) }
+    else { figure(g,m,at:p.feet,px:px,step:false,armsUp:Int(t * 4 + Self.seed(m.id)) % 2 == 0,dim:1,flash:flash,t:t) }
    case .idle:
-    figure(g,m,at:p.feet,px:px,step:false,armsUp:false,dim:0.8,flash:flash,t:t,asleep:true)
-    drawDesk(g,d,m,flash:flash)
+    drawDesk(g,d,m,flash:flash,t:t)
+    if seated(m) { personBack(g,m,at:p.feet,px:px,typing:false,asleep:true,dim:0.85); chairBack(g,d) }
+    else { figure(g,m,at:p.feet,px:px,step:false,armsUp:false,dim:0.8,flash:flash,t:t,asleep:true) }
     let rise = CGFloat(Int(t * 1.5 + Self.seed(m.id)) % 3) * 4
     g.draw(Text("z").font(.system(size:9,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:d.x + 25,y:d.y - 28 - rise),anchor:.center)
     g.draw(Text("Z").font(.system(size:11,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage.opacity(0.7)),at:CGPoint(x:d.x + 32,y:d.y - 38 - rise),anchor:.center)
    case .away:
-    drawDesk(g,d,m,flash:flash)
-    figure(g,m,at:p.feet,px:px,step:false,armsUp:false,dim:0.3,flash:flash,t:t)
+    drawDesk(g,d,m,flash:flash,t:t)
+    if seated(m) { chairBack(g,d) } else { figure(g,m,at:p.feet,px:px,step:false,armsUp:false,dim:0.3,flash:flash,t:t) }
     let until = m.awayUntil.map { "BACK " + $0.formatted(.dateTime.month(.abbreviated).day()).uppercased() } ?? "AWAY"
     let sign = CGRect(x:d.x - 38,y:d.y + 12,width:76,height:15)
     g.fill(Path(roundedRect:sign,cornerRadius:2),with:.color(HubTheme.hex(0x2B3F66)))
     g.stroke(Path(roundedRect:sign,cornerRadius:2),with:.color(HubTheme.blue),lineWidth:1)
     g.draw(Text("AWAY · " + until).font(.system(size:7,weight:.bold,design:.monospaced)).foregroundColor(.white),at:CGPoint(x:sign.midX,y:sign.midY),anchor:.center)
    case .failing:
-    figure(g,m,at:p.feet,px:px,step:false,armsUp:flash,dim:1,flash:flash,t:t)
-    drawDesk(g,d,m,flash:flash)
+    drawDesk(g,d,m,flash:flash,t:t)
+    figure(g,m,at:seated(m) ? CGPoint(x:d.x + 36,y:d.y + 16) : p.feet,px:px,step:false,armsUp:flash,dim:1,flash:flash,t:t)
     g.fill(Path(ellipseIn:CGRect(x:d.x - 19,y:d.y - 38,width:10,height:10)),with:.color(flash ? Color(red:1,green:0.2,blue:0.2) : Color(red:0.45,green:0.1,blue:0.1)))
     g.draw(Text("ALARM").font(.system(size:7,weight:.heavy,design:.monospaced)).foregroundColor(Color(red:1,green:0.4,blue:0.4)),at:CGPoint(x:d.x + 2,y:d.y - 33),anchor:.leading)
    case .unknown:
-    drawDesk(g,d,m,flash:flash)
-    figure(g,m,at:p.feet,px:px,step:false,armsUp:false,dim:0.28,flash:flash,t:t)
+    drawDesk(g,d,m,flash:flash,t:t)
+    if seated(m) { chairBack(g,d) } else { figure(g,m,at:p.feet,px:px,step:false,armsUp:false,dim:0.28,flash:flash,t:t) }
     g.draw(Text("?").font(.system(size:13,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:d.x + 27,y:d.y - 26),anchor:.center)
    }
   }
   // names (and who they messaged) under every desk
   for s in all where s.member.kind != .friday {
    let d = s.desk
-   g.draw(Text(PixelCrew.label(s.member)).font(.system(size:9,weight:.medium,design:.monospaced)).foregroundColor(HubTheme.text.opacity(0.92)),at:CGPoint(x:d.x,y:d.y + 52),anchor:.top)
+   let name = PixelCrew.label(s.member)
+   let w = CGFloat(name.count) * 5.6 + 10
+   let plate = CGRect(x:d.x - w / 2,y:d.y + 43,width:w,height:12)
+   g.fill(Path(roundedRect:plate,cornerRadius:2),with:.color(Self.hx(0x101114).opacity(0.92)))
+   g.stroke(Path(roundedRect:plate,cornerRadius:2),with:.color(Self.hx(0x3A3D44)),lineWidth:1)
+   g.draw(Text(name).font(.system(size:8.5,weight:.semibold,design:.monospaced)).foregroundColor(Self.hx(0xD3D6DC)),at:CGPoint(x:plate.midX,y:plate.midY),anchor:.center)
    if let v = visits.first(where:{ $0.from == s.member.id }), let to = all.first(where:{ $0.member.id == v.to }) {
-    g.draw(Text("✉ → " + PixelCrew.label(to.member)).font(.system(size:7.5,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.amber),at:CGPoint(x:d.x,y:d.y + 64),anchor:.top)
+    g.draw(Text("✉ → " + PixelCrew.label(to.member)).font(.system(size:7.5,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.hex(0x5FD3C6)),at:CGPoint(x:d.x,y:d.y + 58),anchor:.top)
    }
   }
   if let friday = all.first(where:{ $0.member.kind == .friday }) {
@@ -319,10 +495,10 @@ struct CrewStationView: View {
   if let id = pick.selected, let s = all.first(where:{ $0.member.id == id }) {
    if s.member.kind == .friday {
     let r = Self.coreRadius + 5
-    g.stroke(Path(ellipseIn:CGRect(x:Self.core.x - r,y:Self.core.y - r,width:r * 2,height:r * 2)),with:.color(HubTheme.amber),lineWidth:2)
+    g.stroke(Path(ellipseIn:CGRect(x:Self.core.x - r,y:Self.core.y - r,width:r * 2,height:r * 2)),with:.color(Noir.crimson),lineWidth:2)
    } else {
     let f = place(s,all:all,t:t).feet
-    g.stroke(Path(roundedRect:CGRect(x:f.x - 18,y:f.y - 50,width:36,height:56),cornerRadius:4),with:.color(HubTheme.amber),style:StrokeStyle(lineWidth:1.5,dash:[4,2]))
+    g.stroke(Path(roundedRect:CGRect(x:f.x - 18,y:f.y - 50,width:36,height:56),cornerRadius:4),with:.color(Noir.crimson),style:StrokeStyle(lineWidth:1.5,dash:[4,2]))
    }
   }
  }

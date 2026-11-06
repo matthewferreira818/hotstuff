@@ -60,3 +60,14 @@ A job that can't name its goal or its proof doesn't start.
 - Small, free, reversible → decide and report (CLAUDE.md "don't over-ask").
 - Unsure, two rules clash, or it touches money/sending/logins/prices/legal → ask Matthew (CONFIRM: in the room if urgent).
 - Something broken or a rule broken → URGENT: in the room, and stop.
+
+## 9. One app, one test build (Matthew, 2026-11-06: "why aren't they trying to make it one app? it looks like they're making multiple")
+- There is ONE app: `The Helm`. Never touch the real one while testing.
+- For testing there is ONE shared test build, always named **"The Helm (Test)"**, one app ID (`local.mattyb.helmtest`), built into the hidden
+  folder `~/Claude/.helm-test/`. Launch with `open -g` (add `-j` only when you don't need screenshots), never activate it, never add it to the Dock,
+  Desktop, /Applications or ~/Applications, and quit it right after each check. Screenshots go to Helm-Private or a scratch folder, never the Desktop.
+- No per-builder copies (HelmPhase1, HelmBrain, HelmCrewState, …) ever again. Several chats on one branch build into the SAME test app in turn;
+  the gate owner (LC-Manager, Friday as backup) makes the combined build.
+- Give the test executable its own name (`HelmTestExe`), because `rebuild.sh` runs `pkill -x GameCompanion` and would kill a test copy that shares the real name.
+- The gate owner ends every job with "clean ✓": list the Desktop, Dock, Applications and Downloads and confirm nothing of ours is left.
+- Never use `rm -rf`; move things to the Trash.

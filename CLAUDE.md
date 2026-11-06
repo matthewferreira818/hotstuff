@@ -217,10 +217,10 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   starts a job and again when it finishes or gets stuck (owner, status, one line), (3) posts a short tagged line in issue 15 for anything
   another chat, Roxy or Grok needs to know (plain lines don't ping Matthew; CONFIRM:/URGENT: only when it truly needs him), and
   (4) appends to the day's private handoff note as it goes, so the next chat can pick up mid-job.
-- **Local Claude (2026-11-05 ~10 PM):** a Code session running ON Matthew's Mac (desktop app, Mac folder). It can drive his Chrome
+- **Local Claude = Matthew's MAIN chat (his decision, 2026-11-05 ~10 PM: "i want it to be my main").** A Code session running ON Matthew's Mac (desktop app, Mac folder). It can drive his Chrome
   directly (tested: opened findhotstuff.com, read the first product, closed the tab), so browser jobs no longer need pasted C.C prompts.
-  Works only while the Mac is on and awake. Cloud chats (Work, new beginning) can't see it or his browser: hand it browser jobs as a
-  prompt. Same rules as C.C (look-only unless the job says otherwise; payments, logins and secrets stay his).
+  Works only while the Mac is on and awake; the cloud Work chat is the backup when it isn't. Scheduled reminders still fire into the
+  cloud chat "new beginning" (they can't reach a Mac session). Cloud chats can't see Local Claude or his browser: hand it jobs as a prompt. Same rules as C.C (look-only unless the job says otherwise; payments, logins and secrets stay his).
 - The old long chat ("new beginning") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
   and the 5:15 PM robot recap) fire there.
 - **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day

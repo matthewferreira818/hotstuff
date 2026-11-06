@@ -262,6 +262,12 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var loading = false
  @Published var failed = false
  var lastRefresh = Date.distantPast
+ // Honest per-source status for Simple Home: when each last worked, and whether the last try failed. A failed read clears the number instead
+ // of leaving the last good one on screen as if it were current.
+ @Published var storeAt: Date?
+ @Published var feedAt: Date?
+ @Published var storeFailed = false
+ @Published var feedFailed = false
  var attention: [AutomationRun] { (runs ?? []).filter { $0.isFailing } }
  // Everything that needs a look: failing automations, plus a product list the 3-day refresh hasn't touched in over 5 days.
  var alerts: [String] {
@@ -279,9 +285,11 @@ enum HubSection: Int, CaseIterable, Identifiable {
   async let runsResult = VentureData.fetchAutomations()
   async let catalogResult = VentureData.fetchCatalog()
   async let issuesResult = VentureData.fetchAlerts()
-  let (a,b,c,d,e) = await (storeResult,feedResult,runsResult,catalogResult,issuesResult)
-  if let a = a { store = a }
-  if let b = b { feed = b }
+  var (a,b,c,d,e) = await (storeResult,feedResult,runsResult,catalogResult,issuesResult)
+  // Test copies only: force the store read to fail so the "unknown" wording can be checked.
+  if UserDefaults.standard.bool(forKey:"test.failStore") { a = nil }
+  if let a = a { store = a; storeAt = Date(); storeFailed = false } else { store = nil; storeFailed = true }
+  if let b = b { feed = b; feedAt = Date(); feedFailed = false } else { feed = nil; feedFailed = true }
   if let c = c { runs = c }
   if let d = d { catalog = d }
   if let e = e { issues = e }

@@ -77,7 +77,7 @@ extension CompanionInterfaceView {
  func simpleTab(_ section: HubSection) -> some View {
   let on = hub.section == section
   let index = (Self.simpleTabs.firstIndex(of:section) ?? 0) + 1
-  return Button { hubSelect(section) } label: {
+  return Button { if section == .meeting { meeting.tab = 6 }; hubSelect(section) } label: {
    Text(simpleName(section)).lineLimit(1).fixedSize()
     .font(.system(size:15,weight:on ? .semibold : .medium))
     .foregroundStyle(on ? HubTheme.text : HubTheme.subtext)
@@ -115,6 +115,7 @@ extension CompanionInterfaceView {
 
  var simpleGreetingLine: String {
   let cards = deckOkCards
+  if meeting.threadFailed { return "Couldn't reach the Meeting Room, so I can't say what needs you." }
   if meeting.messages.isEmpty { return meeting.loading ? "Checking in with the crew…" : "Tap Refresh to check in with the crew." }
   return cards.isEmpty ? "Nothing is waiting for you right now." : "\(cards.count) \(cards.count == 1 ? "thing is" : "things are") waiting for you."
  }
@@ -122,10 +123,10 @@ extension CompanionInterfaceView {
  var simpleHome: some View {
   GeometryReader { geo in
    let narrow = geo.size.width < 760
-   let orb: CGFloat = geo.size.height < 600 ? 96 : 120
-   VStack(spacing:14) {
+   let orb: CGFloat = geo.size.height < 760 ? 88 : 120
+   VStack(spacing:10) {
     VStack(spacing:2) {
-     Text(hubGreeting).font(.system(size:30,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+     Text(hubGreeting).font(.system(size:28,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
      Text(simpleGreetingLine).font(.system(size:15)).foregroundStyle(HubTheme.subtext)
     }
     TimelineView(.animation(minimumInterval:1.0/30.0,paused:reduceMotion)) { timeline in
@@ -135,7 +136,7 @@ extension CompanionInterfaceView {
       Text(deckStateWords(orbState(at:now))).font(.system(size:13)).foregroundStyle(HubTheme.subtext)
      }
     }
-    .frame(height:orb * 1.5)
+    .frame(height:orb * 1.42)
     HStack(spacing:8) {
      Button { mainAction() } label: {
       HStack(spacing:10) {
@@ -185,7 +186,7 @@ extension CompanionInterfaceView {
    content()
    Spacer(minLength:0)
   }
-  .padding(16).frame(maxWidth:.infinity,minHeight:170,alignment:.topLeading)
+  .padding(14).frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading)
   .background(HubTheme.card,in:RoundedRectangle(cornerRadius:16))
   .overlay(RoundedRectangle(cornerRadius:16).stroke(HubTheme.line,lineWidth:1))
  }
@@ -193,9 +194,11 @@ extension CompanionInterfaceView {
  // 1. Needs you: one plain sentence per real request. "Yes" opens the reply box with a yes already typed (Matthew presses Post);
  // nothing is sent from here. "Not now" hides it until the app is closed.
  var simpleNeedsCard: some View {
-  let cards = Array(deckOkCards.prefix(2))
+  let cards = meeting.threadFailed ? [] : Array(deckOkCards.prefix(2))
   return simpleCard("Needs you",help:"Things the crew is waiting on you for. Yes opens a reply with a yes typed in; you still press Post. Not now hides it for today.") {
-   if cards.isEmpty {
+   if meeting.threadFailed {
+    Text("Unknown right now (couldn't reach the Meeting Room).").font(.system(size:15)).foregroundStyle(HubTheme.amber)
+   } else if cards.isEmpty {
     Text(meeting.messages.isEmpty ? "The room hasn't loaded yet." : "Nothing right now. Enjoy it.").font(.system(size:15)).foregroundStyle(HubTheme.subtext)
    }
    ForEach(cards) { message in
@@ -208,7 +211,15 @@ extension CompanionInterfaceView {
      }
     }
    }
+   Text(meeting.threadFailed ? "unknown (couldn't reach the Meeting Room)" : (meeting.threadAt.map { "as of \(crewChatTime($0)), from the Meeting Room" } ?? "loading from the Meeting Room…")).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
   }
+ }
+
+ // The robots carry their own snapshot times, so the newest one is the honest "as of". No snapshots at all means unknown.
+ var simpleRobotsAsOf: String {
+  let newest = deckRobots.compactMap { $0.robot?.updated }.max()
+  if let newest = newest { return "newest snapshot \(crewChatTime(newest)), from the robots' public snapshots" }
+  return stocks.loading ? "loading from the robots' public snapshots…" : "unknown (couldn't reach the robots' public snapshots)"
  }
 
  // 2. Today: plain words about the crew.
@@ -223,26 +234,48 @@ extension CompanionInterfaceView {
    else {
     Text(working.isEmpty ? "Nobody is in the middle of a job right now." : "Working now: " + working.prefix(3).joined(separator:", ") + (working.count > 3 ? " and \(working.count - 3) more" : "") + ".")
      .font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
-    if !robots.isEmpty { Text("\(robots.filter { $0.state != .unknown }.count) of \(robots.count) practice robots have checked in" + (robotsRunning > 0 ? ", \(robotsRunning) running now." : ".")).font(.system(size:14)).foregroundStyle(HubTheme.text) }
+    if !robots.isEmpty {
+     Text("\(robots.filter { $0.state != .unknown }.count) of \(robots.count) practice robots have checked in" + (robotsRunning > 0 ? ", \(robotsRunning) running now." : ".")).font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
+     Text(simpleRobotsAsOf).font(.system(size:11)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
+    }
     if !failing.isEmpty { Text("Needs a look: \(failing.joined(separator:", ")) hit a problem.").font(.system(size:14,weight:.semibold)).foregroundStyle(HubTheme.amber) }
     Button { hubSelect(.crewStation) } label: { Text("See who's who ›").font(.system(size:13,weight:.medium)).foregroundStyle(HubTheme.teal) }.buttonStyle(.plain)
    }
   }
  }
 
- // 3. Your businesses: real numbers only.
+ // 3. Your businesses: real numbers only, each with "as of <time>, from <source>". A failed read says unknown, never the last good value.
+ func simpleAsOf(_ date: Date?,_ source: String,failed: Bool) -> String {
+  if failed { return "unknown (couldn't reach \(source))" }
+  guard let date = date else { return "loading from \(source)…" }
+  return "as of \(crewChatTime(date)), from \(source)"
+ }
+
+ // Orders come only from Stripe's read-only key (SalesHub). With no key there is no honest order number, so it says so.
+ var simpleOrdersLine: (String,String) {
+  if !sales.hasKey { return ("Orders: not tracked yet","Stripe isn't connected to The Helm") }
+  guard let s = sales.sales else { return ("Orders: unknown","couldn't read Stripe yet") }
+  let n = s.month.orders
+  let when = sales.lastRefresh == .distantPast ? "" : "as of \(crewChatTime(sales.lastRefresh)), "
+  return (n == 0 ? "Orders (30 days): none yet · Goal: first sale" : "Orders (30 days): \(n)", when + "from Stripe" + (s.testMode ? " (test mode)" : ""))
+ }
+
  var simpleBusinessCard: some View {
-  simpleCard("Your businesses",help:"Your store and East Coast Social at a glance. Tap a line to open it. Numbers are the public counters.") {
+  simpleCard("Your businesses",help:"Your store and East Coast Social at a glance. Tap a line to open it. Under every number: when it was read and where from.") {
    Button { hubSelect(.store) } label: {
     VStack(alignment:.leading,spacing:2) {
      Text("HotsTuff store").font(.system(size:13)).foregroundStyle(HubTheme.subtext)
-     Text(ventures.store.map { "\($0.week) visitors this week" } ?? (ventures.loading ? "Loading…" : "Not loaded yet")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(ventures.store.map { "\($0.week) visitors this week" } ?? (ventures.storeFailed ? "Visitors: unknown" : "Loading…")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(simpleAsOf(ventures.storeAt,"GoatCounter",failed:ventures.storeFailed)).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
+     Text(simpleOrdersLine.0).font(.system(size:14,weight:.medium)).foregroundStyle(HubTheme.text).padding(.top,3)
+     Text(simpleOrdersLine.1).font(.system(size:11)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
     }.frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
    }.buttonStyle(.plain)
    Button { hubSelect(.ecs) } label: {
     VStack(alignment:.leading,spacing:2) {
      Text("East Coast Social").font(.system(size:13)).foregroundStyle(HubTheme.subtext)
-     Text(ventures.feed.map { "\($0.total) cards on the site feed" } ?? (ventures.loading ? "Loading…" : "Not loaded yet")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(ventures.feed.map { "\($0.total) cards on the site feed" } ?? (ventures.feedFailed ? "Site feed: unknown" : "Loading…")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(simpleAsOf(ventures.feedAt,"the site feed",failed:ventures.feedFailed)).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
     }.frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
    }.buttonStyle(.plain)
   }

@@ -12,19 +12,29 @@ import AppKit
 // Tap or hover a node for what it is. The old live tape and the command line live in the drawer at the bottom (collapsed by default).
 
 enum CoreStyle {
- static let bg = HubTheme.hex(0x05070A)
- static let charcoal = HubTheme.hex(0x0D1114)
- static let card = HubTheme.hex(0x10151A)
- static let emerald = HubTheme.hex(0x2FD39A)       // the one accent: healthy, alive
- static let amber = HubTheme.hex(0xE3B456)         // needs a look
- static let crimson = HubTheme.hex(0xD6293F)       // alerts only, and a faint rim of Friday's identity
+ static let bg = HubTheme.hex(0x030A0B)            // deep teal-black
+ static let charcoal = HubTheme.hex(0x08131A)
+ static let card = HubTheme.hex(0x0B1A1E)
+ static let teal = HubTheme.hex(0x1FA39A)          // structure: rings, lines, labels
+ static let emerald = HubTheme.hex(0x2FD39A)       // healthy, alive
+ static let amber = HubTheme.hex(0xE07888)         // "needs a look": a soft rose, no yellow (name kept so the code stays small)
+ static let crimson = HubTheme.hex(0xD6293F)       // real failures, and a faint rim of Friday's identity
  static let ink = Color.white.opacity(0.92)
  static let dim = Color.white.opacity(0.52)
  static let faint = Color.white.opacity(0.08)
 }
 
+struct CoreRow: Identifiable {
+ var id = UUID()
+ var label: String
+ var value: String
+ var tone: Int = 0        // 0 normal, 1 good, 2 attention, 3 bad
+}
+
 struct CoreNode: Identifiable {
  var id: String
+ var kind = ""            // shown small above the name in the detail panel
+ var rows: [CoreRow] = []
  var ring: Int            // 0 centre, 1 apps, 2 crew, 3 robots
  var label: String
  var detail: String
@@ -68,23 +78,46 @@ extension CompanionInterfaceView {
 
   var nodes: [CoreNode] = []
   let macWarn = g.locked || counts.warn > 0 || !failing.isEmpty
-  nodes.append(CoreNode(id:"mac",ring:0,label:"This Mac",
-   detail:"macOS \(ProcessInfo.processInfo.operatingSystemVersion.majorVersion).\(ProcessInfo.processInfo.operatingSystemVersion.minorVersion) · \(Int(CoreFacts.memoryGB().rounded())) GB memory · up \(CoreFacts.uptimeText(ProcessInfo.processInfo.systemUptime))",
+  var macRows: [CoreRow] = [
+   CoreRow(label:"macOS",value:"\(ProcessInfo.processInfo.operatingSystemVersion.majorVersion).\(ProcessInfo.processInfo.operatingSystemVersion.minorVersion)"),
+   CoreRow(label:"Memory",value:"\(Int(CoreFacts.memoryGB().rounded())) GB"),
+   CoreRow(label:"Up for",value:CoreFacts.uptimeText(ProcessInfo.processInfo.systemUptime)),
+  ]
+  if let free = CoreFacts.freeDiskGB() { macRows.append(CoreRow(label:"Free disk",value:"\(Int(free.rounded())) GB")) }
+  for r in g.results { macRows.append(CoreRow(label:r.title,value:r.verdict == .ok ? "ok" : (r.verdict == .warn ? "needs a look" : "unknown"),tone:r.verdict == .ok ? 1 : (r.verdict == .warn ? 2 : 0))) }
+  if g.results.isEmpty { macRows.append(CoreRow(label:"Guard",value:"not checked yet")) }
+  nodes.append(CoreNode(id:"mac",kind:"THIS DEVICE",rows:macRows,ring:0,label:"This Mac",
+   detail:"macOS \(ProcessInfo.processInfo.operatingSystemVersion.majorVersion).\(ProcessInfo.processInfo.operatingSystemVersion.minorVersion)",
    lit:!g.results.isEmpty,warn:macWarn,weight:1))
   let maxConn = Double(max(1,g.network.map { $0.connections }.max() ?? 1))
   for app in g.network.sorted(by:{ $0.connections > $1.connections }).prefix(9) {
-   nodes.append(CoreNode(id:"app-\(app.name)",ring:1,label:app.name,detail:"\(app.connections) internet connection\(app.connections == 1 ? "" : "s")" + (app.isNew ? " · new since Guard's first look" : ""),
+   nodes.append(CoreNode(id:"app-\(app.name)",kind:"APPLICATION ONLINE",rows:[
+     CoreRow(label:"Connections",value:"\(app.connections)"),
+     CoreRow(label:"Seen before",value:app.isNew ? "no, new since Guard's first look" : "yes",tone:app.isNew ? 2 : 1),
+     CoreRow(label:"Source",value:"Guard's check" + (g.lastChecked.map { ", \(coreAgo($0))" } ?? "")),
+    ],ring:1,label:app.name,detail:"\(app.connections) internet connection\(app.connections == 1 ? "" : "s")",
     lit:true,warn:app.isNew,weight:Double(app.connections) / maxConn))
   }
   for m in crew {
-   nodes.append(CoreNode(id:"crew-\(m.id)",ring:2,label:m.name,detail:m.since.map { "\(m.detail) · \(coreAgo($0))" } ?? m.detail,
+   nodes.append(CoreNode(id:"crew-\(m.id)",kind:"CREW",rows:[
+     CoreRow(label:"State",value:m.state == .working ? "working" : (m.state == .idle ? "idle" : (m.state == .away ? "away" : "no data")),tone:m.state == .working ? 1 : 0),
+     CoreRow(label:"Evidence",value:m.detail),
+     CoreRow(label:"Last sign",value:m.since.map { coreAgo($0) } ?? "none seen"),
+     CoreRow(label:"Source",value:"room posts and commits only"),
+    ],ring:2,label:m.name,detail:m.since.map { "\(m.detail) · \(coreAgo($0))" } ?? m.detail,
     lit:m.state == .working,warn:m.state == .failing,weight:0.5))
   }
   for r in robots {
    guard let robot = r.robot else { continue }
    let name = r.name.replacingOccurrences(of:"stock-",with:"")
-   nodes.append(CoreNode(id:"bot-\(r.name)",ring:3,label:name,
-    detail:"practice robot (paper money) · " + (robot.sinceStart >= 0 ? "+" : "") + hubMoney(robot.sinceStart) + " since start",
+   nodes.append(CoreNode(id:"bot-\(r.name)",kind:"PRACTICE ROBOT · PAPER MONEY",rows:[
+     CoreRow(label:"Since start",value:(robot.sinceStart >= 0 ? "+" : "") + hubMoney(robot.sinceStart),tone:robot.sinceStart >= 0 ? 1 : 2),
+     CoreRow(label:"Versus holding",value:(robot.vsHolding >= 0 ? "+" : "") + hubMoney(robot.vsHolding),tone:robot.vsHolding >= 0 ? 1 : 2),
+     CoreRow(label:"Account value",value:hubMoney(robot.value)),
+     CoreRow(label:"Trades",value:"\(robot.trades)"),
+     CoreRow(label:"Updated",value:robot.updated.map { coreAgo($0) } ?? "unknown"),
+    ],ring:3,label:name,
+    detail:"practice robot (paper money)",
     lit:robot.sinceStart >= 0,warn:false,weight:0.5))
   }
 
@@ -266,8 +299,8 @@ struct CoreRoomView: View {
  func nodeColor(_ n: CoreNode) -> Color {
   if n.warn { return CoreStyle.amber }
   switch n.ring {
-  case 3: return n.lit ? CoreStyle.emerald : CoreStyle.crimson.opacity(0.8)
-  default: return n.lit ? CoreStyle.emerald : Color.white.opacity(0.35)
+  case 3: return n.lit ? CoreStyle.emerald : CoreStyle.crimson.opacity(0.75)
+  default: return n.lit ? CoreStyle.emerald : CoreStyle.teal.opacity(0.55)
   }
  }
 
@@ -295,9 +328,9 @@ struct CoreRoomView: View {
       for ring in 1...3 {
        let (rx,ry) = radii(ring)
        var p = Path(); p.addEllipse(in:CGRect(x:center.x - rx,y:center.y - ry,width:rx * 2,height:ry * 2))
-       ctx.stroke(p,with:.color(Color.white.opacity(0.07)),lineWidth:1)
+       ctx.stroke(p,with:.color(CoreStyle.teal.opacity(0.22)),lineWidth:1)
        if (groups[ring] ?? []).isEmpty == false {
-        ctx.draw(ctx.resolve(Text(Self.ringCaption[ring]).font(.system(size:8,weight:.semibold,design:.rounded)).foregroundStyle(Color.white.opacity(0.24))),at:CGPoint(x:center.x,y:center.y - ry - 7),anchor:.center)
+        ctx.draw(ctx.resolve(Text(Self.ringCaption[ring]).font(.system(size:8,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.teal.opacity(0.75))),at:CGPoint(x:center.x,y:center.y - ry - 7),anchor:.center)
        }
       }
       // slow pulse from the core: decoration only
@@ -311,7 +344,13 @@ struct CoreRoomView: View {
       for n in groups[1] ?? [] {
        let pt = position(of:n,in:groups[1] ?? [],size:size,time:t)
        var l = Path(); l.move(to:center); l.addLine(to:pt)
-       ctx.stroke(l,with:.color(CoreStyle.emerald.opacity(selected == n.id || hovered == n.id ? 0.5 : 0.10)),lineWidth:1)
+       ctx.stroke(l,with:.color(CoreStyle.teal.opacity(selected == n.id || hovered == n.id ? 0.85 : 0.22)),lineWidth:selected == n.id || hovered == n.id ? 1.6 : 1)
+      }
+      // the selected node's link to the core (a pointer for the eye; the flowing dash is decoration, not traffic)
+      if let sel = snapshot.nodes.first(where:{ $0.id == (selected ?? hovered) }), sel.ring > 0 {
+       let pt = position(of:sel,in:groups[sel.ring] ?? [],size:size,time:t)
+       var l = Path(); l.move(to:center); l.addLine(to:pt)
+       ctx.stroke(l,with:.color(CoreStyle.emerald.opacity(0.9)),style:StrokeStyle(lineWidth:1.6,lineCap:.round,dash:[3,7],dashPhase:reduceMotion ? 0 : CGFloat(-t * 14)))
       }
       // nodes
       for ring in 1...3 {
@@ -325,7 +364,10 @@ struct CoreRoomView: View {
                   with:.radialGradient(Gradient(colors:[col.opacity(on ? 0.45 : 0.22),.clear]),center:pt,startRadius:0,endRadius:rad * 2.6))
         }
         ctx.fill(Path(ellipseIn:CGRect(x:pt.x - rad,y:pt.y - rad,width:rad * 2,height:rad * 2)),with:.color(n.lit ? col : col.opacity(0.5)))
-        if on { ctx.stroke(Path(ellipseIn:CGRect(x:pt.x - rad - 4,y:pt.y - rad - 4,width:rad * 2 + 8,height:rad * 2 + 8)),with:.color(Color.white.opacity(0.7)),lineWidth:1) }
+        if on {
+         let pulse: CGFloat = reduceMotion ? 5 : 5 + 2.5 * CGFloat(sin(t * 3))
+         ctx.stroke(Path(ellipseIn:CGRect(x:pt.x - rad - pulse,y:pt.y - rad - pulse,width:(rad + pulse) * 2,height:(rad + pulse) * 2)),with:.color(CoreStyle.emerald.opacity(0.85)),lineWidth:1.2)
+        }
         if ring == 1 || on {
          ctx.draw(ctx.resolve(Text(n.label).font(.system(size:9.5,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(on ? 0.95 : 0.6))),at:CGPoint(x:pt.x,y:pt.y + rad + 9),anchor:.center)
         }
@@ -333,11 +375,11 @@ struct CoreRoomView: View {
       }
       // the core: this Mac. Colour = Guard + automations.
       if let mac = (groups[0] ?? []).first {
-       let col: Color = snapshot.verdict == 0 ? Color.white.opacity(0.4) : (mac.warn ? CoreStyle.amber : CoreStyle.emerald)
+       let col: Color = snapshot.verdict == 0 ? CoreStyle.teal.opacity(0.6) : (mac.warn ? CoreStyle.amber : CoreStyle.emerald)
        let breathe: CGFloat = reduceMotion ? 1 : 1 + 0.04 * CGFloat(sin(t * 1.1))
        let rad: CGFloat = 34 * breathe
        ctx.fill(Path(ellipseIn:CGRect(x:center.x - rad * 3,y:center.y - rad * 3,width:rad * 6,height:rad * 6)),
-                with:.radialGradient(Gradient(colors:[col.opacity(0.35),.clear]),center:center,startRadius:0,endRadius:rad * 3))
+                with:.radialGradient(Gradient(colors:[col.opacity(0.20),.clear]),center:center,startRadius:0,endRadius:rad * 3))
        ctx.fill(Path(ellipseIn:CGRect(x:center.x - rad,y:center.y - rad,width:rad * 2,height:rad * 2)),
                 with:.radialGradient(Gradient(colors:[col.opacity(0.95),col.opacity(0.25)]),center:center,startRadius:2,endRadius:rad))
        ctx.stroke(Path(ellipseIn:CGRect(x:center.x - rad - 6,y:center.y - rad - 6,width:(rad + 6) * 2,height:(rad + 6) * 2)),with:.color(CoreStyle.crimson.opacity(0.35)),lineWidth:1)
@@ -378,15 +420,40 @@ struct CoreRoomView: View {
   let n = snapshot.nodes.first { $0.id == (hovered ?? selected) }
   return Group {
    if let n {
-    VStack(spacing:2) {
-     Text(n.label).font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink)
-     Text(n.detail).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).multilineTextAlignment(.center)
+    VStack(alignment:.leading,spacing:8) {
+     HStack(alignment:.firstTextBaseline) {
+      VStack(alignment:.leading,spacing:2) {
+       Text(n.kind).font(.system(size:9,weight:.semibold,design:.rounded)).tracking(2).foregroundStyle(CoreStyle.teal)
+       Text(n.label).font(.system(size:17,weight:.light,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
+      }
+      Spacer(minLength:8)
+      if selected == n.id {
+       Button { selected = nil } label: { Image(systemName:"xmark").font(.system(size:10,weight:.semibold)).foregroundStyle(CoreStyle.dim) }.buttonStyle(.plain)
+      } else {
+       Text("tap to pin").font(.system(size:9.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
+      }
+     }
+     VStack(spacing:4) {
+      ForEach(n.rows) { r in
+       HStack(alignment:.firstTextBaseline,spacing:8) {
+        Text(r.label).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+        Spacer(minLength:6)
+        Text(r.value).font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(tone(r.tone)).lineLimit(2).multilineTextAlignment(.trailing)
+       }
+      }
+     }
     }
+    .padding(14).frame(width:300)
+    .background(RoundedRectangle(cornerRadius:14).fill(CoreStyle.card.opacity(0.96)))
+    .overlay(RoundedRectangle(cornerRadius:14).stroke(CoreStyle.teal.opacity(0.45),lineWidth:1))
+    .shadow(color:CoreStyle.teal.opacity(0.25),radius:16)
+    .transition(.opacity.combined(with:.scale(scale:0.97,anchor:.bottom)))
    } else {
-    Text("tap a dot to see what it is").font(.system(size:10.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.28))
+    Text("tap a dot to see what it is").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.teal.opacity(0.6)).padding(.bottom,4)
    }
   }
-  .frame(maxWidth:.infinity,minHeight:34).padding(.bottom,2)
+  .animation(reduceMotion ? nil : .easeOut(duration:0.2),value:hovered ?? selected)
+  .frame(maxWidth:.infinity,alignment:.center).padding(.bottom,2)
  }
 
  // MARK: the collapsible drawer: the live tape and the command line

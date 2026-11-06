@@ -354,7 +354,7 @@ struct HackRoomFrame<Content: View>: View {
     }
     .allowsHitTesting(false)
    }
-   RadialGradient(colors:[HackPalette.crimson.opacity(0.10),.clear],center:.top,startRadius:20,endRadius:700).allowsHitTesting(false)
+   RadialGradient(colors:[CoreStyle.teal.opacity(0.14),.clear],center:.top,startRadius:20,endRadius:700).allowsHitTesting(false)
    if state.hidden {
     VStack(spacing:14) {
      Circle().fill(RadialGradient(colors:[HackPalette.crimson,HackPalette.crimson.opacity(0.15)],center:.center,startRadius:2,endRadius:60)).frame(width:110,height:110)

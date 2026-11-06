@@ -135,8 +135,8 @@ extension CompanionInterfaceView {
   let on = deckInHack
   return Button { hubSelect(.hacking) } label: {
    HStack(spacing:5) {
-    Text(">_").font(.system(size:11,weight:.bold,design:.monospaced))
-    if hub.width >= 1020 { Text("hacking area").font(.system(size:12,weight:.medium,design:.monospaced)) }
+    Image(systemName:"circle.hexagongrid.fill").font(.system(size:12,weight:.semibold))
+    Text(hub.width >= 820 ? "Command Core" : "Core").font(.system(size:12.5,weight:.medium,design:.rounded))
    }
    .foregroundStyle(on ? HubTheme.background : HubTheme.green)
    .padding(.horizontal,10).frame(height:34)
@@ -146,8 +146,8 @@ extension CompanionInterfaceView {
   }
   .buttonStyle(.plain)
   .keyboardShortcut("6",modifiers:.command)
-  .accessibilityLabel("Hacking area").accessibilityAddTraits(on ? .isSelected : [])
-  .help("Our own systems: live tape, Systems, Guard, Lab, Real or Fake?, Crew station")
+  .accessibilityLabel("Command Core").accessibilityAddTraits(on ? .isSelected : [])
+  .help("Your Mac, network and crew: Overview, Systems, Guard, Lab, Real or Fake?, Crew station")
  }
 
  var deckMoreMenu: some View {
@@ -202,13 +202,12 @@ extension CompanionInterfaceView {
  var deckHackNav: some View {
   HStack(spacing:6) {
    Circle().fill(HubTheme.green).frame(width:7,height:7).accessibilityHidden(true)
-   Text("HACKING AREA").font(.system(size:12,weight:.bold,design:.monospaced)).foregroundStyle(HubTheme.text).lineLimit(1).fixedSize()
-   if hub.width >= 1150 { Text("// our own systems only · read-only").font(.system(size:12,design:.monospaced)).foregroundStyle(HubTheme.subtext).lineLimit(1) }
+   Text("COMMAND CORE").font(.system(size:12,weight:.semibold,design:.rounded)).tracking(3).foregroundStyle(HubTheme.text).lineLimit(1).fixedSize()
    Spacer(minLength:8)
    ForEach(Self.deckHack) { section in
     let on = hub.section == section
     Button { hubSelect(section) } label: {
-     Text(deckHackLabel(section)).font(.system(size:11,weight:.semibold,design:.monospaced)).lineLimit(1).fixedSize()
+     Text(deckHackLabel(section)).font(.system(size:11,weight:.semibold,design:.rounded)).tracking(1).lineLimit(1).fixedSize()
       .foregroundStyle(on ? HubTheme.background : HubTheme.subtext)
       .padding(.horizontal,10).frame(height:32)
       .background(on ? HubTheme.green : Color.clear,in:RoundedRectangle(cornerRadius:6))
@@ -225,7 +224,7 @@ extension CompanionInterfaceView {
 
  func deckHackLabel(_ section: HubSection) -> String {
   switch section {
-  case .hacking: return "LIVE"
+  case .hacking: return "OVERVIEW"
   case .systems: return "SYSTEMS"
   case .shield: return "GUARD"
   case .lab: return "LAB"

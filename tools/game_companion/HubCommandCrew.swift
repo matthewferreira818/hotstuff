@@ -47,15 +47,15 @@ struct CoreCrewView: View {
      HStack(alignment:.top,spacing:12) {
       stationCard.frame(maxWidth:.infinity)
       listCard.frame(width:300)
-      VStack(spacing:12) { approvalsCard; tasksCard }.frame(width:320)
+      VStack(spacing:12) { CoreJobsCard(); approvalsCard; tasksCard }.frame(width:320)
      }
     } else if width >= 720 {
      HStack(alignment:.top,spacing:12) {
       VStack(spacing:12) { stationCard; tasksCard }.frame(maxWidth:.infinity)
-      VStack(spacing:12) { listCard; approvalsCard }.frame(width:300)
+      VStack(spacing:12) { CoreJobsCard(); listCard; approvalsCard }.frame(width:300)
      }
     } else {
-     VStack(spacing:12) { stationCard; approvalsCard; listCard; tasksCard }
+     VStack(spacing:12) { stationCard; CoreJobsCard(); approvalsCard; listCard; tasksCard }
     }
    }
    .padding(.horizontal,24).padding(.bottom,16)

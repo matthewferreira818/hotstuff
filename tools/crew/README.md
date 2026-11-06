@@ -42,6 +42,8 @@ python3 tools/crew/job.py list --all      # every job
 
 Handing one off (Friday's side):
 
+For a job meant for later, add `--after "YYYY-MM-DD HH:MM"` (Moncton time): nobody chases it, and the card doesn't flag it, before then.
+
 ```
 python3 tools/crew/job.py new <to> "<short title>" --by Friday     # prints the job id, J-...
 python3 tools/crew/job.py resend <id> --by Friday                   # when no "got it" came back

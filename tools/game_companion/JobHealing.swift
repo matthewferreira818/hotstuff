@@ -25,7 +25,8 @@ enum JobHeal {
  static func due(_ jobs: [CrewJob],now: Date,lastTry: [String: Date],wait: TimeInterval = JobHeal.wait) -> [Due] {
   var out: [Due] = []
   for j in jobs where j.stage == .assigned && j.handedAt == nil {
-   let since = max(j.lastResend ?? j.assigned,lastTry[j.id] ?? .distantPast)
+   if let a = j.after, now < a { continue }   // a job for later: not chased before its time
+   let since = max(j.lastResend ?? j.assigned,lastTry[j.id] ?? .distantPast,j.after ?? .distantPast)
    guard now.timeIntervalSince(since) >= wait else { continue }
    out.append(Due(id:j.id,to:j.to,action:j.resends >= maxResends ? .handToBackup : .resend))
   }

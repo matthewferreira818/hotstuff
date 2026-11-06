@@ -48,8 +48,7 @@ struct CoreShell: View {
   VStack(spacing:0) {
    header
    content.frame(maxWidth:.infinity,maxHeight:.infinity)
-   fridayPanel
-   drawer
+   bottomBar
   }
  }
 
@@ -57,102 +56,119 @@ struct CoreShell: View {
   HStack(alignment:.bottom,spacing:14) {
    VStack(alignment:.leading,spacing:3) {
     (Text("Command Core ").foregroundStyle(CoreStyle.crimson) + Text("/ \(title)").foregroundStyle(CoreStyle.ink))
-     .font(.system(size:23,weight:.regular,design:.rounded))
-    Text(subtitle).font(.system(size:13.5,design:.rounded)).foregroundStyle(subtitleTone == 0 ? CoreStyle.dim : tone(subtitleTone)).lineLimit(1)
+     .font(.system(size:19,weight:.regular,design:.rounded))
+    Text(subtitle).font(.system(size:12,design:.rounded)).foregroundStyle(subtitleTone == 0 ? CoreStyle.dim : tone(subtitleTone)).lineLimit(1)
    }
    Spacer(minLength:0)
    HStack(spacing:12) {
     ForEach(Array(lights.enumerated()),id:\.offset) { _,l in
      HStack(spacing:5) {
       Circle().fill(l.1 == .off ? Color.clear : lightColor(l.1)).overlay(Circle().stroke(lightColor(l.1),lineWidth:1)).frame(width:7,height:7)
-      Text(l.0).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
+      Text(l.0).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)
      }
      .help(l.2)
     }
    }
   }
-  .padding(.horizontal,26).padding(.top,14).padding(.bottom,8)
+  .padding(.horizontal,24).padding(.top,12).padding(.bottom,10)
  }
 
- // MARK: Friday's slim contextual panel
+ // MARK: one slim bottom bar (reference): activity & command line on the left, Friday on the right. Each opens its own panel above it.
 
- var fridayPanel: some View {
+ var bottomBar: some View {
   let top = observations.first
   return VStack(spacing:0) {
-   Button { withAnimation(reduceMotion ? nil : .easeInOut(duration:0.25)) { ui.fridayOpen.toggle() } } label: {
-    HStack(spacing:10) {
-     Circle().fill(RadialGradient(colors:[CoreStyle.crimson,CoreStyle.crimson.opacity(0.25)],center:.center,startRadius:1,endRadius:9)).frame(width:16,height:16)
-      .shadow(color:CoreStyle.crimson.opacity(0.6),radius:4)
-     Text("Friday").font(.system(size:13,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.ink)
-     Text(top?.text ?? "Nothing to point out right now.").font(.system(size:13,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.85)).lineLimit(1)
-     Spacer(minLength:8)
-     Text(ui.fridayOpen ? "less" : (observations.count > 1 ? "\(observations.count) notes" : "details")).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.teal)
-     Image(systemName:ui.fridayOpen ? "chevron.down" : "chevron.up").font(.system(size:10,weight:.semibold)).foregroundStyle(CoreStyle.teal)
+   if ui.drawerOpen || ui.fridayOpen {
+    HStack(alignment:.top,spacing:14) {
+     if ui.drawerOpen { VStack(spacing:8) { tape.frame(height:140); terminal }.frame(maxWidth:.infinity) }
+     if ui.fridayOpen { fridayList.frame(width:ui.drawerOpen ? 340 : nil).frame(maxWidth:ui.drawerOpen ? 340 : .infinity) }
     }
-    .padding(.horizontal,26).padding(.vertical,10).contentShape(Rectangle())
-   }
-   .buttonStyle(.plain)
-   if ui.fridayOpen {
-    VStack(alignment:.leading,spacing:10) {
-     if observations.isEmpty { Text("I have nothing to flag on this tab. Everything I can read here looks normal.").font(.system(size:13,design:.rounded)).foregroundStyle(CoreStyle.dim) }
-     ForEach(observations.prefix(4)) { o in
-      HStack(alignment:.top,spacing:10) {
-       Circle().fill(tone(o.tone)).frame(width:8,height:8).padding(.top,5)
-       VStack(alignment:.leading,spacing:2) {
-        Text(o.text).font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink)
-        Text(o.why).font(.system(size:12.5,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.7)).fixedSize(horizontal:false,vertical:true)
-        Text(o.source).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)
-       }
-       Spacer(minLength:8)
-       if let t = o.actionTitle, let run = o.run {
-        Button(action:run) {
-         Text(t).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal)
-          .padding(.horizontal,11).padding(.vertical,5).overlay(Capsule().stroke(CoreStyle.teal.opacity(0.6),lineWidth:1))
-        }.buttonStyle(.plain)
-       }
-      }
-     }
-     Button { withAnimation(reduceMotion ? nil : .easeInOut(duration:0.25)) { ui.drawerOpen = true } } label: {
-      Text("Ask Friday something ›").font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal)
-     }.buttonStyle(.plain)
-    }
-    .padding(.horizontal,26).padding(.bottom,12)
+    .padding(.horizontal,22).padding(.top,10).padding(.bottom,4)
     .transition(.move(edge:.bottom).combined(with:.opacity))
    }
-  }
-  .background(CoreStyle.charcoal.opacity(0.9))
-  .overlay(alignment:.top) { Rectangle().fill(LinearGradient(colors:[.clear,CoreStyle.crimson.opacity(0.45),.clear],startPoint:.leading,endPoint:.trailing)).frame(height:1) }
- }
-
- // MARK: the collapsible drawer: the live tape and the command line
-
- var drawer: some View {
-  VStack(spacing:0) {
-   Button { withAnimation(reduceMotion ? nil : .easeInOut(duration:0.28)) { ui.drawerOpen.toggle() } } label: {
-    HStack(spacing:10) {
-     Image(systemName:ui.drawerOpen ? "chevron.down" : "chevron.up").font(.system(size:10,weight:.semibold)).foregroundStyle(CoreStyle.teal)
-     Text("ACTIVITY & COMMAND LINE").font(.system(size:11,weight:.semibold,design:.rounded)).tracking(2).foregroundStyle(CoreStyle.dim)
-     if !ui.drawerOpen {
-      Text(newest).font(DeckMono.font(11)).foregroundStyle(CoreStyle.ink.opacity(0.7)).lineLimit(1)
+   HStack(spacing:10) {
+    Button { withAnimation(reduceMotion ? nil : .easeInOut(duration:0.25)) { ui.drawerOpen.toggle() } } label: {
+     HStack(spacing:8) {
+      Circle().fill(CoreStyle.emerald).frame(width:6,height:6)
+      Text("Activity & Command Line").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.85))
+      Text(newest).font(DeckMono.font(11)).foregroundStyle(CoreStyle.dim).lineLimit(1)
      }
-     Spacer(minLength:0)
-     Text(ui.drawerOpen ? "hide" : "open").font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.teal)
-    }
-    .padding(.horizontal,26).padding(.vertical,10).contentShape(Rectangle())
+     .contentShape(Rectangle())
+    }.buttonStyle(.plain)
+    Spacer(minLength:8)
+    Button { withAnimation(reduceMotion ? nil : .easeInOut(duration:0.25)) { ui.fridayOpen.toggle() } } label: {
+     HStack(spacing:7) {
+      Circle().fill(top.map { tone($0.tone) } ?? CoreStyle.dim).frame(width:6,height:6)
+      Text(top.map { "Friday: " + $0.text } ?? "Friday").font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.8)).lineLimit(1).frame(maxWidth:300,alignment:.trailing)
+     }
+     .contentShape(Rectangle())
+    }.buttonStyle(.plain)
+    Button { withAnimation(reduceMotion ? nil : .easeInOut(duration:0.25)) { ui.drawerOpen = true; ui.fridayOpen = true } } label: {
+     Text("Ask Friday ›").font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.emerald)
+    }.buttonStyle(.plain)
    }
-   .buttonStyle(.plain)
-   if ui.drawerOpen {
-    VStack(spacing:10) {
-     tape.frame(height:150)
-     terminal
+   .padding(.horizontal,24).padding(.vertical,9)
+  }
+  .background(HubTheme.hex(0x0A0A0C))
+  .overlay(alignment:.top) { Rectangle().fill(Color.white.opacity(0.06)).frame(height:1) }
+ }
+
+ var fridayList: some View {
+  VStack(alignment:.leading,spacing:9) {
+   HStack(spacing:6) {
+    Circle().fill(CoreStyle.crimson).frame(width:7,height:7)
+    Text("Friday's read on this tab").font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.ink)
+   }
+   if observations.isEmpty { Text("Nothing to flag here. Everything I can read looks normal.").font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.dim) }
+   ForEach(observations.prefix(4)) { o in
+    HStack(alignment:.top,spacing:8) {
+     Circle().fill(tone(o.tone)).frame(width:6,height:6).padding(.top,5)
+     VStack(alignment:.leading,spacing:2) {
+      Text(o.text).font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink)
+      Text(o.why).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.68)).fixedSize(horizontal:false,vertical:true)
+      Text(o.source).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
+     }
+     Spacer(minLength:6)
+     if let t = o.actionTitle, let run = o.run {
+      Button(action:run) { Text(t).font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal) }.buttonStyle(.plain)
+     }
     }
-    .padding(.horizontal,22).padding(.bottom,12)
-    .transition(.move(edge:.bottom).combined(with:.opacity))
    }
   }
-  .background(CoreStyle.charcoal.opacity(0.96))
-  .overlay(alignment:.top) { Rectangle().fill(CoreStyle.teal.opacity(0.18)).frame(height:1) }
+  .padding(12).frame(maxWidth:.infinity,alignment:.topLeading)
+  .background(RoundedRectangle(cornerRadius:12).fill(HubTheme.hex(0x111114)))
+  .overlay(RoundedRectangle(cornerRadius:12).stroke(Color.white.opacity(0.07),lineWidth:1))
  }
+}
+
+// The one card style for every Command Core tab (reference: compact, dark, hairline border, small sentence-case title).
+struct CoreCard<Content: View>: View {
+ var title: String
+ var icon: String? = nil
+ @ViewBuilder var content: Content
+ var body: some View {
+  VStack(alignment:.leading,spacing:7) {
+   HStack(spacing:7) {
+    if let icon { Image(systemName:icon).font(.system(size:12.5)).foregroundStyle(CoreStyle.ink.opacity(0.75)) }
+    Text(title).font(.system(size:13,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.ink)
+   }
+   content
+  }
+  .padding(13).frame(maxWidth:.infinity,alignment:.topLeading)
+  .background(RoundedRectangle(cornerRadius:11).fill(HubTheme.hex(0x111114)))
+  .overlay(RoundedRectangle(cornerRadius:11).stroke(Color.white.opacity(0.065),lineWidth:1))
+ }
+}
+
+// "MAC CHECKS · GUARD'S OWN" -> "Mac checks · Guard's own": sentence case, with the names that keep their capitals.
+func coreTitle(_ s: String) -> String {
+ guard s == s.uppercased() else { return s }
+ var t = s.lowercased()
+ if let f = t.first { t = f.uppercased() + t.dropFirst() }
+ for w in ["Mac","Guard","Nmap","USB","GitHub","Friday","CPU","macOS","OWASP","ZAP","Kali","Wireshark","Linux","iPhone","Android","Windows","iOS","Lockdown"] {
+  t = t.replacingOccurrences(of:"(?i)\\b\(w)\\b",with:w,options:.regularExpression)
+ }
+ return t
 }
 
 extension CompanionInterfaceView {

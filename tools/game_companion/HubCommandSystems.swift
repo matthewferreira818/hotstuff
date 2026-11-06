@@ -131,27 +131,21 @@ struct CoreSystemsView: View {
  var runsFailed: Bool
 
  private func card<C: View>(_ title: String,@ViewBuilder _ content: () -> C) -> some View {
-  VStack(alignment:.leading,spacing:8) {
-   Text(title).font(.system(size:11,weight:.semibold,design:.rounded)).tracking(2).foregroundStyle(CoreStyle.dim)
-   content()
-  }
-  .padding(16).frame(maxWidth:.infinity,alignment:.topLeading)
-  .background(RoundedRectangle(cornerRadius:16).fill(LinearGradient(colors:[CoreStyle.card,CoreStyle.charcoal],startPoint:.top,endPoint:.bottom)))
-  .overlay(RoundedRectangle(cornerRadius:16).stroke(LinearGradient(colors:[Color.white.opacity(0.10),Color.white.opacity(0.02)],startPoint:.top,endPoint:.bottom),lineWidth:1))
+  CoreCard(title:coreTitle(title)) { content() }
  }
 
  private func ring(_ title: String,_ value: Double?,_ big: String,_ small: String) -> some View {
   card(title) {
    ZStack {
-    Circle().stroke(Color.white.opacity(0.07),lineWidth:9)
-    Circle().trim(from:0,to:CGFloat(min(1,max(0,value ?? 0)))).stroke(LinearGradient(colors:[CoreStyle.teal,CoreStyle.emerald],startPoint:.leading,endPoint:.trailing),style:StrokeStyle(lineWidth:9,lineCap:.round))
+    Circle().stroke(Color.white.opacity(0.07),lineWidth:6)
+    Circle().trim(from:0,to:CGFloat(min(1,max(0,value ?? 0)))).stroke(LinearGradient(colors:[CoreStyle.teal,CoreStyle.emerald],startPoint:.leading,endPoint:.trailing),style:StrokeStyle(lineWidth:6,lineCap:.round))
      .rotationEffect(.degrees(-90)).animation(.easeOut(duration:0.6),value:value)
     VStack(spacing:1) {
-     Text(big).font(.system(size:26,weight:.light,design:.rounded)).foregroundStyle(CoreStyle.ink)
+     Text(big).font(.system(size:22,weight:.light,design:.rounded)).foregroundStyle(CoreStyle.ink)
      Text(small).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
     }
    }
-   .frame(width:130,height:130).frame(maxWidth:.infinity)
+   .frame(width:112,height:112).frame(maxWidth:.infinity)
   }
  }
 
@@ -241,7 +235,7 @@ struct CoreSystemsView: View {
      }
     }
    }
-   .padding(.horizontal,26).padding(.vertical,6)
+   .padding(.horizontal,22).padding(.vertical,4)
   }
   .onAppear { monitor.start() }
   .onDisappear { monitor.stop() }

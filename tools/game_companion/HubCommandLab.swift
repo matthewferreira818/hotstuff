@@ -221,13 +221,7 @@ struct CoreLabView: View {
  var macFacts: [(String,String)]
 
  private func card<C: View>(_ title: String,@ViewBuilder _ content: () -> C) -> some View {
-  VStack(alignment:.leading,spacing:9) {
-   Text(title).font(.system(size:11,weight:.semibold,design:.rounded)).tracking(2).foregroundStyle(CoreStyle.dim)
-   content()
-  }
-  .padding(16).frame(maxWidth:.infinity,alignment:.topLeading)
-  .background(RoundedRectangle(cornerRadius:16).fill(LinearGradient(colors:[CoreStyle.card,CoreStyle.charcoal],startPoint:.top,endPoint:.bottom)))
-  .overlay(RoundedRectangle(cornerRadius:16).stroke(LinearGradient(colors:[CoreStyle.crimson.opacity(0.30),Color.white.opacity(0.04)],startPoint:.top,endPoint:.bottom),lineWidth:1))
+  CoreCard(title:coreTitle(title)) { content() }
  }
  private func pill(_ text: String,_ color: Color = CoreStyle.teal,_ action: @escaping () -> Void) -> some View {
   Button(action:action) { Text(text).font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(color).padding(.horizontal,11).padding(.vertical,5).overlay(Capsule().stroke(color.opacity(0.6),lineWidth:1)) }.buttonStyle(.plain)
@@ -238,7 +232,7 @@ struct CoreLabView: View {
 
  var body: some View {
   ScrollView {
-   VStack(alignment:.leading,spacing:14) {
+   VStack(alignment:.leading,spacing:12) {
     HStack(alignment:.top,spacing:14) {
      devicesCard.frame(width:235)
      centerCard
@@ -247,7 +241,7 @@ struct CoreLabView: View {
     experimentsCard
     learningCard
    }
-   .padding(.horizontal,26).padding(.vertical,6)
+   .padding(.horizontal,22).padding(.vertical,4)
   }
  }
 

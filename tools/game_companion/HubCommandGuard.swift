@@ -18,13 +18,7 @@ struct CoreGuardView: View {
  var classic: AnyView
 
  private func card<C: View>(_ title: String,@ViewBuilder _ content: () -> C) -> some View {
-  VStack(alignment:.leading,spacing:9) {
-   Text(title).font(.system(size:11,weight:.semibold,design:.rounded)).tracking(2).foregroundStyle(CoreStyle.dim)
-   content()
-  }
-  .padding(16).frame(maxWidth:.infinity,alignment:.topLeading)
-  .background(RoundedRectangle(cornerRadius:16).fill(LinearGradient(colors:[CoreStyle.card,CoreStyle.charcoal],startPoint:.top,endPoint:.bottom)))
-  .overlay(RoundedRectangle(cornerRadius:16).stroke(LinearGradient(colors:[CoreStyle.crimson.opacity(0.30),Color.white.opacity(0.04)],startPoint:.top,endPoint:.bottom),lineWidth:1))
+  CoreCard(title:coreTitle(title)) { content() }
  }
 
  private func pill(_ text: String,_ color: Color = CoreStyle.teal,_ action: @escaping () -> Void) -> some View {
@@ -59,7 +53,7 @@ struct CoreGuardView: View {
    }
   } else {
    ScrollView {
-    VStack(alignment:.leading,spacing:14) {
+    VStack(alignment:.leading,spacing:12) {
      HStack(alignment:.top,spacing:14) {
       shieldCard.frame(width:250)
       checksCard
@@ -68,7 +62,7 @@ struct CoreGuardView: View {
      statTiles
      recommended
     }
-    .padding(.horizontal,26).padding(.vertical,6)
+    .padding(.horizontal,22).padding(.vertical,4)
    }
   }
  }
@@ -80,10 +74,10 @@ struct CoreGuardView: View {
     ZStack {
      Circle().stroke(s.color.opacity(0.35),lineWidth:3)
      Circle().stroke(CoreStyle.crimson.opacity(0.25),lineWidth:1).padding(-8)
-     Image(systemName:s.icon).font(.system(size:46,weight:.light)).foregroundStyle(s.color)
+     Image(systemName:s.icon).font(.system(size:38,weight:.light)).foregroundStyle(s.color)
     }
-    .frame(width:130,height:130)
-    Text(s.word).font(.system(size:16,weight:.semibold,design:.rounded)).tracking(1.5).foregroundStyle(s.color)
+    .frame(width:104,height:104)
+    Text(s.word).font(.system(size:14,weight:.semibold,design:.rounded)).tracking(1.5).foregroundStyle(s.color)
     Text(s.line).font(.system(size:12.5,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.8)).multilineTextAlignment(.center).fixedSize(horizontal:false,vertical:true)
     HStack(spacing:8) {
      pill(guardHub.checking ? "checking…" : "Run checks") { Task { await guardHub.runChecks() } }.disabled(guardHub.checking || guardHub.locked)
@@ -149,12 +143,12 @@ struct CoreGuardView: View {
  func stat(_ title: String,_ value: String,_ color: Color,_ foot: String) -> some View {
   VStack(spacing:3) {
    Text(title).font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.dim)
-   Text(value).font(.system(size:30,weight:.light,design:.rounded)).foregroundStyle(color)
+   Text(value).font(.system(size:24,weight:.light,design:.rounded)).foregroundStyle(color)
    Text(foot).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
   }
   .frame(maxWidth:.infinity).padding(.vertical,12)
-  .background(RoundedRectangle(cornerRadius:14).fill(CoreStyle.card))
-  .overlay(RoundedRectangle(cornerRadius:14).stroke(Color.white.opacity(0.06),lineWidth:1))
+  .background(RoundedRectangle(cornerRadius:11).fill(HubTheme.hex(0x111114)))
+  .overlay(RoundedRectangle(cornerRadius:11).stroke(Color.white.opacity(0.065),lineWidth:1))
  }
 
  var recommended: some View {

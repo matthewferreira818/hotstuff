@@ -121,6 +121,22 @@ extension CompanionInterfaceView {
     lit:robot.sinceStart >= 0,warn:false,weight:0.5))
   }
 
+  // Devices you added in Cyber Lab (records only; nothing probes them).
+  for d in LabStore.shared.devices {
+   nodes.append(CoreNode(id:"dev-\(d.id)",kind:"DEVICE · ADDED BY YOU",rows:[
+     CoreRow(label:"Platform",value:d.platform.label),
+     CoreRow(label:"Yours",value:d.owned ? "yes" : "not ticked",tone:d.owned ? 1 : 2),
+     CoreRow(label:"Connector",value:d.platform.connector),
+    ],ring:4,label:d.name,detail:d.platform.label,lit:false,warn:false,weight:0.5))
+  }
+  // Automations that are running or failing right now (GitHub's public status).
+  for r in runs where r.isFailing || r.isRunning {
+   nodes.append(CoreNode(id:"run-\(r.name)",kind:"AUTOMATION · GITHUB",rows:[
+     CoreRow(label:"State",value:r.isFailing ? "failing" : "running",tone:r.isFailing ? 3 : 1),
+     CoreRow(label:"Started",value:r.created.map { coreAgo($0) } ?? "unknown"),
+    ],ring:5,label:r.name,detail:r.isFailing ? "failing" : "running",lit:r.isRunning,warn:r.isFailing,weight:0.5))
+  }
+
   let verdict: Int = (g.results.isEmpty && g.network.isEmpty && runs.isEmpty) ? 0 : (macWarn ? 2 : 1)
   let headline: String
   if g.locked { headline = "Lockdown is on" }
@@ -178,242 +194,234 @@ extension CompanionInterfaceView {
 }
 
 @MainActor final class CoreUIState: ObservableObject {
- @Published var selected: String?
+ @Published var hub: Int?           // the open group on the ring (1 apps, 2 crew, 3 robots, 4 devices, 5 automations)
+ @Published var selected: String?   // a member pinned for the detail panel
  @Published var hovered: String?
- @Published var drawerOpen = false
 }
 
+// The Overview, closer to Matthew's discreet reference: compact cards on both sides, and in the middle ONE ring around This Mac with a badge
+// per group (apps online, crew, robots, devices, automations). Tap a badge and its members fan out around it; tap a member for its detail panel.
+// Badges show real counts; a group with nothing in it shows 0, never filler.
 struct CoreRoomView: View {
  var snapshot: CoreSnapshot
  @ObservedObject var guardHub: GuardHub
  @StateObject private var ui = CoreUIState()
- private var selected: String? { get { ui.selected } nonmutating set { ui.selected = newValue } }
- private var hovered: String? { get { ui.hovered } nonmutating set { ui.hovered = newValue } }
  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+ static let groups: [(ring: Int,label: String,icon: String)] = [(2,"Crew","person.2.fill"),(1,"Apps online","network"),(3,"Robots","chart.line.uptrend.xyaxis"),(5,"Automations","gearshape.2.fill"),(4,"Devices","iphone")]
 
  private func tone(_ t: Int) -> Color {
   switch t { case 1: return CoreStyle.emerald; case 2: return CoreStyle.amber; case 3: return CoreStyle.crimson; default: return CoreStyle.ink }
  }
- private func lightColor(_ l: HackLight) -> Color {
-  switch l { case .fresh: return CoreStyle.emerald; case .stale: return CoreStyle.amber; case .failed: return CoreStyle.crimson; case .off: return CoreStyle.dim }
- }
 
  var body: some View {
-  HStack(alignment:.center,spacing:16) {
-   VStack(spacing:12) { card(0); card(1) }.frame(width:226)
+  HStack(alignment:.top,spacing:14) {
+   VStack(spacing:10) { card(0,"laptopcomputer"); card(1,"wifi"); Spacer(minLength:0) }.frame(width:196)
    hero.frame(minWidth:320,maxWidth:.infinity,maxHeight:.infinity)
-   VStack(spacing:12) { card(2); card(3) }.frame(width:226)
+   VStack(spacing:10) { card(2,"person.2"); card(3,"waveform.path.ecg"); Spacer(minLength:0) }.frame(width:196)
   }
-  .padding(.horizontal,22).padding(.vertical,6)
+  .padding(.horizontal,22).padding(.top,4).padding(.bottom,8)
  }
 
- // MARK: cards
+ // MARK: compact cards
 
- func card(_ i: Int) -> some View {
+ func card(_ i: Int,_ icon: String) -> some View {
   let c = snapshot.cards.indices.contains(i) ? snapshot.cards[i] : nil
   return Group {
    if let c {
-    VStack(alignment:.leading,spacing:6) {
-     Text(c.title).font(.system(size:11,weight:.semibold,design:.rounded)).tracking(2.5).foregroundStyle(CoreStyle.dim)
-     Text(c.big).font(.system(size:26,weight:.light,design:.rounded)).foregroundStyle(tone(c.bigTone)).lineLimit(1).minimumScaleFactor(0.6)
-     Text(c.sub).font(.system(size:13,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.85)).lineLimit(2).fixedSize(horizontal:false,vertical:true)
-     Spacer(minLength:0)
+    CoreCard(title:coreTitle(c.title),icon:icon) {
+     Text(c.big).font(.system(size:14,weight:.medium,design:.rounded)).foregroundStyle(tone(c.bigTone)).lineLimit(1).minimumScaleFactor(0.7)
+     Text(c.sub).font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.78)).lineLimit(3).fixedSize(horizontal:false,vertical:true)
+     if !c.foot.isEmpty { Text(c.foot).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(2) }
      if c.id == "mac" {
-      HStack {
-       Text(c.foot).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
-       Spacer(minLength:4)
-       Button { Task { await guardHub.runChecks() } } label: {
-        Text(guardHub.checking ? "checking…" : "Run checks").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal)
-         .padding(.horizontal,11).padding(.vertical,5).overlay(Capsule().stroke(CoreStyle.teal.opacity(0.6),lineWidth:1))
-       }
-       .buttonStyle(.plain).disabled(guardHub.checking || guardHub.locked)
-      }
-     } else if !c.foot.isEmpty {
-      Text(c.foot).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(2)
+      Button { Task { await guardHub.runChecks() } } label: {
+       Text(guardHub.checking ? "checking…" : "Run checks ›").font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal)
+      }.buttonStyle(.plain).disabled(guardHub.checking || guardHub.locked)
      }
     }
-    .padding(16).frame(maxWidth:.infinity,minHeight:132,maxHeight:.infinity,alignment:.topLeading)
-    .background(RoundedRectangle(cornerRadius:16).fill(LinearGradient(colors:[CoreStyle.card,CoreStyle.charcoal],startPoint:.top,endPoint:.bottom)))
-    .overlay(RoundedRectangle(cornerRadius:16).stroke(LinearGradient(colors:[CoreStyle.crimson.opacity(0.30),Color.white.opacity(0.04)],startPoint:.top,endPoint:.bottom),lineWidth:1))
    }
   }
  }
 
- // MARK: the hero visualization
+ // MARK: the ring
 
- static let ringFraction: [CGFloat] = [0,0.30,0.45,0.60]
- static let ringSpeed: [Double] = [0,0.045,-0.028,0.016]
- static let ringCaption = ["","APPS ONLINE","CREW","PRACTICE ROBOTS"]
+ func members(_ ring: Int) -> [CoreNode] { snapshot.nodes.filter { $0.ring == ring } }
 
- // Where a node sits at a given time (the same function draws and hit-tests).
- func position(of node: CoreNode,in group: [CoreNode],size: CGSize,time: Double) -> CGPoint {
-  let c = CGPoint(x:size.width / 2,y:size.height / 2 - 10)
-  if node.ring == 0 { return c }
-  let rx = (size.width / 2 - 14) * Self.ringFraction[node.ring] / 0.60
-  let ry = (size.height / 2 - 26) * Self.ringFraction[node.ring] / 0.60
-  let idx = group.firstIndex { $0.id == node.id } ?? 0
-  let angle = 2 * Double.pi * Double(idx) / Double(max(1,group.count)) + Double(node.ring) * 0.9 + (reduceMotion ? 0 : time * Self.ringSpeed[node.ring])
-  return CGPoint(x:c.x + rx * CGFloat(cos(angle)),y:c.y + ry * CGFloat(sin(angle)))
+ func geometry(_ size: CGSize) -> (center: CGPoint,r: CGFloat) {
+  let c = CGPoint(x:size.width / 2,y:size.height / 2 - 2)
+  return (c,min(size.width * 0.40,size.height * 0.36))
  }
 
- func nodeColor(_ n: CoreNode) -> Color {
-  if n.warn { return CoreStyle.amber }
-  switch n.ring {
-  case 3: return n.lit ? CoreStyle.emerald : CoreStyle.crimson.opacity(0.75)
-  default: return n.lit ? CoreStyle.emerald : CoreStyle.teal.opacity(0.55)
+ func hubPoint(_ index: Int,_ size: CGSize,_ t: Double) -> CGPoint {
+  let g = geometry(size)
+  let a = -Double.pi / 2 + 2 * Double.pi * Double(index) / Double(Self.groups.count) + (reduceMotion ? 0 : t * 0.006)
+  return CGPoint(x:g.center.x + g.r * CGFloat(cos(a)),y:g.center.y + g.r * CGFloat(sin(a)))
+ }
+
+ // Members of the open group fan out on a small arc outside their badge.
+ func memberPoints(_ index: Int,_ list: [CoreNode],_ size: CGSize,_ t: Double) -> [CGPoint] {
+  let g = geometry(size)
+  let hub = hubPoint(index,size,t)
+  let out = atan2(Double(hub.y - g.center.y),Double(hub.x - g.center.x))
+  let n = list.count
+  let spread = min(Double.pi * 1.25,0.42 * Double(max(1,n - 1)))
+  let rad: CGFloat = 58 + CGFloat(max(0,n - 6)) * 3
+  return (0..<n).map { k in
+   let a = out - spread / 2 + (n == 1 ? spread / 2 : spread * Double(k) / Double(n - 1))
+   return CGPoint(x:hub.x + rad * CGFloat(cos(a)),y:hub.y + rad * CGFloat(sin(a)))
   }
  }
 
- func nodeRadius(_ n: CoreNode) -> CGFloat {
-  switch n.ring {
-  case 0: return 40
-  case 1: return 6 + 8 * CGFloat(n.weight)
-  case 2: return n.lit ? 8.5 : 6
-  default: return 6.5
-  }
+ func hubState(_ ring: Int) -> (count: Int,color: Color) {
+  let m = members(ring)
+  if m.contains(where:{ $0.warn && ring == 5 }) { return (m.count,CoreStyle.crimson) }
+  if m.contains(where:{ $0.warn }) { return (m.count,CoreStyle.amber) }
+  if m.contains(where:{ $0.lit }) { return (m.count,CoreStyle.emerald) }
+  return (m.count,CoreStyle.dim)
  }
 
  var hero: some View {
   GeometryReader { geo in
-   TimelineView(.animation(minimumInterval:1.0 / 30,paused:reduceMotion)) { timeline in
+   TimelineView(.animation(minimumInterval:1.0 / 24,paused:reduceMotion)) { timeline in
     let t = timeline.date.timeIntervalSinceReferenceDate
-    let groups = Dictionary(grouping:snapshot.nodes,by:{ $0.ring })
-    ZStack {
-     Canvas { ctx, size in
-      let center = CGPoint(x:size.width / 2,y:size.height / 2 - 10)
-      func radii(_ ring: Int) -> (CGFloat,CGFloat) {
-       ((size.width / 2 - 14) * Self.ringFraction[ring] / 0.60,(size.height / 2 - 26) * Self.ringFraction[ring] / 0.60)
-      }
-      // rings and their captions
-      for ring in 1...3 {
-       let (rx,ry) = radii(ring)
-       var p = Path(); p.addEllipse(in:CGRect(x:center.x - rx,y:center.y - ry,width:rx * 2,height:ry * 2))
-       ctx.stroke(p,with:.color(CoreStyle.crimson.opacity(0.28)),lineWidth:1)
-       if (groups[ring] ?? []).isEmpty == false {
-        ctx.draw(ctx.resolve(Text(Self.ringCaption[ring]).font(.system(size:9.5,weight:.semibold,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))),at:CGPoint(x:center.x,y:center.y - ry - 7),anchor:.center)
-       }
-      }
-      // slow pulse from the core: decoration only
-      if !reduceMotion {
-       let phase = (t.truncatingRemainder(dividingBy:6)) / 6
-       let (prx,pry) = radii(2)
-       var pp = Path(); pp.addEllipse(in:CGRect(x:center.x - prx * CGFloat(phase),y:center.y - pry * CGFloat(phase),width:prx * 2 * CGFloat(phase),height:pry * 2 * CGFloat(phase)))
-       ctx.stroke(pp,with:.color(CoreStyle.emerald.opacity(0.18 * (1 - phase))),lineWidth:1.2)
-      }
-      // links from the Mac to the apps it is talking to (real: these apps were seen on the network)
-      for n in groups[1] ?? [] {
-       let pt = position(of:n,in:groups[1] ?? [],size:size,time:t)
-       var l = Path(); l.move(to:center); l.addLine(to:pt)
-       ctx.stroke(l,with:.color(CoreStyle.crimson.opacity(selected == n.id || hovered == n.id ? 0.9 : 0.25)),lineWidth:selected == n.id || hovered == n.id ? 1.6 : 1)
-      }
-      // the selected node's link to the core (a pointer for the eye; the flowing dash is decoration, not traffic)
-      if let sel = snapshot.nodes.first(where:{ $0.id == (selected ?? hovered) }), sel.ring > 0 {
-       let pt = position(of:sel,in:groups[sel.ring] ?? [],size:size,time:t)
-       var l = Path(); l.move(to:center); l.addLine(to:pt)
-       ctx.stroke(l,with:.color(CoreStyle.crimson.opacity(0.85)),style:StrokeStyle(lineWidth:1.6,lineCap:.round,dash:[3,7],dashPhase:reduceMotion ? 0 : CGFloat(-t * 14)))
-      }
-      // nodes
-      for ring in 1...3 {
-       for n in groups[ring] ?? [] {
-        let pt = position(of:n,in:groups[ring] ?? [],size:size,time:t)
-        let rad = nodeRadius(n)
-        let col = nodeColor(n)
-        let on = selected == n.id || hovered == n.id
-        if n.lit || on {
-         ctx.fill(Path(ellipseIn:CGRect(x:pt.x - rad * 2.6,y:pt.y - rad * 2.6,width:rad * 5.2,height:rad * 5.2)),
-                  with:.radialGradient(Gradient(colors:[col.opacity(on ? 0.45 : 0.22),.clear]),center:pt,startRadius:0,endRadius:rad * 2.6))
-        }
-        ctx.fill(Path(ellipseIn:CGRect(x:pt.x - rad,y:pt.y - rad,width:rad * 2,height:rad * 2)),with:.color(n.lit ? col : col.opacity(0.5)))
-        if on {
-         let pulse: CGFloat = reduceMotion ? 5 : 5 + 2.5 * CGFloat(sin(t * 3))
-         ctx.stroke(Path(ellipseIn:CGRect(x:pt.x - rad - pulse,y:pt.y - rad - pulse,width:(rad + pulse) * 2,height:(rad + pulse) * 2)),with:.color(CoreStyle.crimson.opacity(0.95)),lineWidth:1.4)
-        }
-        if ring == 1 || on {
-         ctx.draw(ctx.resolve(Text(n.label).font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(on ? 0.97 : 0.72))),at:CGPoint(x:pt.x,y:pt.y + rad + 9),anchor:.center)
-        }
-       }
-      }
-      // the core: this Mac. A dark disc with a crimson rim; the ring inside is its state (emerald calm, amber needs a look).
-      if let mac = (groups[0] ?? []).first {
-       let col: Color = snapshot.verdict == 0 ? Color.white.opacity(0.35) : (mac.warn ? CoreStyle.amber : CoreStyle.emerald)
-       let breathe: CGFloat = reduceMotion ? 1 : 1 + 0.03 * CGFloat(sin(t * 1.1))
-       let rad: CGFloat = 40 * breathe
-       ctx.fill(Path(ellipseIn:CGRect(x:center.x - rad * 2.4,y:center.y - rad * 2.4,width:rad * 4.8,height:rad * 4.8)),
-                with:.radialGradient(Gradient(colors:[CoreStyle.crimson.opacity(0.14),.clear]),center:center,startRadius:0,endRadius:rad * 2.4))
-       ctx.fill(Path(ellipseIn:CGRect(x:center.x - rad,y:center.y - rad,width:rad * 2,height:rad * 2)),
-                with:.radialGradient(Gradient(colors:[Color(red:0.16,green:0.05,blue:0.07),Color(red:0.05,green:0.02,blue:0.03)]),center:center,startRadius:2,endRadius:rad))
-       ctx.stroke(Path(ellipseIn:CGRect(x:center.x - rad,y:center.y - rad,width:rad * 2,height:rad * 2)),with:.color(CoreStyle.crimson.opacity(0.9)),lineWidth:2)
-       ctx.stroke(Path(ellipseIn:CGRect(x:center.x - rad + 7,y:center.y - rad + 7,width:(rad - 7) * 2,height:(rad - 7) * 2)),with:.color(col.opacity(0.85)),lineWidth:1.5)
-       ctx.draw(ctx.resolve(Text("THIS MAC").font(.system(size:10,weight:.bold,design:.rounded)).foregroundStyle(Color.white.opacity(0.92))),at:center,anchor:.center)
-      }
-     }
+    ZStack(alignment:.topTrailing) {
+     Canvas { ctx, size in drawRing(&ctx,size,t) }
      .contentShape(Rectangle())
      .onContinuousHover { phase in
       switch phase {
-      case .active(let loc): hovered = nearest(to:loc,size:geo.size,time:Date.timeIntervalSinceReferenceDate,groups:groups)
-      case .ended: hovered = nil
+      case .active(let loc): ui.hovered = hit(loc,geo.size,Date.timeIntervalSinceReferenceDate)
+      case .ended: ui.hovered = nil
       }
      }
      .onTapGesture { loc in
-      let hit = nearest(to:loc,size:geo.size,time:Date.timeIntervalSinceReferenceDate,groups:groups)
-      selected = (hit == selected) ? nil : hit
+      let h = hit(loc,geo.size,Date.timeIntervalSinceReferenceDate)
+      withAnimation(reduceMotion ? nil : .easeOut(duration:0.25)) {
+       if let h, h.hasPrefix("hub-"), let ring = Int(h.dropFirst(4)) { ui.hub = ui.hub == ring ? nil : ring; ui.selected = nil }
+       else if let h { ui.selected = ui.selected == h ? nil : h }
+       else { ui.selected = nil; ui.hub = nil }
+      }
      }
-     VStack {
-      Spacer()
-      detailStrip
-     }
+     detailPanel.padding(8)
     }
    }
   }
  }
 
- func nearest(to point: CGPoint,size: CGSize,time: Double,groups: [Int:[CoreNode]]) -> String? {
-  var best: (String,CGFloat)?
-  for n in snapshot.nodes {
-   let p = position(of:n,in:groups[n.ring] ?? [],size:size,time:time)
-   let d = hypot(p.x - point.x,p.y - point.y)
-   if d < max(16,nodeRadius(n) + 8), best == nil || d < best!.1 { best = (n.id,d) }
-  }
-  return best?.0
+ func ringIcon(_ ctx: inout GraphicsContext,_ name: String,_ color: Color,_ rect: CGRect) {
+  var img = ctx.resolve(Image(systemName:name))
+  img.shading = .color(color)
+  ctx.draw(img,in:rect)
  }
 
- var detailStrip: some View {
-  let n = snapshot.nodes.first { $0.id == (hovered ?? selected) }
-  return Group {
-   if let n {
-    VStack(alignment:.leading,spacing:8) {
-     HStack(alignment:.firstTextBaseline) {
-      VStack(alignment:.leading,spacing:2) {
-       Text(n.kind).font(.system(size:10,weight:.semibold,design:.rounded)).tracking(2).foregroundStyle(CoreStyle.teal)
-       Text(n.label).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
+ func drawRing(_ ctx: inout GraphicsContext,_ size: CGSize,_ t: Double) {
+      let g = geometry(size)
+      // the stage: a dark disc with the faintest crimson warmth, one main ring, one hairline outer ring
+      ctx.fill(Path(ellipseIn:CGRect(x:g.center.x - g.r * 1.18,y:g.center.y - g.r * 1.18,width:g.r * 2.36,height:g.r * 2.36)),
+               with:.radialGradient(Gradient(colors:[CoreStyle.crimson.opacity(0.10),Color.white.opacity(0.012),.clear]),center:g.center,startRadius:0,endRadius:g.r * 1.18))
+      ctx.stroke(Path(ellipseIn:CGRect(x:g.center.x - g.r,y:g.center.y - g.r,width:g.r * 2,height:g.r * 2)),with:.color(Color.white.opacity(0.10)),lineWidth:1.2)
+      ctx.stroke(Path(ellipseIn:CGRect(x:g.center.x - g.r * 1.16,y:g.center.y - g.r * 1.16,width:g.r * 2.32,height:g.r * 2.32)),with:.color(Color.white.opacity(0.04)),lineWidth:1)
+      // a slow sweep along the main ring: decoration only
+      if !reduceMotion {
+       let a = t.truncatingRemainder(dividingBy:12) / 12 * 2 * Double.pi
+       var arc = Path(); arc.addArc(center:g.center,radius:g.r,startAngle:.radians(a),endAngle:.radians(a + 0.5),clockwise:false)
+       ctx.stroke(arc,with:.color(CoreStyle.crimson.opacity(0.45)),style:StrokeStyle(lineWidth:1.6,lineCap:.round))
       }
-      Spacer(minLength:8)
-      if selected == n.id {
-       Button { selected = nil } label: { Image(systemName:"xmark").font(.system(size:10,weight:.semibold)).foregroundStyle(CoreStyle.dim) }.buttonStyle(.plain)
-      } else {
-       Text("tap to pin").font(.system(size:9.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
-      }
-     }
-     VStack(spacing:4) {
-      ForEach(n.rows) { r in
-       HStack(alignment:.firstTextBaseline,spacing:8) {
-        Text(r.label).font(.system(size:12.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
-        Spacer(minLength:6)
-        Text(r.value).font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(tone(r.tone)).lineLimit(2).multilineTextAlignment(.trailing)
+      // spokes to every badge; the open one brighter, with a moving dash (decoration)
+      for (i,grp) in Self.groups.enumerated() {
+       let p = hubPoint(i,size,t)
+       var l = Path(); l.move(to:g.center); l.addLine(to:p)
+       let open = ui.hub == grp.ring
+       if open {
+        ctx.stroke(l,with:.color(CoreStyle.crimson.opacity(0.75)),style:StrokeStyle(lineWidth:1.2,lineCap:.round,dash:[3,6],dashPhase:reduceMotion ? 0 : CGFloat(-t * 12)))
+       } else {
+        ctx.stroke(l,with:.color(Color.white.opacity(0.05)),lineWidth:1)
        }
       }
+      // open group: members around its badge
+      if let ring = ui.hub, let idx = Self.groups.firstIndex(where:{ $0.ring == ring }) {
+       let list = members(ring)
+       let hub = hubPoint(idx,size,t)
+       for (k,p) in memberPoints(idx,list,size,t).enumerated() {
+        let n = list[k]
+        let on = ui.selected == n.id || ui.hovered == n.id
+        var l = Path(); l.move(to:hub); l.addLine(to:p)
+        ctx.stroke(l,with:.color(Color.white.opacity(on ? 0.35 : 0.08)),lineWidth:1)
+        let col: Color = n.warn ? (ring == 5 ? CoreStyle.crimson : CoreStyle.amber) : (n.lit ? CoreStyle.emerald : Color.white.opacity(0.35))
+        let r: CGFloat = on ? 6 : 4.5
+        if n.lit || on { ctx.fill(Path(ellipseIn:CGRect(x:p.x - r * 2.4,y:p.y - r * 2.4,width:r * 4.8,height:r * 4.8)),with:.radialGradient(Gradient(colors:[col.opacity(0.3),.clear]),center:p,startRadius:0,endRadius:r * 2.4)) }
+        ctx.fill(Path(ellipseIn:CGRect(x:p.x - r,y:p.y - r,width:r * 2,height:r * 2)),with:.color(col))
+        if on { ctx.stroke(Path(ellipseIn:CGRect(x:p.x - r - 4,y:p.y - r - 4,width:(r + 4) * 2,height:(r + 4) * 2)),with:.color(CoreStyle.crimson),lineWidth:1.2) }
+        ctx.draw(ctx.resolve(Text(n.label).font(.system(size:10.5,weight:on ? .semibold : .regular,design:.rounded)).foregroundStyle(Color.white.opacity(on ? 0.95 : 0.62))),at:CGPoint(x:p.x,y:p.y + r + 8),anchor:.center)
+       }
+      }
+      // the badges
+      for (i,grp) in Self.groups.enumerated() {
+       let p = hubPoint(i,size,t)
+       let st = hubState(grp.ring)
+       let open = ui.hub == grp.ring || ui.hovered == "hub-\(grp.ring)"
+       let r: CGFloat = 19
+       ctx.fill(Path(ellipseIn:CGRect(x:p.x - r,y:p.y - r,width:r * 2,height:r * 2)),with:.color(HubTheme.hex(0x141417)))
+       ctx.stroke(Path(ellipseIn:CGRect(x:p.x - r,y:p.y - r,width:r * 2,height:r * 2)),with:.color(open ? CoreStyle.crimson : st.color.opacity(0.7)),lineWidth:open ? 1.6 : 1.1)
+       ringIcon(&ctx,grp.icon,open ? Color.white : (st.color == CoreStyle.dim ? Color.white.opacity(0.55) : st.color),CGRect(x:p.x - 8,y:p.y - 8,width:16,height:16))
+       ctx.draw(ctx.resolve(Text("\(grp.label)").font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.85))),at:CGPoint(x:p.x,y:p.y + r + 9),anchor:.center)
+       ctx.draw(ctx.resolve(Text("\(st.count)").font(.system(size:10.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))),at:CGPoint(x:p.x,y:p.y + r + 22),anchor:.center)
+      }
+      // the core: This Mac
+      if let mac = snapshot.nodes.first(where:{ $0.ring == 0 }) {
+       let col: Color = snapshot.verdict == 0 ? Color.white.opacity(0.35) : (mac.warn ? CoreStyle.amber : CoreStyle.emerald)
+       let breathe: CGFloat = reduceMotion ? 1 : 1 + 0.02 * CGFloat(sin(t * 1.0))
+       let r: CGFloat = 38 * breathe
+       let on = ui.selected == "mac" || ui.hovered == "mac"
+       ctx.fill(Path(ellipseIn:CGRect(x:g.center.x - r * 2,y:g.center.y - r * 2,width:r * 4,height:r * 4)),with:.radialGradient(Gradient(colors:[CoreStyle.crimson.opacity(0.18),.clear]),center:g.center,startRadius:0,endRadius:r * 2))
+       ctx.fill(Path(ellipseIn:CGRect(x:g.center.x - r,y:g.center.y - r,width:r * 2,height:r * 2)),with:.radialGradient(Gradient(colors:[HubTheme.hex(0x22090D),HubTheme.hex(0x0B0507)]),center:g.center,startRadius:1,endRadius:r))
+       ctx.stroke(Path(ellipseIn:CGRect(x:g.center.x - r,y:g.center.y - r,width:r * 2,height:r * 2)),with:.color(CoreStyle.crimson.opacity(on ? 1 : 0.8)),lineWidth:1.6)
+       ctx.stroke(Path(ellipseIn:CGRect(x:g.center.x - r + 6,y:g.center.y - r + 6,width:(r - 6) * 2,height:(r - 6) * 2)),with:.color(col.opacity(0.7)),lineWidth:1)
+       ringIcon(&ctx,"laptopcomputer",CoreStyle.crimson,CGRect(x:g.center.x - 15,y:g.center.y - 17,width:30,height:22))
+       ctx.draw(ctx.resolve(Text("This Mac").font(.system(size:11,weight:.semibold,design:.rounded)).foregroundStyle(Color.white.opacity(0.92))),at:CGPoint(x:g.center.x,y:g.center.y + 15),anchor:.center)
+      }
+      }
+
+ func hit(_ pt: CGPoint,_ size: CGSize,_ t: Double) -> String? {
+  let g = geometry(size)
+  if hypot(pt.x - g.center.x,pt.y - g.center.y) < 40 { return "mac" }
+  if let ring = ui.hub, let idx = Self.groups.firstIndex(where:{ $0.ring == ring }) {
+   let list = members(ring)
+   for (k,p) in memberPoints(idx,list,size,t).enumerated() where hypot(pt.x - p.x,pt.y - p.y) < 13 { return list[k].id }
+  }
+  for (i,grp) in Self.groups.enumerated() { let p = hubPoint(i,size,t); if hypot(pt.x - p.x,pt.y - p.y) < 24 { return "hub-\(grp.ring)" } }
+  return nil
+ }
+
+ var detailPanel: some View {
+  let id = ui.hovered.flatMap { $0.hasPrefix("hub-") ? nil : $0 } ?? ui.selected
+  let n = snapshot.nodes.first { $0.id == id }
+  return Group {
+   if let n {
+    VStack(alignment:.leading,spacing:6) {
+     HStack(alignment:.firstTextBaseline) {
+      VStack(alignment:.leading,spacing:1) {
+       Text(coreTitle(n.kind)).font(.system(size:10.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.crimson.opacity(0.9))
+       Text(n.label).font(.system(size:15,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
+      }
+      Spacer(minLength:6)
+      if ui.selected == n.id { Button { ui.selected = nil } label: { Image(systemName:"xmark").font(.system(size:9.5,weight:.semibold)).foregroundStyle(CoreStyle.dim) }.buttonStyle(.plain) }
+     }
+     ForEach(n.rows.prefix(12)) { r in
+      HStack(alignment:.firstTextBaseline,spacing:8) {
+       Text(r.label).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+       Spacer(minLength:6)
+       Text(r.value).font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(tone(r.tone)).lineLimit(2).multilineTextAlignment(.trailing)
+      }
      }
     }
-    .padding(14).frame(width:320)
-    .background(RoundedRectangle(cornerRadius:14).fill(CoreStyle.card.opacity(0.96)))
-    .overlay(RoundedRectangle(cornerRadius:14).stroke(CoreStyle.teal.opacity(0.45),lineWidth:1))
-    .shadow(color:CoreStyle.teal.opacity(0.25),radius:16)
-    .transition(.opacity.combined(with:.scale(scale:0.97,anchor:.bottom)))
+    .padding(12).frame(width:260)
+    .background(RoundedRectangle(cornerRadius:12).fill(HubTheme.hex(0x111114).opacity(0.97)))
+    .overlay(RoundedRectangle(cornerRadius:12).stroke(Color.white.opacity(0.08),lineWidth:1))
+    .transition(.opacity)
    } else {
-    Text("tap a dot to see what it is").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.teal.opacity(0.6)).padding(.bottom,4)
+    Text(ui.hub == nil ? "Tap a badge to open it, or This Mac for its details" : "Tap a dot for details · tap the badge again to close")
+     .font(.system(size:11,design:.rounded)).foregroundStyle(Color.white.opacity(0.32)).padding(.bottom,4).frame(maxWidth:.infinity)
    }
   }
-  .animation(reduceMotion ? nil : .easeOut(duration:0.2),value:hovered ?? selected)
-  .frame(maxWidth:.infinity,alignment:.center).padding(.bottom,2)
  }
 }

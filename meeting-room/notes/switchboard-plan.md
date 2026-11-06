@@ -73,3 +73,6 @@ forwarded to that open chat on the Mac.
 
 ## Visible to Matthew (2026-11-06 ~4:05 AM)
 He couldn't see the Hotline talk in The Helm. Rule: every Hotline post is mirrored (one line) to issue 15, cloud Claude included, and the app's Meeting Room / Messages shows PR #35 comments in the same timeline (board item, LC-TikTok).
+
+## Relay names (2026-11-06 ~4:50 AM)
+A relay only reaches a chat addressed by its EXACT open-chat name as ListAgents shows it (e.g. `LC-Helm: build revamp (B v2)`, not "LC-Helm build"). Two relays failed on this. Fix later: Friday matches names loosely (case/spaces, prefix) and reports "no chat named X; open chats: ..." on a miss.

@@ -20,7 +20,15 @@
     "nav-shop": "Magasinez les tendances",
     "eyebrow-main": "Renouvelé tous les 3 jours",
     "eyebrow-products": "produits en ligne",
-    "hero-title": "Bienvenue chez <span class=\"brand-accent\">HotsTuff!</span><br>Des produits tendance que les gens aiment vraiment.",
+    "hero-title": "Petites trouvailles. Une nouvelle sélection tous les 3 jours.",
+    "tile-gifts": "Cadeaux à moins de 25 $",
+    "tile-jewelry": "Bijoux",
+    "tile-pet": "Animaux",
+    "tile-home": "Maison",
+    "tile-kitchen": "Cuisine",
+    "tile-fashion": "Mode",
+    "drop-title": "La dernière sélection",
+    "browse-title": "Chercher dans tous les produits",
     "hero-sub": "HotsTuff récupère la liste des produits tendance de son fournisseur, CJ Dropshipping, et fait tourner une nouvelle sélection d'environ 200 produits tous les trois jours. Pas de catalogue figé et pas de stock qui dort sur une tablette : la sélection change selon un calendrier.",
     "hero-cta-shop": "Voir les tendances",
     "hero-cta-how": "Comment ça fonctionne",
@@ -117,6 +125,10 @@
     nextToday: "Nouvelle sélection plus tard aujourd'hui", nextTomorrow: "Nouvelle sélection demain", nextIn: "Nouvelle sélection dans {n} jours",
     expectSheet: "Expédié par notre fournisseur. Traité en 1 à 3 jours ouvrables, livraison habituellement en 1 à 3 semaines. Prix en USD. Garantie de 30 jours.",
     terms: "Conditions",
+    tileCount: "{n} articles", seeAll: "Voir les {n} →", searchAll: "Chercher parmi les {n} →",
+    rowTrending: "Tendance en ce moment", rowGifts15: "Cadeaux à moins de 15 $", rowPet: "Pour les amis des animaux",
+    rowHome: "Maison douillette", rowJewelry: "Sélection bijoux", rowKitchen: "Pratique en cuisine",
+    searchLabel: "Chercher un produit",
   };
 
   const saved = new Map(); // element -> original EN innerHTML
@@ -155,6 +167,9 @@
     });
 
     if (typeof window.HT_RENDER_NEXT === "function") window.HT_RENDER_NEXT();
+    if (typeof window.HT_RENDER_DROP === "function") window.HT_RENDER_DROP();
+    const sbtn = document.getElementById("search-toggle");
+    if (sbtn) sbtn.setAttribute("aria-label", lang === "fr" ? "Chercher un produit" : "Search products");
     document.querySelectorAll(".sheet-expect-text").forEach((e) => { e.textContent = window.HT_T.expectSheet; });
 
     const searchBox = document.getElementById("product-search");

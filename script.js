@@ -35,32 +35,160 @@ async function loadProducts() {
   buildCategoryBar();
   buildSubgroupBar();
   renderGrid();
-  initQuickCats();
+  initTiles();
+  renderDropRows();
   focusLinkedProduct();
 }
 
-/* --- Category buttons in the hero (council 2026-11-05) ---------------------
-   One tap filters the grid and scrolls to it. A button whose category has
-   nothing in the current rotation is hidden rather than leading to an empty
-   grid. The Gifts button is a plain link to /gifts/. */
-function initQuickCats() {
-  document.querySelectorAll(".quick-cat[data-cat]").forEach((btn) => {
-    const cat = btn.dataset.cat;
-    const n = allProducts.filter((p) => (p.category || "Other") === cat).length;
-    btn.hidden = n === 0;
-    if (btn.dataset.wired) return;
-    btn.dataset.wired = "1";
-    btn.addEventListener("click", () => {
-      activeCategory = cat;
-      activeSubgroup = "All";
-      buildCategoryBar();
-      buildSubgroupBar();
-      renderGrid();
-      const t = document.getElementById("trending");
-      if (t) t.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+/* --- Boutique tiles + "The latest drop" rows (Matthew's pick, 2026-11-05) ---
+   Everything here is built from products.json on every load, so it follows
+   each 3-day refresh by itself. No ratings, stock counts or "bestseller"
+   labels: only real names and real USD prices. */
+
+// Same gift rule as make_category_pages.py (GIFT_MAX 25): skips personal-care.
+const GIFT_SKIP_CATEGORIES = ["Wellness", "Beauty"];
+const GIFT_SKIP_WORDS = ["diaper", "weight loss", "bandage", "toothbrush", "slimming"];
+function giftItems(max) {
+  return allProducts
+    .filter((p) => {
+      const price = Number(p.price) || 0;
+      const name = (p.name || "").toLowerCase();
+      return price > 0 && price < max && !GIFT_SKIP_CATEGORIES.includes(p.category)
+        && !GIFT_SKIP_WORDS.some((w) => name.includes(w));
+    })
+    .sort((a, b) => (Number(a.price) - Number(b.price)) || (Number(b.trendScore) - Number(a.trendScore)));
+}
+const byTrend = (list) => list.slice().sort((a, b) => (Number(b.trendScore) || 0) - (Number(a.trendScore) || 0));
+const inCategory = (cat) => byTrend(allProducts.filter((p) => (p.category || "Other") === cat));
+
+/* Tile photo rule (automatic, text-based): a tile only uses a photo whose
+   product name says it belongs to that tile (a lamp for Home, a ring for
+   Jewelry...), and never one whose name suggests a face or body shot (masks,
+   glasses, wigs, makeup, socks...). Each tile gets a different photo. If no
+   product passes, the tile falls back to the top product of its category. */
+const TILE_AVOID = /\b(mask|masks|glasses|sunglass\w*|goggle\w*|wig|wigs|makeup|lipstick|eyeshadow|eyelash\w*|lash|face|facial|tattoo|bandage|diaper\w*|sock|socks|underwear|leggings|tights|pantyhose|boxer|bra|bikini|swimsuit|shapewear|waist|slimming|mattress|air cushion)\b/i;
+const TILE_FITS = {
+  Gifts: /\b(mug|cup|vase|ornament\w*|lamp|light|candle|plush|necklace|bracelet|earrings?|pendant|ring|music box|keychain|figurine|planter|blanket)\b/i,
+  Jewelry: /\b(necklace|bracelet|earrings?|pendant|rings?|bangle|anklet|brooch|chain)\b/i,
+  Pet: /\b(dog|dogs|cat|cats|pet|pets|puppy|kitten|leash|collar|paw)\b/i,
+  Home: /\b(lamp|light|lights|pillow|cushion|vase|decor\w*|blanket|throw|plant|planter|wall|curtain|rug|candle|mirror|clock|ornament\w*|shelf|basket|hanging|figurine|statue|bedding|frame)\b/i,
+  Kitchen: /\b(kitchen|knife|knives|cup|mug|bowl|pan|pot|spoon|spatula|cutting|board|baking|chef|kettle|mince\w*|crusher|grater|peeler|whisk|cocktail|bottle|storage|cookware)\b/i,
+  Fashion: /\b(jacket|coat|sweater|cardigan|hoodie|shirt|blouse|dress|blazer|skirt|scarf|hat|cap|vest|pants|trousers|jeans|top)\b/i,
+};
+function pickTilePhoto(tile, used) {
+  const pool = tile === "Gifts" ? byTrend(giftItems(25)) : inCategory(tile);
+  const ok = (p) => p.image && !used.has(p.image);
+  const good = pool.find((p) => ok(p) && TILE_FITS[tile].test(p.name || "") && !TILE_AVOID.test(p.name || ""));
+  return good || pool.find((p) => ok(p) && !TILE_AVOID.test(p.name || "")) || pool.find(ok) || null;
+}
+function initTiles() {
+  const used = new Set();
+  document.querySelectorAll(".cat-tile[data-tile]").forEach((tile) => {
+    const key = tile.dataset.tile;
+    const n = key === "Gifts" ? giftItems(25).length : inCategory(key).length;
+    tile.hidden = n === 0;
+    if (!n) return;
+    tile.dataset.count = n;
+    const p = pickTilePhoto(key, used);
+    const img = tile.querySelector("img");
+    if (p && img) { used.add(p.image); img.src = p.image; img.addEventListener("error", () => { img.remove(); }, { once: true }); }
+  });
+  renderTileCounts();
+}
+function renderTileCounts() {
+  document.querySelectorAll(".cat-tile[data-count]").forEach((tile) => {
+    const el = tile.querySelector(".tile-count");
+    if (el) el.textContent = T("tileCount", "{n} items").replace("{n}", tile.dataset.count);
   });
 }
+
+const DROP_ROWS = [
+  { key: "rowTrending", en: "Trending right now", items: () => byTrend(allProducts), link: null },
+  { key: "rowGifts15", en: "Gifts under $15", items: () => giftItems(15), link: "gifts/?ref=row" },
+  { key: "rowPet", en: "For pet people", items: () => inCategory("Pet"), link: "c/pet/?ref=row" },
+  { key: "rowHome", en: "Cozy home", items: () => inCategory("Home"), link: "c/home/?ref=row" },
+  { key: "rowJewelry", en: "Jewelry picks", items: () => inCategory("Jewelry"), link: "c/jewelry/?ref=row" },
+  { key: "rowKitchen", en: "Kitchen helpers", items: () => inCategory("Kitchen"), link: "c/kitchen/?ref=row" },
+];
+const ROW_MAX = 12;
+function buildDropCard(p) {
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "drop-card";
+  card.dataset.productId = p.id || "";
+  card.setAttribute("aria-label", `${p.name || ""}, $${(Number(p.price) || 0).toFixed(2)} USD`);
+  const ph = document.createElement("span");
+  ph.className = "drop-ph";
+  if (!p.image && typeof p.gradient === "string") ph.style.background = p.gradient;
+  if (p.image) {
+    const img = document.createElement("img");
+    img.src = p.image; img.alt = ""; img.loading = "lazy"; img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => { img.remove(); ph.textContent = p.emoji || ""; }, { once: true });
+    ph.appendChild(img);
+  } else {
+    ph.textContent = p.emoji || "";
+  }
+  const name = document.createElement("span");
+  name.className = "drop-name";
+  name.textContent = p.name || T("untitled", "Untitled product");
+  const price = document.createElement("span");
+  price.className = "drop-price";
+  price.textContent = `$${(Number(p.price) || 0).toFixed(2)}`;
+  const cur = document.createElement("small");
+  cur.textContent = " USD";
+  price.appendChild(cur);
+  card.append(ph, name, price);
+  card.addEventListener("click", () => openProductSheet(p));
+  return card;
+}
+function renderDropRows() {
+  const wrap = document.getElementById("drop-rows");
+  if (!wrap || !allProducts.length) return;
+  wrap.innerHTML = "";
+  DROP_ROWS.forEach((row) => {
+    const items = row.items();
+    if (!items.length) return;
+    const sec = document.createElement("div");
+    sec.className = "drop-row";
+    const head = document.createElement("div");
+    head.className = "drop-row-head";
+    const h = document.createElement("h3");
+    h.textContent = T(row.key, row.en);
+    head.appendChild(h);
+    const more = document.createElement(row.link ? "a" : "button");
+    more.className = "drop-more";
+    if (row.link) {
+      more.href = row.link;
+      more.textContent = T("seeAll", "See all {n} →").replace("{n}", items.length);
+    } else {
+      more.type = "button";
+      more.textContent = T("searchAll", "Search all {n} →").replace("{n}", allProducts.length);
+      more.addEventListener("click", () => openBrowse(false));
+    }
+    head.appendChild(more);
+    const rail = document.createElement("div");
+    rail.className = "drop-rail";
+    items.slice(0, ROW_MAX).forEach((p) => rail.appendChild(buildDropCard(p)));
+    sec.append(head, rail);
+    wrap.appendChild(sec);
+  });
+}
+window.HT_RENDER_DROP = () => { renderDropRows(); renderTileCounts(); };
+
+/* Search icon (from mockup B): opens the full searchable list, with the
+   category filters, sort and the regular cards (Buy now on each). */
+function openBrowse(focus = true) {
+  const browse = document.getElementById("browse");
+  if (!browse) return;
+  browse.hidden = false;
+  browse.scrollIntoView({ behavior: "smooth", block: "start" });
+  const input = document.getElementById("product-search");
+  if (focus && input) setTimeout(() => input.focus({ preventScroll: true }), 350);
+}
+(function initSearchToggle() {
+  const btn = document.getElementById("search-toggle");
+  if (btn) btn.addEventListener("click", () => openBrowse(true));
+})();
 
 /* --- "New lineup in X days" (council 2026-11-05) ---------------------------
    Read from catalog-meta.json, which the 3-day refresh writes from the real
@@ -114,11 +242,14 @@ function focusLinkedProduct() {
     note.className = "order-banner order-banner-canceled";
     note.textContent = T("linkedGone",
       "That item has rotated out of the catalog — here's what's trending right now.");
-    grid.parentElement.insertBefore(note, grid);
+    const rows = document.getElementById("drop-rows");
+    (rows || grid).parentElement.insertBefore(note, rows || grid);
     return;
   }
 
   // the linked card must be visible whatever the default filters are
+  const browse = document.getElementById("browse");
+  if (browse) browse.hidden = false;
   activeCategory = "All";
   activeSubgroup = "All";
   searchQuery = "";
@@ -743,10 +874,10 @@ loadProducts();
   // Phones (11-05): the bubble waits until the visitor has scrolled past the
   // first products, so it never covers the first screen. Desktop: unchanged.
   const isPhone = window.matchMedia("(max-width: 640px)").matches;
-  let scrolledPast = !isPhone || !document.getElementById("product-grid");
+  let scrolledPast = !isPhone || !document.getElementById("drop-rows");
   let wanted = false;
   function pastFirstProducts() {
-    const first = document.querySelector("#product-grid > *");
+    const first = document.querySelector("#drop-rows .drop-row");
     if (!first) return false;
     return first.getBoundingClientRect().bottom < 0;
   }

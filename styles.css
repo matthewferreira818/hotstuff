@@ -1470,3 +1470,107 @@ a.merch-card {
   #trending .section-head h2 { font-size: 26px; }
   #trending .section-head p { font-size: 14px; }
 }
+
+/* =====================================================================
+   Boutique + "The latest drop" (Matthew's pick, 2026-11-05).
+   Light, airy palette; photo tiles on top; swipe rows below.
+   This block overrides the dark theme above; delete it to roll back.
+   ===================================================================== */
+:root {
+  --bg: #fbf8f3;
+  --bg-elevated: #ffffff;
+  --border: rgba(43, 38, 34, 0.12);
+  --text: #2b2622;
+  --text-muted: #7d746b;
+  --shadow-sm: 0 1px 2px rgba(43, 38, 34, 0.08);
+  --shadow-md: 0 1px 2px rgba(43, 38, 34, 0.08), 0 12px 30px -12px rgba(43, 38, 34, 0.25);
+  --serif: "Fraunces", Georgia, "Times New Roman", serif;
+}
+.nav { background: rgba(251, 248, 243, 0.9); }
+.lang-toggle { border-color: rgba(43, 38, 34, 0.25); }
+.lang-toggle:hover { border-color: rgba(43, 38, 34, 0.6); }
+.product-search, .product-sort { border-color: var(--border); background: #fff; }
+.product-search::placeholder { color: var(--text-muted); }
+.product-search:focus, .product-sort:focus { border-color: rgba(43, 38, 34, 0.45); }
+.category-chip { color: var(--text); }
+.nav-links a.nav-automation { color: #fff; }
+h1, h2, .section-head h2 { font-family: var(--serif); font-weight: 600; letter-spacing: -0.01em; }
+
+/* Search icon in the header */
+.search-toggle {
+  flex: none; border: 1px solid rgba(43, 38, 34, 0.25); background: #fff; color: inherit;
+  border-radius: 999px; width: 38px; height: 34px; font-size: 15px; cursor: pointer; line-height: 1;
+}
+.search-toggle:hover { border-color: rgba(43, 38, 34, 0.6); }
+
+/* Welcome + photo tiles */
+.hero { padding: 44px 24px 26px; background: none; }
+.welcome-title { font-size: clamp(30px, 4.4vw, 46px); line-height: 1.12; margin: 14px auto 0; max-width: 18em; }
+.cat-tiles {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  max-width: 1120px; margin: 28px auto 0; text-align: left;
+}
+.cat-tile {
+  position: relative; display: block; aspect-ratio: 4 / 3; border-radius: 22px; overflow: hidden;
+  background: #efe9df; color: #fff; box-shadow: var(--shadow-sm);
+}
+.cat-tile[hidden] { display: none; }
+.cat-tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s; }
+.cat-tile:hover img { transform: scale(1.04); }
+.cat-tile span {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 42px 16px 14px;
+  background: linear-gradient(transparent, rgba(30, 20, 10, 0.68));
+}
+.cat-tile b { display: block; font-family: var(--serif); font-weight: 600; font-size: 21px; }
+.cat-tile small { font-size: 12px; opacity: 0.9; }
+
+/* "The latest drop": themed rows you swipe sideways */
+.drop { max-width: 1120px; margin: 0 auto; padding: 36px 24px 10px; }
+.drop-head { margin-bottom: 4px; }
+.drop-row { margin-top: 26px; }
+.drop-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.drop-row-head h3 { font-family: var(--serif); font-weight: 600; font-size: 24px; margin: 0; }
+.drop-more { border: 0; background: none; padding: 0; font: inherit; font-size: 13.5px; font-weight: 700; color: var(--accent-a); cursor: pointer; white-space: nowrap; }
+.drop-rail {
+  display: flex; gap: 16px; overflow-x: auto; padding: 0 40px 8px 0; scroll-snap-type: x mandatory;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+          mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+}
+.drop-rail::-webkit-scrollbar { display: none; }
+.drop-card {
+  flex: none; width: 200px; scroll-snap-align: start; text-align: left; border: 0; background: none;
+  padding: 0; font: inherit; color: inherit; cursor: pointer;
+}
+.drop-ph {
+  display: grid; place-items: center; aspect-ratio: 4 / 5; border-radius: 16px; overflow: hidden;
+  background: #fff; border: 1px solid var(--border); font-size: 42px;
+}
+.drop-ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.drop-name {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: 14px; line-height: 1.35; margin: 9px 2px 3px;
+}
+.drop-price { display: block; font-weight: 700; font-size: 15px; margin: 0 2px; }
+.drop-price small { color: var(--text-muted); font-weight: 500; font-size: 11px; }
+.drop .expect-line { margin-top: 22px; }
+.browse { padding-top: 30px; }
+
+@media (max-width: 640px) {
+  .hero { padding: 18px 16px 10px; }
+  .welcome-title { font-size: 27px; margin-top: 10px; }
+  .cat-tiles { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+  .cat-tile { aspect-ratio: 1; border-radius: 16px; }
+  .cat-tile span { padding: 30px 12px 10px; }
+  .cat-tile b { font-size: 16px; }
+  .drop { padding: 22px 0 6px 16px; }
+  .drop-head, .drop .expect-line { padding-right: 16px; }
+  .drop-row { margin-top: 20px; }
+  .drop-row-head { padding-right: 16px; }
+  .drop-row-head h3 { font-size: 20px; }
+  .drop-card { width: 148px; }
+  .drop-ph { border-radius: 12px; }
+  .drop-name { font-size: 13px; }
+  /* phones: the search icon takes the "Shop trending" slot (the rows are right below) */
+  .nav-inner > .btn-primary { display: none; }
+}

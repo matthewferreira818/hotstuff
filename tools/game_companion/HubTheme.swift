@@ -17,7 +17,7 @@ enum HubTheme {
  static var line: Color { hex(highContrast ? 0x33403A : 0x2C3631) }
  // Controls: black with a visible outline (white in High contrast).
  static var control: Color { hex(highContrast ? 0x000000 : 0x101413) }
- static var controlOutline: Color { hex(highContrast ? 0xFFFFFF : 0x44524B) }
+ static var controlOutline: Color { hex(highContrast ? 0xFFFFFF : 0x76897E) }
 
  // Text: off-white by default (pure white on pure black glares), pure white in High contrast.
  static var text: Color { hex(highContrast ? 0xFFFFFF : 0xE8ECE5) }

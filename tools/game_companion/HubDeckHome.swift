@@ -26,7 +26,17 @@ extension CompanionInterfaceView {
   }.sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
  }
 
- var deckCrew: [CrewMember] { CrewData.build(messages:meeting.messages,runs:ventures.runs,snapshots:Dictionary(uniqueKeysWithValues:deckRobots.compactMap { entry in entry.robot.map { (entry.name,$0) } }),fridayLive:live.running) }
+ // Test copies only (defaults write ... crew.testStates -bool true): forces one away and one failing desk so those pictures can be checked. Never set in the real app.
+ var deckCrew: [CrewMember] {
+  var crew = deckCrewReal
+  guard UserDefaults.standard.bool(forKey:"crew.testStates") else { return crew }
+  for i in crew.indices {
+   if crew[i].id == "Roxy" { crew[i].state = .away; crew[i].awayUntil = Date().addingTimeInterval(3 * 86400); crew[i].detail = "TEST DATA: away" }
+   if crew[i].id == "stock-bot" { crew[i].state = .failing; crew[i].detail = "TEST DATA: failing" }
+  }
+  return crew
+ }
+ var deckCrewReal: [CrewMember] { CrewData.build(messages:meeting.messages,runs:ventures.runs,snapshots:Dictionary(uniqueKeysWithValues:deckRobots.compactMap { entry in entry.robot.map { (entry.name,$0) } }),fridayLive:live.running) }
 
  var deckRobots: [(name: String,robot: StockRobot?)] {
   [("stock-bot",stocks.dip),("stock-momentum",stocks.momentum),("stock-hot",stocks.hot),("stock-moonshot",stocks.moon),
@@ -45,9 +55,9 @@ extension CompanionInterfaceView {
 
  func deckLabel(_ text: String,tag: String? = nil) -> some View {
   HStack(spacing:8) {
-   Text(text).font(.system(size:10.5,weight:.medium,design:.monospaced)).tracking(1.3).foregroundStyle(HubTheme.subtext)
+   Text(text).font(.system(size:11,weight:.medium,design:.monospaced)).tracking(1.3).foregroundStyle(HubTheme.subtext)
    if let tag = tag {
-    Text(tag).font(.system(size:9,weight:.medium,design:.monospaced)).foregroundStyle(HubTheme.subtext)
+    Text(tag).font(.system(size:10,weight:.medium,design:.monospaced)).foregroundStyle(HubTheme.subtext)
      .padding(.horizontal,5).padding(.vertical,1).overlay(RoundedRectangle(cornerRadius:3).stroke(HubTheme.controlOutline,lineWidth:1))
    }
   }
@@ -114,7 +124,7 @@ extension CompanionInterfaceView {
       Circle().fill(deckStateColor(member.state)).frame(width:8,height:8)
       VStack(alignment:.leading,spacing:1) {
        Text(member.name).font(.system(size:12.5,weight:.semibold)).foregroundStyle(HubTheme.text)
-       Text(member.detail).font(.system(size:10.5)).foregroundStyle(HubTheme.subtext).lineLimit(1).frame(maxWidth:150,alignment:.leading)
+       Text(member.detail).font(.system(size:11)).foregroundStyle(HubTheme.subtext).lineLimit(1).frame(maxWidth:150,alignment:.leading)
       }
      }
      .padding(.horizontal,12).padding(.vertical,8)
@@ -226,7 +236,7 @@ extension CompanionInterfaceView {
     }
     DeckRobotChart(robots:deckRobots).frame(height:150)
     Text("Each bar: that robot's practice account vs its starting cash, from its latest public snapshot. Not real money.")
-     .font(.system(size:10.5)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
+     .font(.system(size:11)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
    }
   }
   .buttonStyle(.plain).accessibilityHint("Opens the Stock bot page")
@@ -249,8 +259,8 @@ struct DeckRobotChart: View {
   return VStack(spacing:5) {
    ForEach(Array(robots.enumerated()),id:\.offset) { _,entry in
     HStack(spacing:8) {
-     Text(entry.name.replacingOccurrences(of:"stock-",with:"")).font(.system(size:10,design:.monospaced)).foregroundStyle(HubTheme.subtext)
-      .frame(width:112,alignment:.trailing).lineLimit(1)
+     Text(entry.name.replacingOccurrences(of:"stock-",with:"")).font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.subtext)
+      .frame(width:118,alignment:.trailing).lineLimit(1)
      GeometryReader { geo in
       let half = geo.size.width / 2
       ZStack(alignment:.leading) {

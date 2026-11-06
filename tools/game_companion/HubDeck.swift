@@ -107,7 +107,7 @@ extension CompanionInterfaceView {
     if spinning { ProgressView().controlSize(.small) } else { Image(systemName:icon).font(.system(size:14,weight:.medium)) }
    }
    .foregroundStyle(HubTheme.subtext)
-   .frame(width:32,height:32)
+   .frame(width:36,height:36)
    .contentShape(Rectangle())
   }
   .buttonStyle(.plain).accessibilityLabel(label).help(label)
@@ -120,7 +120,7 @@ extension CompanionInterfaceView {
    Text(section.title).lineLimit(1).fixedSize()
     .font(.system(size:13,weight:selected ? .semibold : .medium))
     .foregroundStyle(selected ? HubTheme.text : HubTheme.subtext)
-    .padding(.horizontal,hub.compact ? 8 : 12).frame(height:30)
+    .padding(.horizontal,hub.compact ? 8 : 12).frame(height:34)
     .background(selected ? HubTheme.card : Color.clear,in:RoundedRectangle(cornerRadius:8))
     .overlay(RoundedRectangle(cornerRadius:8).stroke(selected ? HubTheme.controlOutline : Color.clear,lineWidth:1))
     .contentShape(Rectangle())
@@ -138,7 +138,7 @@ extension CompanionInterfaceView {
     if hub.width >= 1020 { Text("hacking area").font(.system(size:12,weight:.medium,design:.monospaced)) }
    }
    .foregroundStyle(on ? HubTheme.background : HubTheme.green)
-   .padding(.horizontal,10).frame(height:32)
+   .padding(.horizontal,10).frame(height:34)
    .background(on ? HubTheme.green : HubTheme.green.opacity(0.10),in:RoundedRectangle(cornerRadius:8))
    .overlay(RoundedRectangle(cornerRadius:8).stroke(HubTheme.green.opacity(0.55),lineWidth:1))
    .contentShape(Rectangle())
@@ -199,15 +199,15 @@ extension CompanionInterfaceView {
  var deckHackNav: some View {
   HStack(spacing:6) {
    Circle().fill(HubTheme.green).frame(width:7,height:7).accessibilityHidden(true)
-   Text("HACKING AREA").font(.system(size:12,weight:.bold,design:.monospaced)).foregroundStyle(HubTheme.text)
-   Text("// our own systems only · read-only").font(.system(size:12,design:.monospaced)).foregroundStyle(HubTheme.subtext).lineLimit(1)
+   Text("HACKING AREA").font(.system(size:12,weight:.bold,design:.monospaced)).foregroundStyle(HubTheme.text).lineLimit(1).fixedSize()
+   if hub.width >= 1150 { Text("// our own systems only · read-only").font(.system(size:12,design:.monospaced)).foregroundStyle(HubTheme.subtext).lineLimit(1) }
    Spacer(minLength:8)
    ForEach(Self.deckHack) { section in
     let on = hub.section == section
     Button { hubSelect(section) } label: {
-     Text(deckHackLabel(section)).font(.system(size:11,weight:.semibold,design:.monospaced))
+     Text(deckHackLabel(section)).font(.system(size:11,weight:.semibold,design:.monospaced)).lineLimit(1).fixedSize()
       .foregroundStyle(on ? HubTheme.background : HubTheme.subtext)
-      .padding(.horizontal,10).frame(height:28)
+      .padding(.horizontal,10).frame(height:32)
       .background(on ? HubTheme.green : Color.clear,in:RoundedRectangle(cornerRadius:6))
       .overlay(RoundedRectangle(cornerRadius:6).stroke(on ? HubTheme.green : HubTheme.line,lineWidth:1))
       .contentShape(Rectangle())
@@ -236,7 +236,7 @@ extension CompanionInterfaceView {
 
  var deckDock: some View {
   VStack(alignment:.leading,spacing:14) {
-   Text("FRIDAY").font(.system(size:10.5,weight:.medium,design:.monospaced)).tracking(1.4).foregroundStyle(HubTheme.subtext)
+   Text("FRIDAY").font(.system(size:11,weight:.medium,design:.monospaced)).tracking(1.4).foregroundStyle(HubTheme.subtext)
    TimelineView(.animation(minimumInterval:1.0/30.0,paused:reduceMotion)) { timeline in
     let now = timeline.date
     let state = orbState(at:now)
@@ -291,7 +291,7 @@ extension CompanionInterfaceView {
 
  func deckDockSection<Content: View>(_ title: String,@ViewBuilder content: () -> Content) -> some View {
   VStack(alignment:.leading,spacing:6) {
-   Text(title).font(.system(size:10.5,weight:.medium,design:.monospaced)).tracking(1.4).foregroundStyle(HubTheme.subtext)
+   Text(title).font(.system(size:11,weight:.medium,design:.monospaced)).tracking(1.4).foregroundStyle(HubTheme.subtext)
    content()
   }
   .frame(maxWidth:.infinity,alignment:.leading)

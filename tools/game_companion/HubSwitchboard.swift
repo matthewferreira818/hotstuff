@@ -290,10 +290,9 @@ private struct SwitchboardState: Codable {
        "Relay \(job) of comment \(r.comment.id) to \(r.name): \(result.delivered ? "delivered" : (result.detail.isEmpty ? "not delivered" : result.detail)) (\(minutes) min)")
    stopReason = nil; process = nil; runningJob = nil; runningSince = nil; runningTitle = ""
    let line = SwitchboardRules.mirrorRelay(r.comment,name:r.name,result:result)
-   Task {
-    _ = await post(line)                                       // issue 15
-    _ = await post(line,thread:SwitchboardRules.hotline)       // and the Hotline, so cloud Claude knows it landed (or didn't)
-   }
+   // Fix H (cloud Claude, 07:25): relay receipts go to issue 15 ONLY. A Hotline post would wake cloud Claude on every relay
+   // (usage), and a named reply to it would be relayed again (loop risk).
+   Task { _ = await post(line) }                               // issue 15 only
    return
   }
   let outcome = SwitchboardRules.parseOutcome((try? Data(contentsOf:out)) ?? Data(),exitCode:code)

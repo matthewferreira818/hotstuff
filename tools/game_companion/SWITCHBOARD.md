@@ -81,3 +81,6 @@ there is nothing to undo outside the log, except whatever a job itself did (its 
 
 ## Current scope (what a job can actually do)
 A job runs with Matthew's normal `~/.claude/settings.json` under `dontAsk`: only his allow list works. Today that list has read access to `~/Claude/**`, read-only git, `gh issue view 15`, `gh issue comment 15`, `smoke_test.py`, and `claims_check.py`. There is **no Edit/Write**, so a headless job can read and comment on issue 15 but can't change files. `gh pr comment 35` is now ALSO allowed (Matthew approved `Bash(~/Claude/bin/gh pr comment 35 *)` at about 2:59 AM), so a job could comment there itself; the job prompt tells it not to, because Friday posts the one result line to the thread. There is still **no Edit/Write**. Nobody here edits settings.json.
+
+## Fix H (relay receipts, issue 15 only)
+Cloud Claude's review (07:25): the "relayed comment <id> to <name>: delivered / not delivered" line goes to issue 15 ONLY, never the Hotline. A Hotline post wakes cloud Claude on every relay (usage), and a named reply to it would be relayed again (loop). Live Fix G test 07:30: cloud Claude's named message reached LC-Manager's open chat, labelled, 31 s after posting; Friday logged "delivered".

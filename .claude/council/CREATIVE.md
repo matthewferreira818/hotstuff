@@ -2,6 +2,24 @@
 
 Newest first. Each session: date (Moncton), the ask, best 3, mentions, cuts, Matthew's pick.
 
+## 2026-11-06 ~6:35 AM Moncton: "Boldest honest way to land ECS's first 3 paying clients in 30 days, ~$0?" (Matthew: "go big, push our limits")
+Seats: Spark, Hustler, Neighbour, Designer (20 ideas) + Skeptic (GO-IF, confidence 3). Crew window skipped (Matthew waiting).
+**The Skeptic's big point:** proof isn't the bottleneck; nobody has ASKED for the sale yet. Asking comes first.
+**Best 3**
+1. **Ask, with their week already made** (all 4 seats): for the 2 warm leads (B&B, Dieppe driving school) a real 7-day post pack from
+   their own public pages, as a private preview ("made from your public page, nothing invented"), plus a plain written ask:
+   "want me to start Monday? $79/month, no contract." Matthew sends it himself. Packs only for warm leads + prospects contacted after CBDC.
+2. **Open ledger proof page** (Spark, Hustler, Neighbour, Designer): /automation shows only checkable truths: the site feed streak
+   (pulled automatically), the real client count (updated the same day), what $79 buys and doesn't. No Facebook "daily" claim before ~Nov 11.
+   Linked in every message.
+3. **Referral chain** (Spark, Hustler): on the first yes, ask for 2 introductions, made BY the introducer (reply-all/tag), so Matthew only
+   answers people who reached out (CASL). Any thank-you shout-out is labelled as one.
+**Honourable mentions:** bilingual posts only for businesses already using French, with a named French checker · main-street / neighbour
+pairs (the $79 two-business pilot needs Matthew's price OK) · "pick your week" menu · weekly "why $79" explainer posts.
+**Cut for now:** pocket card (printing costs money; slow) · pay-when-you-see-it month (an offer change: Matthew's call).
+**Timing:** everything is PREP until the CBDC call (Fri 11 AM). If CBDC clears: the B&B ask + driving-school nudge go out first, the same day.
+**Matthew's pick:** (pending)
+
 ## 2026-11-06 ~4:45 AM Moncton: "What should Friday become next, so she's truly Matthew's own AI and makes him more effective?"
 Brief: meeting-room/notes/friday-vision.md. Seats: Spark, Hustler, Neighbour, Designer (20 ideas), Skeptic on the top 5 (GO-IF).
 Crew window: ideas in issue 15 by 9 AM join the next round (none in yet).

@@ -60,4 +60,23 @@ let roomLines = [msg("Local Claude (LC-Manager)","Everyone",300,"LC-Manager here
 let built = CrewData.build(messages:roomLines,runs:[],now:now)
 check("no chat is away from Roxy's date", !built.contains { $0.kind == .chat && ($0.state == .away || $0.awayUntil != nil) })
 check("Roxy herself is away until Nov 9", built.first(where:{ $0.id == "Roxy" })?.state == .away)
+
+// Live sessions (~/.claude/sessions): the station shows the chats actually open on this Mac.
+let reg = Data(#"{"pid":123,"name":"LC-CrewState: crew strip","status":"busy","statusUpdatedAt":1793957236254,"sessionId":"x"}"#.utf8)
+let parsed = LiveSessions.parse(reg)
+check("registry file -> name, busy, since", parsed?.name == "LC-CrewState: crew strip" && parsed?.busy == true && parsed?.pid == 123)
+check("a file with no name is skipped", LiveSessions.parse(Data(#"{"pid":5,"status":"idle"}"#.utf8)) == nil)
+check("short name cuts at ':' and fixes LC_", LiveSessions.shortName("LC-CrewState: crew strip") == "LC-CrewState" && LiveSessions.shortName("LC_Helm") == "LC-Helm")
+let liveCrew = [member("Friday",.friday),member("LC-Manager",.chat),member("LC-Pixels",.chat),member("LC-Work",.chat,.working),member("stock-bot",.robot)]
+let sess = [LiveSession(pid:1,name:"LC-Pixels",busy:true,since:now.addingTimeInterval(-90)),LiveSession(pid:2,name:"NB2",busy:false,since:now.addingTimeInterval(-600)),
+            LiveSession(pid:3,name:"Friday",busy:true,since:now)]
+let lm = LiveSessions.apply(sess,to:liveCrew,now:now)
+check("busy chat -> working with the busy line", lm.crew.first(where:{ $0.id == "LC-Pixels" }).map { $0.state == .working && $0.detail.hasPrefix(LiveSessions.busyPrefix) } ?? false)
+check("an open chat not in the room gets a desk", lm.crew.contains { $0.name == "NB2" && $0.state == .idle && $0.kind == .chat })
+check("closed chat with no recent work leaves the station", !lm.crew.contains { $0.id == "LC-Manager" } && lm.closed == ["LC-Manager"])
+check("closed chat that committed in the last 30 min keeps its desk", lm.crew.contains { $0.id == "LC-Work" })
+check("Friday's busy chat makes her working", lm.crew.first(where:{ $0.kind == .friday })?.state == .working)
+check("robots are untouched", lm.crew.contains { $0.id == "stock-bot" })
+check("no registry -> nothing changes", LiveSessions.apply(nil,to:liveCrew,now:now).crew.count == liveCrew.count)
+check("RUN timer format", LiveSessions.timer(now.addingTimeInterval(-125),now:now) == "2:05")
 exit(fails == 0 ? 0 : 1)

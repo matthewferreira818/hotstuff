@@ -7,7 +7,10 @@ import AppKit
 // CONFIRM: or URGENT:. The only button opens the Meeting Room (where he answers); there are no fake Review/Later buttons and no progress bars.
 
 struct CoreCrewView: View {
- var crew: [CrewMember]
+ var baseCrew: [CrewMember]
+ @ObservedObject var live = LiveSessionsModel.shared
+ var merged: (crew: [CrewMember],closed: [String]) { LiveSessions.apply(live.sessions,to:baseCrew) }
+ var crew: [CrewMember] { merged.crew }
  var tasks: [BoardItem]
  var questions: [BoardItem]
  var confirms: [RoomMessage]
@@ -51,6 +54,7 @@ struct CoreCrewView: View {
    .padding(.horizontal,24).padding(.bottom,16)
   }
   .scrollIndicators(.hidden)
+  .onAppear { LiveSessionsModel.shared.start() }
  }
 
  func node(_ m: CrewMember,size: CGFloat) -> some View {
@@ -111,6 +115,9 @@ struct CoreCrewView: View {
       Text(m.detail).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(2).fixedSize(horizontal:false,vertical:true)
      }
     }
+   }
+   if !merged.closed.isEmpty {
+    Text("Closed right now (no open chat on this Mac): " + merged.closed.joined(separator:", ")).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim).fixedSize(horizontal:false,vertical:true)
    }
   }
  }
@@ -184,7 +191,7 @@ struct CoreCrewView: View {
 extension CompanionInterfaceView {
  var commandCoreCrew: some View {
   let messages = PixelCrew.merged(meeting.messages,meeting.chat.messages)
-  let crew = PixelCrew.withFriday(deckCrewReal,messages:messages)
+  let crew = LiveSessions.apply(LiveSessionsModel.shared.sessions,to:PixelCrew.withFriday(deckCrewReal,messages:messages)).crew
   let visits = deckPixelVisits(crew:crew,messages:messages)
   let needs = meeting.needs
   let tasks = (meeting.board?.sections.first { $0.title.lowercased() == "on the table" }?.items ?? []).filter { !$0.isDone }
@@ -199,6 +206,6 @@ extension CompanionInterfaceView {
    obs.insert(CoreObservation(tone:2,text:"\(needs.questions.count + confirms.count) thing\(needs.questions.count + confirms.count == 1 ? "" : "s") waiting on your OK.",why:"They're listed in the Waiting on you card.",source:"Board and room, now",actionTitle:"Open Meeting Room",run:{ hubSelect(.meeting) }),at:0)
   }
   return coreFrame("Crew Station","\(working) working · \(away.count) away · \(failing.count) failing. Real signals only.",tone:failing.isEmpty ? 0 : 3,observations:obs,
-                   content:AnyView(CoreCrewView(crew:crew,tasks:tasks,questions:needs.questions,confirms:confirms,visits:visits,reduceMotion:reduceMotion,boardKnown:meeting.board != nil,openMeeting:{ hubSelect(.meeting) })))
+                   content:AnyView(CoreCrewView(baseCrew:crew,tasks:tasks,questions:needs.questions,confirms:confirms,visits:visits,reduceMotion:reduceMotion,boardKnown:meeting.board != nil,openMeeting:{ hubSelect(.meeting) })))
  }
 }

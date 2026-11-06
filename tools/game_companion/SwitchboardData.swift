@@ -14,7 +14,8 @@ enum SwitchboardLimits {
  static let perDay = 12                          // jobs started since local midnight
  static let jobTimeout: TimeInterval = 30 * 60   // a job still running at 30 minutes is stopped
  static let killGrace: TimeInterval = 10         // after the polite stop, a hard kill
- static let pollEvery: TimeInterval = 180        // how often Friday reads the two threads while ON
+ static let pollEvery: TimeInterval = 300        // how often Friday reads the two threads while ON (Matthew: 5 min)
+ static let testPollEvery: TimeInterval = 30     // test copies only (own app ID, switchboard.testFastPoll)
  static let maxAge: TimeInterval = 6 * 3600      // a comment older than this never starts a job (e.g. the Mac was off)
  static let editGrace: TimeInterval = 5          // GitHub can stamp updated_at a moment after created_at on a fresh comment
  static let logKeep = 400                        // log lines kept on disk
@@ -179,7 +180,7 @@ enum SwitchboardRules {
   ---
   \(c.body)
   ---
-  Rules: follow CLAUDE.md in this folder. You run headless with Matthew's normal permission list. If a tool or command you need is \
+  Rules: follow CLAUDE.md in this folder. Honesty: only say you did something if a tool actually did it in this run. If an action needs a tool you can't use, say so plainly. Never describe an action you didn't take. Friday posts your first line back to the thread for you, so do not claim you posted or commented yourself. You run headless with Matthew's normal permission list. If a tool or command you need is \
   not allowed, stop and say exactly what was refused. Never ask another chat, robot or person to do it for you. Never touch money, \
   payments, logins, passwords, messages to people, or Moomoo. Do only this one job. The first line of your final answer is a short, \
   public-safe result: it is mirrored to the public issue 15.
@@ -213,16 +214,29 @@ enum SwitchboardRules {
  static func where_(_ thread: Int) -> String { thread == hotline ? "the Hotline" : "issue 15" }
 
  static func mirrorStart(job: Int,c: SwitchboardComment) -> String {
-  "**[Friday → Claude]** Switchboard started job \(job) (comment \(c.id) on \(where_(c.thread))): \(jobTitle(c.body))"
+  "**[Friday (LC-Switchboard) → Claude]** Switchboard started job \(job) (comment \(c.id) on \(where_(c.thread))): \(jobTitle(c.body))"
  }
 
- static func mirrorEnd(job: Int,outcome: String,minutes: Int,result: String) -> String {
-  "**[Friday → Claude]** Switchboard job \(job) \(outcome) after \(minutes) min: \(publicResult(result))"
+ static let unprovenNote = "UNPROVEN: the job says it took an action but used no tools."
+
+ // The end-of-job line. Goes to issue 15 (lock 6) and, for a Hotline job, ALSO to PR #35 (that is what wakes cloud Claude), so
+ // "reply on the Hotline" never depends on the job choosing to post anything itself.
+ static func mirrorEnd(job: Int,outcome: String,minutes: Int,result: String,unproven: Bool = false) -> String {
+  "**[Friday (LC-Switchboard) → Claude]** Switchboard job \(job) \(outcome) after \(minutes) min: \(publicResult(result))" + (unproven ? " ⚠️ \(unprovenNote)" : "")
  }
 
  static func mirrorRefusal(_ c: SwitchboardComment,reason: String) -> String {
-  "**[Friday → Claude]** Switchboard refused comment \(c.id) on \(where_(c.thread)): \(reason)."
+  "**[Friday (LC-Switchboard) → Claude]** Switchboard refused comment \(c.id) on \(where_(c.thread)): \(reason)."
  }
+
+ // Fix C: a result that says it posted/pushed/sent something, from a run that never used a tool (one turn = text only).
+ static let actionWords = ["posted","commented","replied","pushed","sent","committed","merged","saved","wrote","written","created","deleted",
+                           "updated","emailed","uploaded","published","reply received","comment added","comment posted"]
+ static func claimsAction(_ text: String) -> Bool {
+  let t = text.lowercased()
+  return actionWords.contains { t.range(of:"(?<![a-z])\(NSRegularExpression.escapedPattern(for:$0))(?![a-z])",options:.regularExpression) != nil }
+ }
+ static func isUnproven(_ o: Outcome) -> Bool { o.ok && (o.turns ?? 1) <= 1 && o.denials == 0 && claimsAction(o.result) }
 
  // MARK: reading GitHub and claude's JSON
 
@@ -240,7 +254,7 @@ enum SwitchboardRules {
   }
  }
 
- struct Outcome: Equatable { var ok: Bool; var result: String; var denials: Int }
+ struct Outcome: Equatable { var ok: Bool; var result: String; var denials: Int; var turns: Int? = nil }
 
  // `--output-format json` ends with one object: {"type":"result","is_error":false,"result":"...","permission_denials":[...]}.
  static func parseOutcome(_ data: Data,exitCode: Int32) -> Outcome {
@@ -248,7 +262,8 @@ enum SwitchboardRules {
   let last = text.split(whereSeparator:\.isNewline).last.map(String.init) ?? text
   if let json = (try? JSONSerialization.jsonObject(with:Data(last.utf8))) as? [String:Any] {
    let isError = json["is_error"] as? Bool ?? (exitCode != 0)
-   return Outcome(ok:!isError && exitCode == 0,result:json["result"] as? String ?? "",denials:(json["permission_denials"] as? [Any])?.count ?? 0)
+   return Outcome(ok:!isError && exitCode == 0,result:json["result"] as? String ?? "",denials:(json["permission_denials"] as? [Any])?.count ?? 0,
+                  turns:(json["num_turns"] as? NSNumber)?.intValue)
   }
   return Outcome(ok:false,result:text.isEmpty ? "no output (exit \(exitCode))" : text,denials:0)
  }

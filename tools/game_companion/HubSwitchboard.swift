@@ -20,6 +20,9 @@ private struct SwitchboardState: Codable {
 
 @MainActor final class Switchboard: ObservableObject {
  static let shared = Switchboard()
+ // Real default 5 min; 30 s only in a test copy with switchboard.testFastPoll (hooks are dead in the real Helm).
+ static var interval: TimeInterval { SwitchboardTestHooks.active && UserDefaults.standard.bool(forKey:"switchboard.testFastPoll") ? SwitchboardLimits.testPollEvery : SwitchboardLimits.pollEvery }
+ static var intervalText: String { interval < 60 ? "\(Int(interval)) s" : "\(Int(interval / 60)) min" }
  static let onKey = "switchboard.on"   // UserDefaults, per app ID: absent = OFF, so a fresh install and the test copy start OFF
 
  @Published private(set) var on = UserDefaults.standard.bool(forKey:Switchboard.onKey)
@@ -27,6 +30,7 @@ private struct SwitchboardState: Codable {
  @Published private(set) var runningJob: Int?
  @Published private(set) var runningSince: Date?
  @Published private(set) var runningTitle = ""
+ private var runningThread = SwitchboardRules.roomIssue
  @Published private(set) var lastCheck: Date?
  @Published private(set) var claudeVersion: String?
  @Published private(set) var startsThisHour = 0
@@ -73,7 +77,7 @@ private struct SwitchboardState: Codable {
   if value {
    state.armedAt = Date()   // only comments posted from now on can start a job
    save()
-   add("on","Switchboard ON (turned on by \(source)). Watching issue 15 and the Hotline every \(Int(SwitchboardLimits.pollEvery / 60)) min.")
+   add("on","Switchboard ON (turned on by \(source)). Watching issue 15 and the Hotline every \(Switchboard.intervalText).")
    startLoop()
   } else {
    loop?.cancel(); loop = nil
@@ -87,7 +91,7 @@ private struct SwitchboardState: Codable {
   loop = Task { [weak self] in
    while !Task.isCancelled {
     await self?.check()
-    try? await Task.sleep(nanoseconds:UInt64(SwitchboardLimits.pollEvery * 1_000_000_000))
+    try? await Task.sleep(nanoseconds:UInt64(Switchboard.interval * 1_000_000_000))
    }
   }
  }
@@ -155,9 +159,10 @@ private struct SwitchboardState: Codable {
   return r.ok ? SwitchboardRules.parseComments(r.out,thread:thread) : nil
  }
 
- private func post(_ body: String) async -> Bool {
-  let r = await gh(["issue","comment","\(SwitchboardRules.roomIssue)","--repo",SwitchboardRules.repo,"--body",body])
-  if !r.ok { add("error","Couldn't post to issue 15 through gh (not logged in, offline, or GitHub refused).") }
+ private func post(_ body: String,thread: Int = SwitchboardRules.roomIssue) async -> Bool {
+  let kind = thread == SwitchboardRules.hotline ? "pr" : "issue"
+  let r = await gh([kind,"comment","\(thread)","--repo",SwitchboardRules.repo,"--body",body])
+  if !r.ok { add("error","Couldn't post to \(SwitchboardRules.where_(thread)) through gh (not logged in, offline, or GitHub refused).") }
   return r.ok
  }
 
@@ -235,6 +240,7 @@ private struct SwitchboardState: Codable {
   runningJob = job
   runningSince = began
   runningTitle = SwitchboardRules.jobTitle(c.body)
+  runningThread = c.thread
   add("run","Job \(job) started (\(found.version ?? "")): \(runningTitle)")
 
   // Lock 4: the 30-minute stop.
@@ -263,14 +269,21 @@ private struct SwitchboardState: Codable {
   let word: String
   if let reason = stopReason { word = reason } else { word = outcome.ok ? "finished" : "failed (exit \(code))" }
   let denials = outcome.denials > 0 ? " · \(outcome.denials) tool use(s) refused by the permission list" : ""
-  add(stopReason != nil ? "stopped" : (outcome.ok ? "done" : "failed"),
-      "Job \(job) \(word) after \(minutes) min\(denials): \(SwitchboardRules.firstLine(outcome.result,limit:300))")
+  let unproven = stopReason == nil && SwitchboardRules.isUnproven(outcome)
+  let turns = outcome.turns.map { " · \($0) turn(s)" } ?? ""
+  add(stopReason != nil ? "stopped" : (unproven ? "unproven" : (outcome.ok ? "done" : "failed")),
+      "Job \(job) \(word) after \(minutes) min\(turns)\(denials)\(unproven ? " · " + SwitchboardRules.unprovenNote : ""): \(SwitchboardRules.firstLine(outcome.result,limit:300))")
+  let thread = runningThread
   stopReason = nil
   process = nil
   runningJob = nil
   runningSince = nil
   runningTitle = ""
-  Task { _ = await post(SwitchboardRules.mirrorEnd(job:job,outcome:word,minutes:minutes,result:outcome.result)) }
+  let line = SwitchboardRules.mirrorEnd(job:job,outcome:word,minutes:minutes,result:outcome.result,unproven:unproven)
+  Task {
+   _ = await post(line)                                              // lock 6: always on issue 15
+   if thread == SwitchboardRules.hotline { _ = await post(line,thread:thread) }   // Hotline jobs also answer on PR #35
+  }
  }
 
  // MARK: bookkeeping
@@ -363,7 +376,7 @@ struct SwitchboardPanel: View {
   let limits = "Jobs \(sb.startsThisHour)/\(SwitchboardLimits.perHour) this hour · \(sb.startsToday)/\(SwitchboardLimits.perDay) today · \(claude)"
   if !sb.on { return "Off. Friday starts no jobs. Turn on to let tagged messages from cloud Claude start Local Claude jobs here.\n\(limits)" }
   let checked = sb.lastCheck.map { "last check \(Self.time.string(from:$0))" } ?? "first check starting"
-  return "On. Watching issue 15 and the Hotline every \(Int(SwitchboardLimits.pollEvery / 60)) min · \(checked).\n\(limits)"
+  return "On. Watching issue 15 and the Hotline every \(Switchboard.intervalText) · \(checked).\n\(limits)"
  }
 
  private func minutes(since: Date?,now: Date) -> Int { since.map { max(0,Int(now.timeIntervalSince($0) / 60)) } ?? 0 }
@@ -372,6 +385,7 @@ struct SwitchboardPanel: View {
   switch kind {
   case "run","on": return HubTheme.green
   case "done": return HubTheme.teal
+  case "unproven": return HubTheme.amber
   case "refused","stopped","wait": return HubTheme.amber
   case "failed","error": return HubTheme.crimson
   default: return HubTheme.subtext
@@ -425,6 +439,7 @@ struct SwitchboardLogSheet: View {
 //   switchboard.testTurnOn   (bool)    turn the switch ON at launch through the normal setOn(true)
 //   switchboard.testComments (path)    a JSON list of fake comments mixed into each check: [{id,thread,login,body,ago,edited}]
 //   switchboard.testShowLog  (bool)    open the full log sheet
+//   switchboard.testFastPoll (bool)    check every 30 s instead of 5 min
 //   switchboard.testShot     (path)    after 8 s, save the window (and the sheet, if open) as <path>-window.png / <path>-sheet.png
 enum SwitchboardTestHooks {
  static let realHelmID = "local.mattyb.gamecompanion"

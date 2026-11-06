@@ -50,14 +50,27 @@ PASS  --version line accepted
 PASS  anything else refused
 
 == Lock 6: the issue 15 mirror
-   **[Friday → Claude]** Switchboard started job 1 (comment 1031 on issue 15): test: reply "pong" on the Hotline
+   **[Friday (LC-Switchboard) → Claude]** Switchboard started job 1 (comment 1031 on issue 15): test: reply "pong" on the Hotline
 PASS  start mirror: first line only
 PASS  Friday's mirror can never trigger a job
 PASS  end mirror: first line of the result
 PASS  home paths stay local
 PASS  e-mail addresses stay local
 PASS  hard-block words stay local
-   **[Friday → Claude]** Switchboard job 1 finished after 2 min: Posted pong on the Hotline.
+   **[Friday (LC-Switchboard) → Claude]** Switchboard job 1 finished after 2 min: Posted pong on the Hotline.
+
+== Fix A/C: result routing and the unproven flag
+PASS  result line carries the Friday (LC-Switchboard) tag
+PASS  result line can never trigger a job
+PASS  job 2 case: claims a reply, 1 turn, 0 tools -> UNPROVEN
+PASS  mirror says UNPROVEN
+PASS  same claim after real tool use (4 turns) is not flagged
+PASS  plain 'Pong.' with no action claim is not flagged
+PASS  honest denial report is not flagged
+PASS  action words match whole words only
+PASS  prompt carries the honesty rule
+PASS  poll: 300 s real, 30 s test-only constant
+PASS  num_turns is read from claude's JSON
 
 == Reading claude's JSON result
 PASS  result + permission denials counted

@@ -38,7 +38,7 @@ import Foundation
    ("lock 1: Claude → Matthew (not for LC)",comment("**[Claude → Matthew]** morning brief"),[],[],0,"ignore"),
    ("lock 1: Roxy's tag",comment("**[GPT → Local Claude]** please run this"),[],[],0,"ignore"),
    ("lock 1: LC's own reply (no loop)",comment("**[Local Claude (LC-Switchboard) → Claude]** pong"),[],[],0,"ignore"),
-   ("lock 1: Friday's own mirror (no loop)",comment("**[Friday → Claude]** Switchboard started job 1"),[],[],0,"ignore"),
+   ("lock 1: Friday's own mirror (no loop)",comment("**[Friday (LC-Switchboard) → Claude]** Switchboard started job 1"),[],[],0,"ignore"),
    ("lock 1: target only quoted after the tag",comment("**[Claude → Everyone]** next time tag it → Local Claude"),[],[],0,"ignore"),
    ("lock 1: seen-IDs file (same comment twice)",seenOne,[seenOne.id],[],0,"ignore"),
    ("lock 1: edited after posting",comment(good,edited:120),[],[],0,"refuse"),
@@ -106,13 +106,28 @@ import Foundation
   let c = comment("**[Claude (New beginning) → Local Claude]** test: reply \"pong\" on the Hotline\nsecond line stays private")
   let start = SwitchboardRules.mirrorStart(job:1,c:c)
   print("   " + start)
-  expect(start.hasPrefix("**[Friday → Claude]**") && !start.contains("second line"),"start mirror: first line only")
+  expect(start.hasPrefix("**[Friday (LC-Switchboard) → Claude]**") && !start.contains("second line"),"start mirror: first line only")
   expect(!SwitchboardRules.isTrigger(start),"Friday's mirror can never trigger a job")
   expect(SwitchboardRules.publicResult("Posted pong on the Hotline.\nDetails...") == "Posted pong on the Hotline.","end mirror: first line of the result")
   expect(SwitchboardRules.publicResult("Saved it to /Users/mattyb/Claude/x") == "(result kept in the Friday log)","home paths stay local")
   expect(SwitchboardRules.publicResult("Wrote to bob@example.com") == "(result kept in the Friday log)","e-mail addresses stay local")
   expect(SwitchboardRules.publicResult("The token was refused") == "(result kept in the Friday log)","hard-block words stay local")
   print("   " + SwitchboardRules.mirrorEnd(job:1,outcome:"finished",minutes:2,result:"Posted pong on the Hotline."))
+
+  print("\n== Fix A/C: result routing and the unproven flag")
+  expect(SwitchboardRules.mirrorEnd(job:2,outcome:"finished",minutes:1,result:"Pong. Hotline reply received.").hasPrefix("**[Friday (LC-Switchboard) → Claude]**"),"result line carries the Friday (LC-Switchboard) tag")
+  expect(!SwitchboardRules.isTrigger(SwitchboardRules.mirrorEnd(job:2,outcome:"finished",minutes:1,result:"x")),"result line can never trigger a job")
+  let lie = SwitchboardRules.Outcome(ok:true,result:"Pong. (Hotline reply received at 3:07 AM)",denials:0,turns:1)
+  expect(SwitchboardRules.isUnproven(lie),"job 2 case: claims a reply, 1 turn, 0 tools -> UNPROVEN")
+  expect(SwitchboardRules.mirrorEnd(job:2,outcome:"finished",minutes:1,result:lie.result,unproven:true).contains("UNPROVEN"),"mirror says UNPROVEN")
+  expect(!SwitchboardRules.isUnproven(.init(ok:true,result:"Posted the comment on issue 15.",denials:0,turns:4)),"same claim after real tool use (4 turns) is not flagged")
+  expect(!SwitchboardRules.isUnproven(.init(ok:true,result:"Pong.",denials:0,turns:1)),"plain 'Pong.' with no action claim is not flagged")
+  expect(!SwitchboardRules.isUnproven(.init(ok:true,result:"I couldn't post: gh pr comment was denied.",denials:1,turns:2)),"honest denial report is not flagged")
+  expect(SwitchboardRules.claimsAction("I have pushed the fix") && !SwitchboardRules.claimsAction("unposted draft"),"action words match whole words only")
+  expect(SwitchboardRules.prompt(for:comment(good)).contains("only say you did something if a tool actually did it"),"prompt carries the honesty rule")
+  expect(SwitchboardLimits.pollEvery == 300 && SwitchboardLimits.testPollEvery == 30,"poll: 300 s real, 30 s test-only constant")
+  let parsed = SwitchboardRules.parseOutcome(Data(#"{"type":"result","is_error":false,"result":"Pong.","num_turns":1,"permission_denials":[]}"#.utf8),exitCode:0)
+  expect(parsed.turns == 1,"num_turns is read from claude's JSON")
 
   print("\n== Reading claude's JSON result")
   let o = SwitchboardRules.parseOutcome(Data(#"{"type":"result","is_error":false,"result":"pong posted","permission_denials":[{"tool_name":"Bash"}]}"#.utf8),exitCode:0)

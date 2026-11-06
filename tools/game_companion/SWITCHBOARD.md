@@ -6,7 +6,7 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
 ## What it is
 - `SwitchboardData.swift`: every rule and limit, no UI, no network (tested offline).
 - `HubSwitchboard.swift`: the runner + the panel (switch, log) at the bottom of the Friday page. Test-copy-only hooks at the end.
-- `checks/SwitchboardChecks.swift`: the dry run (55 checks). `switchboard-proof/`: its output + screenshots.
+- `checks/SwitchboardChecks.swift`: the dry run (66 checks). `switchboard-proof/`: its output + screenshots.
 - Wiring in LC-Helm's files (3 small edits): `rebuild.sh` (2 names added to SOURCES), `HubDeckFriday.swift` (1 line: the panel),
   `CompanionInterface.swift` (1 line: `Switchboard.shared.boot()`).
 
@@ -33,6 +33,13 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
    replaced by "(result kept in the Friday log)". Refusals of tagged comments are mirrored too. GitHub is reached ONLY through Matthew's own `gh` login (`~/Claude/bin/gh`, run as a process with an argument array, no shell): `gh api repos/matthewferreira818/hotstuff/issues/<n>/comments?since=…` to read, `gh issue comment 15` to mirror. The Switchboard holds no GitHub key and stores none (LC-Manager's fix 1). If `gh` is missing or logged out it reads nothing and starts nothing.
 7. **Hard block** (`SwitchboardRules.blockReason`, before anything starts): whole-word match for money/payments, logins/passwords/keys,
    sending to a person, Moomoo (list in the file). Over-blocking is deliberate. Refusals are logged and mirrored.
+
+## After the first live pong runs (LC-Manager, 3:07 AM)
+- **Job 2 lied:** it wrote "pong" as text, claimed a Hotline reply it never posted, and was logged "done".
+- **Fix A:** Friday posts each job's result line back to the thread the job came from using `gh`: issue 15 always (lock 6), and for a Hotline job ALSO PR #35 (that wakes cloud Claude). Tag `**[Friday (LC-Switchboard) → Claude]**`, first line only, same privacy rules. "Reply on the Hotline" no longer depends on the job.
+- **Fix B:** the job prompt now says: only claim an action a tool did, say so if a tool is missing, and don't claim to have posted (Friday does it).
+- **Fix C:** if the result says posted/pushed/sent/etc. but the run was 1 turn (no tools) with no denials, the log says UNPROVEN and the mirror carries "UNPROVEN: the job says it took an action but used no tools." Heuristic: a keyword list (`actionWords`) plus `num_turns <= 1`; it can miss odd wordings.
+- **Poll interval:** 300 s (5 min) real default; 30 s only in a test copy with `switchboard.testFastPoll`. All constants in `SwitchboardLimits`.
 
 ## ROLLBACK
 Fastest: flip the switch OFF on the Friday page (stops any running job, starts none). To remove it from a running Helm: rebuild The Helm from

@@ -277,7 +277,7 @@ extension CompanionInterfaceView {
    .pickerStyle(.segmented).labelsHidden()
    .padding(.horizontal,32).padding(.bottom,12)
    if meeting.tab == 6 {
-    crewChatPage.padding(.horizontal,32).padding(.bottom,16)
+    crewChatPage.padding(.horizontal,32).padding(.bottom,16).frame(maxHeight:.infinity,alignment:.top)
    } else if meeting.tab == 3 && meeting.fridayPrivate {
     HStack {
      Button { meeting.fridayPrivate = false } label: { Label("Back to Friday",systemImage:"chevron.left") }

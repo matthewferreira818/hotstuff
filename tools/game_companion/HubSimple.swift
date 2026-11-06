@@ -232,7 +232,7 @@ extension CompanionInterfaceView {
   return simpleCard("Today",help:"A quick look at what your helpers and practice robots are doing. Real data from the room and GitHub.") {
    if crew.count <= 1 && meeting.messages.isEmpty { Text("Loading what everyone is up to…").font(.system(size:15)).foregroundStyle(HubTheme.subtext) }
    else {
-    Text(working.isEmpty ? "Nobody is in the middle of a job right now." : "Working now: " + working.prefix(3).joined(separator:", ") + (working.count > 3 ? " and \(working.count - 3) more" : "") + ".")
+    Text(meeting.threadFailed ? "Who is working: unknown (couldn't reach the Meeting Room)." : working.isEmpty ? "Nobody is in the middle of a job right now." : "Working now: " + working.prefix(3).joined(separator:", ") + (working.count > 3 ? " and \(working.count - 3) more" : "") + ".")
      .font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
     if !robots.isEmpty {
      Text("\(robots.filter { $0.state != .unknown }.count) of \(robots.count) practice robots have checked in" + (robotsRunning > 0 ? ", \(robotsRunning) running now." : ".")).font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)

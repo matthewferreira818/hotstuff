@@ -6,7 +6,7 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
 ## What it is
 - `SwitchboardData.swift`: every rule and limit, no UI, no network (tested offline).
 - `HubSwitchboard.swift`: the runner + the panel (switch, log) at the bottom of the Friday page. Test-copy-only hooks at the end.
-- `checks/SwitchboardChecks.swift`: the dry run (54 checks). `switchboard-proof/`: its output + screenshots.
+- `checks/SwitchboardChecks.swift`: the dry run (55 checks). `switchboard-proof/`: its output + screenshots.
 - Wiring in LC-Helm's files (3 small edits): `rebuild.sh` (2 names added to SOURCES), `HubDeckFriday.swift` (1 line: the panel),
   `CompanionInterface.swift` (1 line: `Switchboard.shared.boot()`).
 
@@ -30,7 +30,7 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
    in a full-log sheet, and is saved in `~/Library/Application Support/Switchboard-<app id>/`.
 6. **Mirror.** Start (comment id, thread, first line of the comment) is posted to issue 15 BEFORE the job runs; if that post fails the job
    doesn't run. End = outcome, minutes, first line of the result only; results with home paths, e-mail addresses or hard-block words are
-   replaced by "(result kept in the Friday log)". Refusals of tagged comments are mirrored too. Uses the Meeting Room's GitHub key.
+   replaced by "(result kept in the Friday log)". Refusals of tagged comments are mirrored too. GitHub is reached ONLY through Matthew's own `gh` login (`~/Claude/bin/gh`, run as a process with an argument array, no shell): `gh api repos/matthewferreira818/hotstuff/issues/<n>/comments?since=…` to read, `gh issue comment 15` to mirror. The Switchboard holds no GitHub key and stores none (LC-Manager's fix 1). If `gh` is missing or logged out it reads nothing and starts nothing.
 7. **Hard block** (`SwitchboardRules.blockReason`, before anything starts): whole-word match for money/payments, logins/passwords/keys,
    sending to a person, Moomoo (list in the file). Over-blocking is deliberate. Refusals are logged and mirrored.
 
@@ -45,11 +45,14 @@ there is nothing to undo outside the log, except whatever a job itself did (its 
 - **A real job has never run.** The in-app dry run used fake comments in a test copy that has no GitHub key, so the one good comment was
   stopped at the mirror step ("couldn't mirror it to issue 15"), which is the designed safe failure. The headless `claude -p` launch, the
   JSON result parsing against real output, the 30-minute kill and the end-of-job mirror are untested live (parsing and rules are unit-tested).
-- Real GitHub fetch with the key (`since=` query, 100-comment page limit), real posting of mirror lines to issue 15, rate limits.
+- The app's own `gh` calls (fetch + mirror) were compiled but NOT run in the test copy: running the fake-comment dry run now would post real refusal lines to the public issue 15. `gh api` itself works and its real JSON parses.
+- Real mirror posting to issue 15 through `gh` from inside the app, the 100-comment page limit, rate limits. (The real `gh api` JSON for issue 15 was parsed by the checks: see below.)
 - Whether `--permission-mode dontAsk` + `--permission-prompts none` really denies everything outside Matthew's allow list with this settings
   file (read from `--help` text only; LC-Manager's pong run is the first proof). Note his allow list is short, so most jobs will fail with denials.
 - Restart-while-ON resuming; the "Stop job" button; the confirm alert's look; narrow/compact layout; accessibility/VoiceOver pass.
 - A seen-ID is saved when a comment is handled, so a crash mid-job loses that job rather than re-running it (intended).
 - The real Helm (`local.mattyb.gamecompanion`) was not launched or modified. The test copy is `local.mattyb.helmswitchboard`.
-- One unexplained log line: in an earlier launch of the test copy the log shows "Switchboard ON" then "OFF" 13 s later that I didn't trigger
-  (no job could run: no key). Possibly a stray click while I was setting up screenshots; not reproduced.
+- **The ON→OFF 13 s oddity (explained as far as the evidence goes).** The log showed "ON" at 2:35:20 AM and "OFF" at 2:35:33 AM in the test copy. `testTurnOn` was NOT set then (`defaults read` shows only `hub.testStart`), and quitting the app never calls `setOn(false)`: the only paths to ON are the confirm alert or that test hook, and the only path to OFF is the toggle. So both were clicks in the test window, not a code path: most likely Matthew (or another agent) trying the visible test window. A clean relaunch with no hooks and 45 s of waiting did not reproduce it (no new log lines, switch stayed 0). To make this provable next time, every ON/OFF log line now says what turned it on or off ("the switch on the Friday page", "the switch (confirmed in the alert)" or "the test hook").
+
+## Current scope (what a job can actually do)
+A job runs with Matthew's normal `~/.claude/settings.json` under `dontAsk`: only his allow list works. Today that list has read access to `~/Claude/**`, read-only git, `gh issue view 15`, `gh issue comment 15`, `smoke_test.py`, and `claims_check.py`. There is **no Edit/Write**, so a headless job can read and comment on issue 15 but can't change files. It has **no `gh pr comment 35`**, so the plan's "pong on the Hotline" job would be DENIED and reported (the lock working as designed). Whether to add `Bash(~/Claude/bin/gh pr comment 35 *)` is Matthew's decision (LC-Manager asked him); nobody here edits settings.json.

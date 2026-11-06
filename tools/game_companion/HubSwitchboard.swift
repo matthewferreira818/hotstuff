@@ -66,18 +66,18 @@ private struct SwitchboardState: Codable {
   SwitchboardTestHooks.boot(self)
  }
 
- func setOn(_ value: Bool) {
+ func setOn(_ value: Bool,by source: String = "the switch on the Friday page") {
   guard value != on else { return }
   on = value
   UserDefaults.standard.set(value,forKey:Switchboard.onKey)
   if value {
    state.armedAt = Date()   // only comments posted from now on can start a job
    save()
-   add("on","Switchboard ON. Watching issue 15 and the Hotline every \(Int(SwitchboardLimits.pollEvery / 60)) min.")
+   add("on","Switchboard ON (turned on by \(source)). Watching issue 15 and the Hotline every \(Int(SwitchboardLimits.pollEvery / 60)) min.")
    startLoop()
   } else {
    loop?.cancel(); loop = nil
-   add("off","Switchboard OFF.")
+   add("off","Switchboard OFF (turned off by \(source)).")
    if runningJob != nil { stopJob(reason:"stopped (switch turned off)") }
   }
  }
@@ -126,30 +126,39 @@ private struct SwitchboardState: Codable {
   }
  }
 
- private func fetch(thread: Int,since: Date) async -> [SwitchboardComment]? {
-  let path = "/issues/\(thread)/comments?per_page=100&since=\(SwitchboardRules.iso.string(from:since))"
-  guard let request = MeetingData.api(path,token:token()),
-        let (data,response) = try? await URLSession.shared.data(for:request),
-        (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
-  return SwitchboardRules.parseComments(data,thread:thread)
+ // GitHub goes through Matthew's own `gh` login (the same one every Local Claude uses). The Switchboard never holds or stores a key.
+ // Arguments are an array, no shell, so a comment's text can't become a command.
+ static let ghPath = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Claude/bin/gh").path
+
+ private func gh(_ args: [String]) async -> (ok: Bool,out: Data) {
+  guard FileManager.default.isExecutableFile(atPath:Self.ghPath) else { return (false,Data()) }
+  return await withCheckedContinuation { cont in
+   DispatchQueue.global().async {
+    let p = Process()
+    p.executableURL = URL(fileURLWithPath:Self.ghPath)
+    p.arguments = args
+    p.standardInput = FileHandle.nullDevice
+    let out = Pipe()
+    p.standardOutput = out
+    p.standardError = FileHandle.nullDevice
+    do { try p.run() } catch { cont.resume(returning:(false,Data())); return }
+    let data = out.fileHandleForReading.readDataToEndOfFile()
+    p.waitUntilExit()
+    cont.resume(returning:(p.terminationStatus == 0,data))
+   }
+  }
  }
 
- // The Meeting Room's GitHub key (same Keychain entry the room already uses). No key = no mirror = no job.
- private func token() -> String? {
-  guard Keychain.exists(MeetingHub.tokenService), let data = Keychain.read(MeetingHub.tokenService) else { return nil }
-  return String(data:data,encoding:.utf8)?.trimmingCharacters(in:.whitespacesAndNewlines)
+ private func fetch(thread: Int,since: Date) async -> [SwitchboardComment]? {
+  let path = "repos/\(SwitchboardRules.repo)/issues/\(thread)/comments?per_page=100&since=\(SwitchboardRules.iso.string(from:since))"
+  let r = await gh(["api",path])
+  return r.ok ? SwitchboardRules.parseComments(r.out,thread:thread) : nil
  }
 
  private func post(_ body: String) async -> Bool {
-  guard let key = token(), MeetingData.tokenProblem(key) == nil,
-        let json = try? JSONSerialization.data(withJSONObject:["body":body]),
-        let call = MeetingData.api("/issues/\(SwitchboardRules.roomIssue)/comments",token:key,method:"POST",body:json),
-        let (_,response) = try? await URLSession.shared.data(for:call),
-        (response as? HTTPURLResponse)?.statusCode == 201 else {
-   add("error","Couldn't post to issue 15 (no GitHub key in The Helm, or GitHub refused).")
-   return false
-  }
-  return true
+  let r = await gh(["issue","comment","\(SwitchboardRules.roomIssue)","--repo",SwitchboardRules.repo,"--body",body])
+  if !r.ok { add("error","Couldn't post to issue 15 through gh (not logged in, offline, or GitHub refused).") }
+  return r.ok
  }
 
  // MARK: the job
@@ -429,7 +438,7 @@ enum SwitchboardTestHooks {
  @MainActor static func boot(_ sb: Switchboard) {
   guard active else { return }
   let d = UserDefaults.standard
-  if d.bool(forKey:"switchboard.testTurnOn") { sb.setOn(true) }
+  if d.bool(forKey:"switchboard.testTurnOn") { sb.setOn(true,by:"the test hook switchboard.testTurnOn") }
   if d.bool(forKey:"switchboard.testShowLog") {
    Task { try? await Task.sleep(nanoseconds:5_000_000_000); sb.showLog = true }
   }

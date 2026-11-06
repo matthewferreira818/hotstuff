@@ -119,6 +119,12 @@ import Foundation
   expect(o == .init(ok:true,result:"pong posted",denials:1),"result + permission denials counted")
   expect(!SwitchboardRules.parseOutcome(Data("boom".utf8),exitCode:1).ok,"garbage output = failed")
 
+  if let file = ProcessInfo.processInfo.environment["SB_REAL_JSON"], let data = FileManager.default.contents(atPath:file) {
+   print("\n== Real `gh api` output (SB_REAL_JSON)")
+   let rows = SwitchboardRules.parseComments(data,thread:15)
+   expect((rows?.count ?? 0) > 0,"parsed \(rows?.count ?? 0) real comments; owner-authored: \(rows?.filter { $0.login == SwitchboardRules.ownerLogin }.count ?? 0)")
+  }
+
   print("\n\(failures == 0 ? "ALL PASS" : "\(failures) FAILED")")
   exit(failures == 0 ? 0 : 1)
  }

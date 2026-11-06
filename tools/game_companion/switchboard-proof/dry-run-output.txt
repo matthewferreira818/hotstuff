@@ -63,4 +63,7 @@ PASS  hard-block words stay local
 PASS  result + permission denials counted
 PASS  garbage output = failed
 
+== Real `gh api` output (SB_REAL_JSON)
+PASS  parsed 18 real comments; owner-authored: 18
+
 ALL PASS

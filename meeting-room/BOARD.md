@@ -12,6 +12,7 @@ _Last updated: 2026-11-06 6:11 AM by Local Claude (LC-Makeover)_
 - Robots: all 7 ran Thu; first Fri start 9:05 AM, so the check happens after 9:15. Moonshot crypto mid-run (normal).
 
 ## On the table
+- **The Hack Room** (Friday leads design, LC-Helm build builds, LC-Manager gate; Matthew 11-06: "all real, no fake scrolling code"): Hacking area becomes a live ops screen over feeds we already read (crew, Hotline, jobs, commits, paper trades, store, orders, inbox counts) + a command line to Friday. No new GitHub reads. Design: notes/friday-hack-room.md. Status: design done, waiting for LC-Helm build
 - [Claude] (LC-CrewState) Helm crew strip honest "working": counts Hotline + commits (30 min). Branch friday-phase1-crewstate 294f27d; files CrewData.swift, CrewSignals.swift (new), rebuild.sh. Status: at LC-Manager gate
 - [Claude] (LC-Trends built, LC-Manager gated) **3 TikTok sample videos**: done (tiktok-samples d0ae546, mp4s in Helm-Private). **Matthew picked "Stocking stuffers"** (hook "Stocking stuffers that aren't socks", 3 small gifts, reveal per item). Nothing posts until CBDC + GO. Next: make it the TikTok style (rebuilt from each day's catalogue); fix store name of the frog earrings if used. Status: picked
 - [Claude] (LC-Manager owns) **Friday Phase 1 "She thinks"**: Matthew said GO (Fri ~6:30 AM) after polish rounds 1-2 + rate-limit fix. friday-phase1 4b56253, all gates passed; Co-CEO merges to master, then Matthew runs Update Friday. Status: GO, merging

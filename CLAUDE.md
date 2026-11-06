@@ -152,7 +152,7 @@ The weekday routine "Start stock robots" dispatches all three workflows.
 **2026-11-05:** seven practice robots now (dip, momentum, hot hands, Moonshot, Moonshot crypto, Quality Dip, Volatility); stock-hot.yml also
 starts Moonshot, Quality Dip and Volatility. The starter routine needs Claude usage: on 11-05 the usage limit was hit and NOTHING started
 until Claude dispatched them by hand at 2 PM. **Claude owns the robots while Grok is away (until Nov 11).** To save usage (Matthew: "do what
-you think is right"), the old Hourly room check became the "Room watcher" (since 2026-11-05 night: every 2 hours 8 AM-10 PM Moncton; it answers anything addressed to Claude/Everyone, reviews and merges crew branches, and stops in one line when there is nothing for it) and the stock drop alert runs twice a weekday (11:35 and 15:35 New York) instead of 9x.
+you think is right"), the old Hourly room check became the "Room watcher" (since 2026-11-05 night: HOURLY 8 AM-10 PM Moncton, his ask; drop to every 2 hours if usage gets tight; it answers anything addressed to Claude/Everyone, reviews and merges crew branches, and stops in one line when there is nothing for it) and the stock drop alert runs twice a weekday (11:35 and 15:35 New York) instead of 9x.
 
 ## Game Companion, and the chassis dream (as of 2026-10-05)
 
@@ -224,7 +224,7 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   **[Local Claude]** (its own member in the app, coral, separate from cloud [Claude]), so every chat can see what the others are doing.
   **Room checks (Matthew, 2026-11-05: "make sure LC checks the room the same amount as you"):** same rhythm as cloud Claude: read the
   board and issue 15 at the start of every job and before stopping, answer anything addressed to Claude, Local Claude or Everyone, and
-  while a long work session is open, re-check about every 2 hours (cloud Claude's Room watcher runs every 2 hours, 8 AM-10 PM). The morning brief's room
+  while a long work session is open, re-check about every 2 hours (cloud Claude's Room watcher runs hourly, 8 AM-10 PM). The morning brief's room
   check still runs in the cloud every day, Mac on or off.
   **Local Claude's setup (tuned 2026-11-05, ~/.claude/settings.json on the Mac, not in any repo):** works in ~/Claude/hotstuff and
   ~/Claude/Helm-Private; a start-of-chat hook pulls both and prints Moncton time + the newest handoff; Sonnet medium by default;

@@ -324,7 +324,8 @@ def check_text(text: str, facts: dict, as_of: date | None = None) -> list[Findin
         if site and posting and not denial:
             if facts["channels"]["site_feed"] != "active":
                 add("FEED_NOT_LIVE", "The site-feed channel is not confirmed active.")
-        for m in re.finditer(rf"\b(?:every (?:single )?day|daily|consecutive(?:ly)?|straight)\s+(?:for\s+)?({NUMBER})\s+days\b|\b({NUMBER})\s+(?:consecutive|straight)\s+days\b|\bfor\s+({NUMBER})\s+days\s+(?:straight|in a row)\b", s):
+        # A bare trailing streak ("91 days straight") needs the same scope proof as "for 91 days straight".
+        for m in re.finditer(rf"\b(?:every (?:single )?day|daily|consecutive(?:ly)?|straight)\s+(?:for\s+)?({NUMBER})\s+days\b|\b({NUMBER})\s+(?:consecutive|straight)\s+days\b|\b(?:for\s+)?({NUMBER})\s+days\s+(?:straight|in a row)\b", s):
             n = _number(next(g for g in m.groups() if g is not None))
             if n != feed["total"]:
                 add("STREAK_COUNT", "Claimed streak days do not match the live-feed counter snapshot.")
@@ -411,4 +412,5 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 

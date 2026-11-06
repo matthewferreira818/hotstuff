@@ -49,6 +49,47 @@ class ClaimsChecks(unittest.TestCase):
     def test_straight_days(self):
         self.assertIn('STREAK_COUNT', self.codes("Our store's feed has posted for 63 days in a row."))
 
+    def ninety_one_day_streak(self):
+        # Freeze the exact reported trap independently of later production counters.
+        facts = copy.deepcopy(self.facts)
+        facts['verified_on'] = '2026-11-05'
+        facts['feed'].update(total=91, since='2026-08-07', last='2026-11-05',
+                             website_history_since='2026-08-07', website_history_days=91,
+                             full_streak_confirmed=True)
+        return facts
+
+    def test_bare_trailing_streak_on_a_page_needs_site_scope(self):
+        for subject in ['Our page', 'Our Facebook page', 'My page']:
+            for ending in ['straight', 'in a row']:
+                with self.subTest(subject=subject, ending=ending):
+                    codes = self.codes(f'{subject} has posted 91 days {ending}.',
+                                       self.ninety_one_day_streak(), date(2026, 11, 5))
+                    self.assertIn('STREAK_SCOPE', codes)
+                    self.assertNotIn('STREAK_COUNT', codes)
+
+    def test_bare_trailing_streak_on_confirmed_site_feed_passes(self):
+        for ending in ['straight', 'in a row']:
+            with self.subTest(ending=ending):
+                self.assertEqual(set(), self.codes(
+                    f"Our own store's feed has posted 91 days {ending}.",
+                    self.ninety_one_day_streak(), date(2026, 11, 5)))
+
+    def test_bare_trailing_streak_still_checks_count_and_archive(self):
+        for ending in ['straight', 'in a row']:
+            with self.subTest(ending=ending):
+                facts = self.ninety_one_day_streak()
+                self.assertIn('STREAK_COUNT', self.codes(
+                    f"Our own store's feed has posted 90 days {ending}.", facts, date(2026, 11, 5)))
+                facts['feed'].update(total=90, website_history_days=90, full_streak_confirmed=False)
+                codes = self.codes(f"Our own store's feed has posted 90 days {ending}.",
+                                   facts, date(2026, 11, 5))
+                self.assertTrue({'FEED_GAPS', 'STREAK_EVIDENCE'} <= codes)
+
+    def test_bare_trailing_streak_does_not_override_snapshot_date(self):
+        self.assertIn('STALE_FACTS', self.codes(
+            "Our own store's feed has posted 91 days straight.",
+            self.ninety_one_day_streak(), date(2026, 11, 6)))
+
     def test_gap_does_not_prove_streak(self):
         facts = copy.deepcopy(self.facts)
         facts['feed']['total'] = 61
@@ -466,4 +507,5 @@ class ClaimsChecks(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
 

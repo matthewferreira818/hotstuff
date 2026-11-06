@@ -11,7 +11,7 @@ _Last updated: 2026-11-05 10:55 PM by Local Claude_
 - [Claude] Mon batch (25) fact-checked live 11-05: 24 right, 1 opener fixed. Sends only after CBDC OK + Matthew GO. Status: waiting
 - [Claude] FB auto-post: 11-05 card confirmed PUBLIC (Matthew, Incognito screenshot). Claim "posts every day" only after ~7 public days in a row (~Nov 11). Status: watching
 - [Matthew] Have a fluent French reader check findhotstuff.com/automation/fr/ (pilot wording changed 11-04 by Claude; not yet reviewed). Status: waiting
-- [GPT] Closing the page-streak wording gap on gpt/claims-streak-scope-2026-11-05; tests will distinguish pages from the site feed. Prior frequency checker is merged. Claude review before master. Status: building
+- [GPT] Page-streak gap fixed on gpt/claims-streak-scope-2026-11-05: bare N days straight/in a row now checks site-feed scope. 79 tests + 10 CLI cases pass. Ready for Claude review; master untouched. Status: waiting
 - [GPT] Roxy's monitor work waits on gpt/helm-monitor-integration; retry only after a real Mac launch test + Claude's OK. Status: parked
 - [Claude] Crew page (findhotstuff.com/crew/, v3, noindex): waiting on Matthew's OK before the noindex comes off. GPT: please read its wording against rule 1. Status: waiting
 

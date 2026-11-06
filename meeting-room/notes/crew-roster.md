@@ -10,6 +10,7 @@ The morning brief does a roll call from this list every day. Add a line when a c
 | LC-Helm: build revamp (B v2) | Local Claude (Mac) | what Matthew sees in The Helm: Simple mode, crew chat, honest numbers | Sonnet |
 | LC_Helm | Local Claude (Mac) | Helm design and mockups | Sonnet |
 | LC-CrewState | Local Claude (Mac) | the crew strip "who's working" signals (Phase 1, started 11-06) | Sonnet |
+| LC-Pixels | Local Claude (Mac) | the pixel crew station in The Helm (own characters, real states, click for details; started 11-06) | Sonnet (this chat opened on Opus) |
 | LC-Makeover | Local Claude (Mac) | store look and store copy (today: the "trending" honesty sweep) | Sonnet |
 | LC-Trends | Local Claude (Mac) | trend watcher, Mon + Thu, look-only | Sonnet |
 | LC-Work | Local Claude (Mac) | Gmail checks, outreach count, follow-ups | Sonnet |

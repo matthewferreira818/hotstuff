@@ -16,6 +16,7 @@ struct CrewMember: Identifiable {
  var since: Date?            // when the state began (last post, last run) when known
  var awayUntil: Date?        // only when a room message said so
  var url: String = ""
+ var alias: String? = nil   // the name inside the tag of its newest post ("Claude (NB2)" -> "NB2"), so a live session can claim the desk
 }
 
 enum CrewData {
@@ -27,6 +28,13 @@ enum CrewData {
 
  static let workingWindow: TimeInterval = 30 * 60      // any sign of life (post or commit) in the last 30 minutes: working
  static let tagForRoomAgent = ["Roxy","Grok","Cloud Claude","Browser Claude"]
+
+ // "Claude (NB2)" -> "NB2", "Claude (Work)" -> "Work"; nil when the tag has no name in brackets.
+ static func tagAlias(_ author: String) -> String? {
+  guard let open = author.firstIndex(of:"("), let close = author.lastIndex(of:")"), open < close else { return nil }
+  let inner = author[author.index(after:open)..<close].trimmingCharacters(in:.whitespaces)
+  return inner.isEmpty ? nil : inner
+ }
 
  // "Local Claude (LC-Helm)" is LC-Helm; "GPT (Roxy)" is Roxy; plain "Claude" is the cloud chat.
  static func agentName(_ author: String) -> String? {
@@ -123,7 +131,7 @@ enum CrewData {
     detail = "posted \(ago(when,now:now)): " + MeetingData.brief(post.text,limit:60)
    }
    if let away = away, state != .working { state = .away; detail = "away, back \(away.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day()))" }
-   result.append(CrewMember(id:name,name:name,role:role,kind:kind,state:state,detail:detail,since:when,awayUntil:away,url:post.url))
+   result.append(CrewMember(id:name,name:name,role:role,kind:kind,state:state,detail:detail,since:when,awayUntil:away,url:post.url,alias:tagAlias(post.author)))
   }
 
   // Chats: working / idle / unknown from Hotline + room posts and branch commits in the last 30 min (CrewSignals.swift).

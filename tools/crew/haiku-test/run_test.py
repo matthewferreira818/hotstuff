@@ -29,7 +29,11 @@ SYSTEM = (
     "who: the ONE name that must act, as written in the message (for example LC-Manager, Friday, Roxy, Matthew, "
     'Everyone). Use "none" when asks_action is false. A name after "cc" is only copied, not asked. '
     'A message that says "no action needed" asks nothing. A status report asks nothing.\n'
-    "summary: what the message says, using only facts that are in it."
+    "summary: what the message says, using only facts that are in it.\n"
+    # v2 (2026-11-06, after run 1736: Haiku's m12 named the wrong person, m13 blurred who did what; LC-Manager's wording)
+    "Who must act is the name after the arrow, or the name written as \"Name:\" right before a request, that is asked to do "
+    "something. Never name anyone who is not asked. In the summary, keep who did what exactly as the message says: "
+    "never move an action or a request from one person to another."
 )
 
 KNOWN = ["matthew", "roxy", "friday", "lcmanager", "lcwork", "lctiktok", "lcpixels", "lctrends",

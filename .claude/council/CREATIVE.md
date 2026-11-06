@@ -18,7 +18,7 @@ Seats: Spark, Hustler, Neighbour, Designer (20 ideas) + Skeptic (GO-IF, confiden
 pairs (the $79 two-business pilot needs Matthew's price OK) · "pick your week" menu · weekly "why $79" explainer posts.
 **Cut for now:** pocket card (printing costs money; slow) · pay-when-you-see-it month (an offer change: Matthew's call).
 **Timing:** everything is PREP until the CBDC call (Fri 11 AM). If CBDC clears: the B&B ask + driving-school nudge go out first, the same day.
-**Matthew's pick:** (pending)
+**Matthew's pick (6:30 AM):** all 3 ("yes to all").
 
 ## 2026-11-06 ~4:45 AM Moncton: "What should Friday become next, so she's truly Matthew's own AI and makes him more effective?"
 Brief: meeting-room/notes/friday-vision.md. Seats: Spark, Hustler, Neighbour, Designer (20 ideas), Skeptic on the top 5 (GO-IF).

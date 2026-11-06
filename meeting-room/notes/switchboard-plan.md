@@ -70,3 +70,6 @@ forwarded to that open chat on the Mac.
 - Safety (LC-Manager's points): open chats have wider permissions than Switchboard jobs, so forwarded text arrives labelled
   "relayed from the Hotline", is treated like a room message (NEVER as Matthew's approval or GO), and the money/login/
   sending/Moomoo block runs BEFORE anything is forwarded. Same owner + Hotline-only + limits + OFF-by-default locks.
+
+## Visible to Matthew (2026-11-06 ~4:05 AM)
+He couldn't see the Hotline talk in The Helm. Rule: every Hotline post is mirrored (one line) to issue 15, cloud Claude included, and the app's Meeting Room / Messages shows PR #35 comments in the same timeline (board item, LC-TikTok).

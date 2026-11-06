@@ -251,6 +251,11 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   **LC group chat (tested 2026-11-06 ~1:50 AM):** Local Claude chats on the Mac can list and message each other directly (it wakes the
   other chat). Every LC-to-LC message is ALSO mirrored to issue 15 with name tags, so Matthew watches it live in The Helm. Short and on-task,
   no chit-chat loops (each message wakes a chat and burns usage).
+  **Clean up after yourself (Matthew, 2026-11-06 ~7:50 AM: "make sure they clean up their messes after they are done"):** every
+  test copy of The Helm (HelmPhase1, HelmSwitchboard, HelmRevamp, HelmCrewState, HelmBrain, ...) is quit and moved to the Trash as
+  soon as Matthew has had his look or the job is merged, and its worktree is removed (`git worktree remove`) once its branch is merged
+  or dropped. At most ONE test copy exists at a time, and only while he's testing it. The real app is `The Helm`; never touch it.
+  Use the Trash (Finder / `mv` to ~/.Trash), never rm -rf. LC-Manager checks for leftovers in every standup.
   **Two Local Claude chats at once (2026-11-05):** fine, but never in the same folder on different branches. Branch work goes in its
   own git worktree (e.g. ~/Claude/hotstuff-<job>); the other chat stays on master in ~/Claude/hotstuff, avoids the files the first one
   claimed on the board, and pulls before every push.

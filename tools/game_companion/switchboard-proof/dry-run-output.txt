@@ -91,7 +91,7 @@ PASS  fix E: job 3's honest result (disclaimer on later lines) is NOT flagged
 PASS  fix E: a claim on the FIRST line with no tools still flags
 PASS  action words match whole words only
 PASS  prompt carries the honesty rule
-PASS  poll: 300 s real, 30 s test-only constant
+PASS  poll: 60 s real, 30 s test-only constant
 PASS  num_turns is read from claude's JSON
 PASS  result line (target Claude) can't trigger, so no result<->reply loop
 PASS  prompt tells the job not to post its own result (Friday does)
@@ -124,7 +124,19 @@ PASS  relay caps 10/hour, 40/day, 3-minute kill are constants
 PASS  result + permission denials counted
 PASS  garbage output = failed
 
-== Real `gh api` output (SB_REAL_JSON)
-PASS  parsed 18 real comments; owner-authored: 18
+== Switch ON can only come from the Touch ID / password success path or the test-copy hook (source scan)
+PASS  HubSwitchboard.swift found for the scan (73 Swift files read)
+PASS  no call to the old setOn( anywhere
+PASS  the one function that changes the switch (apply) is private, so no other file can call it
+PASS  exactly 2 places call apply(true…) (found 2)
+PASS  they are the marked auth path and the marked test hook path
+PASS  the auth path sits directly inside `if success {` of the LocalAuthentication callback
+PASS  the test path is guarded by the test-bundle check (dead in the real Helm)
+PASS  ON asks macOS for Touch ID or the Mac password (LocalAuthentication)
+PASS  nothing assigns on = true directly
+PASS  the saved ON state is written in exactly one place (apply)
+PASS  no other file touches the saved switch state
+PASS  the old click-through alert confirm is gone
+PASS  turning OFF stays one click with no password
 
 ALL PASS

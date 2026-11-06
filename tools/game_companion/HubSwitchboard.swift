@@ -435,12 +435,12 @@ struct SwitchboardPanel: View {
   .sheet(isPresented:$sb.showLog) { SwitchboardLogSheet(sb:sb) }
  }
 
+ // Two plain lines. The counts and the Claude version live behind the log link (SwitchboardLogSheet).
  private var summary: String {
-  let claude = sb.claudeVersion.map { "Claude Code \($0.replacingOccurrences(of:" (Claude Code)",with:""))" } ?? "Claude Code not found"
-  let limits = "Jobs \(sb.startsThisHour)/\(SwitchboardLimits.perHour) this hour · \(sb.startsToday)/\(SwitchboardLimits.perDay) today · Relays \(sb.relaysThisHour)/\(SwitchboardLimits.relayPerHour) · \(sb.relaysToday)/\(SwitchboardLimits.relayPerDay) · \(claude)"
-  if !sb.on { return "Off. Friday starts no jobs and passes no messages. Turning it on asks for Touch ID or your Mac password; then tagged Hotline messages from cloud Claude can start Local Claude jobs here, and messages named for an open chat are passed on to it.\n\(limits)" }
-  let checked = sb.lastCheck.map { "last check \(Self.time.string(from:$0))" } ?? "first check starting"
-  return "On. Watching the Hotline every \(Switchboard.intervalText) · \(checked).\n\(limits)"
+  if !sb.on { return "Off. When on, cloud Claude can send work and messages to your Mac.\nTurning it on needs Touch ID or your Mac password." }
+  let today = sb.startsToday + sb.relaysToday
+  let checked = sb.lastCheck.map { "Last check \(Self.time.string(from:$0))." } ?? "First check starting."
+  return "On. Checking for work every \(Switchboard.intervalText == "1 min" ? "minute" : Switchboard.intervalText) · \(today) today.\n\(checked)"
  }
 
  private func minutes(since: Date?,now: Date) -> Int { since.map { max(0,Int(now.timeIntervalSince($0) / 60)) } ?? 0 }
@@ -474,7 +474,11 @@ struct SwitchboardLogSheet: View {
  var body: some View {
   VStack(alignment:.leading,spacing:10) {
    HStack {
-    Text("Switchboard log").font(.system(size:16,weight:.semibold))
+    VStack(alignment:.leading,spacing:2) {
+     Text("Switchboard log").font(.system(size:16,weight:.semibold))
+     Text("Jobs \(sb.startsThisHour)/\(SwitchboardLimits.perHour) this hour · \(sb.startsToday)/\(SwitchboardLimits.perDay) today · Relays \(sb.relaysThisHour)/\(SwitchboardLimits.relayPerHour) this hour · \(sb.relaysToday)/\(SwitchboardLimits.relayPerDay) today · \(sb.claudeVersion.map { "Claude Code " + $0.replacingOccurrences(of:" (Claude Code)",with:"") } ?? "Claude Code not found")")
+      .font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.subtext)
+    }
     Spacer()
     Button("Open job files") { NSWorkspace.shared.open(sb.jobsFolder) }
     Button("Done") { dismiss() }.keyboardShortcut(.defaultAction)

@@ -490,8 +490,8 @@ struct CrewStationView: View {
    }
   }
   if let friday = all.first(where:{ $0.member.kind == .friday }) {
-   g.draw(Text("Friday").font(.system(size:9,weight:.semibold,design:.monospaced)).foregroundColor(Noir.crimsonLight),at:CGPoint(x:Self.core.x,y:Self.core.y + Self.coreRadius + 3),anchor:.top)
-   if friday.member.state != .working { g.draw(Text("resting").font(.system(size:7.5,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:Self.core.x,y:Self.core.y + Self.coreRadius + 15),anchor:.top) }
+   g.draw(Text("Friday").font(.system(size:9,weight:.semibold,design:.monospaced)).foregroundColor(Noir.crimsonLight),at:CGPoint(x:Self.core.x - Self.coreRadius - 10,y:Self.core.y - 6),anchor:.trailing)
+   if friday.member.state != .working { g.draw(Text("resting").font(.system(size:7.5,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:Self.core.x - Self.coreRadius - 10,y:Self.core.y + 7),anchor:.trailing) }
   }
   // the walkers last, so they pass in front of desks
   for (s,p) in walkers.sorted(by:{ $0.1.feet.y < $1.1.feet.y }) {

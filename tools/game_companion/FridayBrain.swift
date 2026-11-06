@@ -56,9 +56,11 @@ import AppKit
 
  private func run(_ question: String,history: [FridayBrainRules.Turn]) async {
   defer { thinking = false }
+  // Offline backup brain (FridayLocalBrain.swift): only when Claude truly can't run, never because it's slow.
+  if GuardHub.isOffline { finish(await offlineAnswer(question,history:history,context:nil,why:"Offline mode is on")); return }
   let found = Switchboard.checkClaude()
   guard let exe = found.exe, found.version != nil else {
-   finish(.init(ok:false,text:"I can't think right now: the Claude app's engine wasn't found on this Mac. Nothing was changed.",note:"no working Claude Code found"))
+   finish(await offlineAnswer(question,history:history,context:nil,why:"the Claude app's engine wasn't found"))
    return
   }
   let settings = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
@@ -89,11 +91,21 @@ import AppKit
   let out = await runProcess(exe,args)
   var answer = FridayBrainRules.answer(from:out.data,exitCode:out.code,timedOut:out.timedOut)
   UsageLedger.shared.record(who:"Friday (brain)",job:model,started:began,ok:answer.ok,data:out.data)   // labels only, never her words
+  if !answer.ok && LocalBrainRules.limitHit(out.data) {
+   finish(await offlineAnswer(question,history:history,context:context,why:"Claude's usage limit is reached"))
+   return
+  }
   var notes = warnings
   if model == FridayBrainLimits.hardModel { notes.append("Opus, because you said \"think hard\"") }
   if let n = answer.note { notes.append(n) }
   answer.note = notes.isEmpty ? nil : notes.joined(separator:" · ")
   finish(answer)
+ }
+
+ // The offline brain's turn. Without Claude it builds a context from this Mac only (no board or room reads: those use the internet).
+ private func offlineAnswer(_ question: String,history: [FridayBrainRules.Turn],context: String?,why: String) async -> FridayBrainRules.Answer {
+  let ctx = context ?? FridayBrainRules.buildContext(now:Date(),board:.init(value:nil,readAt:nil),room:.init(value:nil,readAt:nil),handoff:readHandoff())
+  return await FridayLocalBrain.answer(question:question,history:FridayBrainRules.history(history),context:ctx,why:why)
  }
 
  private func finish(_ a: FridayBrainRules.Answer) {

@@ -29,3 +29,9 @@ PY
 cp "$D/checks/usageledger_check.swift" "$T/main.swift"
 xcrun swiftc -target arm64-apple-macos14.0 "$D"/{UsageLedger,HubTheme}.swift "$T/main.swift" -o "$T/u" 2>&1 | grep error
 "$T/u"
+# Offline brain rules (local-only address, limit detection, reply parsing, ledger shape)
+{ printf 'import Foundation\n'; awk '/^enum LocalBrainRules/,/^}/' "$D/FridayLocalBrain.swift"; } > "$T/lbr.swift"
+printf 'import Foundation\nenum FridayBrainLimits { static let questionCap = 1500 }\n' > "$T/lbstub.swift"
+cp "$D/checks/localbrain_check.swift" "$T/main.swift"
+xcrun swiftc -target arm64-apple-macos14.0 "$T/lbstub.swift" "$T/lbr.swift" "$T/main.swift" -o "$T/lb" 2>&1 | grep error
+"$T/lb"

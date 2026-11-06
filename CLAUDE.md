@@ -239,7 +239,7 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   `make_notes.py`); category pages + sitemap come from
   `make_category_pages.py`, which the 3-day refresh workflow runs.
 - Morning brief fires as a scheduled trigger; it verifies TikTok drafts
-  (both packs SEND_TO_USER_INBOX), reads GoatCounter public counters, and
+  (since 2026-11-05 ONE pack a day, the product pack; SEND_TO_USER_INBOX), reads GoatCounter public counters, and
   lists callbacks due.
 
 ## Hard-won operational lore (believe it)

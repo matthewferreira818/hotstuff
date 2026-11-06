@@ -34,7 +34,7 @@
     "expect": "📦 Expédié par notre fournisseur · traité en 1 à 3 jours ouvrables · livraison habituellement en 1 à 3 semaines · prix en USD · garantie de 30 jours · <a href=\"terms/\">conditions</a>",
     "hero-cta-automation": "✨ Automatisation pour votre entreprise",
     "trust-1": "<b>Paiement sécurisé</b><small>Transactions traitées par Stripe</small>",
-    "trust-2": "<b>Livraison suivie gratuite</b><small>Sur les produits tendance — 24 pays</small>",
+    "trust-2": "<b>Livraison gratuite</b><small>Sur les produits tendance — 24 pays</small>",
     "trust-3": "<b>Garantie 30 jours</b><small>Remboursement complet ou remplacement gratuit</small>",
     "trust-4": "<b>Un vrai humain au soutien</b><small>Réponse en 1 à 2 jours ouvrables</small>",
     "trending-title": "Tendances de la semaine",

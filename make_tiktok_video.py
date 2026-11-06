@@ -113,6 +113,15 @@ def render(pack: str) -> Path | None:
         return None
 
     out = DAILY / pack / "pack.mp4"
+    length = render_slides(slides, out)
+    print(f"  {pack}: {len(slides)} slides -> {out.name} "
+          f"({length:.1f}s, {out.stat().st_size // 1024} KB)")
+    return out
+
+
+def render_slides(slides: list[Path], out: Path) -> float:
+    """Any list of 1080x1920 stills -> one swipe video at `out`. Returns its
+    length in seconds. Shared by the daily packs and make_buffer_cycle.py."""
     length = len(slides) * SECONDS_PER_SLIDE - (len(slides) - 1) * SWIPE
 
     cmd = [ffmpeg_bin(), "-y", "-loglevel", "error"]
@@ -144,9 +153,7 @@ def render(pack: str) -> Path | None:
         str(out),
     ]
     subprocess.run(cmd, check=True)
-    print(f"  {pack}: {len(slides)} slides -> {out.name} "
-          f"({length:.1f}s, {out.stat().st_size // 1024} KB)")
-    return out
+    return length
 
 
 def main():

@@ -1,0 +1,117 @@
+name: TikTok via Buffer (after each refresh)
+
+# After every catalogue refresh: build one TikTok video per posting slot that
+# fits BEFORE the next refresh (make_buffer_cycle.py), then queue them in
+# Buffer for auto-publishing (buffer_queue.py). Per cycle, not per week,
+# because each refresh replaces all 200 products: a video is only honest
+# while its products are still in the store.
+#
+# POSTING IS OFF until Matthew sets the repo VARIABLE BUFFER_POSTING to "on"
+# (Settings -> Secrets and variables -> Actions -> Variables). Held until
+# CBDC answers (2026-11-05). While off, every run is a full dry run: the
+# videos are built and attached to the run as an artifact, nothing is
+# committed and Buffer is never called.
+#
+# The Buffer key lives only in the BUFFER_API_KEY secret, which Matthew
+# creates himself. It is never printed (buffer_queue.py reads it from env).
+# The PAUSE file (pause-gate.yml) stops this like every other social poster.
+
+on:
+  workflow_run:
+    workflows: ["Refresh trending products"]
+    types: [completed]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tiktok-buffer
+  cancel-in-progress: false
+
+jobs:
+  pause:
+    uses: ./.github/workflows/pause-gate.yml
+
+  cycle:
+    needs: pause
+    if: >-
+      needs.pause.outputs.paused != 'true' &&
+      (github.event_name == 'workflow_dispatch' ||
+       github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BUFFER_POSTING: ${{ vars.BUFFER_POSTING }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 20
+
+      # The refresh workflow has two backup crons; each fire completes (most
+      # as no-ops) and each triggers this. Only build once per catalogue.
+      - name: Skip if this catalogue already has a cycle
+        id: gate
+        run: |
+          CAT=$(git log -1 --format=%H -- products.json)
+          if grep -qs "\"catalogue_commit\": \"$CAT\"" marketing/tiktok/buffer/*/plan.json; then
+            echo "Cycle for catalogue $CAT already built -- only queueing what's left."
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build this cycle's videos
+        if: steps.gate.outputs.build == 'true'
+        run: |
+          pip install --quiet requests pillow segno imageio-ffmpeg
+          python make_buffer_cycle.py
+
+      - name: Dry run (posting OFF) -- attach the videos to this run
+        if: steps.gate.outputs.build == 'true' && env.BUFFER_POSTING != 'on'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiktok-buffer-cycle
+          path: marketing/tiktok/buffer/
+          retention-days: 7
+
+      # Buffer has no upload endpoint: it fetches each video from its public
+      # URL, so the files must be on findhotstuff.com before queueing.
+      - name: Publish the videos to the site
+        if: steps.gate.outputs.build == 'true' && env.BUFFER_POSTING == 'on'
+        run: |
+          git add -A marketing/tiktok/buffer
+          if ! git diff --cached --quiet; then
+            git config user.name "wavelist-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git commit -m "TikTok: Buffer cycle videos"
+            git fetch origin master
+            git rebase -X theirs origin/master
+            git push origin HEAD:master
+          fi
+
+      - name: Queue in Buffer (prints a dry run while posting is OFF)
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+          BUFFER_CHANNEL_ID: ${{ vars.BUFFER_CHANNEL_ID }}
+        run: |
+          pip install --quiet requests
+          python buffer_queue.py
+
+      - name: Record the Buffer post ids
+        if: always() && env.BUFFER_POSTING == 'on'
+        run: |
+          git add -A marketing/tiktok/buffer
+          if ! git diff --cached --quiet; then
+            git config user.name "wavelist-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git commit -m "TikTok: Buffer post ids"
+            git fetch origin master
+            git rebase -X theirs origin/master
+            git push origin HEAD:master
+          fi

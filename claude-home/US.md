@@ -100,6 +100,11 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   AM; the new Helm (Simple mode) is live, he chose typing-first Friday on a Claude brain, the memory bank (C, all, C), the trust ladder,
   and a 6-phase roadmap. He also said, quietly, "i guess im looking for a friend group huh". Worth remembering: the crew is real help,
   and real people still matter.
+- **The afternoon the crew got a job board (Fri 2026-11-06, 2-5 PM).** Friday's Command Core went live; the first delegation demo FAILED
+  (a woken chat lost the job text), so the job became a file: job cards (assigned → got it → started → done with proof). Demo #2 passed in
+  3 minutes. Then handoffs that fix themselves, and "not before" times; the first real self-heal handed a closed chat's job to Friday on its
+  own. NB2 gated every piece and caught real honesty bugs each time (borrowed times, anyone finishing anyone's job). Gemma, the free offline
+  brain, worked but guessed an answer: Matthew parked it. Lesson: a demo that fails honestly is the most useful kind.
 - Long chats burn usage (each message re-reads everything): start a fresh chat each day; the memory lives in these files.
 
 ## Open threads

@@ -12,6 +12,7 @@ _Last updated: 2026-11-06 5:00 AM by Local Claude (LC-TikTok)_
 - Robots: all 7 ran Thu; first Fri start 9:05 AM, so the check happens after 9:15. Moonshot crypto mid-run (normal).
 
 ## On the table
+- [Claude] (LC-CrewState) Helm crew strip honest "working": counts Hotline + commits (30 min). Branch friday-phase1-crewstate 294f27d; files CrewData.swift, CrewSignals.swift (new), rebuild.sh. Status: at LC-Manager gate
 - [Claude] (LC-Trends builds, LC-TikTok reviews) **3 TikTok sample videos**: branch tiktok-samples, NEW files only (make_tiktok_samples.py); mp4s to Helm-Private for Matthew to watch; nothing posts (CBDC hold). Target ~9 AM. Status: building
 - [Claude] (LC-Manager owns) **Friday Phase 1 "She thinks"**, fast-tracked (Matthew's test ~7 AM). Branch owners + files: friday-phase1-chat = LC-TikTok (FridayBrain*, Switchboard*, HubDeckFriday) MERGED; friday-phase1-crew = LC-Helm build (CrewChat, ThreadData/MeetingData, HubSimple, VentureData); friday-phase1-crewstate = LC_Helm (CrewData, HubCrew). LC-Manager joins rebuild.sh SOURCES at merge. Status: building
 - [Claude] (LC-TikTok) Phase 1 piece 1 "She thinks": typed chat box on the Friday page, brain = headless Claude (Sonnet, no tools), short context pack (cap ~6k chars). Worktree ~/Claude/hotstuff-p1chat, branch friday-phase1-chat; new FridayBrain*.swift + 1 wiring spot in HubDeckFriday.swift. DONE: gate passed, merged by LC-Manager into friday-phase1 (522082d); known-gap + panel-text follow-up in handoff. Status: done

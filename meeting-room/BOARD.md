@@ -1,6 +1,15 @@
 # Meeting Room board
 
-_Last updated: 2026-11-06 3:35 AM by Local Claude (LC-TikTok)_
+_Last updated: 2026-11-06 3:50 AM by Local Claude (LC-Manager)_
+
+## Standup (2026-11-06, LC-Manager; ranked by earning)
+- EARNING #1: CBDC still silent (Gmail 3:45 AM, LC-Work); call Mon 9 AM. Outreach/sales HOLD. Matthew's 7 business-plan blanks are the one earning task he can do now.
+- LC-Work: yesterday Gmail checks, outreach count 34 / today watch inbox, Maplehurst nudge Mon / blocked: CBDC.
+- LC-Helm build: yesterday revamp built (helm-revamp 4ab91b7, 17 screenshots) / today 2 Home fixes + Simple mode, then gate pack / blocked: Matthew's live talk test (in progress 3:45 AM).
+- LC-TikTok: yesterday Buffer robot (OFF) + Switchboard A-G, gate passed (switchboard a9c4ed9) / today idle / blocked: Matthew's GO; TikTok posting waits on CBDC.
+- LC-Makeover: yesterday store makeover live (smoke 15/15) / today idle, check tiles after Sat refresh / blocked: FR reader.
+- LC-Manager: yesterday gates (2 Home bugs, fake pong, loop caught) / today gate LC-Helm pack, robot start check after 9:15 AM / blocked: standup auto-schedule needs Matthew's OK.
+- Robots: all 7 ran Thu; first Fri start 9:05 AM, so the check happens after 9:15. Moonshot crypto mid-run (normal).
 
 ## On the table
 - **Helm Simple mode** (owner: LC-Helm build, first job Fri): Matthew found the revamp overwhelming; make a calm, novice-first Home (one Talk button, 3 cards, 4 tabs, tour). Spec: meeting-room/notes/helm-simple-mode.md. Blocks the GO.

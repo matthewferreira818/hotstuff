@@ -171,7 +171,7 @@ def main():
                 f"## pin-{i}.png\n"
                 f"- **Title:** {name} — Trending Now\n"
                 f"- **Description:** {p.get('description', '')} Only ${p['price']} at "
-                f"HotsTuff — a fresh drop of trending finds every 3 days, free shipping. "
+                f"HotsTuff — a fresh drop of finds every 3 days, free shipping on store products. "
                 f"#{p.get('category', 'trending').replace(' ', '').lower()} #trendingproducts #onlinefinds\n"
                 f"- **Link:** {stable_link(p)}\n")
         print(f"pin-{i}.png — {name} (${p['price']})")

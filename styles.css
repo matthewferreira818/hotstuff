@@ -1586,3 +1586,12 @@ h1, h2, .section-head h2 { font-family: var(--serif); font-weight: 600; letter-s
 @media (min-width: 641px) and (max-width: 900px) {
   .nav-links a:not(.nav-automation) { display: none; }
 }
+
+/* Free-shipping scope (2026-11-06): phones get a short line that keeps
+   "not merch"; desktop shows the full line. The guarantee is in the trust
+   strip right below, so phones drop it from the bar to fit one line. */
+.announce .announce-short, .trust-scope { display: none; }
+@media (max-width: 640px) {
+  .announce .announce-short, .trust-scope { display: inline; }
+  .announce .announce-guarantee { display: none; }
+}

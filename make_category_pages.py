@@ -301,7 +301,7 @@ def page_html(path, title, blurb, count_line, subnav, cards, sib_line, note=""):
 </main>
 <nav class="sib"><div class="wrap">{sib_line}</div></nav>
 <footer class="wrap">
-  Prices in USD · free shipping · 30-day guarantee ·
+  Prices in USD · free shipping on store products (merch ships separately) · 30-day guarantee ·
   <a href="{SITE}/">see the full shop</a><br>
   Selection last refreshed {REFRESH_DATE.isoformat()}.
 </footer>

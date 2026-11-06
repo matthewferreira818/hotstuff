@@ -1,7 +1,7 @@
 {
   "name": "HotsTuff — Small finds",
   "short_name": "HotsTuff",
-  "description": "Small finds, a fresh lineup every 3 days from our supplier's trending list. Free shipping, secure Stripe checkout.",
+  "description": "Small finds, a fresh lineup every 3 days from our supplier's trending list. Free shipping on store products (merch ships separately), secure Stripe checkout.",
   "id": "/",
   "start_url": "/?source=app",
   "scope": "/",

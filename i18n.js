@@ -11,7 +11,7 @@
 
 (function () {
   const FR = {
-    "announce": "🚚 <b>Livraison gratuite</b><span class=\"announce-detail\"> sur les produits tendance</span><span class=\"announce-extra\"> · 🔒 Paiement sécurisé Stripe</span> · ↩️ Garantie 30 jours ou argent remis",
+    "announce": "🚚 <b>Livraison gratuite</b><span class=\"announce-detail\"> sur les produits du magasin · la marchandise HotsTuff est expédiée séparément</span><span class=\"announce-short\"> sur les produits du magasin, sauf la marchandise</span><span class=\"announce-extra\"> · 🔒 Paiement sécurisé Stripe</span><span class=\"announce-guarantee\"> · ↩️ Garantie 30 jours ou argent remis</span>",
     "nav-trending": "Dernière sélection",
     "nav-how": "Comment ça marche",
     "nav-merch": "Merch <span class=\"nav-new\">Nouveau</span>",
@@ -42,7 +42,7 @@
     "expect": "📦 Expédié par notre fournisseur · traité en 1 à 3 jours ouvrables · livraison habituellement en 1 à 3 semaines · prix en USD · garantie de 30 jours · <a href=\"terms/\">conditions</a>",
     "hero-cta-automation": "✨ Automatisation pour votre entreprise",
     "trust-1": "<b>Paiement sécurisé</b><small>Transactions traitées par Stripe</small>",
-    "trust-2": "<b>Livraison gratuite</b><small>Sur les produits tendance — 24 pays</small>",
+    "trust-2": "<b>Livraison gratuite<span class=\"trust-scope\"> sur les produits du magasin, sauf la marchandise</span></b><small>Sur les produits du magasin — 24 pays · la marchandise HotsTuff est expédiée séparément</small>",
     "trust-3": "<b>Garantie 30 jours</b><small>Remboursement complet ou remplacement gratuit</small>",
     "trust-4": "<b>Un vrai humain au soutien</b><small>Réponse en 1 à 2 jours ouvrables</small>",
     "trending-title": "La dernière sélection",

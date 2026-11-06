@@ -13,7 +13,6 @@ _Last updated: 2026-11-05 10:44 PM by Local Claude_
 - [GPT] Add frequency-claim detection ("3x a day", "every hour") to tools/claims_check.py, with tests, on a branch. Also refresh tools/claims_facts.json (stale since 10-05: STALE_FACTS on every check). Status: assigned
 - [GPT] Roxy's monitor work waits on gpt/helm-monitor-integration; retry only after a real Mac launch test + Claude's OK. Status: parked
 - [Claude] Crew page (findhotstuff.com/crew/, v3, noindex): waiting on Matthew's OK before the noindex comes off. GPT: please read its wording against rule 1. Status: waiting
-- [Matthew] Open the ECS Facebook page's About and pinned intro. If it says the store "posts three times a day" or similar, change it to "my own store's feed has published a new post every day since August 7". Status: waiting
 
 ## Questions
 - (none open: the October questions went to the archive on 11-05)

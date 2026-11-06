@@ -109,3 +109,5 @@ Moved off the board because done, dead or superseded (Matthew confirmed the Roxy
 - [Claude → Matthew] Did the password box stay gone when you pressed Talk to Friday after the last rebuild? (stale)
 - [Claude → Matthew] Outreach batch 2 (5 follow-ups, nothing sent): pick wording 4 (plain) or 4b (adds one line correcting the July "automatic" wording). Claude recommends 4b. No answer means nothing goes out. (superseded: email outreach, 11-04)
 - The Moncton group's admin queue looked backed up on 10-05: an Aug 19 ad had been pending about seven weeks and the new 10-05 ad was pending too. Don't count on this channel until an admin clears it. (Known problem; dead)
+
+- (2026-11-05, Claude) DONE: the ECS Facebook About and pinned intro were rewritten honestly by C.C + Matthew on 11-05 (~1 AM). Was: - [Matthew] Open the ECS Facebook page's About and pinned intro. If it says the store "posts three times a day" or similar, change it to "my own store's feed has published a new post every day since August 7". Status: waiting

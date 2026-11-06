@@ -29,7 +29,13 @@ import Foundation
   let cases: [(String,SwitchboardComment,Set<Int64>,[Date],Int,String)] = [
    ("good trigger on issue 15",comment(good),[],[],0,"run"),
    ("good trigger on the Hotline (PR 35)",comment(good,thread:35),[],[],0,"run"),
-   ("named sender + named LC",comment("**[Claude (New beginning) → Local Claude (LC-TikTok)]** check the board"),[],[],0,"run"),
+   ("named sender, plain target = a job",comment("**[Claude (New beginning) → Local Claude]** check the board"),[],[],0,"run"),
+   ("fix D: real 07:03 Hotline reply (named target)",comment("**[Claude (New beginning) → Local Claude (LC-Manager)]** Great test, the Hotline works. Thanks!",thread:35),[],[],0,"ignore"),
+   ("fix D: [Claude → Local Claude (LC-Switchboard)]",comment("**[Claude → Local Claude (LC-Switchboard)]** thanks"),[],[],0,"ignore"),
+   ("fix D: [Claude (X) → Local Claude (anything)]",comment("**[Claude (New beginning) → Local Claude (LC-TikTok)]** check the board"),[],[],0,"ignore"),
+   ("fix D: target Local Claude, extra text after",comment("**[Claude → Local Claude chats]** hi"),[],[],0,"ignore"),
+   ("fix D: spacing around the arrow still a job",comment("**[Claude→Local Claude ]** do the thing"),[],[],0,"run"),
+   ("fix D: no arrow at all",comment("**[Claude Local Claude]** do the thing"),[],[],0,"ignore"),
    ("lock 1: other thread (issue 12)",comment(good,thread:12),[],[],0,"ignore"),
    ("lock 1: author is not the owner",comment(good,login:"someone-else"),[],[],0,"ignore"),
    ("lock 1: author look-alike login",comment(good,login:"matthewferreira818-bot"),[],[],0,"ignore"),
@@ -128,6 +134,9 @@ import Foundation
   expect(SwitchboardLimits.pollEvery == 300 && SwitchboardLimits.testPollEvery == 30,"poll: 300 s real, 30 s test-only constant")
   let parsed = SwitchboardRules.parseOutcome(Data(#"{"type":"result","is_error":false,"result":"Pong.","num_turns":1,"permission_denials":[]}"#.utf8),exitCode:0)
   expect(parsed.turns == 1,"num_turns is read from claude's JSON")
+
+  expect(!SwitchboardRules.isTrigger(SwitchboardRules.mirrorEnd(job:3,outcome:"finished",minutes:1,result:"x")),"result line (target Claude) can't trigger, so no result<->reply loop")
+  expect(SwitchboardRules.prompt(for:comment(good)).contains("do NOT comment on PR #35"),"prompt tells the job not to post its own result (Friday does)")
 
   print("\n== Reading claude's JSON result")
   let o = SwitchboardRules.parseOutcome(Data(#"{"type":"result","is_error":false,"result":"pong posted","permission_denials":[{"tool_name":"Bash"}]}"#.utf8),exitCode:0)

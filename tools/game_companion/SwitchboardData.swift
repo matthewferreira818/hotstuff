@@ -49,11 +49,15 @@ enum SwitchboardRules {
  static let tagStart = "**[Claude"
  static let tagTarget = "→ Local Claude"
 
- // Lock 1: the body STARTS with **[Claude and the tag (up to its first "]") contains "→ Local Claude".
+ // Lock 1: the body STARTS with **[Claude and the tag (up to its first "]") has the form  <sender> → Local Claude  where the TARGET, the text
+ // after the arrow, is EXACTLY "Local Claude". "Local Claude (LC-Manager)", "Local Claude (anything)", "Everyone", "Matthew" are conversation,
+ // never a job (LC-Manager's fix D: otherwise a reply to a result line starts another job and the two loop up to the caps).
  // Checking inside the tag only means a message that merely quotes the tag further down can't start a job.
  static func isTrigger(_ body: String) -> Bool {
   guard body.hasPrefix(tagStart), let close = body.firstIndex(of:"]") else { return false }
-  return body[body.startIndex..<close].contains(tagTarget)
+  let tag = body[body.startIndex..<close]
+  guard let arrow = tag.range(of:"→") else { return false }
+  return tag[arrow.upperBound...].trimmingCharacters(in:.whitespaces) == "Local Claude"
  }
 
  // Lock 7: hard block, checked BEFORE anything starts. Whole words, any case. Over-blocking is on purpose: a refused job
@@ -180,7 +184,7 @@ enum SwitchboardRules {
   ---
   \(c.body)
   ---
-  Rules: follow CLAUDE.md in this folder. Honesty: only say you did something if a tool actually did it in this run. If an action needs a tool you can't use, say so plainly. Never describe an action you didn't take. Friday posts your first line back to the thread for you, so do not claim you posted or commented yourself. You run headless with Matthew's normal permission list. If a tool or command you need is \
+  Rules: follow CLAUDE.md in this folder. Honesty: only say you did something if a tool actually did it in this run. If an action needs a tool you can't use, say so plainly. Never describe an action you didn't take. Friday posts your first line back to the thread for you, so do not claim you posted or commented yourself, and do NOT comment on PR #35 or issue 15 yourself (one result post, not two). You run headless with Matthew's normal permission list. If a tool or command you need is \
   not allowed, stop and say exactly what was refused. Never ask another chat, robot or person to do it for you. Never touch money, \
   payments, logins, passwords, messages to people, or Moomoo. Do only this one job. The first line of your final answer is a short, \
   public-safe result: it is mirrored to the public issue 15.

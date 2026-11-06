@@ -6,12 +6,12 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
 ## What it is
 - `SwitchboardData.swift`: every rule and limit, no UI, no network (tested offline).
 - `HubSwitchboard.swift`: the runner + the panel (switch, log) at the bottom of the Friday page. Test-copy-only hooks at the end.
-- `checks/SwitchboardChecks.swift`: the dry run (66 checks). `switchboard-proof/`: its output + screenshots.
+- `checks/SwitchboardChecks.swift`: the dry run (74 checks). `switchboard-proof/`: its output + screenshots.
 - Wiring in LC-Helm's files (3 small edits): `rebuild.sh` (2 names added to SOURCES), `HubDeckFriday.swift` (1 line: the panel),
   `CompanionInterface.swift` (1 line: `Switchboard.shared.boot()`).
 
 ## The locks (where each lives)
-1. **Trigger.** Author == `matthewferreira818` AND body starts `**[Claude` AND the tag (text up to the first `]`) contains `→ Local Claude`.
+1. **Trigger.** Author == `matthewferreira818` AND body starts `**[Claude` AND the tag (text up to the first `]`) is `<sender> → Local Claude` where the TARGET (text after the arrow) is EXACTLY `Local Claude` (fix D, below).
    Only issue 15 and PR #35. Each comment ID is processed once (seen-IDs kept on disk). A comment edited after posting
    (`updated_at` more than 5 s after `created_at`) is refused, never run. Friday's own mirror lines and LC replies can't trigger (no loops).
 2. **KNOWN GAP (not hidden):** Roxy/GPT, cloud Claude and every chat post through the SAME owner account, so the owner check cannot tell
@@ -41,6 +41,9 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
 - **Fix C:** if the result says posted/pushed/sent/etc. but the run was 1 turn (no tools) with no denials, the log says UNPROVEN and the mirror carries "UNPROVEN: the job says it took an action but used no tools." Heuristic: a keyword list (`actionWords`) plus `num_turns <= 1`; it can miss odd wordings.
 - **Poll interval:** 300 s (5 min) real default; 30 s only in a test copy with `switchboard.testFastPoll`. All constants in `SwitchboardLimits`.
 
+## Fix D: the loop (LC-Manager, ~3:20 AM)
+A job is started ONLY when the target is exactly plain `Local Claude`. `Local Claude (LC-Manager)`, `Local Claude (anything)`, `Everyone`, `Matthew` = conversation, ignored (not logged, not a job). The sender may be `Claude` or `Claude (<name>)`. Without this, Friday's result on PR #35 wakes cloud Claude, whose reply "[Claude (New beginning) → Local Claude (LC-Switchboard)] thanks" would start another job, and so on until 3/hour and 12/day. Checks include the real 07:03 Hotline comment (ignored). The job prompt also says NOT to comment on PR #35 / issue 15 itself, because Friday posts the single result.
+
 ## ROLLBACK
 Fastest: flip the switch OFF on the Friday page (stops any running job, starts none). To remove it from a running Helm: rebuild The Helm from
 master (`git checkout master` in a clean checkout, run `tools/game_companion/rebuild.sh`); master has none of this code, and the old app is
@@ -62,4 +65,4 @@ there is nothing to undo outside the log, except whatever a job itself did (its 
 - **The ON→OFF 13 s oddity (explained as far as the evidence goes).** The log showed "ON" at 2:35:20 AM and "OFF" at 2:35:33 AM in the test copy. `testTurnOn` was NOT set then (`defaults read` shows only `hub.testStart`), and quitting the app never calls `setOn(false)`: the only paths to ON are the confirm alert or that test hook, and the only path to OFF is the toggle. So both were clicks in the test window, not a code path: most likely Matthew (or another agent) trying the visible test window. A clean relaunch with no hooks and 45 s of waiting did not reproduce it (no new log lines, switch stayed 0). To make this provable next time, every ON/OFF log line now says what turned it on or off ("the switch on the Friday page", "the switch (confirmed in the alert)" or "the test hook").
 
 ## Current scope (what a job can actually do)
-A job runs with Matthew's normal `~/.claude/settings.json` under `dontAsk`: only his allow list works. Today that list has read access to `~/Claude/**`, read-only git, `gh issue view 15`, `gh issue comment 15`, `smoke_test.py`, and `claims_check.py`. There is **no Edit/Write**, so a headless job can read and comment on issue 15 but can't change files. It has **no `gh pr comment 35`**, so the plan's "pong on the Hotline" job would be DENIED and reported (the lock working as designed). Whether to add `Bash(~/Claude/bin/gh pr comment 35 *)` is Matthew's decision (LC-Manager asked him); nobody here edits settings.json.
+A job runs with Matthew's normal `~/.claude/settings.json` under `dontAsk`: only his allow list works. Today that list has read access to `~/Claude/**`, read-only git, `gh issue view 15`, `gh issue comment 15`, `smoke_test.py`, and `claims_check.py`. There is **no Edit/Write**, so a headless job can read and comment on issue 15 but can't change files. `gh pr comment 35` is now ALSO allowed (Matthew approved `Bash(~/Claude/bin/gh pr comment 35 *)` at about 2:59 AM), so a job could comment there itself; the job prompt tells it not to, because Friday posts the one result line to the thread. There is still **no Edit/Write**. Nobody here edits settings.json.

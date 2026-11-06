@@ -1,7 +1,13 @@
 == Dry run: fake comments through every lock (now = Fri Nov 6 3:00 PM Moncton, switch turned ON at 2:00 PM)
 PASS  good trigger on issue 15 -> run
 PASS  good trigger on the Hotline (PR 35) -> run
-PASS  named sender + named LC -> run
+PASS  named sender, plain target = a job -> run
+PASS  fix D: real 07:03 Hotline reply (named target) -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  fix D: [Claude → Local Claude (LC-Switchboard)] -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  fix D: [Claude (X) → Local Claude (anything)] -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  fix D: target Local Claude, extra text after -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  fix D: spacing around the arrow still a job -> run
+PASS  fix D: no arrow at all -> ignore (not tagged **[Claude … → Local Claude]**)
 PASS  lock 1: other thread (issue 12) -> ignore (not issue 15 or the Hotline)
 PASS  lock 1: author is not the owner -> ignore (not posted by the owner account)
 PASS  lock 1: author look-alike login -> ignore (not posted by the owner account)
@@ -50,7 +56,7 @@ PASS  --version line accepted
 PASS  anything else refused
 
 == Lock 6: the issue 15 mirror
-   **[Friday (LC-Switchboard) → Claude]** Switchboard started job 1 (comment 1031 on issue 15): test: reply "pong" on the Hotline
+   **[Friday (LC-Switchboard) → Claude]** Switchboard started job 1 (comment 1037 on issue 15): test: reply "pong" on the Hotline
 PASS  start mirror: first line only
 PASS  Friday's mirror can never trigger a job
 PASS  end mirror: first line of the result
@@ -71,6 +77,8 @@ PASS  action words match whole words only
 PASS  prompt carries the honesty rule
 PASS  poll: 300 s real, 30 s test-only constant
 PASS  num_turns is read from claude's JSON
+PASS  result line (target Claude) can't trigger, so no result<->reply loop
+PASS  prompt tells the job not to post its own result (Friday does)
 
 == Reading claude's JSON result
 PASS  result + permission denials counted

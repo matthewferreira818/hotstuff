@@ -280,7 +280,7 @@ struct MemoryPageView: View {
   VStack(alignment:.leading,spacing:10) {
    HStack(alignment:.firstTextBaseline) {
     VStack(alignment:.leading,spacing:2) {
-     Text("\(m.entries.count) notes · only on this Mac · keep, edit or forget any of them").font(.system(size:13)).foregroundStyle(HubTheme.subtext)
+     Text("\(m.entries.count) notes").font(.system(size:13)).foregroundStyle(HubTheme.subtext)
     }
     Spacer()
     Button { m.load() } label: { Label("Reload",systemImage:"arrow.clockwise").font(.system(size:13,weight:.medium)).foregroundStyle(HubTheme.text).padding(.horizontal,12).frame(height:34).overlay(RoundedRectangle(cornerRadius:9).stroke(HubTheme.controlOutline,lineWidth:1)) }.buttonStyle(.plain)
@@ -381,4 +381,21 @@ struct MoneyMoveCard: View {
 
 extension CompanionInterfaceView {
  var fridayMemoryPage: some View { MemoryPageView() }
+}
+
+// The Friday page's memory card: the count and the newest kept note from the same file as the Memory page.
+struct MemoryBankCardBody: View {
+ @ObservedObject var m = MemoryModel.shared
+ let openPage: () -> Void
+ var body: some View {
+  let kept = m.entries.last(where:{ $0.important && !$0.isMood })
+  VStack(alignment:.leading,spacing:6) {
+   Text(m.missing ? "MEMORY · NO FILE YET" : "MEMORY · \(m.entries.count) \(m.entries.count == 1 ? "NOTE" : "NOTES")")
+    .font(.system(size:11,weight:.medium,design:.monospaced)).tracking(1.3).foregroundStyle(HubTheme.subtext)
+   if let kept = kept { Text(kept.text).font(.system(size:12)).foregroundStyle(HubTheme.text).lineLimit(2) }
+   else if m.loaded && !m.missing { Text("Nothing marked to keep yet.").font(.system(size:12)).foregroundStyle(HubTheme.subtext) }
+   Button(action:openPage) { Text("What Friday remembers ›").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.teal) }.buttonStyle(.plain)
+  }
+  .onAppear { m.load() }
+ }
 }

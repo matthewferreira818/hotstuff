@@ -16,6 +16,7 @@ private struct SwitchboardState: Codable {
  var armedAt: Date = .distantFuture
  var starts: [Date] = []
  var jobCount = 0
+ var relayStarts: [Date]? = nil   // optional so an old state.json still loads
 }
 
 @MainActor final class Switchboard: ObservableObject {
@@ -35,6 +36,9 @@ private struct SwitchboardState: Codable {
  @Published private(set) var claudeVersion: String?
  @Published private(set) var startsThisHour = 0
  @Published private(set) var startsToday = 0
+ @Published private(set) var relaysThisHour = 0
+ @Published private(set) var relaysToday = 0
+ private var runningRelay: (comment: SwitchboardComment,name: String)?
  // Panel UI flags live here: this SDK's @State is a macro the command-line build can't expand.
  @Published var confirmOn = false
  @Published var showLog = false
@@ -113,7 +117,7 @@ private struct SwitchboardState: Codable {
   lastCheck = Date()
   recount()
   for c in all.sorted(by:{ $0.createdAt < $1.createdAt }) {
-   let v = SwitchboardRules.verdict(c,seen:Set(state.seen),armedAt:state.armedAt,now:Date(),starts:state.starts,running:runningJob == nil ? 0 : 1)
+   let v = SwitchboardRules.verdict(c,seen:Set(state.seen),armedAt:state.armedAt,now:Date(),starts:state.starts,running:runningJob == nil ? 0 : 1,relayStarts:state.relayStarts ?? [])
    switch v {
    case .ignore:
     remember(c.id)
@@ -126,6 +130,9 @@ private struct SwitchboardState: Codable {
    case .run:
     remember(c.id)
     await start(c)
+   case .relay(let name):
+    remember(c.id)
+    await start(c,relay:name)
    }
   }
  }
@@ -182,7 +189,7 @@ private struct SwitchboardState: Codable {
   return (exe,SwitchboardRules.versionLine(out))
  }
 
- private func start(_ c: SwitchboardComment) async {
+ private func start(_ c: SwitchboardComment,relay: String? = nil) async {
   // Every check below is done in code before anything starts; any "no" is logged and nothing runs.
   let found = Self.checkClaude()
   claudeVersion = found.version
@@ -196,8 +203,8 @@ private struct SwitchboardState: Codable {
    add("error","\(problem). Job not started.")
    return
   }
-  let args = SwitchboardRules.arguments(prompt:SwitchboardRules.prompt(for:c))
-  guard SwitchboardRules.argumentsAreSafe(args) else { add("error","Unsafe command line; job not started."); return }
+  let args = relay.map { SwitchboardRules.relayArguments(prompt:SwitchboardRules.relayPrompt(for:c,name:$0)) } ?? SwitchboardRules.arguments(prompt:SwitchboardRules.prompt(for:c))
+  guard relay == nil ? SwitchboardRules.argumentsAreSafe(args) : SwitchboardRules.relayArgumentsAreSafe(args) else { add("error","Unsafe command line; job not started."); return }
   let work = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Claude/hotstuff",isDirectory:true)
   guard FileManager.default.fileExists(atPath:work.appendingPathComponent(".git").path) else {
    add("error","~/Claude/hotstuff isn't there; job not started.")
@@ -205,13 +212,15 @@ private struct SwitchboardState: Codable {
   }
 
   let job = state.jobCount + 1
-  // Lock 6: the start is mirrored BEFORE the job runs. If issue 15 can't be told, the job doesn't run.
-  guard await post(SwitchboardRules.mirrorStart(job:job,c:c)) else {
-   add("refused","Job for comment \(c.id) not started: couldn't mirror it to issue 15.")
-   return
+  // Lock 6: the start is mirrored BEFORE the job runs. If issue 15 can't be told, the job doesn't run. (A relay is mirrored once, at the end.)
+  if relay == nil {
+   guard await post(SwitchboardRules.mirrorStart(job:job,c:c)) else {
+    add("refused","Job for comment \(c.id) not started: couldn't mirror it to issue 15.")
+    return
+   }
   }
   state.jobCount = job
-  state.starts.append(Date())
+  if relay == nil { state.starts.append(Date()) } else { state.relayStarts = (state.relayStarts ?? []) + [Date()] }
   save(); recount()
 
   try? FileManager.default.createDirectory(at:jobsFolder,withIntermediateDirectories:true)
@@ -241,12 +250,19 @@ private struct SwitchboardState: Codable {
   runningSince = began
   runningTitle = SwitchboardRules.jobTitle(c.body)
   runningThread = c.thread
-  add("run","Job \(job) started (\(found.version ?? "")): \(runningTitle)")
+  runningRelay = relay.map { (c,$0) }
+  if let name = relay {
+   runningTitle = "relay to \(name)"
+   add("run","Relay \(job) started (\(found.version ?? "")): comment \(c.id) to \(name)")
+  } else {
+   add("run","Job \(job) started (\(found.version ?? "")): \(runningTitle)")
+  }
 
-  // Lock 4: the 30-minute stop.
+  // Lock 4: the stop (30 minutes for a job, 3 for a relay).
+  let limit = relay == nil ? SwitchboardLimits.jobTimeout : SwitchboardLimits.relayTimeout
   Task { [weak self] in
-   try? await Task.sleep(nanoseconds:UInt64(SwitchboardLimits.jobTimeout * 1_000_000_000))
-   await MainActor.run { if self?.runningJob == job { self?.stopJob(reason:"stopped at the \(Int(SwitchboardLimits.jobTimeout / 60))-minute limit") } }
+   try? await Task.sleep(nanoseconds:UInt64(limit * 1_000_000_000))
+   await MainActor.run { if self?.runningJob == job { self?.stopJob(reason:"stopped at the \(Int(limit / 60))-minute limit") } }
   }
  }
 
@@ -265,6 +281,21 @@ private struct SwitchboardState: Codable {
 
  private func finished(job: Int,code: Int32,began: Date,out: URL) {
   let minutes = max(0,Int(Date().timeIntervalSince(began) / 60 + 0.5))
+  if let r = runningRelay {
+   runningRelay = nil
+   let data = (try? Data(contentsOf:out)) ?? Data()
+   var result = SwitchboardRules.parseRelay(data,target:r.name,expected:SwitchboardRules.relayMessage(r.comment))
+   if let reason = stopReason { result = .init(delivered:false,unproven:false,detail:reason) }
+   add(result.delivered ? "done" : (result.unproven ? "unproven" : "failed"),
+       "Relay \(job) of comment \(r.comment.id) to \(r.name): \(result.delivered ? "delivered" : (result.detail.isEmpty ? "not delivered" : result.detail)) (\(minutes) min)")
+   stopReason = nil; process = nil; runningJob = nil; runningSince = nil; runningTitle = ""
+   let line = SwitchboardRules.mirrorRelay(r.comment,name:r.name,result:result)
+   Task {
+    _ = await post(line)                                       // issue 15
+    _ = await post(line,thread:SwitchboardRules.hotline)       // and the Hotline, so cloud Claude knows it landed (or didn't)
+   }
+   return
+  }
   let outcome = SwitchboardRules.parseOutcome((try? Data(contentsOf:out)) ?? Data(),exitCode:code)
   let word: String
   if let reason = stopReason { word = reason } else { word = outcome.ok ? "finished" : "failed (exit \(code))" }
@@ -299,6 +330,9 @@ private struct SwitchboardState: Codable {
   state.starts = state.starts.filter { now.timeIntervalSince($0) < 2 * 86400 }
   startsThisHour = SwitchboardRules.startsInLastHour(state.starts,now:now)
   startsToday = SwitchboardRules.startsToday(state.starts,now:now)
+  state.relayStarts = (state.relayStarts ?? []).filter { now.timeIntervalSince($0) < 2 * 86400 }
+  relaysThisHour = SwitchboardRules.startsInLastHour(state.relayStarts ?? [],now:now)
+  relaysToday = SwitchboardRules.startsToday(state.relayStarts ?? [],now:now)
  }
 
  private func add(_ kind: String,_ text: String) {
@@ -366,14 +400,14 @@ struct SwitchboardPanel: View {
    Button("Turn on") { sb.setOn(true) }
    Button("Cancel",role:.cancel) {}
   } message: {
-   Text("Friday will start a Local Claude job on this Mac for each NEW comment on the Hotline (PR 35) that starts **[Claude … → Local Claude]** from your account. Issue 15 never starts a job; it only gets the start and result lines. One at a time, at most \(SwitchboardLimits.perHour) an hour and \(SwitchboardLimits.perDay) a day, each stopped at \(Int(SwitchboardLimits.jobTimeout / 60)) minutes. Your normal permission list applies. Money, logins, messages to people and Moomoo are always refused.")
+   Text("Friday will start a Local Claude job on this Mac for each NEW comment on the Hotline (PR 35) that starts **[Claude … → Local Claude]** from your account. Issue 15 never starts a job; it only gets the start and result lines. One at a time, at most \(SwitchboardLimits.perHour) an hour and \(SwitchboardLimits.perDay) a day, each stopped at \(Int(SwitchboardLimits.jobTimeout / 60)) minutes. Your normal permission list applies. A comment addressed to a named chat, like **→ Local Claude (LC-Manager)**, is only passed on to that open chat (at most \(SwitchboardLimits.relayPerHour) an hour), labelled as relayed and not your approval. Money, logins, messages to people and Moomoo are always refused.")
   }
   .sheet(isPresented:$sb.showLog) { SwitchboardLogSheet(sb:sb) }
  }
 
  private var summary: String {
   let claude = sb.claudeVersion.map { "Claude Code \($0.replacingOccurrences(of:" (Claude Code)",with:""))" } ?? "Claude Code not found"
-  let limits = "Jobs \(sb.startsThisHour)/\(SwitchboardLimits.perHour) this hour · \(sb.startsToday)/\(SwitchboardLimits.perDay) today · \(claude)"
+  let limits = "Jobs \(sb.startsThisHour)/\(SwitchboardLimits.perHour) this hour · \(sb.startsToday)/\(SwitchboardLimits.perDay) today · Relays \(sb.relaysThisHour)/\(SwitchboardLimits.relayPerHour) · \(sb.relaysToday)/\(SwitchboardLimits.relayPerDay) · \(claude)"
   if !sb.on { return "Off. Friday starts no jobs. Turn on to let tagged messages from cloud Claude start Local Claude jobs here.\n\(limits)" }
   let checked = sb.lastCheck.map { "last check \(Self.time.string(from:$0))" } ?? "first check starting"
   return "On. Watching the Hotline every \(Switchboard.intervalText) · \(checked).\n\(limits)"

@@ -3,22 +3,35 @@ PASS  Hotline-only: good trigger on issue 15 is IGNORED -> ignore (not the Hotli
 PASS  Hotline-only: plain-target tag pasted in the room (issue 15) -> ignore (not the Hotline (jobs only start from PR 35))
 PASS  good trigger on the Hotline (PR 35) -> run
 PASS  named sender, plain target = a job -> run
-PASS  fix D: real 07:03 Hotline reply (named target) -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  fix D: [Claude → Local Claude (LC-Switchboard)] -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  fix D: [Claude (X) → Local Claude (anything)] -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  fix D: target Local Claude, extra text after -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  fix G: real 07:03 Hotline reply = a RELAY to LC-Manager -> relay:LC-Manager
+PASS  fix G: reply addressed to Friday herself (LC-Switchboard) -> ignore (addressed to Friday herself, not another chat)
+PASS  fix G: target Friday -> ignore (addressed to Friday herself, not another chat)
+PASS  fix G: [Claude (X) → Local Claude (LC-TikTok)] relays -> relay:LC-TikTok
+PASS  fix G: empty name () is nothing -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
+PASS  fix G: nested parens are nothing -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
+PASS  fix G: relay hard block (money) refused, not relayed -> refuse (hard block: mentions money or payments (those stay Matthew's)) +mirror
+PASS  fix G: relay hard block (login) -> refuse (hard block: mentions logins or passwords (those stay Matthew's)) +mirror
+PASS  fix G: relay hard block (Moomoo) -> refuse (hard block: mentions Moomoo (those stay Matthew's)) +mirror
+PASS  fix G: relay hard block (send to a person) -> refuse (hard block: mentions sending to a person (those stay Matthew's)) +mirror
+PASS  fix G: relay edited after posting refused -> refuse (edited after posting; post a fresh comment instead) +mirror
+PASS  fix G: relay waits while something runs -> wait (a job is already running)
+PASS  fix G: 10 relays in the last hour -> refused -> refuse (limit: 10 relays in the last hour) +mirror
+PASS  fix G: 9 relays in the last hour -> ok -> relay:LC-Manager
+PASS  fix G: relays don't use the 3/hour JOB cap -> relay:LC-Manager
+PASS  fix G: jobs don't use the relay cap -> run
+PASS  fix D: target Local Claude, extra text after -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
 PASS  fix D: spacing around the arrow still a job -> run
-PASS  fix D: no arrow at all -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  fix D: no arrow at all -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
 PASS  lock 1: other thread (issue 12) -> ignore (not the Hotline (jobs only start from PR 35))
 PASS  lock 1: author is not the owner -> ignore (not posted by the owner account)
 PASS  lock 1: author look-alike login -> ignore (not posted by the owner account)
-PASS  lock 1: tag not at the very start -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  lock 1: no bold, plain [Claude …] -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  lock 1: Claude → Matthew (not for LC) -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  lock 1: Roxy's tag -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  lock 1: LC's own reply (no loop) -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  lock 1: Friday's own mirror (no loop) -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  lock 1: target only quoted after the tag -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  lock 1: tag not at the very start -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
+PASS  lock 1: no bold, plain [Claude …] -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
+PASS  lock 1: Claude → Matthew (not for LC) -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
+PASS  lock 1: Roxy's tag -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
+PASS  lock 1: LC's own reply (no loop) -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
+PASS  lock 1: Friday's own mirror (no loop) -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
+PASS  lock 1: target only quoted after the tag -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
 PASS  lock 1: seen-IDs file (same comment twice) -> ignore (already handled (each comment runs at most once))
 PASS  lock 1: edited after posting -> refuse (edited after posting; post a fresh comment instead) +mirror
 PASS  switch: posted before switch-on -> refuse (posted before the switch was turned on)
@@ -57,7 +70,7 @@ PASS  --version line accepted
 PASS  anything else refused
 
 == Lock 6: the issue 15 mirror
-   **[Friday (LC-Switchboard) → Claude]** Switchboard started job 1 (comment 1038 on the Hotline): test: reply "pong" on the Hotline
+   **[Friday (LC-Switchboard) → Claude]** Switchboard started job 1 (comment 1051 on the Hotline): test: reply "pong" on the Hotline
 PASS  start mirror: first line only
 PASS  Friday's mirror can never trigger a job
 PASS  end mirror: first line of the result
@@ -83,8 +96,35 @@ PASS  num_turns is read from claude's JSON
 PASS  result line (target Claude) can't trigger, so no result<->reply loop
 PASS  prompt tells the job not to post its own result (Friday does)
 
+== Fix G: relay command line, label and delivery proof
+PASS  relay command line is safe: -p <prompt> --output-format stream-json --verbose --permission-mode dontAsk --permission-prompts none --tools ToolSearch,ListAgents,SendMessage --strict-mcp-config
+PASS  relay is limited to ToolSearch, ListAgents, SendMessage
+PASS  relay with other tools is refused
+PASS  relay with a bypass flag is refused
+PASS  a normal job's arguments are not a relay (no --tools)
+PASS  normal jobs unchanged: no --tools
+PASS  label: [Relayed by Friday from Hotline comment 1054 · not Matthew's approval] **[Claude (New beginning) → Local Claud…
+PASS  prompt passes the comment as quoted data
+PASS  names match ignoring case and dash/underscore
+PASS  ListAgents output parsed to names
+PASS  delivered: success:true + the one matching chat + verbatim text (LC-Manager = LC_Manager)
+PASS  no match: nothing sent -> not delivered, reason kept (NOT DELIVERED: zz-nobody isn't open)
+PASS  two chats match: never 'delivered' (UNPROVEN: sent, but 2 listed chats matched the name)
+PASS  sent to the wrong chat: UNPROVEN, not delivered
+PASS  text changed by the relay job: UNPROVEN, not delivered
+PASS  job SAYS DELIVERED but SendMessage did not report success: not delivered
+PASS  two SendMessage calls: UNPROVEN
+PASS  mirror 'delivered', and it can't trigger a job or a relay
+   **[Friday (LC-Switchboard) → Claude]** Switchboard relayed comment 1054 to LC-Manager: delivered.
+   **[Friday (LC-Switchboard) → Claude]** Switchboard relayed comment 1054 to zz-nobody: not delivered. Couldn't relay: NOT DELIVERED: zz-nobody isn't open
+PASS  mirror 'couldn't relay'
+PASS  relay caps 10/hour, 40/day, 3-minute kill are constants
+
 == Reading claude's JSON result
 PASS  result + permission denials counted
 PASS  garbage output = failed
+
+== Real `gh api` output (SB_REAL_JSON)
+PASS  parsed 18 real comments; owner-authored: 18
 
 ALL PASS

@@ -230,6 +230,12 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   ~/Claude/Helm-Private; a start-of-chat hook pulls both and prints Moncton time + the newest handoff; Sonnet medium by default;
   ~/hotstuff (the app's build folder), ~/.ssh, key/token/secret files, moomoo, rm -rf and ALL force-pushes are blocked. So its push
   pattern is plain: commit, `git pull --rebase`, `git push origin master` (no session branch, no force).
+  **Right brain for the job (Matthew, 2026-11-06: "switch their model for the appropriate task"):** a chat can't swap its own model
+  mid-chat (only Matthew can, with /model or the picker), but it can hand parts of a job to a helper agent on another model
+  (Agent tool `model`: haiku/sonnet/opus). Rule of thumb: **Haiku** for quick look-ups, reading the room, simple checks;
+  **Sonnet** (the default) for most building, writing and posting; **Opus** for hard design, tricky bugs, the honesty/safety
+  review and LC-Manager's quality gate. Opus burns the most usage: use it for the hard part only, not a whole job. Friday's
+  switchboard jobs pick the model the same way (`claude -p --model ...`), Sonnet unless the job says otherwise.
   **Don't over-ask (Matthew, 2026-11-05: "its asking for input a lot"):** every chat, Local Claude included, follows the Co-CEO rule:
   decide small, free, reversible things alone and report them; ask only for money, sending to a person, logins, prices/offers,
   irreversible public things, or when genuinely stuck. At ~80% sure, make the call and say so.
@@ -239,14 +245,30 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   Matthew starts with it ("🏷️ LC-Makeover"), (2) every prompt written for Matthew to paste starts "From <name> → <target>:", and
   (3) room tags carry it: **[Local Claude (LC-Makeover) → Claude]**, **[Claude (Work) → GPT]** (the app still files them under
   Local Claude / Claude). A pasted prompt that names its sender is answered to that sender.
+  **LC group chat (tested 2026-11-06 ~1:50 AM):** Local Claude chats on the Mac can list and message each other directly (it wakes the
+  other chat). Every LC-to-LC message is ALSO mirrored to issue 15 with name tags, so Matthew watches it live in The Helm. Short and on-task,
+  no chit-chat loops (each message wakes a chat and burns usage).
   **Two Local Claude chats at once (2026-11-05):** fine, but never in the same folder on different branches. Branch work goes in its
   own git worktree (e.g. ~/Claude/hotstuff-<job>); the other chat stays on master in ~/Claude/hotstuff, avoids the files the first one
   claimed on the board, and pulls before every push.
+  **LC-Manager (set by New beginning, 2026-11-06; upgraded ~1:45 AM to "the whole 9"):** the Mac-side manager of the Local Claude
+  team; runs meeting-room/notes/crew-handbook.md section 4. It verifies before "done" counts (proof: screenshot, test, live link or
+  commit, plus one spot-check of its own), questions every job (simplest? true today? what breaks? what wasn't tested?), ranks the
+  board by "how does this help us earn?" (selling beats polishing), keeps one owner per job and one job per LC chat in separate
+  folders, and runs the quality gate before Matthew's GO (tests pass, phone + desktop checked, honesty check, rollback written down).
+  Rhythm: standup on the board each morning the Mac is on (each LC: yesterday / today / blocked, one line), weekly scorecard every
+  Sunday (honest numbers only, top win + top miss), retro after every big job, and every mistake becomes a rule or a check. Also runs
+  Mac-only checks (morning robot-start backup, Chrome look-checks) and keeps the board + handoff tidy. Flags any LC that bends the
+  honesty, secrets or money-mode rules. Reports to Matthew and the Co-CEO (New beginning), who still merges to master, handles
+  reminders and answers the room; LC-Manager doesn't repeat those replies. Direct but fair: praise by name, name problems plainly.
+  Short check-ins, no busywork; otherwise idle. Posts as **[Local Claude (LC-Manager)]**.
 - The old long chat ("new beginning", tag 🏷️ New beginning: his pick and Claude's, 2026-11-05, "where it all started") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
   and the 5:15 PM robot recap) fire there.
 - **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day
   Friday, on his own hardware, holds everything we share. Until then these files are that memory. Like the chassis dream, it's a dream,
   not a purchase: money mode applies, and private things stay out of this public repo.
+
+**The Crew Handbook** (`meeting-room/notes/crew-handbook.md`, 2026-11-06, Matthew: "build it up like a company ... go the whole 9"): org chart, daily standup, the manager's job (verify, question, tie work to money), how a job runs, the Sunday scorecard, retros, escalation. Every chat follows it.
 
 ## Where the real ledgers live (read before answering "what's next")
 

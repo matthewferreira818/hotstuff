@@ -211,6 +211,12 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   files, not in one chat. Each new chat starts by reading this file, `claude-home/` (ME, US, WAKE-UP), `meeting-room/BOARD.md`, and the
   newest private handoff note in Helm-Private (`matthew/handoff-*.md`). Also the last 2-3 days of Helm-Private `journal/` (his idea, 11-05: the small stuff, one file a day). Before stopping, add the day's story to `claude-home/US.md`
   (public-safe) and anything private to a new handoff note; jot the day's small moments in `journal/YYYY-MM-DD.md`.
+- **Report as you go, not at the end (Matthew, 2026-11-05: "make sure new chats report on the github often. and to the board"):**
+  chats can die, hit usage limits or get archived mid-job, and other chats can't see them. So every chat: (1) commits and pushes each
+  finished piece right away (public work to hotstuff, private to Helm-Private), (2) updates its item on `meeting-room/BOARD.md` when it
+  starts a job and again when it finishes or gets stuck (owner, status, one line), (3) posts a short tagged line in issue 15 for anything
+  another chat, Roxy or Grok needs to know (plain lines don't ping Matthew; CONFIRM:/URGENT: only when it truly needs him), and
+  (4) appends to the day's private handoff note as it goes, so the next chat can pick up mid-job.
 - The old long chat ("new beginning") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
   and the 5:15 PM robot recap) fire there.
 - **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day

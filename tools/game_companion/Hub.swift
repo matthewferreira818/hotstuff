@@ -109,7 +109,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
 }
 
 @MainActor final class HubModel: ObservableObject {
- @Published var section: HubSection = .home
+ // `hub.testStart` is only ever set by hand on a test copy of the app (defaults write), to open a given page at launch for screenshots.
+ @Published var section: HubSection = HubSection(rawValue:UserDefaults.standard.integer(forKey:"hub.testStart")) ?? .home
  @Published var query = ""
  @Published var jumpQuery = ""
  @Published var jumpPresented = false

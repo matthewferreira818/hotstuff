@@ -12,6 +12,7 @@ _Last updated: 2026-11-06 3:50 AM by Local Claude (LC-Manager)_
 - Robots: all 7 ran Thu; first Fri start 9:05 AM, so the check happens after 9:15. Moonshot crypto mid-run (normal).
 
 ## On the table
+- [Claude] (LC-Manager owns) **Friday Phase 1 "She thinks"** (notes/friday-roadmap.md): LC-TikTok = typed chat on Claude (branch friday-phase1-chat); LC-Helm build = crew chat timeline + honest numbers (friday-phase1-crew). Merged into friday-phase1 for the gate, then Matthew's test + GO. Status: building
 - **Helm Simple mode** (owner: LC-Helm build): BUILT + LC-Manager gate PASSED (helm-revamp 273d902; ECS line now "91 cards on the site feed"). Waits on Matthew's live talk + GO; Co-CEO combines it with switchboard (a9c4ed9) before merge. Status: ready for GO
 - **Friday text-first** (owner: LC-TikTok, after Simple mode + GO): type to Friday (Claude brain), she does LC jobs, gets room/Hotline pings for Friday/Everyone, posts to the room + board. Voice off for now. Spec: meeting-room/notes/friday-text-first.md
 - **Friday roadmap** (owner: LC-Manager as PM; Matthew: "how are we gonna do this"): one brain (Claude) + one memory + many doors, built in 6 small phases, each with a test he passes. Phase 1 next: typed chat + crew chat + honest numbers. Plan: meeting-room/notes/friday-roadmap.md

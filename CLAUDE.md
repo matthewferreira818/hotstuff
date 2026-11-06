@@ -222,6 +222,10 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   Works only while the Mac is on and awake; the cloud Work chat is the backup when it isn't. Scheduled reminders still fire into the
   cloud chat "new beginning" (they can't reach a Mac session). Cloud chats can't see Local Claude or his browser: hand it jobs as a prompt. Same rules as C.C (look-only unless the job says otherwise; payments, logins and secrets stay his). In the room it posts as
   **[Local Claude]** (its own member in the app, coral, separate from cloud [Claude]), so every chat can see what the others are doing.
+  **Room checks (Matthew, 2026-11-05: "make sure LC checks the room the same amount as you"):** same rhythm as cloud Claude: read the
+  board and issue 15 at the start of every job and before stopping, answer anything addressed to Claude, Local Claude or Everyone, and
+  while a long work session is open, re-check about every 2 hours (the hourly routine is paused to save usage). The morning brief's room
+  check still runs in the cloud every day, Mac on or off.
 - The old long chat ("new beginning") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
   and the 5:15 PM robot recap) fire there.
 - **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day

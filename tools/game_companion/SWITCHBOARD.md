@@ -6,7 +6,7 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
 ## What it is
 - `SwitchboardData.swift`: every rule and limit, no UI, no network (tested offline).
 - `HubSwitchboard.swift`: the runner + the panel (switch, log) at the bottom of the Friday page. Test-copy-only hooks at the end.
-- `checks/SwitchboardChecks.swift`: the dry run (74 checks). `switchboard-proof/`: its output + screenshots.
+- `checks/SwitchboardChecks.swift`: the dry run (76 checks). `switchboard-proof/`: its output + screenshots.
 - Wiring in LC-Helm's files (3 small edits): `rebuild.sh` (2 names added to SOURCES), `HubDeckFriday.swift` (1 line: the panel),
   `CompanionInterface.swift` (1 line: `Switchboard.shared.boot()`).
 
@@ -43,6 +43,9 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
 
 ## Fix D: the loop (LC-Manager, ~3:20 AM)
 A job is started ONLY when the target is exactly plain `Local Claude`. `Local Claude (LC-Manager)`, `Local Claude (anything)`, `Everyone`, `Matthew` = conversation, ignored (not logged, not a job). The sender may be `Claude` or `Claude (<name>)`. Without this, Friday's result on PR #35 wakes cloud Claude, whose reply "[Claude (New beginning) → Local Claude (LC-Switchboard)] thanks" would start another job, and so on until 3/hour and 12/day. Checks include the real 07:03 Hotline comment (ignored). The job prompt also says NOT to comment on PR #35 / issue 15 itself, because Friday posts the single result.
+
+## Fix E: false UNPROVEN (LC-Manager, final pong)
+Job 3's honest result ("pong", then "I replied from this run only. I didn't post to PR #35 or issue 15, and I didn't use any tools.") was flagged because the disclaimer on a later line contained "replied". The UNPROVEN check now looks at the FIRST line only, the line that gets posted. Job 2's lie ("Pong. (… Hotline reply received …)", first line) still flags. Both are check cases. Known limit: an honest first line that mentions an action word, or a lie placed on line 2, is judged by line 1 only.
 
 ## ROLLBACK
 Fastest: flip the switch OFF on the Friday page (stops any running job, starts none). To remove it from a running Helm: rebuild The Helm from

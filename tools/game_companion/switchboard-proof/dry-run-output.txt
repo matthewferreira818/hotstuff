@@ -73,6 +73,8 @@ PASS  mirror says UNPROVEN
 PASS  same claim after real tool use (4 turns) is not flagged
 PASS  plain 'Pong.' with no action claim is not flagged
 PASS  honest denial report is not flagged
+PASS  fix E: job 3's honest result (disclaimer on later lines) is NOT flagged
+PASS  fix E: a claim on the FIRST line with no tools still flags
 PASS  action words match whole words only
 PASS  prompt carries the honesty rule
 PASS  poll: 300 s real, 30 s test-only constant

@@ -240,7 +240,8 @@ enum SwitchboardRules {
   let t = text.lowercased()
   return actionWords.contains { t.range(of:"(?<![a-z])\(NSRegularExpression.escapedPattern(for:$0))(?![a-z])",options:.regularExpression) != nil }
  }
- static func isUnproven(_ o: Outcome) -> Bool { o.ok && (o.turns ?? 1) <= 1 && o.denials == 0 && claimsAction(o.result) }
+ // First line only: it is the line that gets posted, and later lines are where an honest job writes "I didn't post anything" (fix E).
+ static func isUnproven(_ o: Outcome) -> Bool { o.ok && (o.turns ?? 1) <= 1 && o.denials == 0 && claimsAction(firstLine(o.result,limit:400)) }
 
  // MARK: reading GitHub and claude's JSON
 

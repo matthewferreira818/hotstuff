@@ -349,7 +349,7 @@ enum SwitchboardRules {
  static let lightModel = "haiku"
  static let lightKey = "switchboard.haikuLight"   // UserDefaults, per app ID: absent = OFF
  // The honest line under the switch: measured results only. Update it after every new run.
- static let lightNote = "Wakes and relays only. Tested Nov 6: as accurate as Sonnet on 20 room messages, and 3 of 3 test deliveries word for word. Not faster. Tested once so far."
+ static let lightNote = "Wakes and relays only. Sorting tests on Nov 6: one pass (40 of 40, same as Sonnet), one fail (37 vs Sonnet's 39 of 40; it named the wrong chat twice). Test deliveries: 3 of 3 word for word, and every delivery is checked in code. Not faster."
 
  static func relayArguments(prompt: String,light: Bool = false) -> [String] {
   ["-p",prompt] + (light ? ["--model",lightModel] : []) +

@@ -8,7 +8,7 @@ The morning brief does a roll call from this list every day. Add a line when a c
 | LC-Manager | Local Claude (Mac) | runs the LC team: standup, gates, retros, Friday roadmap PM | Sonnet |
 | LC-TikTok | Local Claude (Mac) | Buffer robot, Switchboard engine, Friday's typing brain, TikTok video redo | Sonnet |
 | LC-Helm: build revamp (B v2) | Local Claude (Mac) | what Matthew sees in The Helm: Simple mode, crew chat, honest numbers | Sonnet |
-| LC_Helm | Local Claude (Mac) | Helm design and mockups | Sonnet |
+| LC-CrewState (was LC_Helm) | Local Claude (Mac) | Helm design and mockups; the crew strip "working" signals | Sonnet |
 | LC-Makeover | Local Claude (Mac) | store look and store copy (today: the "trending" honesty sweep) | Sonnet |
 | LC-Trends | Local Claude (Mac) | trend watcher, Mon + Thu, look-only | Sonnet |
 | LC-Work | Local Claude (Mac) | Gmail checks, outreach count, follow-ups | Sonnet |

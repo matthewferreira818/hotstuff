@@ -21,6 +21,7 @@ HERE = Path(__file__).resolve().parent
 MODELS = ["haiku", "sonnet"]
 NO_HOOKS = '{"disableAllHooks": true}'
 TIMEOUT = 120
+WORD_CAP = 25   # NB2, 2026-11-06 (set 2): summaries over 25 words are counted and shown. The prompt itself stays v2 ("at most 20 words").
 
 SYSTEM = (
     "You sort messages from a team chat room. Reply with ONLY one JSON object and no other text:\n"
@@ -152,11 +153,13 @@ def score(recs, key):
         def tsum(f):
             return sum((t.get(f) or 0) for t in tok)
         used = sorted({m for r in rs if isinstance(r.get("model_used"), list) for m in r["model_used"]})
+        words = [len(str((r.get("answer") or {}).get("summary", "")).split()) for r in rs if r.get("answer")]
         out[model] = {"calls": len(rs), "valid_json": valid, "asks_ok": a_ok, "who_ok": w_ok, "points": a_ok + w_ok,
                       "median_s": round(statistics.median(secs), 1) if secs else None,
                       "tokens_reported_for": len(tok),
                       "input_tokens": tsum("input_tokens") + tsum("cache_read_input_tokens") + tsum("cache_creation_input_tokens"),
-                      "output_tokens": tsum("output_tokens"), "model_used": used or "not reported"}
+                      "output_tokens": tsum("output_tokens"), "model_used": used or "not reported",
+                      "over_cap": sum(1 for w in words if w > WORD_CAP), "max_words": max(words) if words else 0}
     return out
 
 
@@ -174,16 +177,17 @@ def verdict(s, n):
     return line + " Score test FAILED: sorting stays on Sonnet."
 
 
-def report(recs, s, n, msgs, stamp):
+def report(recs, s, n, msgs, stamp, keyname="answer-key.json"):
     L = [f"# Haiku vs Sonnet room-sorting test, {stamp}", "",
-         f"{n} public room messages x 2 models. Answer key written before any run (answer-key.json). "
+         f"{n} public room messages x 2 models. Answer key written before any run ({keyname}). "
          "No tools, no transcript, hooks off. Tokens are what the engine reported; no cost is shown "
          "(his Max plan isn't billed per call).", "",
          "| | Haiku | Sonnet |", "|---|---|---|"]
     rows = [("Asks-for-action right", "asks_ok"), ("Who-must-act right", "who_ok"), ("Points (of %d)" % (2 * n), "points"),
             ("Valid JSON answers", "valid_json"), ("Median seconds per call", "median_s"),
             ("Calls with tokens reported", "tokens_reported_for"), ("Input tokens (incl. cache)", "input_tokens"),
-            ("Output tokens", "output_tokens"), ("Model the engine reported", "model_used")]
+            ("Output tokens", "output_tokens"), (f"Summaries over {WORD_CAP} words", "over_cap"), ("Longest summary (words)", "max_words"),
+            ("Model the engine reported", "model_used")]
     for label, f in rows:
         L.append(f"| {label} | {s['haiku'][f]} | {s['sonnet'][f]} |")
     L += ["", "**Verdict:** " + verdict(s, n), "",
@@ -201,14 +205,16 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--limit", type=int, default=0, help="only the first N messages (smoke test)")
     ap.add_argument("--claude", help="path to claude (default: the desktop app's bundled copy)")
+    ap.add_argument("--set", type=int, default=1, help="message set: 1 = messages.json, 2 = messages-2.json (new messages, key committed first)")
     a = ap.parse_args()
     claude = a.claude or find_claude()
     if not claude:
         sys.exit("No bundled Claude Code found under ~/Library/Application Support/Claude/claude-code. Nothing ran.")
-    msgs = json.load(open(HERE / "messages.json"))
+    sfx = "" if a.set == 1 else f"-{a.set}"
+    msgs = json.load(open(HERE / f"messages{sfx}.json"))
     if a.limit:
         msgs = msgs[: a.limit]
-    key = json.load(open(HERE / "answer-key.json"))["answers"]
+    key = json.load(open(HERE / f"answer-key{sfx}.json"))["answers"]
     n = len(msgs)
     print(f"{n} messages x {len(MODELS)} models = {n * len(MODELS)} calls, using {claude}")
     recs = []
@@ -221,13 +227,13 @@ def main():
                       f"json={'yes' if r.get('answer') else 'NO'}")
     s = score(recs, key)
     stamp = datetime.now().strftime("%Y-%m-%d-%H%M")
-    tag = f"{stamp}{'-smoke' if a.limit else ''}"
+    tag = f"{stamp}{f'-set{a.set}' if a.set != 1 else ''}{'-smoke' if a.limit else ''}"
     outdir = HERE / "results"
     outdir.mkdir(exist_ok=True)
     with open(outdir / f"{tag}.jsonl", "w") as f:
         for r in recs:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
-    md = report(recs, s, n, msgs, stamp)
+    md = report(recs, s, n, msgs, stamp, f"answer-key{sfx}.json")
     (outdir / f"{tag}.md").write_text(md)
     print("\n" + md)
     print(f"Saved: results/{tag}.md and results/{tag}.jsonl")

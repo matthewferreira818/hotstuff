@@ -201,6 +201,7 @@ extension CompanionInterfaceView {
   let crew = LiveSessions.apply(LiveSessionsModel.shared.sessions,to:PixelCrew.withFriday(deckCrewReal,messages:messages)).crew
   let visits = deckPixelVisits(crew:crew,messages:messages)
   let needs = meeting.needs
+  let questions = PixelCrew.realQuestions(needs.questions)
   let tasks = (meeting.board?.sections.first { $0.title.lowercased() == "on the table" }?.items ?? []).filter { !$0.isDone }
   let confirms = needs.messages.filter { let t = $0.text.trimmingCharacters(in:.whitespaces).uppercased(); return t.hasPrefix("CONFIRM") || t.hasPrefix("URGENT") }
   let away = crew.filter { $0.state == .away }
@@ -209,10 +210,10 @@ extension CompanionInterfaceView {
   var obs = coreObservations()
   for a in away { obs.append(CoreObservation(tone:0,text:"\(a.name) is away" + (a.awayUntil.map { " until " + $0.formatted(.dateTime.month().day()) } ?? "") + ".",why:"They said so in a room message.",source:"Room message")) }
   for f in failing { obs.insert(CoreObservation(tone:3,text:"\(f.name): \(f.detail)",why:"Its last run failed. The crew can look at it.",source:"GitHub Actions read"),at:0) }
-  if needs.questions.count + confirms.count > 0 {
-   obs.insert(CoreObservation(tone:2,text:"\(needs.questions.count + confirms.count) thing\(needs.questions.count + confirms.count == 1 ? "" : "s") waiting on your OK.",why:"They're listed in the Waiting on you card.",source:"Board and room, now",actionTitle:"Open Meeting Room",run:{ hubSelect(.meeting) }),at:0)
+  if questions.count + confirms.count > 0 {
+   obs.insert(CoreObservation(tone:2,text:"\(questions.count + confirms.count) thing\(questions.count + confirms.count == 1 ? "" : "s") waiting on your OK.",why:"They're listed in the Waiting on you card.",source:"Board and room, now",actionTitle:"Open Meeting Room",run:{ hubSelect(.meeting) }),at:0)
   }
   return coreFrame("Crew Station","\(working) working · \(away.count) away · \(failing.count) failing. Real signals only.",tone:failing.isEmpty ? 0 : 3,observations:obs,
-                   content:AnyView(CoreCrewView(baseCrew:crew,tasks:tasks,questions:needs.questions,confirms:confirms,visits:visits,reduceMotion:reduceMotion,boardKnown:meeting.board != nil,openMeeting:{ hubSelect(.meeting) })))
+                   content:AnyView(CoreCrewView(baseCrew:crew,tasks:tasks,questions:questions,confirms:confirms,visits:visits,reduceMotion:reduceMotion,boardKnown:meeting.board != nil,openMeeting:{ hubSelect(.meeting) })))
  }
 }

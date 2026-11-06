@@ -95,6 +95,14 @@ enum PixelCrew {
   }
  }
 
+ // A board "question" that is only a placeholder ("(none open: the October questions went to the archive)") is not waiting on anyone.
+ static func realQuestions(_ items: [BoardItem]) -> [BoardItem] {
+  items.filter { q in
+   let t = q.text.trimmingCharacters(in:.whitespaces).lowercased()
+   return !t.isEmpty && !t.hasPrefix("(") && !t.hasPrefix("none open") && !t.hasPrefix("none ") && t != "none"
+  }
+ }
+
  // One plain line for the click card.
  static func line(_ m: CrewMember,visit: PixelVisit?,crew: [CrewMember],now: Date = Date()) -> String {
   var text: String

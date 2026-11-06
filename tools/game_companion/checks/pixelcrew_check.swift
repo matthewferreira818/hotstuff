@@ -79,4 +79,17 @@ check("Friday's busy chat makes her working", lm.crew.first(where:{ $0.kind == .
 check("robots are untouched", lm.crew.contains { $0.id == "stock-bot" })
 check("no registry -> nothing changes", LiveSessions.apply(nil,to:liveCrew,now:now).crew.count == liveCrew.count)
 check("RUN timer format", LiveSessions.timer(now.addingTimeInterval(-125),now:now) == "2:05")
+
+// A room tag "Claude (NB2)" and the open NB2 session are one desk.
+var cloudNB2 = member("Cloud Claude",.cloud,.idle); cloudNB2.alias = "NB2"
+let dup = LiveSessions.apply([LiveSession(pid:9,name:"NB2",busy:true,since:now)],to:[member("Friday",.friday),cloudNB2],now:now)
+check("Claude (NB2) room tag + NB2 session = one desk, named NB2 and working", dup.crew.filter { $0.name == "NB2" || $0.id == "Cloud Claude" }.count == 1 && dup.crew.first(where:{ $0.id == "Cloud Claude" })?.name == "NB2" && dup.crew.first(where:{ $0.id == "Cloud Claude" })?.state == .working)
+var cloudWork = member("Cloud Claude",.cloud,.idle); cloudWork.alias = "Work"
+let nodup = LiveSessions.apply([LiveSession(pid:9,name:"NB2",busy:false,since:now)],to:[cloudWork],now:now)
+check("Claude (Work) tag is not the NB2 session: cloud desk stays, NB2 gets its own", nodup.crew.count == 2 && nodup.crew.first(where:{ $0.id == "Cloud Claude" })?.name == "Cloud Claude")
+check("tagAlias", CrewData.tagAlias("Claude (NB2)") == "NB2" && CrewData.tagAlias("Claude") == nil)
+let qs = [BoardItem(id:"q1",owner:"",text:"(none open: the October questions went to the archive on 11-05)",status:""),
+          BoardItem(id:"q2",owner:"Claude → Matthew",text:"CONFIRM: send the pilot offer to Maplehurst?",status:""),
+          BoardItem(id:"q3",owner:"",text:"None open.",status:"")]
+check("placeholder board lines are not questions waiting on Matthew", PixelCrew.realQuestions(qs).map { $0.id } == ["q2"])
 exit(fails == 0 ? 0 : 1)

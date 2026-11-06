@@ -72,6 +72,14 @@ enum LiveSessions {
     }
     continue
    }
+   // A cloud-tagged member whose newest post is "[Claude (NB2)]" IS the open NB2 session: one desk, not two.
+   if let i = out.firstIndex(where:{ $0.kind == .cloud && $0.alias.map { CrewSignals.canon($0) == key } == true }) {
+    open.insert(out[i].id)
+    out[i].name = shortName(s.name)
+    if s.busy { out[i].state = .working; out[i].detail = "\(busyPrefix): its chat on this Mac is mid-task"; out[i].since = s.since }
+    else if out[i].state != .working { out[i].state = .idle; out[i].detail = "chat open on this Mac, idle since \(idleFor)"; out[i].since = s.since }
+    continue
+   }
    if let i = out.firstIndex(where:{ $0.kind == .chat && CrewSignals.canon($0.name) == key }) {
     open.insert(out[i].id)
     if s.busy { out[i].state = .working; out[i].detail = "\(busyPrefix): its chat on this Mac is mid-task"; out[i].since = s.since }

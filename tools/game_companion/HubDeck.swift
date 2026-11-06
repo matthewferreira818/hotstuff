@@ -147,7 +147,7 @@ extension CompanionInterfaceView {
   .buttonStyle(.plain)
   .keyboardShortcut("6",modifiers:.command)
   .accessibilityLabel("Command Core").accessibilityAddTraits(on ? .isSelected : [])
-  .help("Your Mac, network and crew: Overview, Systems, Guard, Lab, Real or Fake?, Crew station")
+  .help("Your Mac, network and crew: Overview, Systems, Guard, Cyber Lab, Verification, Crew station")
  }
 
  var deckMoreMenu: some View {
@@ -227,8 +227,8 @@ extension CompanionInterfaceView {
   case .hacking: return "OVERVIEW"
   case .systems: return "SYSTEMS"
   case .shield: return "GUARD"
-  case .lab: return "LAB"
-  case .realFake: return "REAL OR FAKE?"
+  case .lab: return "CYBER LAB"
+  case .realFake: return "VERIFICATION"
   case .crewStation: return "CREW STATION"
   default: return section.title.uppercased()
   }

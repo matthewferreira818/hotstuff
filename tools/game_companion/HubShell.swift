@@ -268,7 +268,7 @@ extension CompanionInterfaceView {
   case .stocks: hubStocks
   case .store: hubStore
   case .ecs: hubEcs
-  case .systems: hubSystems
+  case .systems: commandCoreSystems
   case .launchpad: hubLaunchpad
   case .game: hubGame
   case .accounts: hubAccounts

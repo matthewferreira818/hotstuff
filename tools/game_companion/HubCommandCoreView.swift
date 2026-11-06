@@ -17,7 +17,7 @@ enum CoreStyle {
  static let card = HubTheme.hex(0x0B1A1E)
  static let teal = HubTheme.hex(0x1FA39A)          // structure: rings, lines, labels
  static let emerald = HubTheme.hex(0x2FD39A)       // healthy, alive
- static let amber = HubTheme.hex(0xE07888)         // "needs a look": a soft rose, no yellow (name kept so the code stays small)
+ static let amber = HubTheme.hex(0xC9A04A)         // restrained amber: "needs a look" only
  static let crimson = HubTheme.hex(0xD6293F)       // real failures, and a faint rim of Friday's identity
  static let ink = Color.white.opacity(0.92)
  static let dim = Color.white.opacity(0.52)
@@ -171,19 +171,9 @@ extension CompanionInterfaceView {
  }
 
  var commandCoreRoom: some View {
-  HackRoomFrame(state:HackRoomState.shared) {
-   CoreRoomView(snapshot:buildCoreSnapshot(),guardHub:GuardHub.shared,
-                lights:HackSource.allCases.map { s in (s.rawValue,hackLight(s).0,hackLight(s).1) },
-                tape:AnyView(hackTapePanel),
-                terminal:AnyView(HackCommandLine(brain:FridayBrain.shared,room:HackRoomState.shared,switchboard:Switchboard.shared)))
-  }
-  .onAppear {
-   Task { await meeting.chat.refresh(token:meeting.hasToken ? meeting.savedToken() : nil) }
-   CrewSignals.refreshIfStale()
-   // Guard's fixed, read-only checks (the same ones its page runs) once when this screen first opens, so the dots are real from the start.
-   let g = GuardHub.shared
-   if g.results.isEmpty && !g.locked && !g.offline { Task { await g.runChecks() } }
-  }
+  let snap = buildCoreSnapshot()
+  return coreFrame("Overview",snap.headline,tone:snap.verdict == 2 ? 2 : 0,observations:coreObservations(),
+                   content:AnyView(CoreRoomView(snapshot:snap,guardHub:GuardHub.shared)))
  }
 }
 
@@ -196,13 +186,9 @@ extension CompanionInterfaceView {
 struct CoreRoomView: View {
  var snapshot: CoreSnapshot
  @ObservedObject var guardHub: GuardHub
- var lights: [(String,HackLight,String)]
- var tape: AnyView
- var terminal: AnyView
  @StateObject private var ui = CoreUIState()
  private var selected: String? { get { ui.selected } nonmutating set { ui.selected = newValue } }
  private var hovered: String? { get { ui.hovered } nonmutating set { ui.hovered = newValue } }
- private var drawerOpen: Bool { get { ui.drawerOpen } nonmutating set { ui.drawerOpen = newValue } }
  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
  private func tone(_ t: Int) -> Color {
@@ -213,38 +199,12 @@ struct CoreRoomView: View {
  }
 
  var body: some View {
-  VStack(spacing:0) {
-   header
-   HStack(alignment:.center,spacing:18) {
-    VStack(spacing:14) { card(0); card(1) }.frame(width:218)
-    hero.frame(minWidth:300,maxWidth:.infinity,maxHeight:.infinity)
-    VStack(spacing:14) { card(2); card(3) }.frame(width:218)
-   }
-   .padding(.horizontal,22).padding(.vertical,10)
-   drawer
+  HStack(alignment:.center,spacing:16) {
+   VStack(spacing:12) { card(0); card(1) }.frame(width:226)
+   hero.frame(minWidth:320,maxWidth:.infinity,maxHeight:.infinity)
+   VStack(spacing:12) { card(2); card(3) }.frame(width:226)
   }
- }
-
- // MARK: header
-
- var header: some View {
-  HStack(alignment:.firstTextBaseline,spacing:14) {
-   VStack(alignment:.leading,spacing:3) {
-    Text("COMMAND CORE").font(.system(size:12,weight:.semibold,design:.rounded)).tracking(4).foregroundStyle(CoreStyle.crimson.opacity(0.95))
-    Text(snapshot.headline).font(.system(size:22,weight:.light,design:.rounded)).foregroundStyle(snapshot.verdict == 2 ? CoreStyle.amber : CoreStyle.ink)
-   }
-   Spacer(minLength:0)
-   HStack(spacing:11) {
-    ForEach(Array(lights.enumerated()),id:\.offset) { _,l in
-     HStack(spacing:4) {
-      Circle().fill(l.1 == .off ? Color.clear : lightColor(l.1)).overlay(Circle().stroke(lightColor(l.1),lineWidth:1)).frame(width:6,height:6)
-      Text(l.0).font(.system(size:10,design:.rounded)).foregroundStyle(CoreStyle.dim)
-     }
-     .help(l.2)
-    }
-   }
-  }
-  .padding(.horizontal,26).padding(.top,16).padding(.bottom,8)
+  .padding(.horizontal,22).padding(.vertical,6)
  }
 
  // MARK: cards
@@ -254,22 +214,22 @@ struct CoreRoomView: View {
   return Group {
    if let c {
     VStack(alignment:.leading,spacing:6) {
-     Text(c.title).font(.system(size:10,weight:.semibold,design:.rounded)).tracking(2.5).foregroundStyle(CoreStyle.dim)
-     Text(c.big).font(.system(size:24,weight:.light,design:.rounded)).foregroundStyle(tone(c.bigTone)).lineLimit(1).minimumScaleFactor(0.6)
-     Text(c.sub).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.78)).lineLimit(2).fixedSize(horizontal:false,vertical:true)
+     Text(c.title).font(.system(size:11,weight:.semibold,design:.rounded)).tracking(2.5).foregroundStyle(CoreStyle.dim)
+     Text(c.big).font(.system(size:26,weight:.light,design:.rounded)).foregroundStyle(tone(c.bigTone)).lineLimit(1).minimumScaleFactor(0.6)
+     Text(c.sub).font(.system(size:13,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.85)).lineLimit(2).fixedSize(horizontal:false,vertical:true)
      Spacer(minLength:0)
      if c.id == "mac" {
       HStack {
-       Text(c.foot).font(.system(size:10,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+       Text(c.foot).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
        Spacer(minLength:4)
        Button { Task { await guardHub.runChecks() } } label: {
-        Text(guardHub.checking ? "checking…" : "Run checks").font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.emerald)
-         .padding(.horizontal,10).padding(.vertical,4).overlay(Capsule().stroke(CoreStyle.emerald.opacity(0.5),lineWidth:1))
+        Text(guardHub.checking ? "checking…" : "Run checks").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal)
+         .padding(.horizontal,11).padding(.vertical,5).overlay(Capsule().stroke(CoreStyle.teal.opacity(0.6),lineWidth:1))
        }
        .buttonStyle(.plain).disabled(guardHub.checking || guardHub.locked)
       }
      } else if !c.foot.isEmpty {
-      Text(c.foot).font(.system(size:10,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(2)
+      Text(c.foot).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(2)
      }
     }
     .padding(16).frame(maxWidth:.infinity,minHeight:132,maxHeight:.infinity,alignment:.topLeading)
@@ -289,8 +249,8 @@ struct CoreRoomView: View {
  func position(of node: CoreNode,in group: [CoreNode],size: CGSize,time: Double) -> CGPoint {
   let c = CGPoint(x:size.width / 2,y:size.height / 2 - 10)
   if node.ring == 0 { return c }
-  let rx = (size.width / 2 - 24) * Self.ringFraction[node.ring] / 0.60 * 0.98
-  let ry = (size.height / 2 - 40) * Self.ringFraction[node.ring] / 0.60 * 0.98
+  let rx = (size.width / 2 - 14) * Self.ringFraction[node.ring] / 0.60
+  let ry = (size.height / 2 - 26) * Self.ringFraction[node.ring] / 0.60
   let idx = group.firstIndex { $0.id == node.id } ?? 0
   let angle = 2 * Double.pi * Double(idx) / Double(max(1,group.count)) + Double(node.ring) * 0.9 + (reduceMotion ? 0 : time * Self.ringSpeed[node.ring])
   return CGPoint(x:c.x + rx * CGFloat(cos(angle)),y:c.y + ry * CGFloat(sin(angle)))
@@ -306,10 +266,10 @@ struct CoreRoomView: View {
 
  func nodeRadius(_ n: CoreNode) -> CGFloat {
   switch n.ring {
-  case 0: return 34
-  case 1: return 5 + 7 * CGFloat(n.weight)
-  case 2: return n.lit ? 7 : 5
-  default: return 5.5
+  case 0: return 40
+  case 1: return 6 + 8 * CGFloat(n.weight)
+  case 2: return n.lit ? 8.5 : 6
+  default: return 6.5
   }
  }
 
@@ -322,7 +282,7 @@ struct CoreRoomView: View {
      Canvas { ctx, size in
       let center = CGPoint(x:size.width / 2,y:size.height / 2 - 10)
       func radii(_ ring: Int) -> (CGFloat,CGFloat) {
-       ((size.width / 2 - 24) * Self.ringFraction[ring] / 0.60 * 0.98,(size.height / 2 - 40) * Self.ringFraction[ring] / 0.60 * 0.98)
+       ((size.width / 2 - 14) * Self.ringFraction[ring] / 0.60,(size.height / 2 - 26) * Self.ringFraction[ring] / 0.60)
       }
       // rings and their captions
       for ring in 1...3 {
@@ -330,7 +290,7 @@ struct CoreRoomView: View {
        var p = Path(); p.addEllipse(in:CGRect(x:center.x - rx,y:center.y - ry,width:rx * 2,height:ry * 2))
        ctx.stroke(p,with:.color(CoreStyle.teal.opacity(0.22)),lineWidth:1)
        if (groups[ring] ?? []).isEmpty == false {
-        ctx.draw(ctx.resolve(Text(Self.ringCaption[ring]).font(.system(size:8,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.teal.opacity(0.75))),at:CGPoint(x:center.x,y:center.y - ry - 7),anchor:.center)
+        ctx.draw(ctx.resolve(Text(Self.ringCaption[ring]).font(.system(size:9.5,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.teal.opacity(0.75))),at:CGPoint(x:center.x,y:center.y - ry - 7),anchor:.center)
        }
       }
       // slow pulse from the core: decoration only
@@ -350,7 +310,7 @@ struct CoreRoomView: View {
       if let sel = snapshot.nodes.first(where:{ $0.id == (selected ?? hovered) }), sel.ring > 0 {
        let pt = position(of:sel,in:groups[sel.ring] ?? [],size:size,time:t)
        var l = Path(); l.move(to:center); l.addLine(to:pt)
-       ctx.stroke(l,with:.color(CoreStyle.emerald.opacity(0.9)),style:StrokeStyle(lineWidth:1.6,lineCap:.round,dash:[3,7],dashPhase:reduceMotion ? 0 : CGFloat(-t * 14)))
+       ctx.stroke(l,with:.color(CoreStyle.crimson.opacity(0.85)),style:StrokeStyle(lineWidth:1.6,lineCap:.round,dash:[3,7],dashPhase:reduceMotion ? 0 : CGFloat(-t * 14)))
       }
       // nodes
       for ring in 1...3 {
@@ -366,10 +326,10 @@ struct CoreRoomView: View {
         ctx.fill(Path(ellipseIn:CGRect(x:pt.x - rad,y:pt.y - rad,width:rad * 2,height:rad * 2)),with:.color(n.lit ? col : col.opacity(0.5)))
         if on {
          let pulse: CGFloat = reduceMotion ? 5 : 5 + 2.5 * CGFloat(sin(t * 3))
-         ctx.stroke(Path(ellipseIn:CGRect(x:pt.x - rad - pulse,y:pt.y - rad - pulse,width:(rad + pulse) * 2,height:(rad + pulse) * 2)),with:.color(CoreStyle.emerald.opacity(0.85)),lineWidth:1.2)
+         ctx.stroke(Path(ellipseIn:CGRect(x:pt.x - rad - pulse,y:pt.y - rad - pulse,width:(rad + pulse) * 2,height:(rad + pulse) * 2)),with:.color(CoreStyle.crimson.opacity(0.95)),lineWidth:1.4)
         }
         if ring == 1 || on {
-         ctx.draw(ctx.resolve(Text(n.label).font(.system(size:9.5,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(on ? 0.95 : 0.6))),at:CGPoint(x:pt.x,y:pt.y + rad + 9),anchor:.center)
+         ctx.draw(ctx.resolve(Text(n.label).font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(on ? 0.97 : 0.72))),at:CGPoint(x:pt.x,y:pt.y + rad + 9),anchor:.center)
         }
        }
       }
@@ -377,13 +337,13 @@ struct CoreRoomView: View {
       if let mac = (groups[0] ?? []).first {
        let col: Color = snapshot.verdict == 0 ? CoreStyle.teal.opacity(0.6) : (mac.warn ? CoreStyle.amber : CoreStyle.emerald)
        let breathe: CGFloat = reduceMotion ? 1 : 1 + 0.04 * CGFloat(sin(t * 1.1))
-       let rad: CGFloat = 34 * breathe
+       let rad: CGFloat = 40 * breathe
        ctx.fill(Path(ellipseIn:CGRect(x:center.x - rad * 3,y:center.y - rad * 3,width:rad * 6,height:rad * 6)),
                 with:.radialGradient(Gradient(colors:[col.opacity(0.20),.clear]),center:center,startRadius:0,endRadius:rad * 3))
        ctx.fill(Path(ellipseIn:CGRect(x:center.x - rad,y:center.y - rad,width:rad * 2,height:rad * 2)),
                 with:.radialGradient(Gradient(colors:[col.opacity(0.95),col.opacity(0.25)]),center:center,startRadius:2,endRadius:rad))
        ctx.stroke(Path(ellipseIn:CGRect(x:center.x - rad - 6,y:center.y - rad - 6,width:(rad + 6) * 2,height:(rad + 6) * 2)),with:.color(CoreStyle.crimson.opacity(0.35)),lineWidth:1)
-       ctx.draw(ctx.resolve(Text("THIS MAC").font(.system(size:8.5,weight:.bold,design:.rounded)).foregroundStyle(Color.black.opacity(0.75))),at:center,anchor:.center)
+       ctx.draw(ctx.resolve(Text("THIS MAC").font(.system(size:10,weight:.bold,design:.rounded)).foregroundStyle(Color.black.opacity(0.75))),at:center,anchor:.center)
       }
      }
      .contentShape(Rectangle())
@@ -423,8 +383,8 @@ struct CoreRoomView: View {
     VStack(alignment:.leading,spacing:8) {
      HStack(alignment:.firstTextBaseline) {
       VStack(alignment:.leading,spacing:2) {
-       Text(n.kind).font(.system(size:9,weight:.semibold,design:.rounded)).tracking(2).foregroundStyle(CoreStyle.teal)
-       Text(n.label).font(.system(size:17,weight:.light,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
+       Text(n.kind).font(.system(size:10,weight:.semibold,design:.rounded)).tracking(2).foregroundStyle(CoreStyle.teal)
+       Text(n.label).font(.system(size:19,weight:.light,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
       }
       Spacer(minLength:8)
       if selected == n.id {
@@ -436,14 +396,14 @@ struct CoreRoomView: View {
      VStack(spacing:4) {
       ForEach(n.rows) { r in
        HStack(alignment:.firstTextBaseline,spacing:8) {
-        Text(r.label).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+        Text(r.label).font(.system(size:12.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
         Spacer(minLength:6)
-        Text(r.value).font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(tone(r.tone)).lineLimit(2).multilineTextAlignment(.trailing)
+        Text(r.value).font(.system(size:12.5,weight:.medium,design:.rounded)).foregroundStyle(tone(r.tone)).lineLimit(2).multilineTextAlignment(.trailing)
        }
       }
      }
     }
-    .padding(14).frame(width:300)
+    .padding(14).frame(width:320)
     .background(RoundedRectangle(cornerRadius:14).fill(CoreStyle.card.opacity(0.96)))
     .overlay(RoundedRectangle(cornerRadius:14).stroke(CoreStyle.teal.opacity(0.45),lineWidth:1))
     .shadow(color:CoreStyle.teal.opacity(0.25),radius:16)
@@ -454,35 +414,5 @@ struct CoreRoomView: View {
   }
   .animation(reduceMotion ? nil : .easeOut(duration:0.2),value:hovered ?? selected)
   .frame(maxWidth:.infinity,alignment:.center).padding(.bottom,2)
- }
-
- // MARK: the collapsible drawer: the live tape and the command line
-
- var drawer: some View {
-  VStack(spacing:0) {
-   Button { withAnimation(reduceMotion ? nil : .easeInOut(duration:0.28)) { drawerOpen.toggle() } } label: {
-    HStack(spacing:10) {
-     Image(systemName:drawerOpen ? "chevron.down" : "chevron.up").font(.system(size:10,weight:.semibold)).foregroundStyle(CoreStyle.emerald)
-     Text("ACTIVITY & COMMAND LINE").font(.system(size:10,weight:.semibold,design:.rounded)).tracking(2).foregroundStyle(CoreStyle.dim)
-     if !drawerOpen {
-      Text(snapshot.newest).font(DeckMono.font(10.5)).foregroundStyle(CoreStyle.ink.opacity(0.7)).lineLimit(1)
-     }
-     Spacer(minLength:0)
-     Text(drawerOpen ? "hide" : "ask Friday").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.emerald)
-    }
-    .padding(.horizontal,26).padding(.vertical,11).contentShape(Rectangle())
-   }
-   .buttonStyle(.plain)
-   if drawerOpen {
-    VStack(spacing:10) {
-     tape.frame(height:150)
-     terminal
-    }
-    .padding(.horizontal,22).padding(.bottom,12)
-    .transition(.move(edge:.bottom).combined(with:.opacity))
-   }
-  }
-  .background(CoreStyle.charcoal.opacity(0.92))
-  .overlay(alignment:.top) { Rectangle().fill(LinearGradient(colors:[.clear,CoreStyle.crimson.opacity(0.55),.clear],startPoint:.leading,endPoint:.trailing)).frame(height:1) }
  }
 }

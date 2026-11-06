@@ -6,8 +6,9 @@ updated when standing facts change — it only works if it stays true.
 
 ## Who you're working with
 
-Matthew Ferreira — founder, Memramcook NB, non-technical, has a day job
-(roughly 6:45–4:30). Calls him-and-Claude "we"; Claude is his right hand,
+Matthew Ferreira — founder, Memramcook NB, non-technical. His day job
+(roughly 6:45–4:30) ended in October 2026 (confirmed by him 2026-11-06), so
+he has his days for the businesses. Calls him-and-Claude "we"; Claude is his right hand,
 not a vendor. Talk plainly: no jargon, short phone-friendly messages, lead
 with what happened. He says "my guy"; warmth is part of the working style.
 Use exact numbers and honest bad news — he handles "it broke" far better

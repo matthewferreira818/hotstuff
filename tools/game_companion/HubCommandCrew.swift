@@ -68,39 +68,33 @@ struct CoreCrewView: View {
   .accessibilityLabel("\(m.name): \(word(m))")
  }
 
- // The living pixel station (our own art, PixelCrew.swift / HubCrew.swift), in an amber CRT frame. Every pose is a real signal: typing = a post or
+ // The living pixel station (our own art, PixelCrew.swift / HubCrew.swift), in Command Core's own frame (near-black, hairline border). Every pose is a real signal: typing = a post or
  // commit in the last 30 min, walking = a message to someone in the last 15 min, asleep = nothing in 30 min, away sign = a room message said so.
- static let crt = HubTheme.hex(0xF2A93B)
+ static let crt = CoreStyle.dim
  var stationCard: some View {
   VStack(alignment:.leading,spacing:8) {
    HStack(spacing:10) {
-    Text("[ CREW STATION ]").font(DeckMono.font(12,.bold)).foregroundStyle(Self.crt).shadow(color:Self.crt.opacity(0.6),radius:6)
-    Text("live · real signals only").font(DeckMono.font(10.5)).foregroundStyle(Self.crt.opacity(0.6))
+    Text("Crew station").font(.system(size:13,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.ink)
+    Text("live · real signals only").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)
     Spacer(minLength:0)
-    Text("\(crew.filter { $0.state == .working }.count) typing").font(DeckMono.font(10.5)).foregroundStyle(Self.crt.opacity(0.85))
+    Text("\(crew.filter { $0.state == .working }.count) typing").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.emerald)
    }
    CrewStationView(crew:crew,visits:visits,reduceMotion:reduceMotion)
     .aspectRatio(760.0 / 640.0,contentMode:.fit)
     .frame(maxWidth:.infinity)
-    .background(HubTheme.hex(0x070503),in:RoundedRectangle(cornerRadius:8))
-    .overlay { Canvas { ctx,size in
-      var y: CGFloat = 0
-      while y < size.height { ctx.fill(Path(CGRect(x:0,y:y,width:size.width,height:1)),with:.color(Color.black.opacity(0.22))); y += 3 }
-      ctx.fill(Path(CGRect(origin:.zero,size:size)),with:.color(Self.crt.opacity(0.045)))
-     }.allowsHitTesting(false).clipShape(RoundedRectangle(cornerRadius:8)) }
-    .overlay(RoundedRectangle(cornerRadius:8).stroke(Self.crt.opacity(0.55),lineWidth:1))
-    .shadow(color:Self.crt.opacity(0.14),radius:10)
+    .background(HubTheme.hex(0x08080A),in:RoundedRectangle(cornerRadius:8))
+    .overlay(RoundedRectangle(cornerRadius:8).stroke(Color.white.opacity(0.07),lineWidth:1))
    PixelCrewCard(crew:crew,visits:visits).frame(height:96,alignment:.top)
    HStack(spacing:12) {
     ForEach([(CrewState.working,"typing"),(.idle,"asleep"),(.away,"away"),(.failing,"run failed"),(.unknown,"no data")],id:\.1) { e in
-     HStack(spacing:5) { Circle().fill(color(e.0)).frame(width:7,height:7); Text(e.1).font(DeckMono.font(10)).foregroundStyle(Self.crt.opacity(0.7)) }
+     HStack(spacing:5) { Circle().fill(color(e.0)).frame(width:7,height:7); Text(e.1).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
     }
-    HStack(spacing:4) { Text("✉").font(.system(size:10)).foregroundStyle(Self.crt); Text("walking: messaged in 15 min").font(DeckMono.font(10)).foregroundStyle(Self.crt.opacity(0.7)) }
+    HStack(spacing:4) { Text("✉").font(.system(size:10)).foregroundStyle(CoreStyle.dim); Text("walking: messaged in 15 min").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
    }
   }
   .padding(13).frame(maxWidth:.infinity,alignment:.topLeading)
-  .background(RoundedRectangle(cornerRadius:11).fill(HubTheme.hex(0x0C0905)))
-  .overlay(RoundedRectangle(cornerRadius:11).stroke(Self.crt.opacity(0.25),lineWidth:1))
+  .background(RoundedRectangle(cornerRadius:11).fill(HubTheme.hex(0x111114)))
+  .overlay(RoundedRectangle(cornerRadius:11).stroke(Color.white.opacity(0.065),lineWidth:1))
  }
 
  var listCard: some View {
@@ -179,7 +173,7 @@ struct CoreCrewView: View {
     }
    }
    if n > 0 {
-    Button(action:openMeeting) { Text("[ Answer in the Meeting Room ]").font(DeckMono.font(11,.bold)).foregroundStyle(Self.crt) }.buttonStyle(.plain)
+    Button(action:openMeeting) { Text("Answer in the Meeting Room ›").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal) }.buttonStyle(.plain)
    }
   }
  }

@@ -389,7 +389,7 @@ struct PixelCrewCard: View {
        Text(m.role).font(.system(size:10.5)).foregroundStyle(HubTheme.subtext).lineLimit(1)
       }
       Text(PixelCrew.line(m,visit:visits.first(where:{ $0.from == id }),crew:crew)).font(.system(size:12)).foregroundStyle(HubTheme.text.opacity(0.9)).lineLimit(2)
-      if let url = URL(string:link.url) { Link(link.title + " ↗",destination:url).font(.system(size:11,weight:.medium)).foregroundStyle(HubTheme.amber) }
+      if let url = URL(string:link.url) { Link(link.title + " ↗",destination:url).font(.system(size:11,weight:.medium)).foregroundStyle(HubTheme.teal) }
      }
      Spacer(minLength:6)
      Button { pick.selected = nil } label: { Image(systemName:"xmark").font(.system(size:10,weight:.bold)) }
@@ -398,7 +398,7 @@ struct PixelCrewCard: View {
     .padding(10)
     .frame(maxHeight:96,alignment:.top)
     .background(HubTheme.hex(0x141A17),in:RoundedRectangle(cornerRadius:8))
-    .overlay(RoundedRectangle(cornerRadius:8).stroke(HubTheme.amber.opacity(0.5),lineWidth:1))
+    .overlay(RoundedRectangle(cornerRadius:8).stroke(Color(red:0.88,green:0.22,blue:0.29).opacity(0.55),lineWidth:1))
    } else {
     Text("Click a character (or a name in the list) to see what they're doing.").font(DeckMono.font(10.5)).foregroundStyle(HubTheme.subtext)
    }

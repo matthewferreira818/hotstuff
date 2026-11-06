@@ -139,7 +139,7 @@ struct CoreJobsCard: View {
     .padding(.vertical,4)
     Divider().overlay(Color.white.opacity(0.05))
    }
-   Text("From ~/Claude/crew-jobs on this Mac" + (model.readAt.map { " · read \(Self.time.string(from:$0))" } ?? ""))
+   Text((JobFiles.testing ? "From the TEST job file (test copy)" : "From ~/Claude/crew-jobs on this Mac") + (model.readAt.map { " · read \(Self.time.string(from:$0))" } ?? ""))
     .font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
   }
   .onAppear { model.start() }

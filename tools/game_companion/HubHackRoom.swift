@@ -70,8 +70,8 @@ struct HackInbox: Codable {
 }
 
 enum HackPalette {
- static let bg = HubTheme.hex(0x07090A)
- static let panel = HubTheme.hex(0x0C1012)
+ static let bg = HubTheme.hex(0x060607)
+ static let panel = HubTheme.hex(0x0F0F12)
  static let crimson = Color(red:0.86,green:0.16,blue:0.24)
  static let cyan = Color(red:0.35,green:0.85,blue:0.95)
 }
@@ -354,7 +354,7 @@ struct HackRoomFrame<Content: View>: View {
     }
     .allowsHitTesting(false)
    }
-   RadialGradient(colors:[CoreStyle.teal.opacity(0.14),.clear],center:.top,startRadius:20,endRadius:700).allowsHitTesting(false)
+   RadialGradient(colors:[CoreStyle.crimson.opacity(0.06),.clear],center:.top,startRadius:20,endRadius:700).allowsHitTesting(false)
    if state.hidden {
     VStack(spacing:14) {
      Circle().fill(RadialGradient(colors:[HackPalette.crimson,HackPalette.crimson.opacity(0.15)],center:.center,startRadius:2,endRadius:60)).frame(width:110,height:110)

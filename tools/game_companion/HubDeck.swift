@@ -198,38 +198,39 @@ extension CompanionInterfaceView {
   .padding(.horizontal,hub.compact ? 16 : 32).padding(.top,16).padding(.bottom,8)
  }
 
- // The Hacking area's own tabs, in terminal type.
+ // Command Core's own tabs: flat text tabs, the active one underlined in crimson (Matthew's reference).
  var deckHackNav: some View {
   HStack(spacing:6) {
    Circle().fill(HubTheme.green).frame(width:7,height:7).accessibilityHidden(true)
-   Text("COMMAND CORE").font(.system(size:12,weight:.semibold,design:.rounded)).tracking(3).foregroundStyle(HubTheme.text).lineLimit(1).fixedSize()
+   Text("Command Core").font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text).lineLimit(1).fixedSize()
    Spacer(minLength:8)
    ForEach(Self.deckHack) { section in
     let on = hub.section == section
     Button { hubSelect(section) } label: {
-     Text(deckHackLabel(section)).font(.system(size:11,weight:.semibold,design:.rounded)).tracking(1).lineLimit(1).fixedSize()
-      .foregroundStyle(on ? HubTheme.background : HubTheme.subtext)
-      .padding(.horizontal,10).frame(height:32)
-      .background(on ? HubTheme.green : Color.clear,in:RoundedRectangle(cornerRadius:6))
-      .overlay(RoundedRectangle(cornerRadius:6).stroke(on ? HubTheme.green : HubTheme.line,lineWidth:1))
-      .contentShape(Rectangle())
+     VStack(spacing:6) {
+      Text(deckHackLabel(section)).font(.system(size:13.5,weight:on ? .semibold : .regular,design:.rounded)).lineLimit(1).fixedSize()
+       .foregroundStyle(on ? Color.white : HubTheme.subtext)
+      Rectangle().fill(on ? CoreStyle.crimson : Color.clear).frame(height:2)
+     }
+     .padding(.horizontal,10).padding(.top,6)
+     .contentShape(Rectangle())
     }
     .buttonStyle(.plain).accessibilityLabel(section.title).accessibilityAddTraits(on ? .isSelected : [])
    }
   }
-  .padding(.horizontal,hub.compact ? 12 : 24).padding(.vertical,10)
-  .background(Color.black.opacity(0.35))
-  .overlay(alignment:.bottom) { Rectangle().fill(HubTheme.line).frame(height:1) }
+  .padding(.horizontal,hub.compact ? 12 : 24).padding(.top,4)
+  .background(CoreStyle.bg.opacity(0.9))
+  .overlay(alignment:.bottom) { Rectangle().fill(Color.white.opacity(0.07)).frame(height:1) }
  }
 
  func deckHackLabel(_ section: HubSection) -> String {
   switch section {
-  case .hacking: return "OVERVIEW"
-  case .systems: return "SYSTEMS"
-  case .shield: return "GUARD"
-  case .lab: return "CYBER LAB"
-  case .realFake: return "VERIFICATION"
-  case .crewStation: return "CREW STATION"
+  case .hacking: return "Overview"
+  case .systems: return "Systems"
+  case .shield: return "Guard"
+  case .lab: return "Cyber Lab"
+  case .realFake: return "Verification"
+  case .crewStation: return "Crew Station"
   default: return section.title.uppercased()
   }
  }

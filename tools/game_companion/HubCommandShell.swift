@@ -56,8 +56,8 @@ struct CoreShell: View {
  var header: some View {
   HStack(alignment:.bottom,spacing:14) {
    VStack(alignment:.leading,spacing:3) {
-    Text("COMMAND CORE").font(.system(size:12,weight:.semibold,design:.rounded)).tracking(4).foregroundStyle(CoreStyle.crimson)
-    Text(title).font(.system(size:26,weight:.light,design:.rounded)).foregroundStyle(CoreStyle.ink)
+    (Text("Command Core ").foregroundStyle(CoreStyle.crimson) + Text("/ \(title)").foregroundStyle(CoreStyle.ink))
+     .font(.system(size:23,weight:.regular,design:.rounded))
     Text(subtitle).font(.system(size:13.5,design:.rounded)).foregroundStyle(subtitleTone == 0 ? CoreStyle.dim : tone(subtitleTone)).lineLimit(1)
    }
    Spacer(minLength:0)

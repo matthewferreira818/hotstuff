@@ -275,9 +275,9 @@ extension CompanionInterfaceView {
   case .meeting: hubMeeting
   case .stream: hubStream
   case .helper: hubHelper
-  case .shield: hubGuard
+  case .shield: commandCoreGuard
   case .realFake: hubRealOrFake
-  case .lab: hubLab
+  case .lab: commandCoreLab
   case .council: hubCouncil
   case .hacking: commandCoreRoom
   case .crewStation: deckCrewStation

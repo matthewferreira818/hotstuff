@@ -12,13 +12,13 @@ import AppKit
 // Tap or hover a node for what it is. The old live tape and the command line live in the drawer at the bottom (collapsed by default).
 
 enum CoreStyle {
- static let bg = HubTheme.hex(0x030A0B)            // deep teal-black
- static let charcoal = HubTheme.hex(0x08131A)
- static let card = HubTheme.hex(0x0B1A1E)
+ static let bg = HubTheme.hex(0x060607)            // near-black
+ static let charcoal = HubTheme.hex(0x0C0C0E)
+ static let card = HubTheme.hex(0x0F0F12)
  static let teal = HubTheme.hex(0x1FA39A)          // structure: rings, lines, labels
  static let emerald = HubTheme.hex(0x2FD39A)       // healthy, alive
  static let amber = HubTheme.hex(0xC9A04A)         // restrained amber: "needs a look" only
- static let crimson = HubTheme.hex(0xD6293F)       // real failures, and a faint rim of Friday's identity
+ static let crimson = HubTheme.hex(0xE0394B)       // real failures, and a faint rim of Friday's identity
  static let ink = Color.white.opacity(0.92)
  static let dim = Color.white.opacity(0.52)
  static let faint = Color.white.opacity(0.08)
@@ -234,7 +234,7 @@ struct CoreRoomView: View {
     }
     .padding(16).frame(maxWidth:.infinity,minHeight:132,maxHeight:.infinity,alignment:.topLeading)
     .background(RoundedRectangle(cornerRadius:16).fill(LinearGradient(colors:[CoreStyle.card,CoreStyle.charcoal],startPoint:.top,endPoint:.bottom)))
-    .overlay(RoundedRectangle(cornerRadius:16).stroke(LinearGradient(colors:[Color.white.opacity(0.10),Color.white.opacity(0.02)],startPoint:.top,endPoint:.bottom),lineWidth:1))
+    .overlay(RoundedRectangle(cornerRadius:16).stroke(LinearGradient(colors:[CoreStyle.crimson.opacity(0.30),Color.white.opacity(0.04)],startPoint:.top,endPoint:.bottom),lineWidth:1))
    }
   }
  }
@@ -288,9 +288,9 @@ struct CoreRoomView: View {
       for ring in 1...3 {
        let (rx,ry) = radii(ring)
        var p = Path(); p.addEllipse(in:CGRect(x:center.x - rx,y:center.y - ry,width:rx * 2,height:ry * 2))
-       ctx.stroke(p,with:.color(CoreStyle.teal.opacity(0.22)),lineWidth:1)
+       ctx.stroke(p,with:.color(CoreStyle.crimson.opacity(0.28)),lineWidth:1)
        if (groups[ring] ?? []).isEmpty == false {
-        ctx.draw(ctx.resolve(Text(Self.ringCaption[ring]).font(.system(size:9.5,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.teal.opacity(0.75))),at:CGPoint(x:center.x,y:center.y - ry - 7),anchor:.center)
+        ctx.draw(ctx.resolve(Text(Self.ringCaption[ring]).font(.system(size:9.5,weight:.semibold,design:.rounded)).foregroundStyle(Color.white.opacity(0.45))),at:CGPoint(x:center.x,y:center.y - ry - 7),anchor:.center)
        }
       }
       // slow pulse from the core: decoration only
@@ -304,7 +304,7 @@ struct CoreRoomView: View {
       for n in groups[1] ?? [] {
        let pt = position(of:n,in:groups[1] ?? [],size:size,time:t)
        var l = Path(); l.move(to:center); l.addLine(to:pt)
-       ctx.stroke(l,with:.color(CoreStyle.teal.opacity(selected == n.id || hovered == n.id ? 0.85 : 0.22)),lineWidth:selected == n.id || hovered == n.id ? 1.6 : 1)
+       ctx.stroke(l,with:.color(CoreStyle.crimson.opacity(selected == n.id || hovered == n.id ? 0.9 : 0.25)),lineWidth:selected == n.id || hovered == n.id ? 1.6 : 1)
       }
       // the selected node's link to the core (a pointer for the eye; the flowing dash is decoration, not traffic)
       if let sel = snapshot.nodes.first(where:{ $0.id == (selected ?? hovered) }), sel.ring > 0 {
@@ -333,17 +333,18 @@ struct CoreRoomView: View {
         }
        }
       }
-      // the core: this Mac. Colour = Guard + automations.
+      // the core: this Mac. A dark disc with a crimson rim; the ring inside is its state (emerald calm, amber needs a look).
       if let mac = (groups[0] ?? []).first {
-       let col: Color = snapshot.verdict == 0 ? CoreStyle.teal.opacity(0.6) : (mac.warn ? CoreStyle.amber : CoreStyle.emerald)
-       let breathe: CGFloat = reduceMotion ? 1 : 1 + 0.04 * CGFloat(sin(t * 1.1))
+       let col: Color = snapshot.verdict == 0 ? Color.white.opacity(0.35) : (mac.warn ? CoreStyle.amber : CoreStyle.emerald)
+       let breathe: CGFloat = reduceMotion ? 1 : 1 + 0.03 * CGFloat(sin(t * 1.1))
        let rad: CGFloat = 40 * breathe
-       ctx.fill(Path(ellipseIn:CGRect(x:center.x - rad * 3,y:center.y - rad * 3,width:rad * 6,height:rad * 6)),
-                with:.radialGradient(Gradient(colors:[col.opacity(0.20),.clear]),center:center,startRadius:0,endRadius:rad * 3))
+       ctx.fill(Path(ellipseIn:CGRect(x:center.x - rad * 2.4,y:center.y - rad * 2.4,width:rad * 4.8,height:rad * 4.8)),
+                with:.radialGradient(Gradient(colors:[CoreStyle.crimson.opacity(0.14),.clear]),center:center,startRadius:0,endRadius:rad * 2.4))
        ctx.fill(Path(ellipseIn:CGRect(x:center.x - rad,y:center.y - rad,width:rad * 2,height:rad * 2)),
-                with:.radialGradient(Gradient(colors:[col.opacity(0.95),col.opacity(0.25)]),center:center,startRadius:2,endRadius:rad))
-       ctx.stroke(Path(ellipseIn:CGRect(x:center.x - rad - 6,y:center.y - rad - 6,width:(rad + 6) * 2,height:(rad + 6) * 2)),with:.color(CoreStyle.crimson.opacity(0.35)),lineWidth:1)
-       ctx.draw(ctx.resolve(Text("THIS MAC").font(.system(size:10,weight:.bold,design:.rounded)).foregroundStyle(Color.black.opacity(0.75))),at:center,anchor:.center)
+                with:.radialGradient(Gradient(colors:[Color(red:0.16,green:0.05,blue:0.07),Color(red:0.05,green:0.02,blue:0.03)]),center:center,startRadius:2,endRadius:rad))
+       ctx.stroke(Path(ellipseIn:CGRect(x:center.x - rad,y:center.y - rad,width:rad * 2,height:rad * 2)),with:.color(CoreStyle.crimson.opacity(0.9)),lineWidth:2)
+       ctx.stroke(Path(ellipseIn:CGRect(x:center.x - rad + 7,y:center.y - rad + 7,width:(rad - 7) * 2,height:(rad - 7) * 2)),with:.color(col.opacity(0.85)),lineWidth:1.5)
+       ctx.draw(ctx.resolve(Text("THIS MAC").font(.system(size:10,weight:.bold,design:.rounded)).foregroundStyle(Color.white.opacity(0.92))),at:center,anchor:.center)
       }
      }
      .contentShape(Rectangle())

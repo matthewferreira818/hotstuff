@@ -53,7 +53,7 @@ enum CrewChatData {
 
  func refresh(token: String?,force: Bool = false) async {
   if case .loading = status { return }
-  if !force && Date().timeIntervalSince(lastRun) < 45 { return }
+  if !force && Date().timeIntervalSince(lastRun) < 300 { return }   // keyless GitHub reads are limited (60 an hour per network): about 4 reads a refresh, so no more than once in 5 minutes unless Refresh is pressed
   guard !GuardHub.isOffline else { messages = []; status = .failed(Date()); return }
   status = .loading
   lastRun = Date()

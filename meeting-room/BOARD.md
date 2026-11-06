@@ -62,6 +62,7 @@ _Last updated: 2026-11-06 3:05 PM by Claude (NB2)_
 - (none open: the October questions went to the archive on 11-05)
 
 ## Decisions
+- 2026-11-06 ~5:25 PM: Matthew: Friday gets cloud Claude's permissions ("she's earned it"): Co-CEO with Claude, may merge to master after the gate, post/publish under rule 3, direct the crew. Same 4 locks, money mode, selling pause. Disagreement: safer option holds till Matthew. CLAUDE.md.
 - 2026-11-06 ~5 PM: Matthew: robots AUTO-START on weekdays. LC-Manager's 9:35 standup runs ~/Claude/bin/robot-start.sh (practice robots only, no inputs, his gh login; starts only robots with no run that day). Tested by dry run.
 - 2026-11-06: Matthew (in LC-Manager's chat, ~6:40 AM): the LC standup runs AUTOMATICALLY on weekdays ~9:30 AM while the Mac is on (local scheduled task lc-manager-standup): board section + one room line; robots reported, never started (LC-Work starts them).
 - 2026-11-06: Matthew GO on Friday Phase 1 "She thinks" (typed chat on Claude, crew chat, honest numbers, crew strip). Rule kept: crew runs polish rounds with a "Matthew's eyes" review; Matthew looks once per phase.

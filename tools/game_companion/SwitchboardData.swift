@@ -343,8 +343,9 @@ enum SwitchboardRules {
  // --tools limits the built-in tools to these three; --strict-mcp-config drops every MCP connector. dontAsk + no prompts, as for jobs.
  // Haiku setting (Matthew, 2026-11-06 ~5:51 PM via NB2: "create it as a setting, so i can turn it on later"). OFF by default = today's
  // behaviour, unchanged (no --model, so Matthew's default model). ON = relays and wakes add --model haiku. Proof so far:
- // tools/crew/haiku-test/results/ (2026-11-06-1742: 40/40 = Sonnet, LC-Manager PASS) and Friday's live wake test (3/3 delivered word for word,
- // a missing chat correctly NOT DELIVERED). parseRelay below still proves every delivery (target + exact text) either way, so a Haiku slip
+ // tools/crew/haiku-test/results/ — sorting: 2026-11-06-1742 PASS (40/40 = Sonnet, LC-Manager facts read PASS), 2026-11-06-1809-set2 FAIL
+ // (37 vs Sonnet's 39 of 40; named the wrong chat twice). Deliveries: Friday's live wake test (3/3 word for word, a missing chat correctly
+ // NOT DELIVERED) and 2026-11-06-wake-timing (6/6 exact; median 10.6 s Haiku vs 9.5 s Sonnet, so not faster). parseRelay below still proves every delivery (target + exact text) either way, so a Haiku slip
  // shows as NOT DELIVERED / UNPROVEN and goes to the backup. Full Switchboard jobs and Friday's brain never use this setting.
  static let lightModel = "haiku"
  static let lightKey = "switchboard.haikuLight"   // UserDefaults, per app ID: absent = OFF

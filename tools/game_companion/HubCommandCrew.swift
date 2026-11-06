@@ -11,6 +11,9 @@ struct CoreCrewView: View {
  var tasks: [BoardItem]
  var questions: [BoardItem]
  var confirms: [RoomMessage]
+
+ var visits: [PixelVisit]
+ var reduceMotion: Bool
  var boardKnown: Bool
  var openMeeting: () -> Void
 
@@ -37,7 +40,7 @@ struct CoreCrewView: View {
   ScrollView {
    HStack(alignment:.top,spacing:12) {
     VStack(spacing:12) {
-     ringCard
+     stationCard
      tasksCard
     }.frame(maxWidth:.infinity)
     VStack(spacing:12) {
@@ -65,24 +68,33 @@ struct CoreCrewView: View {
   .accessibilityLabel("\(m.name): \(word(m))")
  }
 
- var ringCard: some View {
-  CoreCard(title:"Crew around Friday",icon:"person.3") {
-   GeometryReader { geo in
-    let c = CGPoint(x:geo.size.width / 2,y:geo.size.height / 2)
-    let rx = max(80,min(geo.size.width / 2 - 56,230)), ry = max(60,geo.size.height / 2 - 40)
-    let n = max(ringCrew.count,1)
-    ZStack {
-     Ellipse().stroke(CoreStyle.teal.opacity(0.28),lineWidth:1).frame(width:rx * 2,height:ry * 2).position(c)
-     if let f = friday { node(f,size:52).position(c) }
-     ForEach(Array(ringCrew.enumerated()),id:\.element.id) { i,m in
-      let a = -Double.pi / 2 + Double(i) * 2 * Double.pi / Double(n)
-      node(m,size:38).position(x:c.x + CGFloat(cos(a)) * rx,y:c.y + CGFloat(sin(a)) * ry)
-     }
-    }
+ // The living pixel station (our own art, PixelCrew.swift / HubCrew.swift), in Command Core's own frame (near-black, hairline border). Every pose is a real signal: typing = a post or
+ // commit in the last 30 min, walking = a message to someone in the last 15 min, asleep = nothing in 30 min, away sign = a room message said so.
+ static let crt = CoreStyle.dim
+ var stationCard: some View {
+  VStack(alignment:.leading,spacing:8) {
+   HStack(spacing:10) {
+    Text("Crew station").font(.system(size:13,weight:.semibold,design:.rounded)).foregroundStyle(CoreStyle.ink)
+    Text("live · real signals only").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)
+    Spacer(minLength:0)
+    Text("\(crew.filter { $0.state == .working }.count) typing").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.emerald)
    }
-   .frame(height:290)
-   Text("Rings show real states: green is working (a post or commit in the last 30 minutes), teal is idle, amber is away.").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
+   CrewStationView(crew:crew,visits:visits,reduceMotion:reduceMotion)
+    .aspectRatio(760.0 / 640.0,contentMode:.fit)
+    .frame(maxWidth:.infinity)
+    .background(HubTheme.hex(0x08080A),in:RoundedRectangle(cornerRadius:8))
+    .overlay(RoundedRectangle(cornerRadius:8).stroke(Color.white.opacity(0.07),lineWidth:1))
+   PixelCrewCard(crew:crew,visits:visits).frame(height:96,alignment:.top)
+   HStack(spacing:12) {
+    ForEach([(CrewState.working,"typing"),(.idle,"asleep"),(.away,"away"),(.failing,"run failed"),(.unknown,"no data")],id:\.1) { e in
+     HStack(spacing:5) { Circle().fill(color(e.0)).frame(width:7,height:7); Text(e.1).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
+    }
+    HStack(spacing:4) { Text("✉").font(.system(size:10)).foregroundStyle(CoreStyle.dim); Text("walking: messaged in 15 min").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
+   }
   }
+  .padding(13).frame(maxWidth:.infinity,alignment:.topLeading)
+  .background(RoundedRectangle(cornerRadius:11).fill(HubTheme.hex(0x111114)))
+  .overlay(RoundedRectangle(cornerRadius:11).stroke(Color.white.opacity(0.065),lineWidth:1))
  }
 
  var listCard: some View {
@@ -103,19 +115,46 @@ struct CoreCrewView: View {
   }
  }
 
+ // A clean one-line title from a raw board line: no markdown, no owner tag, cut at a word near 70 characters.
+ static func cleanTitle(_ raw: String,limit: Int = 70) -> String {
+  var t = raw
+  t = t.replacingOccurrences(of:"\\[([^\\]]*)\\]\\([^)]*\\)",with:"$1",options:.regularExpression)   // [text](url) -> text
+  for m in ["**","__","`","*"] { t = t.replacingOccurrences(of:m,with:"") }
+  t = t.replacingOccurrences(of:"^\\s*(\\[[^\\]]*\\]\\s*)+",with:"",options:.regularExpression)            // leading [Owner] tags
+  t = t.replacingOccurrences(of:"\\s*Status:.*$",with:"",options:[.regularExpression,.caseInsensitive])
+  t = t.replacingOccurrences(of:"\\s+",with:" ",options:.regularExpression).trimmingCharacters(in:CharacterSet(charactersIn:" -–—:;,."))
+  t = t.replacingOccurrences(of:"^\\([^)]*\\)\\s*",with:"",options:.regularExpression)                        // a leading "(LC-Manager owns)" note
+  for sep in [" (",": "] { if let r = t.range(of:sep), t.distance(from:t.startIndex,to:r.lowerBound) >= 12 { t = String(t[..<r.lowerBound]) } }
+  if let dot = t.range(of:". ") , t.distance(from:t.startIndex,to:dot.lowerBound) >= 12 { t = String(t[..<dot.lowerBound]) }
+  if t.count <= limit { return t }
+  let head = String(t.prefix(limit))
+  let cut = head.lastIndex(of:" ").map { String(head[..<$0]) } ?? head
+  return cut.trimmingCharacters(in:CharacterSet(charactersIn:" ,;:-–—")) + "…"
+ }
+
+ // The owner as a short chip: "Local Claude (LC-Pixels)" -> LC-Pixels, "Claude → Matthew" -> Claude.
+ static func ownerChip(_ raw: String) -> String {
+  var o = raw.components(separatedBy:"→").first ?? raw
+  if let open = o.firstIndex(of:"("), let close = o.lastIndex(of:")"), open < close { o = String(o[o.index(after:open)..<close]) }
+  return o.trimmingCharacters(in:.whitespaces)
+ }
+
  var tasksCard: some View {
   CoreCard(title:"Active tasks · from the board",icon:"checklist") {
    if !boardKnown { Text("The board hasn't loaded yet.").font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.dim) }
    else if tasks.isEmpty { Text("Nothing open on the board's \"On the table\" list.").font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.dim) }
-   ForEach(tasks.prefix(8)) { t in
-    HStack(alignment:.top,spacing:8) {
-     Text(t.owner.isEmpty ? "—" : t.owner).font(.system(size:10.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal).frame(width:92,alignment:.leading).lineLimit(1)
-     Text(t.text).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.88)).lineLimit(2).fixedSize(horizontal:false,vertical:true)
-     Spacer(minLength:4)
-     if !t.status.isEmpty { Text(t.status).font(.system(size:10,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1) }
+   ForEach(tasks.prefix(5)) { t in
+    HStack(spacing:8) {
+     Text(Self.cleanTitle(t.text)).font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.9)).lineLimit(1)
+     Spacer(minLength:6)
+     if !t.owner.isEmpty {
+      Text(Self.ownerChip(t.owner)).font(.system(size:10,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal).lineLimit(1)
+       .padding(.horizontal,7).padding(.vertical,2).overlay(Capsule().stroke(CoreStyle.teal.opacity(0.5),lineWidth:1))
+     }
+     Text(t.status.isEmpty ? "—" : t.status).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1).frame(minWidth:56,alignment:.trailing)
     }
    }
-   if tasks.count > 8 { Text("+ \(tasks.count - 8) more on the board").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
+   if tasks.count > 5 { Text("+ \(tasks.count - 5) more on the board").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
   }
  }
 
@@ -144,7 +183,9 @@ struct CoreCrewView: View {
 
 extension CompanionInterfaceView {
  var commandCoreCrew: some View {
-  let crew = deckCrewReal
+  let messages = PixelCrew.merged(meeting.messages,meeting.chat.messages)
+  let crew = PixelCrew.withFriday(deckCrewReal,messages:messages)
+  let visits = deckPixelVisits(crew:crew,messages:messages)
   let needs = meeting.needs
   let tasks = (meeting.board?.sections.first { $0.title.lowercased() == "on the table" }?.items ?? []).filter { !$0.isDone }
   let confirms = needs.messages.filter { let t = $0.text.trimmingCharacters(in:.whitespaces).uppercased(); return t.hasPrefix("CONFIRM") || t.hasPrefix("URGENT") }
@@ -152,12 +193,12 @@ extension CompanionInterfaceView {
   let working = crew.filter { $0.state == .working }.count
   let failing = crew.filter { $0.state == .failing }
   var obs = coreObservations()
-  for a in away { obs.append(CoreObservation(tone:0,text:"\(a.name) is away" + (a.awayUntil.map { " until " + $0.formatted(.dateTime.month().day()) } ?? "") + ".",why:"They said so in the room; nothing is waiting on them.",source:"Room message")) }
+  for a in away { obs.append(CoreObservation(tone:0,text:"\(a.name) is away" + (a.awayUntil.map { " until " + $0.formatted(.dateTime.month().day()) } ?? "") + ".",why:"They said so in a room message.",source:"Room message")) }
   for f in failing { obs.insert(CoreObservation(tone:3,text:"\(f.name): \(f.detail)",why:"Its last run failed. The crew can look at it.",source:"GitHub Actions read"),at:0) }
   if needs.questions.count + confirms.count > 0 {
    obs.insert(CoreObservation(tone:2,text:"\(needs.questions.count + confirms.count) thing\(needs.questions.count + confirms.count == 1 ? "" : "s") waiting on your OK.",why:"They're listed in the Waiting on you card.",source:"Board and room, now",actionTitle:"Open Meeting Room",run:{ hubSelect(.meeting) }),at:0)
   }
   return coreFrame("Crew Station","\(working) working · \(away.count) away · \(failing.count) failing. Real signals only.",tone:failing.isEmpty ? 0 : 3,observations:obs,
-                   content:AnyView(CoreCrewView(crew:crew,tasks:tasks,questions:needs.questions,confirms:confirms,boardKnown:meeting.board != nil,openMeeting:{ hubSelect(.meeting) })))
+                   content:AnyView(CoreCrewView(crew:crew,tasks:tasks,questions:needs.questions,confirms:confirms,visits:visits,reduceMotion:reduceMotion,boardKnown:meeting.board != nil,openMeeting:{ hubSelect(.meeting) })))
  }
 }

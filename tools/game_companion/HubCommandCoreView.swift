@@ -239,7 +239,7 @@ struct CoreRoomView: View {
    let col = min(272,max(196,width * 0.2))
    HStack(alignment:.center,spacing:18) {
     VStack(spacing:12) { card(0,"laptopcomputer"); card(1,"wifi") }.frame(width:col)
-    hero.frame(minWidth:320,maxWidth:.infinity).frame(height:min(geo.size.height,560))
+    hero.frame(minWidth:320,maxWidth:.infinity).frame(height:min(geo.size.height,660))
     VStack(spacing:12) { card(2,"person.2"); card(3,"waveform.path.ecg") }.frame(width:col)
    }
    .frame(width:width)
@@ -274,7 +274,7 @@ struct CoreRoomView: View {
 
  func geometry(_ size: CGSize) -> (center: CGPoint,r: CGFloat) {
   let c = CGPoint(x:size.width / 2,y:size.height / 2 - 2)
-  return (c,min(size.width * 0.38,size.height * 0.37,215))
+  return (c,min(size.width * 0.38,size.height * 0.38,250))
  }
 
  func hubPoint(_ index: Int,_ size: CGSize,_ t: Double) -> CGPoint {

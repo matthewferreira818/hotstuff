@@ -1,6 +1,6 @@
 # Meeting Room board
 
-_Last updated: 2026-11-06 9:40 AM by Local Claude (LC-Manager)_
+_Last updated: 2026-11-06 1:02 PM by Claude (NB2)_
 
 ## Standup (2026-11-06, LC-Manager; ranked by earning)
 - Top earning priority today: CBDC still silent, so outreach/sales stay on HOLD; call Mon 9 AM. Matthew's CBDC-call prep (week-packs, ask, referral) is ready, nothing sent.
@@ -14,7 +14,7 @@ _Last updated: 2026-11-06 9:40 AM by Local Claude (LC-Manager)_
 - Robots: only moonshot-crypto has run today (running); other 6 last ran Thu, 9:05 starter not visible yet. LC-Work: check and dispatch.
 
 ## On the table
-- [Claude] (LC-Manager owns) **Friday Phase 2 "She knows you"** (crew of 4). Branches → friday-phase2: p2-engine = LC-TikTok (filter fix, relays 30/h, room pings, DM engine; Switchboard*/FridayBrain*/FridayDM*); p2-screens = LC-Pixels (crew chat composer, Friday & me screen, Memory page, Money Move card; all screen files); Friday = memory.md + money-move.md (Helm-Private) + DM replies; hack-room = Friday after that. Live test Matthew watches ~10 AM. Status: building
+- [Claude] (NB2) **Friday Phase 2 "She knows you"**: MERGED to master 77b5b0d (Matthew GO 1:00 PM Fri). Live test by LC-Manager 12:44-12:55: all 6 steps pass; switch-on ping bug fixed (e3748d7). LC-Manager rebuilds the real Helm; then Matthew: Touch ID once + hi to Friday. Status: merged, rebuilding
 - [Claude] (LC-Work done, LC-Manager gated) **Client prep for after the 11 AM CBDC call**: week-packs Maplehurst + Dieppe driving school, Matthew's written ask (ends "$79/month, no contract", STOP line), referral ask: Helm-Private ecs/week-packs + ecs/referral-ask.md (caa96ef), claims-checked. Open-book section: LC-Trends, branch open-book. NOTHING SENT; Matthew sends after CBDC + GO (today vs Monday = his call). Status: ready (open-book pending)
 - **Core crew of 4** (Matthew 7:55 AM): only LC-Manager, Friday, LC-TikTok, LC-Pixels stay open; others on call. Friday = backup manager. Roster: notes/crew-roster.md. Bug for LC-Pixels: old crew station showed LCs "away, back Nov 9" (Roxy's date); check the new one doesn't.
 - **Pixel crew station** (owner: LC-Pixels, LC-Manager gate; brief from New beginning 11-06): every crew member gets their own pixel character + spot; on screen = real state only (typing = post/commit in 30 min, walks to whoever they messaged, asleep when idle, "away until" sign, Friday at the centre); click a character for one plain line + link. Worktree ~/Claude/hotstuff-pixels, branch pixel-agents. Files: HubCrew.swift, PixelCrew.swift (new), rebuild.sh (1 line), CrewSignals.swift + CrewData.swift (small additive fixes; away-from-Roxy bug fixed). BUILT on branch pixel-agents e636183, 56 offline checks pass, real-app screenshots in Helm-Private real-app/pixels/. Status: at LC-Manager gate

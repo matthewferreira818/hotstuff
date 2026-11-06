@@ -1,5 +1,9 @@
 import Foundation
 
+// READ BUDGET (keyless GitHub limit = 60 reads/hour per network, shared by the whole app): crew chat ~48/h (4 per 5 min), room + board +
+// runs: see MeetingRoom/VentureData; THIS file: 1 read per 6 min = 10/h without a key. Net: keep this at 1 read per round, never more.
+// The key (if the app holds one for the Meeting Room) is NOT reachable from here; a caller that has it sets CrewSignals.token. No new key.
+
 // Signs of life for each crew chat, read from GitHub: owner-authored comments on the Hotline (PR #35) and issue 15, plus commits in the
 // last 30 minutes on each chat's branch. Pure decision logic (CrewSignals.decide) is separate from the fetching so it can be checked offline.
 
@@ -52,7 +56,7 @@ enum CrewSignals {
  private static func store(_ r: (signals: [CrewSignal],failed: Bool,loaded: Bool)) { lock.lock(); snapshot = r; inFlight = false; lock.unlock() }
  static func current() -> (signals: [CrewSignal],failed: Bool,loaded: Bool) { lock.lock(); defer { lock.unlock() }; return snapshot }
 
- // Called from build(); one round (5 reads) every 6 min without a key (GitHub allows 60/h per network), every 3 min with one.
+ // Called from build(); ONE read per round: every 6 min without a key (10/h), every 3 min with one.
  static var token: String? = nil   // optional: a caller that already holds the GitHub key can set it (5000 reads/h instead of 60)
  static func refreshIfStale() {
   lock.lock()
@@ -64,38 +68,36 @@ enum CrewSignals {
   }
  }
 
- static func fetch(token: String?,now: Date = Date()) async -> (signals: [CrewSignal],failed: Bool,loaded: Bool) {
+ // Parse GitHub's repo events feed (ONE read): owner-authored IssueCommentEvents on #35 (Hotline) in the window, and PushEvents to a
+ // branch we own. Pure, so it can be checked offline. The feed can lag (often under a minute, sometimes longer): fine for a 30-min window.
+ static func parseEvents(_ data: Data,now: Date) -> [CrewSignal]? {
+  guard let rows = (try? JSONSerialization.jsonObject(with:data)) as? [[String:Any]] else { return nil }
   let iso = ISO8601DateFormatter()
-  let since = iso.string(from:now.addingTimeInterval(-window))
   var out: [CrewSignal] = []
-  var failed = false
-  func get(_ path: String,okMissing: Bool = false) async -> [[String:Any]]? {
-   guard let req = MeetingData.api(path,token:token), let (data,resp) = try? await URLSession.shared.data(for:req),
-         let code = (resp as? HTTPURLResponse)?.statusCode else { failed = true; return nil }
-   if code == 404 && okMissing { return [] }
-   guard code == 200, let rows = (try? JSONSerialization.jsonObject(with:data)) as? [[String:Any]] else { failed = true; return nil }
-   return rows
-  }
-  // Hotline PR #35 (and issue 15) comments in the window, owner-authored, same tag parse as the room.
-  for number in [35] {   // issue 15 comes from the room thread the app already loads
-   for row in await get("/issues/\(number)/comments?per_page=100&since=\(since)") ?? [] {
-    guard let body = row["body"] as? String, let user = row["user"] as? [String:Any], (user["login"] as? String) == MeetingData.trustedLogin,
-          let when = iso.date(from:(row["created_at"] as? String) ?? "") else { continue }
+  for row in rows {
+   guard let type = row["type"] as? String, let when = iso.date(from:(row["created_at"] as? String) ?? ""),
+         now.timeIntervalSince(when) < window, let payload = row["payload"] as? [String:Any] else { continue }
+   if type == "IssueCommentEvent" {
+    guard let issue = payload["issue"] as? [String:Any], (issue["number"] as? Int) == 35,
+          let comment = payload["comment"] as? [String:Any], let body = comment["body"] as? String,
+          let user = comment["user"] as? [String:Any], (user["login"] as? String) == MeetingData.trustedLogin else { continue }
     let parsed = MeetingData.parseMessage(body:body)
     guard let name = CrewData.agentName(parsed.author), name != "Friday" else { continue }
     out.append(CrewSignal(chat:canon(name),date:when,what:MeetingData.brief(parsed.text,limit:60)))
+   } else if type == "PushEvent" {
+    guard let ref = payload["ref"] as? String, ref.hasPrefix("refs/heads/"),
+          let owner = branchOwners.first(where:{ $0.branch == String(ref.dropFirst(11)) }) else { continue }
+    let commits = (payload["commits"] as? [[String:Any]]) ?? []
+    let subject = ((commits.last?["message"] as? String) ?? "").components(separatedBy:"\n").first ?? ""
+    out.append(CrewSignal(chat:owner.key,date:when,what:"commit: " + MeetingData.brief(subject.isEmpty ? "push" : subject,limit:60)))
    }
   }
-  // Commits per branch, minus anything already on master (a branch cut from master carries master's commits).
-  let master = Set((await get("/commits?sha=master&since=\(since)&per_page=100") ?? []).compactMap { $0["sha"] as? String })
-  for entry in branchOwners {
-   for row in await get("/commits?sha=\(entry.branch)&since=\(since)&per_page=10",okMissing:true) ?? [] {
-    guard let sha = row["sha"] as? String, !master.contains(sha), let commit = row["commit"] as? [String:Any],
-          let who = commit["committer"] as? [String:Any], let when = iso.date(from:(who["date"] as? String) ?? "") else { continue }
-    let subject = ((commit["message"] as? String) ?? "").components(separatedBy:"\n").first ?? ""
-    out.append(CrewSignal(chat:entry.key,date:when,what:"commit: " + MeetingData.brief(subject,limit:60)))
-   }
-  }
-  return (out,failed,true)
+  return out
+ }
+
+ static func fetch(token: String?,now: Date = Date()) async -> (signals: [CrewSignal],failed: Bool,loaded: Bool) {
+  guard let req = MeetingData.api("/events?per_page=100",token:token), let (data,resp) = try? await URLSession.shared.data(for:req),
+        (resp as? HTTPURLResponse)?.statusCode == 200, let signals = parseEvents(data,now:now) else { return ([],true,true) }
+  return (signals,false,true)
  }
 }

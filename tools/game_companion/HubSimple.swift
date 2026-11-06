@@ -35,7 +35,7 @@ extension CompanionInterfaceView {
   case .stocks: return "Practice-money robots. No real money, ever."
   case .ecs: return "Your daily posting business."
   case .crewStation: return "See who is busy, resting or away."
-  case .memory: return "What Friday remembers. Keep, edit or forget."
+  case .memory: return "Keep, edit or forget any note. Only on this Mac."
   case .hacking: return "A live feed of what your robots and helpers are doing."
   case .helper: return "Give Friday a job to do on your Mac."
   case .shield: return "Check your Mac and lock things down."

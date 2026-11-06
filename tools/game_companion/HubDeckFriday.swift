@@ -77,19 +77,11 @@ extension CompanionInterfaceView {
   }
  }
 
+ // The card reads the SAME bank as the "What Friday remembers" page (ScreensP2.swift), so there is one count, not two.
  var deckMemoryCard: some View {
-  let recent = Array(conversation.notes.suffix(3).reversed())
-  return deckCard {
-   deckLabel(conversation.memoryEnabled ? "MEMORY · \(conversation.notes.count) \(conversation.notes.count == 1 ? "NOTE" : "NOTES")" : "MEMORY · OFF")
-   if !conversation.memoryEnabled {
-    Text("Memory is off. Notes are only saved if you turn it on in Settings.").font(.system(size:12)).foregroundStyle(HubTheme.subtext)
-   } else if recent.isEmpty {
-    Text("No notes saved yet.").font(.system(size:12)).foregroundStyle(HubTheme.subtext)
-   } else {
-    ForEach(recent) { note in Text(note.text).font(.system(size:12)).foregroundStyle(HubTheme.text).lineLimit(2) }
-   }
-   Button { hubSelect(.memory) } label: { Text("Keep / edit / forget ›").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.teal) }.buttonStyle(.plain)
-   Button { c.showPanel = true } label: { Text("Open memory settings ›").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.teal) }.buttonStyle(.plain)
+  deckCard {
+   MemoryBankCardBody(openPage:{ hubSelect(.memory) })
+   Button { c.showPanel = true } label: { Text("Memory on/off settings ›").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.subtext) }.buttonStyle(.plain)
   }
  }
 

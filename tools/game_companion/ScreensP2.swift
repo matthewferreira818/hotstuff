@@ -53,11 +53,16 @@ enum GitHubPost {
 
 struct CrewComposerBar: View {
  @ObservedObject var m = CrewComposerModel.shared
+ @ObservedObject var board = Switchboard.shared
  let targets: [String]
  let send: () -> Void
 
  var body: some View {
   VStack(alignment:.leading,spacing:4) {
+   // Nobody gets woken while the Switchboard is off, so say so right above the box (nothing extra when it is on).
+   if !board.on {
+    Text("Pings are off. Turn on the Switchboard on the Friday tab so the crew gets woken.").font(.system(size:12.5,weight:.medium)).foregroundStyle(HubTheme.amber).fixedSize(horizontal:false,vertical:true)
+   }
    HStack(spacing:8) {
     Menu {
      ForEach(targets,id:\.self) { name in Button { m.target = name } label: { Label(name,systemImage:m.target == name ? "checkmark" : "person") } }
@@ -98,10 +103,23 @@ struct CrewComposerBar: View {
 struct PingBadge: View {
  let id: Int
  @ObservedObject var wake = WakeRunner.shared
+ // "pinged ✓ X", "pinging X…", "X isn't open" (chat closed), otherwise "pinged ✗ X (reason)". A pointer-only ping keeps the engine's own wording.
+ static func words(_ r: PingResult) -> String {
+  if r.targets.isEmpty { return r.badge }
+  return r.targets.keys.sorted().map { name in
+   switch r.targets[name] ?? "?" {
+   case "delivered": return "pinged ✓ \(name)"
+   case "pending": return "pinging \(name)…"
+   case "not open": return "\(name) isn't open"
+   case let other: return "pinged ✗ \(name) (\(other))"
+   }
+  }.joined(separator:" · ")
+ }
  var body: some View {
   if let r = wake.result(forComment:Int64(id)) {
-   Text(r.badge).font(.system(size:11.5,weight:.medium)).foregroundStyle(r.allOK ? HubTheme.green : HubTheme.amber)
-    .accessibilityLabel(r.badge)
+   let words = PingBadge.words(r)
+   Text(words).font(.system(size:11.5,weight:.medium)).foregroundStyle(r.allOK ? HubTheme.green : HubTheme.amber)
+    .accessibilityLabel(words)
   }
  }
 }

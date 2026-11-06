@@ -347,6 +347,10 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   A plain `**[Claude → Matthew]**` message NO LONGER pings (his ask: "only the urgent and messages that need my confirmation").
   To reach his phone write `CONFIRM: <what> - details` (needs his OK; title "Needs your OK: <what>") or `URGENT: <reason> - details`
   (emergency; title "URGENT: <reason>", e.g. "URGENT: Maplehurst paid $79").
+  **Phone quiet rule (Matthew, 2026-11-06 ~4:55 PM: "make it only ones that actually need my approval ... i get a lot of amber
+  notifications and there isnt anything for me to press"):** amber = Claude-app pushes from scheduled tasks finishing. Scheduled tasks
+  end with one routine line, never a message to him; anything he must approve goes ONLY as a CONFIRM:/URGENT: post in issue 15.
+  Kept as phone pushes on purpose: real alerts (site down, missed refresh, stock drop, agent missed), job scout and grant watcher.
 - ntfy.sh from Cloudflare Workers gets rate-limited (shared egress IPs) —
   that's why worker alerts hop through a GitHub repository_dispatch relay.
 - raw.githubusercontent caches ~5 min — cache-bust paste links; GitHub

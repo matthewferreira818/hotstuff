@@ -68,6 +68,13 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   plan (it publishes to TikTok for us; TikTok's own app route still needs a person on every post). Matthew made the Buffer
   account and saved the key in GitHub himself; a read-only check said it works. Posting stays off until CBDC answers.
 
+- 2026-11-06 (Friday, midday): a new main chat, NB2, took over on Matthew's own Mac. Friday asked it for an honesty review of her
+  Command Core screens and fixed all seven findings in minutes; the first quality gate then failed on layout, not truth, and passed on the
+  second try. Phase 2 of Friday ("She knows you": a private Message Friday chat, a memory page he can edit, crew chat, room pings) went
+  through a live test run by LC-Manager, which caught one real bug (old messages waking Friday at switch-on); fixed and retested within
+  the hour. At 1:00 PM Matthew said "GO, merge it", and it went to master. StarNet, an open-source agent station, got a look and a
+  "study only" verdict: ideas worth borrowing, nothing to install.
+
 ## Lessons that cost something (don't repeat them)
 - Two chats, one folder: never switch branches in a shared folder. Each branch job gets its own copy (a git worktree), and the board says which files it touches.
 - Never claim what isn't true today: "3x a day on X" while X was off; "180 posts a month"; wallpaper sold as a pet bed; "posts automatically" while Facebook posting wasn't live.

@@ -62,7 +62,7 @@
 <p>So the honest version of &quot;$0 a month&quot; is: everything that runs costs nothing, and the domain is a yearly bill in the ballpark of a large coffee per month. I&#x27;m not going to pretend that&#x27;s zero, because it isn&#x27;t.</p>
 <h2>What &quot;automated&quot; actually means here</h2>
 <p>There are thirteen scheduled jobs. They are ordinary GitHub Actions workflows — YAML files in the repository, not a SaaS product:</p>
-<ul><li>Rebuild the product catalogue from live trending data every three days</li><li>Generate the social posts for the new catalogue in the same run</li><li>Build the daily TikTok photo packs and push them as drafts</li><li>Publish the daily post to the East Coast Social feed</li><li>Pull a traffic report</li><li>Relay phone alerts (more on that below)</li><li>Smoke-test the site after every deploy</li></ul>
+<ul><li>Rebuild the product catalogue from the supplier's trending list every three days</li><li>Generate the social posts for the new catalogue in the same run</li><li>Build the daily TikTok photo packs and push them as drafts</li><li>Publish the daily post to the East Coast Social feed</li><li>Pull a traffic report</li><li>Relay phone alerts (more on that below)</li><li>Smoke-test the site after every deploy</li></ul>
 <p>The whole store is static files. There is no server to keep alive, no database to back up, and nothing to patch. That is the actual reason it costs nothing — not a clever free tier, just an architecture with very few moving parts that can bill you.</p>
 <h2>The two things I switched off because they cost money</h2>
 <p>I&#x27;d rather show you the switched-off list than pretend the stack is complete.</p>

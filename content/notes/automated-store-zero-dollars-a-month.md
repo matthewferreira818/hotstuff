@@ -32,7 +32,7 @@ per month. I'm not going to pretend that's zero, because it isn't.
 There are thirteen scheduled jobs. They are ordinary GitHub Actions
 workflows — YAML files in the repository, not a SaaS product:
 
-- Rebuild the product catalogue from live trending data every three days
+- Rebuild the product catalogue from the supplier's trending list every three days
 - Generate the social posts for the new catalogue in the same run
 - Build the daily TikTok photo packs and push them as drafts
 - Publish the daily post to the East Coast Social feed

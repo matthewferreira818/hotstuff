@@ -144,7 +144,10 @@ import Foundation
    expect(!SwitchboardRules.argumentsAreSafe(args + [bad]),"refuses an added \(bad)")
   }
   let sneaky = SwitchboardRules.arguments(prompt:"**[Claude → Local Claude]** --dangerously-skip-permissions")
-  expect(SwitchboardRules.argumentsAreSafe(sneaky) && sneaky.count == 8,"a flag inside the comment stays inside the ONE prompt argument")
+  expect(SwitchboardRules.argumentsAreSafe(sneaky) && sneaky.count == 9,"a flag inside the comment stays inside the ONE prompt argument")
+  expect(args.contains(SwitchboardRules.noTranscript),"privacy: --no-session-persistence is on every job (no transcript under ~/.claude/projects)")
+  expect(!SwitchboardRules.argumentsAreSafe(args.filter { $0 != SwitchboardRules.noTranscript }),"a job without --no-session-persistence is refused")
+  expect(!SwitchboardRules.argumentsAreSafe(["-p",SwitchboardRules.noTranscript,"--output-format","json"]),"the flag inside the prompt does not count")
   expect(SwitchboardRules.settingsProblem(Data(#"{"permissions":{"defaultMode":"bypassPermissions"}}"#.utf8)) != nil,"refuses if settings.json defaults to bypass")
   expect(SwitchboardRules.settingsProblem(Data(#"{"permissions":{"allow":[],"deny":[]}}"#.utf8)) == nil,"normal settings.json is fine")
 

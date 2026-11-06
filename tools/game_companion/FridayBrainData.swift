@@ -204,7 +204,7 @@ enum FridayBrainRules {
  // No tools ("--tools" with an empty value), no MCP connectors, dontAsk and no prompts (anything that would ask is denied), no bypass.
  static func arguments(prompt: String,model: String) -> [String] {
   ["-p",prompt,"--model",model,"--tools","","--strict-mcp-config","--permission-mode","dontAsk","--permission-prompts","none",
-   "--output-format","json","--system-prompt",system,"--settings",noHooks]
+   "--output-format","json","--system-prompt",system,"--settings",noHooks,SwitchboardRules.noTranscript]
  }
 
  // Brain calls skip ALL hooks. Without this, Matthew's SessionStart hook (git pull of both repos, then a time/handoff printout) ran on every

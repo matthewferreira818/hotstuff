@@ -257,8 +257,13 @@ enum SwitchboardRules {
  // Lock 3: headless, Matthew's own settings. "dontAsk" + "--permission-prompts none" means anything his allow list doesn't
  // already allow is DENIED (never approved, never handed to someone else). Pinned here so a settings change can't widen it.
  static func arguments(prompt: String) -> [String] {
-  ["-p",prompt,"--output-format","json","--permission-mode","dontAsk","--permission-prompts","none"]
+  ["-p",prompt,"--output-format","json","--permission-mode","dontAsk","--permission-prompts","none",noTranscript]
  }
+
+ // Privacy (NB2, 2026-11-06, from the StarNet study; Matthew's GO via Roxy): without this flag the Claude engine saves a transcript of
+ // every run under ~/.claude/projects/ (the prompt included, so Matthew's words to Friday). With it, nothing is written there.
+ // Required by argumentsAreSafe, so no job, relay, wake or brain call can run without it.
+ static let noTranscript = "--no-session-persistence"
 
  static let forbidden = ["--dangerously-skip-permissions","--allow-dangerously-skip-permissions","bypassPermissions","acceptEdits","auto",
                          "--permission-prompt-tool","--settings","--setting-sources","--add-dir","--allowedTools","--allowed-tools"]
@@ -267,6 +272,7 @@ enum SwitchboardRules {
  // passed as ONE argument, never through a shell, so it can't add flags.
  static func argumentsAreSafe(_ args: [String]) -> Bool {
   guard args.count >= 2, args[0] == "-p" else { return false }
+  guard args.enumerated().contains(where:{ $0.offset != 1 && $0.element == noTranscript }) else { return false }   // no transcript on disk
   return !args.enumerated().contains { i,a in i != 1 && forbidden.contains { a == $0 || a.hasPrefix($0 + "=") || a.hasSuffix("=" + $0) } }
  }
 
@@ -337,7 +343,7 @@ enum SwitchboardRules {
  // --tools limits the built-in tools to these three; --strict-mcp-config drops every MCP connector. dontAsk + no prompts, as for jobs.
  static func relayArguments(prompt: String) -> [String] {
   ["-p",prompt,"--output-format","stream-json","--verbose","--permission-mode","dontAsk","--permission-prompts","none",
-   "--tools",relayTools,"--strict-mcp-config"]
+   "--tools",relayTools,"--strict-mcp-config",noTranscript]
  }
 
  static func relayArgumentsAreSafe(_ args: [String]) -> Bool {

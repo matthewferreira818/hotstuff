@@ -20,6 +20,8 @@ struct CrewJob: Identifiable, Equatable {
  var why: String?
  var resends = 0
  var lastResend: Date?
+ var handedTo: String?        // a "handoff" event: the job went to a backup because its chat never answered
+ var handedAt: Date?
  var ackImplied = false       // a later step proves it happened, but no time was recorded for it
  var startedImplied = false
 
@@ -49,6 +51,7 @@ enum JobRules {
    guard var job = jobs[id] else { continue }
    switch kind {
    case "resend": job.resends += 1; job.lastResend = at
+   case "handoff": if job.handedAt == nil { job.handedAt = at; job.handedTo = j["to"] as? String }
    case "ack": if job.ack == nil { job.ack = at }
    case "started": if job.started == nil { job.started = at; if job.ack == nil { job.ackImplied = true } }
    case "done": if job.done == nil { job.done = at; job.proof = j["proof"] as? String; if job.ack == nil { job.ackImplied = true }; if job.started == nil { job.startedImplied = true } }
@@ -87,7 +90,7 @@ enum JobRules {
  func stop() { timer?.invalidate(); timer = nil }
 
  private func read() {
-  if let d = try? Data(contentsOf:JobRules.fileURL) { jobs = JobRules.fold(d); missing = false } else { jobs = []; missing = true }
+  if let d = try? Data(contentsOf:JobFiles.current) { jobs = JobRules.fold(d); missing = false } else { jobs = []; missing = true }
   readAt = Date()
  }
 }
@@ -124,7 +127,9 @@ struct CoreJobsCard: View {
       HStack(spacing:10) { stageChips(j) }
       VStack(alignment:.leading,spacing:3) { stageChips(j) }
      }
-     if JobRules.noAnswer(j,now:now) {
+     if let to = j.handedTo, let at = j.handedAt {
+      Text("Handed to \(to) at \(Self.time.string(from:at)): \(j.to) never said 'got it'").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.amber)
+     } else if JobRules.noAnswer(j,now:now) {
       Text("No answer yet: nothing came back for \(Int(now.timeIntervalSince(j.lastResend ?? j.assigned) / 60)) min" + (j.resends > 0 ? " (resent \(j.resends)×)" : ""))
        .font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.amber)
      }

@@ -62,6 +62,9 @@ def fold(evs):
         if kind == "resend":
             j["resends"] += 1
             j["resent"] = e.get("at")
+        elif kind == "handoff":   # written by The Helm when it hands an unanswered job to the backup
+            if not j.get("handed_at"):
+                j["handed_at"], j["handed_to"] = e.get("at"), e.get("to")
         elif kind in ("ack", "started", "done", "failed") and not j.get(kind):
             j[kind] = e.get("at")
             # A later stage proves the earlier ones happened (started means it got the job), but their TIME was never recorded:

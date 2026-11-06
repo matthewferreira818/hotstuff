@@ -210,10 +210,11 @@ import AppKit
    }
   case .job(let id):
    Switchboard.shared.logPing("Job \(id): woke \(job.chat): \(state).")   // id and chat only, never the job's title
-   if state == "delivered" { _ = JobHeal.recordResend(id:id) }
+   if state == "delivered" { JobWatcher.shared.resendDelivered(id:id) }
    if state == "not open" { JobWatcher.shared.handBack(id:id,chat:job.chat,closed:true) }
   case .jobBackup(let id):
    Switchboard.shared.logPing("Job \(id): handed to \(job.chat) as backup: \(state).")
+   JobWatcher.shared.handOffFinished(id:id,backup:job.chat,delivered:state == "delivered")
   case .held(let id):
    guard let h = held.first(where:{ $0.id == id }) else { return }
    if state == "delivered" {

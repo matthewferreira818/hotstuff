@@ -11,3 +11,15 @@ Every step below is logged as it happens, failures included. Times are Moncton.
 | 14:24 | 2. Handoff, try 2 | Job posted in the room addressed to LC-Pixels (the Switchboard wakes a closed chat for a room message once The Helm is open). Waiting for The Helm to be opened. |
 | 14:29 | 3. Wake | The Switchboard DID wake LC-Pixels once The Helm was open (its chat was open by 14:28), but my job text never reached it: it asked me to resend. |
 | 14:29 | Ended | Matthew cancelled the handoff ("you can do it"); Friday does the job herself. Lessons: (1) delegation needs the crew chats open or The Helm running; (2) a wake opens the chat but does not carry the job text, so the job must be re-sent after the wake; (3) a job card in The Helm showing assigned/started/done would have made both problems visible at once. |
+
+# Delegation demo #2 (same day, with job cards): PASSED end to end
+
+| Time (Moncton) | Step | What actually happened |
+|---|---|---|
+| 14:54:01 | Assigned | Friday ran `job.py new LC-Pixels "Write tools/crew/README.md…"` → J-1106-145401, then messaged LC-Pixels the id and the exact commands. |
+| 14:56:33 | Got it | LC-Pixels ran `job.py ack` (about 2.5 min: its chat picked up the message on its next step). |
+| 14:56:55 | Started | `job.py start`. |
+| 14:57:22 | Done | `job.py done --proof "3e602cd on pixels/job-readme"`. |
+| 14:58 | Verified | Friday checked the proof herself: commit 3e602cd exists, is based on friday/job-card, and adds tools/crew/README.md (72 lines, accurate to job.py). Merged into friday/job-card. Not on master. |
+
+What made the difference vs demo #1: the job lived in a file, the chat was open, and each step was recorded by the crew member itself. Matthew could watch the stages appear on Command Core › Crew Station › Jobs in the test copy.

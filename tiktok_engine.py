@@ -270,7 +270,7 @@ def post():
     product_caption, agent_caption = todays_captions()
     stamp = date.today().isoformat()
 
-    which = env("TIKTOK_PACK") or "both"    # both | product | agent
+    which = env("TIKTOK_PACK") or "product"   # product | agent | both (one draft a day by default, since 2026-11-05)
     # Video is the default as of 2026-09-03, after a dispatched video draft
     # landed in the inbox as SEND_TO_USER_INBOX. TikTok barely distributes
     # photo posts, which is the likeliest reason ref-tiktok has never recorded
@@ -302,9 +302,11 @@ def post():
 
     if ok and ok2:
         ntfy(topic, "TikTok drafts ready",
-             f"Both of today's packs ({stamp}) are in your TikTok inbox as "
-             "drafts. Open each, add a sound, paste its caption from the "
-             "ping above, tap Post.",
+             (f"Both of today's packs ({stamp}) are in your TikTok inbox as "
+              "drafts. Open each, add a sound, paste its caption from the "
+              "ping above, tap Post.") if which == "both" else
+             (f"Today's draft ({stamp}) is in your TikTok inbox. Open it, "
+              "add a sound, paste its caption from the ping above, tap Post."),
              "default", "rocket")
     return 0
 

@@ -60,7 +60,7 @@ jobs:
             STAMP=$(grep -o '_Generated [0-9-]*' marketing/tiktok/daily/captions.md | awk '{print $2}')
             if [ "$STAMP" = "$TODAY" ]; then
               RUN=false
-              for f in marketing/tiktok/daily/product/pack.mp4 marketing/tiktok/daily/agent/pack.mp4; do
+              for f in marketing/tiktok/daily/product/pack.mp4; do
                 VID=$(git log -1 --format=%cs -- "$f")
                 if [ ! -f "$f" ] || [ "$VID" != "$TODAY" ]; then
                   echo "$f is ${VID:-missing}, not today -- rebuilding to retry the render."
@@ -87,7 +87,7 @@ jobs:
       - name: Render the video packs (optional - slides ship regardless)
         if: steps.gate.outputs.run == 'true'
         continue-on-error: true
-        run: python make_tiktok_video.py
+        run: python make_tiktok_video.py product   # one draft a day (2026-11-05): only the product video is pushed
 
       - name: Commit and push if anything changed
         if: steps.gate.outputs.run == 'true'

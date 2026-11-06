@@ -51,6 +51,9 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   line read from the real schedule, products a third sooner on phones, one TikTok draft a day instead of two, Pinterest
   pins pointing at pages that last, and a success page that no longer said the store "restocks itself". TikTok's rules
   turned out to need a person's OK on every post, so "TikTok posts by itself" stays off the table.
+  ~9:30 PM: first Claude running on his own Mac ("browser hands") passed its first look-only test of the store, and spotted
+  "Pet-approved, parent-approved." That led to 59 product blurbs that hinted at buyers we don't have ("people keep adding to
+  cart", "repeat buyers", "smiles guaranteed"); all rewritten to say only what's true the same night.
 
 ## Lessons that cost something (don't repeat them)
 - Never claim what isn't true today: "3x a day on X" while X was off; "180 posts a month"; wallpaper sold as a pet bed; "posts automatically" while Facebook posting wasn't live.

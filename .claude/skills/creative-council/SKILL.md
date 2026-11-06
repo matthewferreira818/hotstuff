@@ -16,6 +16,12 @@ deadline, budget $0). Check `.claude/council/CREATIVE.md` for past sessions on t
 Agent types `creative-spark`, `creative-hustler`, `creative-neighbor`, `creative-designer` (Sonnet). Same brief to each,
 no hints about the others. 4 × 5 = up to 20 ideas.
 
+## 2b. The crew chimes in (Matthew: "what if the LCs could chime in?")
+Post the ask to issue 15 tagged `**[Claude (<name>) → Everyone]** Creative council: <ask>. Up to 3 ideas each, tagged with your name,
+by <time>.` and mirror it on the Hotline to `Local Claude (LC-Manager)`, who wakes the open LC chats (relay) and collects. Roxy and
+Grok join when they're around. When the window closes (default 2 hours; shorter if Matthew is waiting), read issue 15 and add every
+crew idea to the pile, credited by name. No crew ideas by then = go on without them and say so.
+
 ## 3. Shortlist, then one Skeptic pass
 Merge duplicates. Score every idea 1-5 on: **Money** (does it help us earn?), **Honest** (rule 1: true today, no fake
 anything; a fail here = out), **Easy** (Matthew-hours and $; novice-friendly), **Fast** (results within 2 weeks), **Fun**

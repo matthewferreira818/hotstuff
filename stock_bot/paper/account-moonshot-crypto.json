@@ -29,16 +29,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-04T18:35:29+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-04T19:37:08+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-04T20:38:48+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
@@ -225,6 +215,16 @@
   },
   {
    "time": "2026-11-06T13:59:24+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-06T15:01:27+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-06T16:03:28+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
   }

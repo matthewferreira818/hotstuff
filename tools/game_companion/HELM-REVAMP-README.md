@@ -27,3 +27,10 @@ NOT on master. Goes to master only after Matthew's GO and LC-Manager's gate.
 - **ROLLBACK:** same as above (old build zip, or rebuild master). These pieces add no saved data. To drop just this work: `git revert` the merge, or rebuild from `friday-phase1`/master without CrewChat.swift (remove it from SOURCES and the `meeting.tab == 6` lines in MeetingRoom.swift).
 - **Test-only switches** (never set in the real app): `test.failChat`, `test.failStore`, `hub.testStart`, `hub.testHour`.
 - **Not tested:** noise-switch behaviour on every message shape (only a sample of real lines); Stripe orders path with a real key (no key on this Mac, so "not tracked yet" is what shows); long-run refresh over hours; VoiceOver on the new views; real app (-O build).
+
+## Phase 1 polish round
+- Messages (Simple mode) opens on the crew chat only: header "Your crew's messages.", ONE Filter button (everyone / one chat / other views), Refresh, the chat, the "Show technical lines" switch. Friday's Switchboard lines show only when the switch is ON.
+- Crew strip: CrewSignals.token is set from the Helm's saved GitHub access (MeetingHub.refresh); no new key, no new Keychain entry. Keyless it stays at one read per 6 min.
+- Plain words: "Meeting Room" and "snapshots" wording removed from Home.
+- ROLLBACK: same as above; or revert the polish commit(s) on friday-phase1-crew.
+- Not tested: the Filter menu items (menus can't be screenshotted), the token path with a real saved key on the crew strip (this Mac's test copy read the room without error but the strip's 3-min cadence was not timed), -O release build.

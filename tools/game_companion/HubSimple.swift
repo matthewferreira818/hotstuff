@@ -30,7 +30,7 @@ extension CompanionInterfaceView {
   case .home: return "Everything important, in one place."
   case .friday: return "Talk to Friday, your voice helper."
   case .store: return "How many people visit your store."
-  case .meeting: return "What Claude, Roxy and Friday are saying, and what needs you."
+  case .meeting: return "Your crew's messages."
   case .stocks: return "Practice-money robots. No real money, ever."
   case .ecs: return "Your daily posting business."
   case .crewStation: return "See who is busy, resting or away."
@@ -115,7 +115,7 @@ extension CompanionInterfaceView {
 
  var simpleGreetingLine: String {
   let cards = deckOkCards
-  if meeting.threadFailed { return "Couldn't reach the Meeting Room, so I can't say what needs you." }
+  if meeting.threadFailed { return "Couldn't reach your crew's messages, so I can't say what needs you." }
   if meeting.messages.isEmpty { return meeting.loading ? "Checking in with the crew…" : "Tap Refresh to check in with the crew." }
   return cards.isEmpty ? "Nothing is waiting for you right now." : "\(cards.count) \(cards.count == 1 ? "thing is" : "things are") waiting for you."
  }
@@ -197,7 +197,7 @@ extension CompanionInterfaceView {
   let cards = meeting.threadFailed ? [] : Array(deckOkCards.prefix(2))
   return simpleCard("Needs you",help:"Things the crew is waiting on you for. Yes opens a reply with a yes typed in; you still press Post. Not now hides it for today.") {
    if meeting.threadFailed {
-    Text("Unknown right now (couldn't reach the Meeting Room).").font(.system(size:15)).foregroundStyle(HubTheme.amber)
+    Text("Unknown right now (couldn't reach your crew's messages).").font(.system(size:15)).foregroundStyle(HubTheme.amber)
    } else if cards.isEmpty {
     Text(meeting.messages.isEmpty ? "The room hasn't loaded yet." : "Nothing right now. Enjoy it.").font(.system(size:15)).foregroundStyle(HubTheme.subtext)
    }
@@ -211,15 +211,15 @@ extension CompanionInterfaceView {
      }
     }
    }
-   Text(meeting.threadFailed ? "unknown (couldn't reach the Meeting Room)" : (meeting.threadAt.map { "as of \(crewChatTime($0)), from the Meeting Room" } ?? "loading from the Meeting Room…")).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
+   Text(meeting.threadFailed ? "unknown (couldn't reach your crew's messages)" : (meeting.threadAt.map { "as of \(crewChatTime($0)), from your crew's messages" } ?? "loading from your crew's messages…")).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
   }
  }
 
  // The robots carry their own snapshot times, so the newest one is the honest "as of". No snapshots at all means unknown.
  var simpleRobotsAsOf: String {
   let newest = deckRobots.compactMap { $0.robot?.updated }.max()
-  if let newest = newest { return "newest snapshot \(crewChatTime(newest)), from the robots' public snapshots" }
-  return stocks.loading ? "loading from the robots' public snapshots…" : "unknown (couldn't reach the robots' public snapshots)"
+  if let newest = newest { return "latest check-in \(crewChatTime(newest)), from the robots' public pages" }
+  return stocks.loading ? "loading from the robots' public pages…" : "unknown (couldn't reach the robots' public pages)"
  }
 
  // 2. Today: plain words about the crew.
@@ -232,7 +232,7 @@ extension CompanionInterfaceView {
   return simpleCard("Today",help:"A quick look at what your helpers and practice robots are doing. Real data from the room and GitHub.") {
    if crew.count <= 1 && meeting.messages.isEmpty { Text("Loading what everyone is up to…").font(.system(size:15)).foregroundStyle(HubTheme.subtext) }
    else {
-    Text(meeting.threadFailed ? "Who is working: unknown (couldn't reach the Meeting Room)." : working.isEmpty ? "Nobody is in the middle of a job right now." : "Working now: " + working.prefix(3).joined(separator:", ") + (working.count > 3 ? " and \(working.count - 3) more" : "") + ".")
+    Text(meeting.threadFailed ? "Who is working: unknown (couldn't reach your crew's messages)." : working.isEmpty ? "Nobody is in the middle of a job right now." : "Working now: " + working.prefix(3).joined(separator:", ") + (working.count > 3 ? " and \(working.count - 3) more" : "") + ".")
      .font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
     if !robots.isEmpty {
      Text("\(robots.filter { $0.state != .unknown }.count) of \(robots.count) practice robots have checked in" + (robotsRunning > 0 ? ", \(robotsRunning) running now." : ".")).font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
@@ -314,5 +314,45 @@ extension CompanionInterfaceView {
    .overlay(RoundedRectangle(cornerRadius:18).stroke(HubTheme.controlOutline,lineWidth:1))
   }
   .accessibilityAddTraits(.isModal)
+ }
+}
+
+
+// Messages in Simple mode opens on the crew chat only. Everything else (other views, a single chat) hides behind ONE Filter button.
+extension CompanionInterfaceView {
+ var simpleMessagesBar: some View {
+  HStack(spacing:10) {
+   Menu {
+    Button { meeting.lcFilter = ""; meeting.tab = 6 } label: { Label("Everyone",systemImage:meeting.lcFilter.isEmpty && meeting.tab == 6 ? "checkmark" : "person.3") }
+    ForEach(meeting.lcNames,id:\.self) { name in
+     Button { meeting.lcFilter = name; meeting.tab = 6 } label: { Label(name,systemImage:meeting.lcFilter == name && meeting.tab == 6 ? "checkmark" : "person") }
+    }
+    Divider()
+    Button { meeting.lcFilter = ""; meeting.tab = 0 } label: { Label("What needs you",systemImage:"hand.raised") }
+    Button { meeting.lcFilter = ""; meeting.tab = 1 } label: { Label("Claude's work",systemImage:"person.text.rectangle") }
+    Button { meeting.lcFilter = ""; meeting.tab = 2 } label: { Label("\(MeetingData.display("GPT"))'s work",systemImage:"person.text.rectangle") }
+    Button { meeting.lcFilter = ""; meeting.tab = 3 } label: { Label("Friday's work",systemImage:"waveform") }
+    Button { meeting.lcFilter = ""; meeting.tab = 4 } label: { Label("The plan board",systemImage:"list.bullet.rectangle") }
+    Button { meeting.lcFilter = ""; meeting.tab = 5 } label: { Label("Write a message / old thread",systemImage:"square.and.pencil") }
+   } label: {
+    HStack(spacing:6) {
+     Image(systemName:"line.3.horizontal.decrease.circle")
+     Text(meeting.tab == 6 ? (meeting.lcFilter.isEmpty ? "Filter" : "Filter: \(meeting.lcFilter)") : "Filter").font(.system(size:14,weight:.medium))
+    }
+    .foregroundStyle(HubTheme.text).padding(.horizontal,14).frame(height:38)
+    .overlay(RoundedRectangle(cornerRadius:10).stroke(HubTheme.controlOutline,lineWidth:1))
+   }
+   .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
+   .accessibilityLabel("Filter: pick one chat or another view")
+   if meeting.tab != 6 {
+    Button { meeting.lcFilter = ""; meeting.tab = 6 } label: { Label("Back to the chat",systemImage:"chevron.left").font(.system(size:14,weight:.medium)).foregroundStyle(HubTheme.green) }.buttonStyle(.plain)
+   }
+   Spacer(minLength:8)
+   Button { Task { await meeting.refresh(force:true) } } label: {
+    Label(meeting.loading || { if case .loading = meeting.chat.status { return true }; return false }() ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise")
+     .font(.system(size:14,weight:.medium)).foregroundStyle(HubTheme.text).padding(.horizontal,14).frame(height:38)
+     .overlay(RoundedRectangle(cornerRadius:10).stroke(HubTheme.controlOutline,lineWidth:1))
+   }.buttonStyle(.plain).disabled(meeting.loading)
+  }
  }
 }

@@ -53,6 +53,8 @@ import Combine
   defer { loading = false }
   // With the saved key GitHub allows far more reads, so the page can refresh every minute while it is open.
   let token: String? = hasToken ? savedToken() : nil
+  // The crew strip uses the same saved GitHub access (no new key): it then refreshes every 3 minutes instead of 6.
+  CrewSignals.token = token
   async let boardResult = MeetingData.fetch(token:token)
   async let messageResult = MeetingData.fetchMessages(token:token)
   var (fresh,thread) = await (boardResult,messageResult)
@@ -264,7 +266,9 @@ extension CompanionInterfaceView {
  // and their messages), the whole Board, and the Thread. Long lines show short and open on a tap, so it isn't one long scroll.
  var hubMeeting: some View {
   VStack(spacing:0) {
-   hubMeetingHeader.padding(.horizontal,32).padding(.bottom,10)
+   if hub.simple { simpleMessagesBar.padding(.horizontal,32).padding(.bottom,10) }
+   else { hubMeetingHeader.padding(.horizontal,32).padding(.bottom,10) }
+   if !hub.simple {
    Picker("View",selection:$meeting.tab) {
     Text("Crew chat").tag(6)
     Text(meeting.needs.count > 0 ? "You · \(meeting.needs.count)" : "You").tag(0)
@@ -276,6 +280,7 @@ extension CompanionInterfaceView {
    }
    .pickerStyle(.segmented).labelsHidden()
    .padding(.horizontal,32).padding(.bottom,12)
+   }
    if meeting.tab == 6 {
     crewChatPage.padding(.horizontal,32).padding(.bottom,16).frame(maxHeight:.infinity,alignment:.top)
    } else if meeting.tab == 3 && meeting.fridayPrivate {
@@ -294,7 +299,7 @@ extension CompanionInterfaceView {
     .scrollIndicators(.hidden)
    }
   }
-  .onAppear { Task { await meeting.refresh(minGap:60) } }
+  .onAppear { if hub.simple && meeting.tab == 0 && !meeting.composing { meeting.tab = 6 }; Task { await meeting.refresh(minGap:60) } }
   .onChange(of:meeting.tab) { _,tab in if tab != 3 { meeting.fridayPrivate = false } }
   .onChange(of:live.running) { _,running in if running { voice.stop() } }
   .onChange(of:c.listening) { _,listening in if listening { voice.stop() } }

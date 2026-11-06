@@ -12,6 +12,7 @@ check(LocalBrainRules.limitHit(Data(#"{"type":"result","is_error":true,"result":
 check(LocalBrainRules.limitHit(Data("You've hit your limit · resets 3pm".utf8)),"'hit your limit' is spotted")
 check(!LocalBrainRules.limitHit(Data(#"{"type":"result","result":"Here are the robots"}"#.utf8)),"a normal answer is not a limit")
 check(!LocalBrainRules.limitHit(Data(#"{"type":"result","is_error":true,"result":"API Error: rate limit, retrying"}"#.utf8)),"a short rate-limit hiccup does not switch brains")
+check(!LocalBrainRules.limitHit(Data(#"{"type":"result","is_error":true,"result":"Rate limit reached for requests"}"#.utf8)),"'Rate limit reached' does not switch brains")
 let r = LocalBrainRules.parse(Data(#"{"message":{"role":"assistant","content":"  Hi boss. "},"prompt_eval_count":812,"eval_count":40,"done":true}"#.utf8))
 check(r.text == "Hi boss." && r.promptTokens == 812 && r.outputTokens == 40,"reply text and Ollama's own counts are read")
 let empty = LocalBrainRules.parse(Data(#"{"message":{"content":"   "}}"#.utf8))

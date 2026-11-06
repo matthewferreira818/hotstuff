@@ -34,7 +34,7 @@ enum LocalBrainRules {
  static func limitHit(_ data: Data) -> Bool {
   let t = String(decoding:data,as:UTF8.self).lowercased()
   // Not "rate limit": a short hiccup isn't a reason to switch brains.
-  return ["usage limit","limit reached","hit your limit","you've reached your"].contains { t.contains($0) }
+  return ["usage limit","hit your limit","you've reached your usage","reached your usage"].contains { t.contains($0) }
  }
 
  static let system = """

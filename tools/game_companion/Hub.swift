@@ -17,7 +17,7 @@ enum HubColor {
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper, shield, realFake, lab, council, hacking, crewStation
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper, shield, realFake, lab, council, hacking, crewStation, memory
  var id: Int { rawValue }
  var title: String {
   switch self {
@@ -39,6 +39,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .council: return "Council"
   case .hacking: return "Live tape"
   case .crewStation: return "Crew station"
+  case .memory: return "Memory"
   }
  }
  var icon: String {
@@ -61,6 +62,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .council: return "person.3.sequence.fill"
   case .hacking: return "terminal.fill"
   case .crewStation: return "building.2.fill"
+  case .memory: return "brain.head.profile"
   }
  }
  var tint: Color {
@@ -82,6 +84,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .lab: return HubColor.cyan
   case .council: return HubColor.cyan
   case .hacking,.crewStation: return HubColor.green
+  case .memory: return Noir.crimson
   }
  }
  var blurb: String {
@@ -104,6 +107,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .council: return "Roxy, Claude and Grok take turns on your question (test mode)."
   case .hacking: return "Our own systems only: robot trades, automation runs and room messages. Read-only."
   case .crewStation: return "Who is at their desk, who is idle, who is away. Real states only."
+  case .memory: return "What Friday remembers about you and us. Keep, edit or forget any note."
   }
  }
 }

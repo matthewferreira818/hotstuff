@@ -281,6 +281,7 @@ extension CompanionInterfaceView {
   case .council: hubCouncil
   case .hacking: deckHackLive
   case .crewStation: deckCrewStation
+  case .memory: fridayMemoryPage
   }
  }
 }

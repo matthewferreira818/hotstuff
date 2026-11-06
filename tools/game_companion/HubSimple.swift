@@ -6,7 +6,7 @@ import AppKit
 // Nothing here starts anything by itself: the Talk button does what the dock's button did.
 extension CompanionInterfaceView {
  static let simpleTabs: [HubSection] = [.home,.friday,.store,.meeting]
- static let simpleMore: [HubSection] = [.stocks,.ecs,.crewStation,.hacking,.helper,.shield,.realFake,.lab,.council,.launchpad,.game,.stream,.accounts,.systems]
+ static let simpleMore: [HubSection] = [.stocks,.ecs,.crewStation,.memory,.hacking,.helper,.shield,.realFake,.lab,.council,.launchpad,.game,.stream,.accounts,.systems]
 
  func simpleName(_ section: HubSection) -> String {
   switch section {
@@ -14,6 +14,7 @@ extension CompanionInterfaceView {
   case .stocks: return "Practice stocks"
   case .ecs: return "East Coast Social"
   case .crewStation: return "Crew station"
+  case .memory: return "What Friday remembers"
   case .hacking: return "Live activity"
   case .shield: return "Safety checks"
   case .realFake: return "Real or fake?"
@@ -34,6 +35,7 @@ extension CompanionInterfaceView {
   case .stocks: return "Practice-money robots. No real money, ever."
   case .ecs: return "Your daily posting business."
   case .crewStation: return "See who is busy, resting or away."
+  case .memory: return "What Friday remembers. Keep, edit or forget."
   case .hacking: return "A live feed of what your robots and helpers are doing."
   case .helper: return "Give Friday a job to do on your Mac."
   case .shield: return "Check your Mac and lock things down."
@@ -124,6 +126,7 @@ extension CompanionInterfaceView {
   GeometryReader { geo in
    let narrow = geo.size.width < 760
    let orb: CGFloat = geo.size.height < 760 ? 88 : 120
+   ScrollView {
    VStack(spacing:10) {
     VStack(spacing:2) {
      Text(hubGreeting).font(.system(size:28,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
@@ -152,6 +155,7 @@ extension CompanionInterfaceView {
      .help(live.running ? "Stop the live session" : "Starts Friday. While she is on, she hears your mic and sees your screens.")
      simpleHelp("talk","Tap once to wake Friday, then just speak. Tap again to stop. While she is on she can hear you and see your screens.")
     }
+    MoneyMoveCard()
     Group {
      if narrow { VStack(spacing:12) { simpleNeedsCard; simpleTodayCard; simpleBusinessCard } }
      else { HStack(alignment:.top,spacing:12) { simpleNeedsCard; simpleTodayCard; simpleBusinessCard } }
@@ -160,6 +164,8 @@ extension CompanionInterfaceView {
    }
    .padding(.horizontal,hub.compact ? 16 : 32).padding(.top,18).padding(.bottom,16)
    .frame(maxWidth:.infinity)
+   }
+   .scrollIndicators(.hidden)
   }
   .background(HubTheme.background)
   .onAppear { if !UserDefaults.standard.bool(forKey:"hub.tourSeen") && hub.tourStep < 0 { hub.tourStep = 0 } }
@@ -369,6 +375,7 @@ extension CompanionInterfaceView {
      orbSection(small ? 110 : 150).padding(.top,6)
      if live.running { captions }
      FridayChatBox(compact:small).frame(maxWidth:640).padding(.horizontal,22)
+     FridayMeSection(reduceMotion:reduceMotion).frame(maxWidth:640).padding(.horizontal,22)
      VStack(spacing:10) {
       Button { withAnimation(.easeOut(duration:0.2)) { hub.voiceOpen.toggle() } } label: {
        HStack(spacing:8) {

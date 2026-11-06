@@ -151,7 +151,7 @@ import Foundation
   expect(SwitchboardRules.isUnproven(.init(ok:true,result:"Posted pong on the Hotline.\nDetails.",denials:0,turns:1)),"fix E: a claim on the FIRST line with no tools still flags")
   expect(SwitchboardRules.claimsAction("I have pushed the fix") && !SwitchboardRules.claimsAction("unposted draft"),"action words match whole words only")
   expect(SwitchboardRules.prompt(for:comment(good)).contains("only say you did something if a tool actually did it"),"prompt carries the honesty rule")
-  expect(SwitchboardLimits.pollEvery == 300 && SwitchboardLimits.testPollEvery == 30,"poll: 300 s real, 30 s test-only constant")
+  expect(SwitchboardLimits.pollEvery == 60 && SwitchboardLimits.testPollEvery == 30,"poll: 60 s real, 30 s test-only constant")
   let parsed = SwitchboardRules.parseOutcome(Data(#"{"type":"result","is_error":false,"result":"Pong.","num_turns":1,"permission_denials":[]}"#.utf8),exitCode:0)
   expect(parsed.turns == 1,"num_turns is read from claude's JSON")
 

@@ -168,7 +168,7 @@ struct PingResult: Codable, Equatable {
 
 // Friday-and-me DM: the shapes of the three private files in ~/Claude/friday-dm (folder 700, files 600). NOTHING in them is ever sent to
 // GitHub, the room, the Hotline, a receipt or a log; the engine only ever sends PingRules.dmWakeText.
-struct DMIn: Codable, Equatable { var id: String; var at: Date; var text: String }
+struct DMIn: Codable, Equatable { var id: String; var at: Date; var text: String; var images: [String]? = nil }   // images: file paths inside ~/Claude/friday-dm/images (private)
 struct DMOut: Codable, Equatable { var id: String; var replyTo: String; var at: Date; var text: String }
 struct DMStatus: Codable, Equatable {
  var id: String          // the inbox id it is about
@@ -180,7 +180,7 @@ enum DMRules {
  static let folderName = "friday-dm"
  static let inboxName = "inbox.jsonl", outboxName = "outbox.jsonl", statusName = "status.json"
  static let closedNote = "Friday's chat is closed — open it to talk"
- static let maxTextCount = 4000
+ static let maxTextCount = 20000
 
  static func newID(now: Date = Date()) -> String { "dm-\(Int(now.timeIntervalSince1970 * 1000))-\(Int.random(in:100...999))" }
 
@@ -197,10 +197,10 @@ enum DMRules {
   String(decoding:data,as:UTF8.self).split(whereSeparator:\.isNewline).compactMap { try? decoder.decode(T.self,from:Data($0.utf8)) }
  }
 
- static func inboxLine(text: String,now: Date = Date()) -> (id: String,line: String)? {
+ static func inboxLine(text: String,images: [String] = [],now: Date = Date()) -> (id: String,line: String)? {
   let clean = String(text.trimmingCharacters(in:.whitespacesAndNewlines).prefix(maxTextCount))
-  guard !clean.isEmpty else { return nil }
-  let m = DMIn(id:newID(now:now),at:now,text:clean)
+  guard !clean.isEmpty || !images.isEmpty else { return nil }
+  let m = DMIn(id:newID(now:now),at:now,text:clean,images:images.isEmpty ? nil : images)
   return line(m).map { (m.id,$0) }
  }
 

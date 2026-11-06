@@ -111,6 +111,10 @@ extension CompanionInterfaceView {
   if let free = CoreFacts.freeDiskGB(), let total = SysFacts.totalDiskGB(), free / total < 0.10 {
    out.append(CoreObservation(tone:2,text:"Storage is almost full: \(Int(free.rounded())) GB free.",why:"Under 10% free can slow the Mac and break updates.",source:"file system, now"))
   }
+  let todayRuns = UsageLedgerRules.summary(UsageLedger.shared.entries,since:Calendar.current.startOfDay(for:Date()))
+  if todayRuns.failed > 0 {
+   out.append(CoreObservation(tone:2,text:"\(todayRuns.failed) Claude run\(todayRuns.failed == 1 ? "" : "s") failed today.",why:"A failed run means a job or an answer didn't finish. The usage card shows which.",source:"usage ledger on this Mac"))
+  }
   if m.cpu == nil { out.append(CoreObservation(tone:0,text:"Still taking the first readings.",why:"CPU needs two readings, 2 seconds apart.",source:"measuring")) }
   if out.isEmpty, m.cpu != nil {
    out.append(CoreObservation(tone:1,text:"This Mac is running comfortably.",why:"CPU, memory and storage are all in a normal range.",source:"kernel counters and file system, \(when)"))
@@ -127,6 +131,7 @@ extension CompanionInterfaceView {
 struct CoreSystemsView: View {
  @ObservedObject var monitor: SystemMonitor
  @ObservedObject var guardHub: GuardHub
+ @ObservedObject var ledger = UsageLedger.shared
  var runs: [AutomationRun]?
  var runsFailed: Bool
 
@@ -218,6 +223,7 @@ struct CoreSystemsView: View {
       .buttonStyle(.plain).disabled(guardHub.checking || guardHub.locked)
      }
     }
+    usageCard
     card("AUTOMATIONS · GITHUB") {
      if let runs {
       Text("\(runs.count) seen · \(runs.filter { $0.isRunning }.count) running · \(runs.filter { $0.isFailing }.count) failing")
@@ -239,6 +245,47 @@ struct CoreSystemsView: View {
   }
   .onAppear { monitor.start() }
   .onDisappear { monitor.stop() }
+ }
+
+ // StarNet idea B (NB2's ledger, Roxy's wording rule): Claude engine runs The Helm started on this Mac, measured fields only.
+ // A run that didn't report tokens is counted as "not reported", never as 0. No prices: on a Max plan these come out of the plan's limits.
+ private static let usageTime: DateFormatter = { let f = DateFormatter(); f.dateFormat = "h:mm a"; return f }()
+
+ var usageCard: some View {
+  let now = Date()
+  let today = UsageLedgerRules.summary(ledger.entries,since:Calendar.current.startOfDay(for:now))
+  let weekStart = now.addingTimeInterval(-7 * 86400)
+  let week = UsageLedgerRules.summary(ledger.entries,since:weekStart)
+  let whos = Array(Set(ledger.entries.filter { $0.at >= weekStart }.map { $0.who })).sorted()
+  return card("CLAUDE USAGE · REPORTED ONLY") {
+   if ledger.entries.isEmpty {
+    Text("No engine runs recorded yet. Friday's brain, Switchboard jobs, relays and wakes each add one line here when they run.")
+     .font(.system(size:12.5,design:.rounded)).foregroundStyle(CoreStyle.dim).fixedSize(horizontal:false,vertical:true)
+   } else {
+    Text(UsageLedgerRules.line(today,label:"Today")).font(.system(size:13,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink)
+    Text(UsageLedgerRules.line(week,label:"7 days")).font(.system(size:12.5,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.85))
+    if whos.count > 1 {
+     VStack(alignment:.leading,spacing:3) {
+      ForEach(whos,id:\.self) { w in
+       let s = UsageLedgerRules.summary(ledger.entries.filter { $0.who == w },since:weekStart)
+       Text(UsageLedgerRules.line(s,label:w)).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+      }
+     }
+    }
+    Divider().overlay(Color.white.opacity(0.06))
+    ForEach(ledger.entries.suffix(5).reversed()) { e in
+     HStack(spacing:8) {
+      Circle().fill(e.ok ? CoreStyle.emerald : CoreStyle.crimson).frame(width:6,height:6)
+      Text("\(e.who) · \(e.job)").font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
+      Spacer(minLength:6)
+      Text(Self.usageTime.string(from:e.at) + " · \(Int(e.seconds.rounded())) s · " + (e.reported ? "\(UsageLedgerRules.tokens(e.tokensIn ?? 0)) in, \(UsageLedgerRules.tokens(e.outputTokens ?? 0)) out" : "not reported"))
+       .font(.system(size:11.5,design:.rounded)).foregroundStyle(e.reported ? CoreStyle.ink.opacity(0.75) : CoreStyle.dim).lineLimit(1)
+     }
+    }
+   }
+   Text("Counts what The Helm started on this Mac. No prices: on a Max plan these use your plan's limits.")
+    .font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).fixedSize(horizontal:false,vertical:true)
+  }
  }
 
  private func infoRow(_ k: String,_ v: String) -> some View {

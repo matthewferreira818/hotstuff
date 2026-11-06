@@ -1,15 +1,17 @@
 # Meeting Room board
 
-_Last updated: 2026-11-06 6:11 AM by Local Claude (LC-Makeover)_
+_Last updated: 2026-11-06 9:40 AM by Local Claude (LC-Manager)_
 
 ## Standup (2026-11-06, LC-Manager; ranked by earning)
-- EARNING #1: CBDC still silent (Gmail 3:45 AM, LC-Work); call Mon 9 AM. Outreach/sales HOLD. Matthew's 7 business-plan blanks are the one earning task he can do now.
-- LC-Work: yesterday Gmail checks, outreach count 34 / today watch inbox, Maplehurst nudge Mon / blocked: CBDC.
-- LC-Helm build: yesterday revamp built (helm-revamp 4ab91b7, 17 screenshots) / today 2 Home fixes + Simple mode, then gate pack / blocked: Matthew's live talk test (in progress 3:45 AM).
-- LC-TikTok: yesterday Buffer robot (OFF) + Switchboard A-G, gate passed (switchboard a9c4ed9) / today idle / blocked: Matthew's GO; TikTok posting waits on CBDC.
-- LC-Makeover: yesterday store makeover live (smoke 15/15) / today idle, check tiles after Sat refresh / blocked: FR reader.
-- LC-Manager: yesterday gates (2 Home bugs, fake pong, loop caught) / today gate LC-Helm pack, robot start check after 9:15 AM / blocked: standup auto-schedule needs Matthew's OK.
-- Robots: all 7 ran Thu; first Fri start 9:05 AM, so the check happens after 9:15. Moonshot crypto mid-run (normal).
+- Top earning priority today: CBDC still silent, so outreach/sales stay on HOLD; call Mon 9 AM. Matthew's CBDC-call prep (week-packs, ask, referral) is ready, nothing sent.
+- LC-Work: yesterday Gmail checks + client prep (caa96ef, gated) / today watch inbox, start missing robots, Maplehurst nudge Mon / blocked: CBDC.
+- LC-TikTok: yesterday Phase 2 engine (p2-engine 5d365b5, merged into phase2-candidate) / today Friday text-first after Simple mode GO / blocked: Matthew's GO; posting waits on CBDC.
+- LC-Pixels: yesterday crew chat + Friday & me + Memory screens (p2-screens d7fcadc) and crew station (pixel-agents e636183) / today live test with Matthew ~10 AM / blocked: unproven live.
+- LC-Makeover: yesterday "Trending" honesty sweep live (smoke 15/15) / today idle / blocked: French reader for FR pages.
+- LC-Trends: yesterday report #1 + 3 TikTok samples + open-book (9a2327b), reviewed / today idle / blocked: Matthew picks, CBDC + GO to merge open-book.
+- LC-Helm build / LC-CrewState: Simple mode gated (273d902), crew strip v2 (15/15 checks) / waiting on Matthew's live talk test and LC-Manager gate.
+- Switchboard: several Hotline relays say "LC-Manager isn't open" and some got blocked by the password/money filter; watch it, not a hard failure.
+- Robots: only moonshot-crypto has run today (running); other 6 last ran Thu, 9:05 starter not visible yet. LC-Work: check and dispatch.
 
 ## On the table
 - [Claude] (LC-Manager owns) **Friday Phase 2 "She knows you"** (crew of 4). Branches → friday-phase2: p2-engine = LC-TikTok (filter fix, relays 30/h, room pings, DM engine; Switchboard*/FridayBrain*/FridayDM*); p2-screens = LC-Pixels (crew chat composer, Friday & me screen, Memory page, Money Move card; all screen files); Friday = memory.md + money-move.md (Helm-Private) + DM replies; hack-room = Friday after that. Live test Matthew watches ~10 AM. Status: building

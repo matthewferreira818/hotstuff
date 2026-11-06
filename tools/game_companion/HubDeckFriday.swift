@@ -13,17 +13,25 @@ extension CompanionInterfaceView {
     fridayStage(orb:tight ? min(max(geo.size.height * 0.26,80),200) : min(max(geo.size.height * 0.30,140),300),tight:tight)
      .frame(maxWidth:620)
      .frame(maxWidth:.infinity)
-    if showCards {
-     HStack(alignment:.top,spacing:12) {
-      deckStatesCard
-      deckDoingCard
-      deckMemoryCard
-      deckMusicCard
+    // Everything under the orb scrolls, so the box, the cards and the Switchboard never squeeze the orb out of the window.
+    ScrollView {
+     VStack(spacing:0) {
+      // Friday Phase 1 "She thinks" (FridayBrain.swift): one text box + Send, answered by Claude with no tools.
+      FridayChatBox(compact:tight).padding(.horizontal,22).padding(.bottom,12)
+      if showCards {
+       HStack(alignment:.top,spacing:12) {
+        deckStatesCard
+        deckDoingCard
+        deckMemoryCard
+        deckMusicCard
+       }
+       .padding(.horizontal,22).padding(.bottom,18)
+      }
+      // Friday's Switchboard (HubSwitchboard.swift): its on/off switch and job log.
+      SwitchboardPanel(compact:!showCards).padding(.horizontal,22).padding(.bottom,14)
      }
-     .padding(.horizontal,22).padding(.bottom,18)
     }
-    // Friday's Switchboard (HubSwitchboard.swift): its on/off switch and job log.
-    SwitchboardPanel(compact:!showCards).padding(.horizontal,22).padding(.bottom,14)
+    .scrollIndicators(.hidden)
    }
   }
   .background(HubTheme.background.opacity(0.0))

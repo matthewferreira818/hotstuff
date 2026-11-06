@@ -29,3 +29,10 @@ PY
 cp "$D/checks/usageledger_check.swift" "$T/main.swift"
 xcrun swiftc -target arm64-apple-macos14.0 "$D"/{UsageLedger,HubTheme}.swift "$T/main.swift" -o "$T/u" 2>&1 | grep error
 "$T/u"
+# Engine checks (brain, Switchboard, pings/DMs), added 2026-11-06 after NB2's gate caught a stale test these didn't run
+xcrun swiftc -parse-as-library -target arm64-apple-macos14.0 "$D"/{MeetingData,SwitchboardData,FridayBrainData}.swift "$D/checks/FridayBrainChecks.swift" -o "$T/fb" 2>&1 | grep error
+"$T/fb" | grep -E "^FAIL|ALL|passed|failed" | tail -3
+xcrun swiftc -parse-as-library -target arm64-apple-macos14.0 "$D/SwitchboardData.swift" "$D/checks/SwitchboardChecks.swift" -o "$T/sb" 2>&1 | grep error
+"$T/sb" | grep -E "^FAIL|ALL|passed|failed" | tail -3
+xcrun swiftc -parse-as-library -target arm64-apple-macos14.0 "$D"/{MeetingData,SwitchboardData,FridayBrainData,SwitchboardPingData}.swift "$D/checks/SwitchboardPingChecks.swift" -o "$T/pg" 2>&1 | grep error
+"$T/pg" | grep -E "^FAIL|ALL|passed|failed" | tail -3

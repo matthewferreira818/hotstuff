@@ -119,7 +119,7 @@ import Foundation
   let outLine = DMRules.line(out) ?? ""
   expect(outLine.contains("\"replyTo\"") && DMRules.lines(Data(outLine.utf8),as:DMOut.self) == [out],"outbox shape is {id, replyTo, at, text} and round-trips")
   expect(DMRules.inboxLine(text:"   \n ",now:now) == nil,"an empty DM is not written")
-  expect((DMRules.inboxLine(text:String(repeating:"x",count:9000),now:now).map { DMRules.lines(Data($0.line.utf8),as:DMIn.self)[0].text.count } ?? 0) == DMRules.maxTextCount,"a very long DM is capped at \(DMRules.maxTextCount) characters")
+  expect((DMRules.inboxLine(text:String(repeating:"x",count:25000),now:now).map { DMRules.lines(Data($0.line.utf8),as:DMIn.self)[0].text.count } ?? 0) == DMRules.maxTextCount,"a very long DM is capped at \(DMRules.maxTextCount) characters")
   expect(DMRules.inboxLine(text:"line one\nline two",now:now).map { !$0.line.contains("\n") && DMRules.lines(Data($0.line.utf8),as:DMIn.self)[0].text == "line one\nline two" } ?? false,"a multi-line DM stays one JSONL line")
   let status = ["a": DMStatus(id:"a",at:now,state:"woken")]
   let inbox = [DMIn(id:"a",at:now,text:"x"),DMIn(id:"b",at:now,text:"y")]

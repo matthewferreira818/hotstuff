@@ -94,10 +94,13 @@ VIDEOS = {
         "hook_sub": "3 small gift ideas",
         "items": [
             ("CJLX1110450", "Frog Stud Earrings"),
-            ("CJJZGJSD01838", "Anti-fog Glasses Cloth"),
+            # crop to the cloth: the full photo carries the supplier's own claims
+            # ("last for at least one week", "600 times") and a third-party brand on
+            # the pouch, none of which claims_check can see (it's pixels)
+            ("CJJZGJSD01838", "Anti-fog Glasses Cloth", (0.47, 0.435, 0.80, 0.605)),
             ("CJWJWJDZ00150", "Speaking Parrot Plush Toy"),
         ],
-        "end": "Small gifts, big smiles",
+        "end": "Small gifts for every list",
         "caption": "Stocking stuffers that aren't socks: frog stud earrings, an "
                    "anti-fog glasses cloth, and a speaking parrot plush toy that "
                    "records and repeats. See them at findhotstuff.com",
@@ -276,15 +279,25 @@ def hook_segment(v, photo, bg):
         for ln in v["hook"]:
             y = text_center(d, wrap(d, ln, big, 960), big, y, stroke=4)
         text_center(d, [v["hook_sub"]], sub, y + 30, fill=(255, 214, 102), stroke=3)
+        supplier_tag(d)   # the hook picture is the supplier's staged photo too
         return f
     return Segment(HOOK_S, draw)
 
 
-def item_segment(i, n, name, photo, bg, dur):
-    nm, small, tag = font(76, True), font(40), font(30)
+def supplier_tag(d):
+    """Small label ABOVE the photo (never on it, so it can't cover the
+    photo's own text). Every frame that shows a supplier picture gets it."""
+    tag = font(30)
+    w = d.textlength("Supplier photo", font=tag) + 36
+    d.rounded_rectangle((60, 352, 60 + w, 404), 26, fill=(15, 15, 25))
+    d.text((78, 362), "Supplier photo", font=tag, fill=(235, 235, 235))
+
+
+def item_segment(i, n, name, photo, bg, dur, crop=None):
+    nm, small = font(76, True), font(40)
 
     def draw(t):
-        f = photo_frame(photo, bg, t / dur)
+        f = photo_frame(photo, bg, t / dur, crop)
         d = ImageDraw.Draw(f)
         if n > 1:
             pill = f"{i + 1} / {n}"
@@ -298,8 +311,7 @@ def item_segment(i, n, name, photo, bg, dur):
         lh = nm.size + 10
         y0 = 1470 + rise + (290 - lh * len(lines)) // 2
         text_center(d, lines, nm, y0, gap=10)
-        d.text((80, 1400), "Supplier photo", font=tag, fill=(235, 235, 235),
-                stroke_width=2, stroke_fill=(0, 0, 0))
+        supplier_tag(d)
         return f
     return Segment(dur, draw)
 
@@ -364,7 +376,7 @@ def build(key: str, catalogue: dict, out_dir: Path) -> dict:
         raise SystemExit(f"{key}: {len(v['tags'])} hashtags, max {MAX_TAGS}")
 
     photos, segs = [], []
-    for pid, name in v["items"]:
+    for pid, name, *_ in v["items"]:
         p = catalogue.get(pid)
         if not p:
             raise SystemExit(f"{key}: {pid} is not in products.json any more; pick again")
@@ -374,7 +386,7 @@ def build(key: str, catalogue: dict, out_dir: Path) -> dict:
                                    "name_check": name_ok(pid, name, p["fullName"])})
         photos.append(fetch(p["image"]))
 
-    texts = [" ".join(v["hook"]), v["hook_sub"], v["end"], SITE, "Supplier photo"] + [n for _, n in v["items"]]
+    texts = [" ".join(v["hook"]), v["hook_sub"], v["end"], SITE, "Supplier photo"] + [it[1] for it in v["items"]]
     caption = v["caption"] + "\n" + " ".join(v["tags"])
     report["on_screen"], report["caption"] = texts, caption
     for label, text in [("on_screen", " | ".join(texts)), ("caption", caption)]:
@@ -389,8 +401,9 @@ def build(key: str, catalogue: dict, out_dir: Path) -> dict:
     segs.append(hook_segment(v, photos[0], bg0))
     n = len(photos)
     dur = ITEM_S if n > 1 else ITEM_S + 1.4
-    for i, ((pid, name), ph) in enumerate(zip(v["items"], photos)):
-        segs.append(item_segment(i, n, name, ph, backdrop(ph), dur))
+    for i, (item, ph) in enumerate(zip(v["items"], photos)):
+        crop = item[2] if len(item) > 2 else None
+        segs.append(item_segment(i, n, item[1], ph, backdrop(ph), dur, crop))
     segs.append(end_segment(v))
 
     out = out_dir / f"{key}.mp4"

@@ -35,8 +35,67 @@ async function loadProducts() {
   buildCategoryBar();
   buildSubgroupBar();
   renderGrid();
+  initQuickCats();
   focusLinkedProduct();
 }
+
+/* --- Category buttons in the hero (council 2026-11-05) ---------------------
+   One tap filters the grid and scrolls to it. A button whose category has
+   nothing in the current rotation is hidden rather than leading to an empty
+   grid. The Gifts button is a plain link to /gifts/. */
+function initQuickCats() {
+  document.querySelectorAll(".quick-cat[data-cat]").forEach((btn) => {
+    const cat = btn.dataset.cat;
+    const n = allProducts.filter((p) => (p.category || "Other") === cat).length;
+    btn.hidden = n === 0;
+    if (btn.dataset.wired) return;
+    btn.dataset.wired = "1";
+    btn.addEventListener("click", () => {
+      activeCategory = cat;
+      activeSubgroup = "All";
+      buildCategoryBar();
+      buildSubgroupBar();
+      renderGrid();
+      const t = document.getElementById("trending");
+      if (t) t.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
+/* --- "New lineup in X days" (council 2026-11-05) ---------------------------
+   Read from catalog-meta.json, which the 3-day refresh writes from the real
+   cron. Shown only when we can trust it: the file exists, this lineup is at
+   most 4 days old, and the next refresh is still in the future. Otherwise
+   the line stays hidden: never a wrong number. */
+let catalogMeta = null;
+function renderNextLineup() {
+  const el = document.getElementById("next-lineup");
+  if (!el) return;
+  el.hidden = true;
+  if (!catalogMeta) return;
+  const now = new Date();
+  const last = new Date(catalogMeta.refreshed_at);
+  const next = new Date(catalogMeta.next_refresh);
+  if (isNaN(last) || isNaN(next)) return;
+  if (now - last > 4 * 86400000 || next <= now) return;
+  const day = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const days = Math.round((day(next) - day(now)) / 86400000);
+  let text;
+  if (days <= 0) text = T("nextToday", "New lineup later today");
+  else if (days === 1) text = T("nextTomorrow", "New lineup tomorrow");
+  else text = T("nextIn", "New lineup in {n} days").replace("{n}", days);
+  el.textContent = " · " + text;
+  el.hidden = false;
+}
+window.HT_RENDER_NEXT = renderNextLineup;
+(async function loadCatalogMeta() {
+  try {
+    const res = await fetch("catalog-meta.json", { cache: "no-store" });
+    if (!res.ok) return;
+    catalogMeta = await res.json();
+    renderNextLineup();
+  } catch (e) { /* stays hidden */ }
+})();
 
 /* --- Deep link: /?p=<product id> ---------------------------------------
    Every post advertises ONE product but the link used to land on the full
@@ -457,6 +516,18 @@ function openProductSheet(p) {
     els.body.appendChild(listed);
   }
   els.body.append(meta, buyButton);
+  // what to expect, right under Buy now; same facts as the terms page
+  const expect = document.createElement("p");
+  expect.className = "sheet-expect";
+  const expectText = document.createElement("span");
+  expectText.className = "sheet-expect-text";
+  expectText.textContent = T("expectSheet",
+    "Ships from our supplier. Processed in 1–3 business days, usually 1–3 weeks to arrive. Prices in USD. 30-day guarantee.");
+  const termsLink = document.createElement("a");
+  termsLink.href = "terms/";
+  termsLink.textContent = T("terms", "Terms");
+  expect.append(expectText, " ", termsLink);
+  els.body.appendChild(expect);
 
   els.backdrop.hidden = false;
   requestAnimationFrame(() => els.backdrop.classList.add("open"));

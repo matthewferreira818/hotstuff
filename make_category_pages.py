@@ -147,7 +147,7 @@ def write_sitemap(out_path):
 
 
 CARD = """      <li class="cat-card">
-        <a href="{site}/?p={pid}" class="cat-link">
+        <a href="{site}/?p={pid}&amp;ref={ref}" class="cat-link">
           {img}
           <span class="cat-name">{name}</span>
           <span class="cat-price">${price} USD</span>
@@ -162,10 +162,12 @@ def anchor(name):
     return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
-def grid_of(items):
+def grid_of(items, ref="cat"):
+    # ?ref= lets GoatCounter tell category/gift visits apart (council 2026-11-05).
+    # The store only reads ?p=, so the extra tag never changes which product opens.
     return "\n".join(
         CARD.format(
-            site=SITE, pid=html.escape(str(p.get("id", ""))),
+            site=SITE, ref=ref, pid=html.escape(str(p.get("id", ""))),
             name=html.escape(p.get("name", "")),
             price=f'{float(p.get("price", 0)):.2f}',
             img=(f'<img src="{html.escape(p["image"])}" alt="{html.escape(p.get("name",""))}" '
@@ -315,6 +317,47 @@ def gift_items(products):
     return sorted(out, key=lambda p: float(p.get("price", 0)))
 
 
+def holiday_note(today=None):
+    """Honest Christmas order-by line (council 2026-11-05). No guarantee, because
+    delivery is 1-3 weeks from the supplier. The page is rebuilt every 3 days, so
+    the date is checked here AND in the browser (data-until), which hides a stale
+    line even if a refresh is late."""
+    today = today or date.today()
+    y = today.year
+    if today.month < 11 or today >= date(y, 12, 10):
+        return ""
+    if today <= date(y, 11, 30):
+        text = ("For Christmas, order by about November 30 to give it the best chance. "
+                "We can't guarantee delivery dates.")
+        until = f"{y}-12-01"
+    else:
+        text = ("For Christmas: delivery takes 1–3 weeks, so an order now may not arrive "
+                "by December 25. We can't guarantee delivery dates.")
+        until = f"{y}-12-10"
+    return (f'  <p class="note holiday" data-until="{until}">🎄 {text}</p>\n'
+            '  <script>document.querySelectorAll("[data-until]").forEach(function(e){'
+            'if(new Date()>=new Date(e.dataset.until+"T00:00:00"))e.remove();});</script>\n')
+
+
+def write_catalog_meta(out_path, today=None):
+    """catalog-meta.json: when this lineup went up and when the next one is due,
+    so the store can say "New lineup in X days" from the real schedule. The
+    refresh cron is "0 9 */3 * *" (days 1,4,7,...,31, 09:00 UTC). The store hides
+    the line if this file is missing, older than 4 days, or the date has passed."""
+    from datetime import datetime, timedelta, timezone
+    now = today or datetime.now(timezone.utc)
+    d = now.date() + timedelta(days=1)
+    while (d.day - 1) % 3 != 0:
+        d += timedelta(days=1)
+    nxt = datetime(d.year, d.month, d.day, 9, 0, tzinfo=timezone.utc)
+    out_path.write_text(json.dumps({
+        "refreshed_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "next_refresh": nxt.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "schedule": "0 9 */3 * * (UTC)",
+    }, indent=2) + "\n", encoding="utf-8")
+    return nxt
+
+
 def render_gifts(products, siblings):
     items = gift_items(products)
     bands = [("Under $15", [p for p in items if float(p["price"]) < 15]),
@@ -327,7 +370,7 @@ def render_gifts(products, siblings):
                                for h, ps in bands) + "</nav>")
     cards = "\n".join(
         f'  <section>\n    <h2 id="{anchor(h)}">{html.escape(h)} <span class="n">{len(ps)}</span></h2>\n'
-        f'    <ul class="grid">\n{grid_of(ps)}\n    </ul>\n  </section>' for h, ps in bands)
+        f'    <ul class="grid">\n{grid_of(ps, "gifts")}\n    </ul>\n  </section>' for h, ps in bands)
     if items:
         count_line = (f"<strong>{len(items)}</strong> gift ideas under ${GIFT_MAX} right now, "
                       "cheapest first. The selection changes every three days.")
@@ -336,7 +379,7 @@ def render_gifts(products, siblings):
                       "catalogue refreshes every three days, so check back.")
     note = ('  <p class="note">Delivery typically takes 1–3 weeks '
             f'(<a href="{SITE}/terms/">see our terms</a>), so if it\'s for a '
-            "certain date, order early.</p>\n")
+            "certain date, order early.</p>\n") + holiday_note()
     sib = " · ".join(f'<a href="{SITE}/c/{s}/">{l}</a>' for s, l in siblings)
     return page_html("/gifts/", f"Gifts under ${GIFT_MAX}",
                      f"Gift ideas from the current HotsTuff lineup, all under ${GIFT_MAX} USD "
@@ -409,6 +452,9 @@ def main():
     (OUT_ROOT / "index.html").write_text(hub(siblings, counts), encoding="utf-8")
     print(f"  /c/  hub with {len(CATEGORIES)} categories")
     n = write_sitemap(HERE / "sitemap.xml")
+    if "--no-meta" not in __import__("sys").argv:
+        nxt = write_catalog_meta(HERE / "catalog-meta.json")
+        print(f"  catalog-meta.json  next refresh {nxt:%Y-%m-%d %H:%M} UTC")
     print(f"  sitemap.xml  {n} URLs")
 
 

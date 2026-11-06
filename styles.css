@@ -1383,3 +1383,68 @@ a.merch-card {
   line-height: 1.55;
 }
 .engine-plug a { font-weight: 700; }
+
+/* --- Council 2026-11-05: category buttons, what-to-expect line, shorter phone hero --- */
+.quick-cats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 22px;
+}
+.quick-cat {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color .15s, background .15s;
+}
+.quick-cat:hover { border-color: var(--accent-a); }
+.quick-cat-gift { border-color: var(--accent-a); }
+.quick-cat[hidden] { display: none; }
+.expect-line {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: -8px 0 16px;
+  line-height: 1.5;
+}
+.expect-line a, .sheet-expect a { color: inherit; text-decoration: underline; }
+.sheet-expect {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 10px 0 0;
+  line-height: 1.5;
+  text-align: center;
+}
+@media (max-width: 640px) {
+  /* Products sooner on phones: the long explanation is still on the page,
+     in "How the catalog stays fresh" below the products. */
+  .hero { padding: 24px 16px 20px; }
+  .hero h1 { font-size: 27px; margin-bottom: 12px; }
+  .hero-sub { display: none; }
+  .hero-actions .btn[href="#how"],
+  .hero-actions .btn[href="automation/"] { display: none; }
+  .quick-cats {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 14px -16px 0;
+    padding: 0 16px 4px;
+  }
+  .quick-cat { flex-shrink: 0; font-size: 13.5px; }
+  .expect-line { font-size: 12px; margin-top: -4px; }
+}
+@media (max-width: 640px) {
+  #trending { padding-top: 26px; }
+  #trending .section-head { margin-bottom: 18px; }
+  #trending .section-head h2 { font-size: 26px; }
+  #trending .section-head p { font-size: 14px; }
+}

@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="HotsTuff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="styles.css?v=7">
 <meta property="og:type" content="website">
 <meta property="og:title" content="HotsTuff — Shop what's trending right now">
 <meta property="og:description" content="A fresh lineup of trending products every 3 days. Free shipping on trending products, secure Stripe checkout, 30-day guarantee.">
@@ -67,7 +67,7 @@
   <main>
     <section class="hero">
       <div class="hero-inner">
-        <span class="eyebrow"><span data-i18n="eyebrow-main">Refreshed every 3 days</span><span id="count-suffix" hidden> · <span id="product-count" aria-live="polite"></span> <span data-i18n="eyebrow-products">products live now</span></span></span>
+        <span class="eyebrow"><span data-i18n="eyebrow-main">Refreshed every 3 days</span><span id="next-lineup" hidden></span><span id="count-suffix" hidden> · <span id="product-count" aria-live="polite"></span> <span data-i18n="eyebrow-products">products live now</span></span></span>
         <h1 data-i18n="hero-title">Welcome to <span class="brand-accent">HotsTuff!</span><br>Trending products people actually love.</h1>
         <p class="hero-sub" data-i18n="hero-sub">
           HotsTuff pulls the trending list from its supplier, CJ Dropshipping, and rotates in a
@@ -76,10 +76,17 @@
         </p>
         <div class="hero-actions">
           <a class="btn btn-primary btn-lg" href="#trending" data-i18n="hero-cta-shop">See what's trending</a>
-          <a class="btn btn-ghost btn-lg" href="gifts/" data-i18n="hero-cta-gifts">🎁 Gifts under $25</a>
           <a class="btn btn-ghost btn-lg" href="#how" data-i18n="hero-cta-how">How curation works</a>
           <a class="btn btn-ghost btn-lg" href="automation/" data-i18n="hero-cta-automation">✨ Automation for your business</a>
         </div>
+        <nav class="quick-cats" id="quick-cats" aria-label="Shop by category">
+          <a class="quick-cat quick-cat-gift" href="gifts/?ref=home" data-i18n="qc-gifts">🎁 Gifts under $25</a>
+          <button type="button" class="quick-cat" data-cat="Jewelry" data-i18n="qc-jewelry">💍 Jewelry</button>
+          <button type="button" class="quick-cat" data-cat="Pet" data-i18n="qc-pet">🐾 Pet</button>
+          <button type="button" class="quick-cat" data-cat="Home" data-i18n="qc-home">🏠 Home</button>
+          <button type="button" class="quick-cat" data-cat="Kitchen" data-i18n="qc-kitchen">🍳 Kitchen</button>
+          <button type="button" class="quick-cat" data-cat="Fashion" data-i18n="qc-fashion">👕 Fashion</button>
+        </nav>
       </div>
     </section>
 
@@ -105,6 +112,7 @@
           <option value="price-desc" data-i18n="sort-price-desc">Price: high to low</option>
         </select>
       </div>
+      <p class="expect-line" data-i18n="expect">📦 Ships from our supplier · processed in 1–3 business days · usually 1–3 weeks to arrive · prices in USD · 30-day guarantee · <a href="terms/">terms</a></p>
       <div class="grid" id="product-grid"></div>
     </section>
 
@@ -279,8 +287,8 @@
     </div>
   </footer>
 
-  <script src="i18n.js?v=8"></script>
-  <script src="script.js?v=6"></script>
+  <script src="i18n.js?v=9"></script>
+  <script src="script.js?v=7"></script>
 <script data-goatcounter="https://theycallmemattyb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script>
 /* Channel attribution: ?ref= is GoatCounter's own referrer-override param, so

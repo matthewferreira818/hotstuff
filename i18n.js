@@ -25,6 +25,13 @@
     "hero-cta-shop": "Voir les tendances",
     "hero-cta-how": "Comment ça fonctionne",
     "hero-cta-gifts": "🎁 Cadeaux à moins de 25 $",
+    "qc-gifts": "🎁 Cadeaux à moins de 25 $",
+    "qc-jewelry": "💍 Bijoux",
+    "qc-pet": "🐾 Animaux",
+    "qc-home": "🏠 Maison",
+    "qc-kitchen": "🍳 Cuisine",
+    "qc-fashion": "👕 Mode",
+    "expect": "📦 Expédié par notre fournisseur · traité en 1 à 3 jours ouvrables · livraison habituellement en 1 à 3 semaines · prix en USD · garantie de 30 jours · <a href=\"terms/\">conditions</a>",
     "hero-cta-automation": "✨ Automatisation pour votre entreprise",
     "trust-1": "<b>Paiement sécurisé</b><small>Transactions traitées par Stripe</small>",
     "trust-2": "<b>Livraison suivie gratuite</b><small>Sur les produits tendance — 24 pays</small>",
@@ -88,6 +95,9 @@
     noMatches: "No matches — try fewer or different words.",
     sheetClose: "Close", sheetTrend: "Trend score",
     sheetListed: "Listed as:",
+    nextToday: "New lineup later today", nextTomorrow: "New lineup tomorrow", nextIn: "New lineup in {n} days",
+    expectSheet: "Ships from our supplier. Processed in 1–3 business days, usually 1–3 weeks to arrive. Prices in USD. 30-day guarantee.",
+    terms: "Terms",
   };
   const T_FR = {
     buyNow: "Acheter", buy: "Acheter", redirecting: "Redirection…", uploading: "Téléversement…",
@@ -104,6 +114,9 @@
     noMatches: "Aucun résultat — essayez d'autres mots.",
     sheetClose: "Fermer", sheetTrend: "Indice de tendance",
     sheetListed: "Nom complet :",
+    nextToday: "Nouvelle sélection plus tard aujourd'hui", nextTomorrow: "Nouvelle sélection demain", nextIn: "Nouvelle sélection dans {n} jours",
+    expectSheet: "Expédié par notre fournisseur. Traité en 1 à 3 jours ouvrables, livraison habituellement en 1 à 3 semaines. Prix en USD. Garantie de 30 jours.",
+    terms: "Conditions",
   };
 
   const saved = new Map(); // element -> original EN innerHTML
@@ -140,6 +153,9 @@
       const m = c.textContent.match(/^(All|Tout) \((\d+)\)$/);
       if (m) c.textContent = `${window.HT_T.all} (${m[2]})`;
     });
+
+    if (typeof window.HT_RENDER_NEXT === "function") window.HT_RENDER_NEXT();
+    document.querySelectorAll(".sheet-expect-text").forEach((e) => { e.textContent = window.HT_T.expectSheet; });
 
     const searchBox = document.getElementById("product-search");
     if (searchBox) searchBox.placeholder = window.HT_T.searchPlaceholder;

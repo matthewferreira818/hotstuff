@@ -13,7 +13,7 @@
  * installed apps pick the new shell up on their next visit.
  */
 
-const VERSION = "v22";
+const VERSION = "v23";
 const SHELL_CACHE = `hotstuff-shell-${VERSION}`;
 const RUNTIME_CACHE = `hotstuff-runtime-${VERSION}`;
 const IMAGE_CACHE = `hotstuff-images-${VERSION}`;
@@ -104,7 +104,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.origin === self.location.origin) {
-    if (url.pathname.endsWith("/products.json")) {
+    if (url.pathname.endsWith("/products.json") || url.pathname.endsWith("/catalog-meta.json")) {
       event.respondWith(networkFirst(request, RUNTIME_CACHE));
     } else {
       event.respondWith(staleWhileRevalidate(request, SHELL_CACHE));

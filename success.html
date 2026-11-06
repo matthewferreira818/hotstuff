@@ -57,6 +57,7 @@
           Payment received! Full details — including your receipt — are on their
           way to the email you used at checkout.
         </p>
+        <div class="order-ref" id="order-ref-fallback" hidden></div>
       </div>
     </section>
 
@@ -76,12 +77,14 @@
         <li class="step">
           <span class="step-icon">🚚</span>
           <b>On its way</b>
-          <small>Tracking lands in your inbox; delivery typically takes 1–3 weeks.</small>
+          <small>Tracking lands in your inbox when it's available; delivery typically takes 1–3 weeks.</small>
         </li>
       </ol>
     </section>
 
     <p class="success-note">
+      Questions, or something wrong when it arrives? You're covered by our
+      <a href="/terms/">30-day guarantee</a>.<br>
       Spot a typo in your shipping address? Contact us right away and we'll fix
       it before your order ships.<br>
       Your order is handled personally by Matthew in New Brunswick, Canada —
@@ -91,9 +94,9 @@
     </p>
 
     <section class="engine-plug">
-      <p><b>P.S. — no human packed this page.</b> This store is run end-to-end by
-      an automation engine one person built: it restocks itself, posts every day,
-      and logged your order on its own. Curious how?
+      <p><b>P.S.</b> This store runs on an automation engine one person built:
+      it rotates in a new lineup every three days and logged your order on its
+      own (Matthew places it with the supplier himself). Curious how?
       <a href="/automation/?ref=buyer">Meet the engine →</a></p>
     </section>
 
@@ -120,6 +123,11 @@
       const showFallback = () => {
         skeleton.hidden = true;
         fallback.hidden = false;
+        if (sessionId) {
+          const r = document.getElementById("order-ref-fallback");
+          r.textContent = "Order ref: …" + sessionId.slice(-10) + " — keep this if you contact support.";
+          r.hidden = false;
+        }
       };
 
       if (!sessionId) return showFallback();

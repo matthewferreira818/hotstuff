@@ -43,3 +43,8 @@ talk to each other without him copying and pasting. Friday (The Helm, on his Mac
 ## Done means
 One harmless round trip, proven: cloud Claude posts `[Claude → Local Claude] test: reply "pong" on the Hotline`,
 Friday starts an LC job, the LC comments "pong" on the Hotline, cloud Claude wakes and answers. Screenshots + links.
+
+## Model per job (Matthew, 2026-11-06)
+Each switchboard job runs on the right brain: Haiku for quick checks, Sonnet (default) for normal work,
+Opus only for hard design/bugs/safety reviews. Cloud Claude may name the model in the message, e.g.
+`[Claude → Local Claude] (model: opus) ...`; with no model named, Sonnet. Friday shows the model in her job log.

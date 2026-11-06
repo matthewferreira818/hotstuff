@@ -230,6 +230,12 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   ~/Claude/Helm-Private; a start-of-chat hook pulls both and prints Moncton time + the newest handoff; Sonnet medium by default;
   ~/hotstuff (the app's build folder), ~/.ssh, key/token/secret files, moomoo, rm -rf and ALL force-pushes are blocked. So its push
   pattern is plain: commit, `git pull --rebase`, `git push origin master` (no session branch, no force).
+  **Right brain for the job (Matthew, 2026-11-06: "switch their model for the appropriate task"):** a chat can't swap its own model
+  mid-chat (only Matthew can, with /model or the picker), but it can hand parts of a job to a helper agent on another model
+  (Agent tool `model`: haiku/sonnet/opus). Rule of thumb: **Haiku** for quick look-ups, reading the room, simple checks;
+  **Sonnet** (the default) for most building, writing and posting; **Opus** for hard design, tricky bugs, the honesty/safety
+  review and LC-Manager's quality gate. Opus burns the most usage: use it for the hard part only, not a whole job. Friday's
+  switchboard jobs pick the model the same way (`claude -p --model ...`), Sonnet unless the job says otherwise.
   **Don't over-ask (Matthew, 2026-11-05: "its asking for input a lot"):** every chat, Local Claude included, follows the Co-CEO rule:
   decide small, free, reversible things alone and report them; ask only for money, sending to a person, logins, prices/offers,
   irreversible public things, or when genuinely stuck. At ~80% sure, make the call and say so.

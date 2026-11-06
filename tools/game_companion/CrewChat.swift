@@ -122,6 +122,14 @@ extension CompanionInterfaceView {
   }
  }
 
+ // **bold**, *italic* and `code` show as styled text instead of raw symbols. A cut-off line with an unclosed ** loses the stray marks.
+ func crewChatMarkdown(_ raw: String) -> AttributedString {
+  var text = raw
+  if text.components(separatedBy:"**").count % 2 == 0 { text = text.replacingOccurrences(of:"**",with:"") }
+  if text.components(separatedBy:"`").count % 2 == 0 { text = text.replacingOccurrences(of:"`",with:"") }
+  return (try? AttributedString(markdown:text,options:AttributedString.MarkdownParsingOptions(interpretedSyntax:.inlineOnlyPreservingWhitespace))) ?? AttributedString(raw)
+ }
+
  func crewChatRow(_ message: RoomMessage) -> some View {
   let open = meeting.chat.expanded.contains(message.id)
   let tint = hubOwnerTint(message.author)
@@ -136,7 +144,7 @@ extension CompanionInterfaceView {
     Text(message.date.map { crewChatTime($0) } ?? "").font(.system(size:11.5)).foregroundStyle(HubTheme.subtext)
     Spacer(minLength:0)
    }
-   Text(open ? message.text : MeetingData.brief(message.text,limit:320)).font(.system(size:14)).foregroundStyle(HubTheme.text)
+   Text(crewChatMarkdown(open ? message.text : MeetingData.brief(message.text,limit:320))).font(.system(size:14)).foregroundStyle(HubTheme.text)
     .fixedSize(horizontal:false,vertical:true).textSelection(.enabled)
   }
   .padding(12).frame(maxWidth:.infinity,alignment:.leading)

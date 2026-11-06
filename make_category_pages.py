@@ -36,72 +36,72 @@ SITE = "https://findhotstuff.com"
 # The blurbs are evergreen and true — they describe how this shop works,
 # not the specific items, because the specific items change every 3 days.
 CATEGORIES = [
-    ("jewelry", "Jewelry", "Trending jewelry — rings, necklaces, bracelets",
+    ("jewelry", "Jewelry", "Jewelry finds — rings, necklaces, bracelets",
      "Small, giftable pieces are the most-rotated corner of this shop, so this "
      "page changes often. What stays the same is how the selection is made: "
-     "items are pulled from live trending data every three days, and each one "
+     "items come from our supplier's trending list every three days, and each one "
      "is priced so the sale covers wholesale cost, worst-case shipping and "
      "payment fees before it counts as profit."),
-    ("fashion", "Fashion", "Trending fashion — jackets, tops, everyday wear",
-     "Clothing here follows the season and whatever is actually moving, rather "
+    ("fashion", "Fashion", "Fashion finds — jackets, tops, everyday wear",
+     "Clothing here follows the season and our supplier's trending list, rather "
      "than a fixed range carried year-round. Nothing is warehoused, so there is "
      "no dead stock to discount and no incentive to push an item that stopped "
      "selling."),
-    ("pet", "Pet", "Trending pet supplies — beds, grooming, leashes and toys",
+    ("pet", "Pet", "Pet finds — beds, grooming, leashes and toys",
      "Pet gear is where product names get checked hardest. Supplier titles are "
      "translated keyword soup, and a display name here may only reorder or trim "
      "words that appear in the real supplier title — a validator rejects "
      "anything else. That rule exists because this shop once listed a roll of "
      "wallpaper as a pet bed."),
-    ("kitchen", "Kitchen", "Trending kitchen gadgets and small tools",
+    ("kitchen", "Kitchen", "Kitchen gadgets and small tools",
      "Kitchen items tend to be the most practical things in the catalogue — "
      "small tools that solve one annoyance well. The lineup refreshes every "
-     "three days from what is currently trending, so anything here is what was "
-     "moving this week, not last season."),
-    ("home", "Home", "Trending home and decor finds",
+     "three days from our supplier's trending list, so what's here is this "
+     "week's lineup, not last season's."),
+    ("home", "Home", "Home and decor finds",
      "Lighting, storage and small decor, refreshed on the same three-day cycle "
      "as the rest of the shop. Shipping runs roughly one to three weeks because "
      "items ship directly from the supplier rather than sitting in a warehouse "
      "here — that is also why prices stay where they are."),
-    ("fitness", "Fitness", "Trending fitness and workout gear",
-     "Training gear that shows up in trending data, rotated every three days. "
+    ("fitness", "Fitness", "Fitness and workout gear",
+     "Training gear from our supplier's trending list, rotated every three days. "
      "As with everything in this shop, the price you see already accounts for "
      "shipping and payment fees, so there is no surprise at checkout."),
-    ("bags", "Bags", "Trending bags, backpacks and purses",
+    ("bags", "Bags", "Bags, backpacks and purses",
      "Bags rotate with the rest of the catalogue. Every listing shows the "
      "supplier's full product title alongside the cleaned-up display name, so "
      "you can always see exactly what an item is described as at source."),
-    ("footwear", "Footwear", "Trending footwear — sneakers, sandals, slippers",
+    ("footwear", "Footwear", "Footwear finds — sneakers, sandals, slippers",
      "Footwear is one of the trickier categories to buy online, so the full "
      "supplier title is kept visible on every listing and the 30-day guarantee "
      "applies here the same as everywhere else in the shop."),
-    ("beauty", "Beauty", "Trending beauty — hair, makeup, skincare, nails",
+    ("beauty", "Beauty", "Beauty finds — hair, makeup, skincare, nails",
      "Beauty items are described using the supplier's own words and nothing "
      "more. There are no before-and-after photos here and no results claimed, "
      "because this shop has no way to verify either — what you get is the "
      "product, the real title it ships under, and a 30-day guarantee."),
-    ("wellness", "Wellness", "Trending wellness — massage, posture, recovery",
+    ("wellness", "Wellness", "Wellness finds — massage, posture, recovery",
      "Braces, massagers, compression wear and posture supports, rotated with "
      "the rest of the catalogue. Nothing on this page is a medical device or a "
      "treatment, and none of it is described as one — if a supplier title makes "
      "a health claim, the claim stays in the supplier's words, not in ours."),
-    ("electronics", "Electronics", "Trending electronics and small gadgets",
+    ("electronics", "Electronics", "Electronics and small gadgets",
      "Chargers, audio, cameras and desk gear. Electronics are the category "
      "where a cheap dropshipped item most often disappoints, so the honest "
-     "framing is this: these are inexpensive trending gadgets, priced like it, "
+     "framing is this: these are inexpensive gadgets, priced like it, "
      "with the same 30-day guarantee as everything else."),
-    ("toys", "Toys", "Trending toys and games",
+    ("toys", "Toys", "Toys and games",
      "Toys and games from the same three-day rotation as the rest of the shop. "
      "No age ratings or safety certifications are claimed here, because this "
      "shop can't verify them — the supplier's full product title is shown on "
      "every listing so you can see exactly what is being described."),
-    ("baby", "Baby", "Trending baby gear — feeding, sleep, diapering, on the go",
+    ("baby", "Baby", "Baby gear — feeding, sleep, diapering, on the go",
      "Baby items are the ones this shop is strictest about naming, because a "
      "parent buying blind deserves the supplier's exact words. Nothing here is "
      "described as safety-tested or certified, since that isn't something this "
      "shop can verify — the full supplier title stays on every listing so you "
      "can judge it yourself."),
-    ("auto", "Auto", "Trending car accessories and interior gear",
+    ("auto", "Auto", "Car accessories and interior gear",
      "Mounts, interior gear, cleaning tools and lighting for a car. Fit is the "
      "usual problem with car accessories bought online, so the supplier's full "
      "title — which is where any vehicle compatibility is stated — stays "
@@ -415,7 +415,7 @@ def hub(siblings, counts):
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Shop by category · HotsTuff</title>
-<meta name="description" content="Browse HotsTuff by category. The lineup refreshes every three days from live trending data; these category pages stay put.">
+<meta name="description" content="Browse HotsTuff by category. The lineup refreshes every three days from our supplier's trending list; these category pages stay put.">
 <link rel="canonical" href="{SITE}/c/">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
 <style>
@@ -441,8 +441,8 @@ def hub(siblings, counts):
 <header class="bar"><div class="wrap"><a href="{SITE}/">← HotsTuff</a></div></header>
 <main class="wrap">
   <h1>Shop by category</h1>
-  <p class="lede">The shop's lineup is rebuilt every three days from live
-     trending data. These category pages don't move — only what's inside them
+  <p class="lede">The shop's lineup is rebuilt every three days from our
+     supplier's trending list. These category pages don't move — only what's inside them
      does.</p>
   <p><a href="{SITE}/gifts/">🎁 Gifts under ${GIFT_MAX}</a></p>
   <ul>

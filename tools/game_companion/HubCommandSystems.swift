@@ -113,7 +113,7 @@ extension CompanionInterfaceView {
   }
   let todayRuns = UsageLedgerRules.summary(UsageLedger.shared.entries,since:Calendar.current.startOfDay(for:Date()))
   if todayRuns.failed > 0 {
-   out.append(CoreObservation(tone:2,text:"\(todayRuns.failed) Claude run\(todayRuns.failed == 1 ? "" : "s") failed today.",why:"A failed run means a job or an answer didn't finish. The usage card shows which.",source:"usage ledger on this Mac"))
+   out.append(CoreObservation(tone:2,text:"\(todayRuns.failed) Claude run\(todayRuns.failed == 1 ? "" : "s") today didn't finish or couldn't be proven.",why:"A job or answer that stopped, or a relay/wake whose delivery wasn't confirmed. The usage card shows which.",source:"usage ledger on this Mac"))
   }
   if m.cpu == nil { out.append(CoreObservation(tone:0,text:"Still taking the first readings.",why:"CPU needs two readings, 2 seconds apart.",source:"measuring")) }
   if out.isEmpty, m.cpu != nil {
@@ -275,7 +275,7 @@ struct CoreSystemsView: View {
     Divider().overlay(Color.white.opacity(0.06))
     ForEach(ledger.entries.suffix(5).reversed()) { e in
      HStack(spacing:8) {
-      Circle().fill(e.ok ? CoreStyle.emerald : CoreStyle.crimson).frame(width:6,height:6)
+      Circle().fill(e.ok ? CoreStyle.emerald : CoreStyle.amber).frame(width:6,height:6).help(e.ok ? "finished, proven" : "didn't finish, or delivery not proven")
       Text("\(e.who) · \(e.job)").font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
       Spacer(minLength:6)
       Text(Self.usageTime.string(from:e.at) + " · \(Int(e.seconds.rounded())) s · " + (e.reported ? "\(UsageLedgerRules.tokens(e.tokensIn ?? 0)) in, \(UsageLedgerRules.tokens(e.outputTokens ?? 0)) out" : "not reported"))

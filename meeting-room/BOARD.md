@@ -4,7 +4,7 @@ _Last updated: 2026-11-05 8:25 PM by Claude_
 
 ## On the table
 - [Claude] Store council 11-05: 9 of 10 built and live (category buttons, expect lines, ref tags, holiday line, next-lineup, phone hero, TikTok 1/day, Pinterest, success page). Details: DECISIONS.md. Status: done
-- [Claude] Resumes + LinkedIn notes: "WorkSafeNB Course (2025)" replaces "Work Safely (incl. WHMIS)" (the certificate doesn't mention WHMIS). LinkedIn edit via C.C pending. Status: waiting
+- [Claude] "WorkSafeNB Course (2025)" now on resumes AND LinkedIn (C.C saved it 11-05 ~9 PM; ID P202017, no WHMIS claimed). Status: done
 - [Matthew] CBDC: emailed Thu 1:44 PM about the Self-Employment Benefit. No reply by Mon morning: call. ALL new outreach and sales wait for it. Status: waiting
 - [Claude] Matthew is HubSpot Social Media certified (11-05, valid to Dec 2028). On the ECS page (EN), resume and LinkedIn. FR page line waits for a reader. Status: done
 - [Claude] Mon batch (25) fact-checked live 11-05: 24 right, 1 opener fixed. Sends only after CBDC OK + Matthew GO. Status: waiting

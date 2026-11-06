@@ -40,6 +40,7 @@ struct RoomMessage: Identifiable {
  var text: String
  var date: Date?
  var url: String
+ var source = ""     // "" for the room thread (issue 15), "hotline" for the Hotline pull request (35); set by the crew chat
 }
 
 enum RoomPost {

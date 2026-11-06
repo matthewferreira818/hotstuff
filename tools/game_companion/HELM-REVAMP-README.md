@@ -20,3 +20,10 @@ NOT on master. Goes to master only after Matthew's GO and LC-Manager's gate.
 - Composer "To <LC chat>" picker (compiled, not seen); the More dropdown menu itself (menus can't be screenshotted; its pages were opened directly).
 - Away + alarm crew pictures were checked with a labelled test switch (`crew.testStates`) and a unit run, not with real away/failing data.
 - Test builds use `-Onone` in a separate test app (own app ID); the final release build with `-O` via rebuild.sh has not been run by me.
+
+## Friday Phase 1 pieces 2+3 (branch friday-phase1-crew)
+- **Crew chat** (Messages > Crew chat; new file CrewChat.swift, last in rebuild.sh SOURCES): the room (issue 15) + Hotline (PR 35), read-only, newest at the bottom, one switch "Show technical lines". A failed read shows an empty list and "Couldn't load the room (as of <time>)".
+- **Honest numbers** on Simple Home: "as of <time>, from <source>" under every number; failed read = "unknown (couldn't reach <source>)", never the last good value. Orders come only from Stripe's read-only key; without it: "Orders: not tracked yet".
+- **ROLLBACK:** same as above (old build zip, or rebuild master). These pieces add no saved data. To drop just this work: `git revert` the merge, or rebuild from `friday-phase1`/master without CrewChat.swift (remove it from SOURCES and the `meeting.tab == 6` lines in MeetingRoom.swift).
+- **Test-only switches** (never set in the real app): `test.failChat`, `test.failStore`, `hub.testStart`, `hub.testHour`.
+- **Not tested:** noise-switch behaviour on every message shape (only a sample of real lines); Stripe orders path with a real key (no key on this Mac, so "not tracked yet" is what shows); long-run refresh over hours; VoiceOver on the new views; real app (-O build).

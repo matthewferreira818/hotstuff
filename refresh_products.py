@@ -1068,7 +1068,7 @@ def to_site_products(cj_products: list[dict]) -> list[dict]:
             "subgroup": classify_subgroup(category, p.get("nameEn", "")),
             "price": assign_price(sku, cost_price),
             "trendScore": normalize_trend_score(int(p.get("listedNum", 0)), listed_nums),
-            "badge": "🔥 Trending",
+            "badge": "🔥 Hot pick",  # our pick, not a trend claim (rank = supplier listedNum; Matthew 2026-11-06)
             "emoji": emoji,
             "image": p.get("bigImage") or None,
             "gradient": GRADIENTS[i % len(GRADIENTS)],

@@ -1,5 +1,6 @@
 import SwiftUI
 import Cocoa
+import Combine
 
 // The Meeting Room page: the shared board (see MeetingData.swift) plus a box that turns Matthew's message into a
 // ready-to-paste note for Claude or GPT. The chats can't see each other, so this is how they stay on the same page.
@@ -8,6 +9,13 @@ import Cocoa
  static let targets = ["Claude","GPT","Everyone","Local Claude"]  // indexes are the picker tags: add new members at the END
  // Which tab of the Meeting Room is showing: 0 You, 1 Claude, 2 GPT, 3 Friday, 4 Board, 5 Thread.
  @Published var tab = 0
+ // The crew chat (tab 6): one read-only timeline of the room and the Hotline. Its changes are passed on so views refresh.
+ let chat = CrewChatHub()
+ private var chatWatch: AnyCancellable?
+ // Honest status of the room read: when it last worked, and whether the last try failed (then nothing old is shown as current).
+ @Published var threadAt: Date?
+ @Published var threadFailed = false
+ init() { chatWatch = chat.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() } }
  // The writing box opens on top of whichever tab is showing; Friday's private chat (this Mac only) replaces her tab while open.
  @Published var composing = false
  @Published var fridayPrivate = false
@@ -53,8 +61,10 @@ import Cocoa
    if thread == nil { thread = await MeetingData.fetchMessages(token:nil) }
   }
   if let fresh = fresh { board = fresh; failed = false } else { failed = (board == nil) }
-  if let thread = thread { messages = thread }
+  if let thread = thread { messages = thread; threadAt = Date(); threadFailed = false } else { threadFailed = true }
   lastRefresh = Date()
+  // The crew chat reads with the same Refresh (and the once-a-minute refresh while the Messages page is open).
+  if tab == 6 { await chat.refresh(token:token,force:force) }
  }
 
  var needs: MatthewNeeds { MeetingData.needs(board:board,messages:messages) }
@@ -256,6 +266,7 @@ extension CompanionInterfaceView {
   VStack(spacing:0) {
    hubMeetingHeader.padding(.horizontal,32).padding(.bottom,10)
    Picker("View",selection:$meeting.tab) {
+    Text("Crew chat").tag(6)
     Text(meeting.needs.count > 0 ? "You · \(meeting.needs.count)" : "You").tag(0)
     Text("Claude").tag(1)
     Text(MeetingData.display("GPT")).tag(2)
@@ -265,7 +276,9 @@ extension CompanionInterfaceView {
    }
    .pickerStyle(.segmented).labelsHidden()
    .padding(.horizontal,32).padding(.bottom,12)
-   if meeting.tab == 3 && meeting.fridayPrivate {
+   if meeting.tab == 6 {
+    crewChatPage.padding(.horizontal,32).padding(.bottom,16).frame(maxHeight:.infinity,alignment:.top)
+   } else if meeting.tab == 3 && meeting.fridayPrivate {
     HStack {
      Button { meeting.fridayPrivate = false } label: { Label("Back to Friday",systemImage:"chevron.left") }
       .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
@@ -308,7 +321,8 @@ extension CompanionInterfaceView {
  }
 
  @ViewBuilder var hubMeetingPage: some View {
-  if meeting.board == nil && meeting.tab != 5 {
+  if meeting.tab == 6 { crewChatPage }
+  else if meeting.board == nil && meeting.tab != 5 {
    if meeting.failed { hubOffline("the board") } else { ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(40) }
   } else {
    switch meeting.tab {

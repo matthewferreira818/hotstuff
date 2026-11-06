@@ -6,7 +6,7 @@ import AppKit
 // Nothing here starts anything by itself: the Talk button does what the dock's button did.
 extension CompanionInterfaceView {
  static let simpleTabs: [HubSection] = [.home,.friday,.store,.meeting]
- static let simpleMore: [HubSection] = [.stocks,.ecs,.crewStation,.hacking,.helper,.shield,.realFake,.lab,.council,.launchpad,.game,.stream,.accounts,.systems]
+ static let simpleMore: [HubSection] = [.stocks,.ecs,.crewStation,.memory,.hacking,.helper,.shield,.realFake,.lab,.council,.launchpad,.game,.stream,.accounts,.systems]
 
  func simpleName(_ section: HubSection) -> String {
   switch section {
@@ -14,6 +14,7 @@ extension CompanionInterfaceView {
   case .stocks: return "Practice stocks"
   case .ecs: return "East Coast Social"
   case .crewStation: return "Crew station"
+  case .memory: return "What Friday remembers"
   case .hacking: return "Live activity"
   case .shield: return "Safety checks"
   case .realFake: return "Real or fake?"
@@ -28,12 +29,13 @@ extension CompanionInterfaceView {
  func simpleBlurb(_ section: HubSection) -> String {
   switch section {
   case .home: return "Everything important, in one place."
-  case .friday: return "Talk to Friday, your voice helper."
+  case .friday: return "Message Friday. Voice is one tap away."
   case .store: return "How many people visit your store."
   case .meeting: return "Your crew's messages."
   case .stocks: return "Practice-money robots. No real money, ever."
   case .ecs: return "Your daily posting business."
   case .crewStation: return "See who is busy, resting or away."
+  case .memory: return "Keep, edit or forget any note. Only on this Mac."
   case .hacking: return "A live feed of what your robots and helpers are doing."
   case .helper: return "Give Friday a job to do on your Mac."
   case .shield: return "Check your Mac and lock things down."
@@ -124,6 +126,7 @@ extension CompanionInterfaceView {
   GeometryReader { geo in
    let narrow = geo.size.width < 760
    let orb: CGFloat = geo.size.height < 760 ? 88 : 120
+   ScrollView {
    VStack(spacing:10) {
     VStack(spacing:2) {
      Text(hubGreeting).font(.system(size:28,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
@@ -133,25 +136,26 @@ extension CompanionInterfaceView {
      let now = timeline.date
      VStack(spacing:0) {
       FridayOrb(state:orbState(at:now),t:now.timeIntervalSinceReferenceDate,level:orbLevel(at:now),size:orb,animated:!reduceMotion,showsPicker:false)
-      Text(deckStateWords(orbState(at:now))).font(.system(size:13)).foregroundStyle(HubTheme.subtext)
+      Text(orbState(at:now) == .off ? "Here when you need her" : deckStateWords(orbState(at:now))).font(.system(size:13)).foregroundStyle(HubTheme.subtext)
      }
     }
     .frame(height:orb * 1.42)
     HStack(spacing:8) {
-     Button { mainAction() } label: {
+     Button { FridayMeModel.shared.open = true; hubSelect(.friday) } label: {
       HStack(spacing:10) {
-       Text(live.running || c.listening ? "⏹" : "🎙️").font(.system(size:22))
-       Text(live.running || c.listening ? "Stop talking" : "Talk to Friday").font(.system(size:20,weight:.semibold,design:.rounded))
+       Image(systemName:"bubble.left.fill").font(.system(size:20))
+       Text("Message Friday").font(.system(size:20,weight:.semibold,design:.rounded))
       }
       .foregroundStyle(HubTheme.background)
       .frame(width:300,height:60)
-      .background(live.running || c.listening ? HubTheme.amber : HubTheme.green,in:RoundedRectangle(cornerRadius:16))
+      .background(HubTheme.green,in:RoundedRectangle(cornerRadius:16))
      }
      .buttonStyle(.plain).disabled(DesignPreview.enabled)
-     .accessibilityLabel(live.running ? "Stop talking to Friday" : "Talk to Friday")
-     .help(live.running ? "Stop the live session" : "Starts Friday. While she is on, she hears your mic and sees your screens.")
-     simpleHelp("talk","Tap once to wake Friday, then just speak. Tap again to stop. While she is on she can hear you and see your screens.")
+     .accessibilityLabel("Message Friday")
+     .help("Opens your private chat with Friday. Voice is on the Friday tab.")
+     simpleHelp("talk","Tap to write to Friday. It's a private chat, only on this Mac. If you want to talk out loud, open the Friday tab and tap Voice.")
     }
+    MoneyMoveCard()
     Group {
      if narrow { VStack(spacing:12) { simpleNeedsCard; simpleTodayCard; simpleBusinessCard } }
      else { HStack(alignment:.top,spacing:12) { simpleNeedsCard; simpleTodayCard; simpleBusinessCard } }
@@ -160,6 +164,8 @@ extension CompanionInterfaceView {
    }
    .padding(.horizontal,hub.compact ? 16 : 32).padding(.top,18).padding(.bottom,16)
    .frame(maxWidth:.infinity)
+   }
+   .scrollIndicators(.hidden)
   }
   .background(HubTheme.background)
   .onAppear { if !UserDefaults.standard.bool(forKey:"hub.tourSeen") && hub.tourStep < 0 { hub.tourStep = 0 } }
@@ -368,7 +374,7 @@ extension CompanionInterfaceView {
     VStack(spacing:14) {
      orbSection(small ? 110 : 150).padding(.top,6)
      if live.running { captions }
-     FridayChatBox(compact:small).frame(maxWidth:640).padding(.horizontal,22)
+     FridayMeSection(reduceMotion:reduceMotion).frame(maxWidth:640).padding(.horizontal,22)
      VStack(spacing:10) {
       Button { withAnimation(.easeOut(duration:0.2)) { hub.voiceOpen.toggle() } } label: {
        HStack(spacing:8) {

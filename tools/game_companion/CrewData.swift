@@ -114,7 +114,8 @@ enum CrewData {
     continue
    }
    let when = post.date
-   let away = awayUntil(for:name,in:messages,now:now)
+   // Only Roxy, Grok and cloud Claude go "away until" a date; a chat's own line about Roxy's return made it look away (board bug, 11-06).
+   let away = kind == .chat ? nil : awayUntil(for:name,in:messages,now:now)
    var state = CrewState.idle
    var detail = "last post \(when.map { ago($0,now:now) } ?? "unknown")"
    if let when = when, now.timeIntervalSince(when) < workingWindow {

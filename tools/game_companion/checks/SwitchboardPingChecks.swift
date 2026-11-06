@@ -200,6 +200,41 @@ import Foundation
   let wakeBack = PingRules.wakeArguments(name:"Friday",message:PingRules.handOffText(chat:"LC-Pixels",original:"new room message for LC-Pixels: https://x"))
   expect(PingRules.wakeArgumentsAreSafe(wakeBack),"a hand-off wake uses the same locked-down command line")
 
+
+  print("\n== Room pings only after switch-on, and never repeated after a relaunch (fix 2026-11-06)")
+  func roomAt(_ id: Int64,_ t: Date) -> SwitchboardComment {
+   SwitchboardComment(id:id,thread:15,login:SwitchboardRules.ownerLogin,body:"**[Matthew → Friday]** hello",createdAt:t,updatedAt:t,url:"https://github.com/matthewferreira818/hotstuff/issues/15#issuecomment-\(id)")
+  }
+  func wakes(_ r: [(comment: SwitchboardComment,route: PingRoute)]) -> [Int64] { r.compactMap { if case .wake = $0.route { return $0.comment.id }; return nil } }
+  let onAt = now
+  var ledger = RoomPingLedger()
+  expect(wakes(ledger.pass([roomAt(9001,onAt.addingTimeInterval(-60))],now:onAt)).isEmpty,"never armed: nothing pings")
+  ledger = RoomPingLedger(); ledger.arm(now:onAt)
+  let old2h = roomAt(9101,onAt.addingTimeInterval(-2 * 3600)), new10s = roomAt(9102,onAt.addingTimeInterval(10))
+  let first = ledger.pass([old2h,new10s],now:onAt.addingTimeInterval(30))
+  expect(!wakes(first).contains(9101),"a message 2 h before switch-on = no wake")
+  expect(wakes(first) == [9102],"a message 10 s after switch-on = wake")
+  expect(wakes(ledger.pass([old2h,new10s],now:onAt.addingTimeInterval(90))).isEmpty,"the next check doesn't wake again (seen)")
+  // relaunch with the ON state kept: the ledger is saved and loaded like state.json
+  let saved = try! JSONEncoder().encode(ledger)
+  var reloaded = try! JSONDecoder().decode(RoomPingLedger.self,from:saved)
+  let relaunchAt = onAt.addingTimeInterval(3 * 3600)
+  let whileClosed = roomAt(9103,onAt.addingTimeInterval(3600))     // posted while the app was quit (switch still ON on disk)
+  reloaded.relaunch(stillOn:true,now:relaunchAt)
+  let afterRelaunch = reloaded.pass([old2h,new10s,whileClosed],now:relaunchAt.addingTimeInterval(20))
+  expect(wakes(afterRelaunch).isEmpty,"relaunch with the same ON state = no repeat wakes, and nothing posted while the app was closed")
+  expect(reloaded.seen.contains(9102) && reloaded.seen.contains(9103),"seen ids survive the relaunch")
+  let freshAfter = roomAt(9104,relaunchAt.addingTimeInterval(15))
+  expect(wakes(reloaded.pass([freshAfter],now:relaunchAt.addingTimeInterval(40))) == [9104],"after a relaunch, a new message still wakes")
+  var offLaunch = RoomPingLedger(); offLaunch.relaunch(stillOn:false,now:relaunchAt)
+  expect(offLaunch.armedAt == .distantFuture,"a launch with the switch OFF arms nothing")
+  // the old 7-message case: armed hours ago, messages posted while closed, app relaunched still ON
+  var stale = RoomPingLedger(); stale.arm(now:onAt.addingTimeInterval(-5 * 3600))
+  let seven = (0..<7).map { roomAt(9200 + Int64($0),onAt.addingTimeInterval(-Double($0 + 1) * 1800)) }
+  stale.relaunch(stillOn:true,now:onAt)
+  expect(wakes(stale.pass(seven,now:onAt.addingTimeInterval(30))).isEmpty,"the 12:44 case (7 old messages, relaunched while ON) wakes nobody")
+  expect(stale.since(now:onAt) == onAt.addingTimeInterval(-60),"GitHub is asked only from the arming time (minus a minute)")
+
   print("\n\(failures == 0 ? "ALL PASS" : "\(failures) FAILED")")
   exit(failures == 0 ? 0 : 1)
  }

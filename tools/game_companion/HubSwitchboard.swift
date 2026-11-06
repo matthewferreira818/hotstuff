@@ -18,7 +18,8 @@ private struct SwitchboardState: Codable {
  var starts: [Date] = []
  var jobCount = 0
  var relayStarts: [Date]? = nil   // optional so an old state.json still loads
- var seenRoom: [Int64]? = nil      // room (issue 15) messages already routed for pings, each pinged at most once
+ var seenRoom: [Int64]? = nil      // OLD field (before 2026-11-06): read once into roomPing, then left empty
+ var roomPing: RoomPingLedger? = nil   // room pings: own arming time + seen ids (SwitchboardPingData.swift)
 }
 
 @MainActor final class Switchboard: ObservableObject {
@@ -63,6 +64,7 @@ private struct SwitchboardState: Codable {
 
  private init() {
   if let d = try? Data(contentsOf:stateURL), let s = try? JSONDecoder().decode(SwitchboardState.self,from:d) { state = s }
+  if state.roomPing == nil { state.roomPing = RoomPingLedger(armedAt:.distantFuture,seen:state.seenRoom ?? []); state.seenRoom = nil }
   if let d = try? Data(contentsOf:logURL), let l = try? JSONDecoder().decode([SwitchboardLogEntry].self,from:d) { log = l }
   recount()
  }
@@ -72,7 +74,12 @@ private struct SwitchboardState: Codable {
   guard !booted else { return }
   booted = true
   claudeVersion = Self.checkClaude().version
-  if on { startLoop() }
+  if on {
+   // Left ON from a previous run: room pings start from THIS launch, never for messages posted while the app was closed.
+   state.roomPing?.relaunch(stillOn:true,now:Date()); save()
+   add("note","Switchboard was left ON: room pings cover messages from this launch on.")
+   startLoop()
+  }
   FridayDM.shared.start()   // the private Friday-and-me DM engine (works with the switch ON or OFF)
   WakeRunner.shared.start() // resumes probing for copies held for a closed chat
   SwitchboardTestHooks.boot(self)
@@ -85,7 +92,9 @@ private struct SwitchboardState: Codable {
   on = value
   UserDefaults.standard.set(value,forKey:Switchboard.onKey)
   if value {
-   state.armedAt = Date()   // only comments posted from now on can start a job
+   let now = Date()
+   state.armedAt = now   // only comments posted from now on can start a job
+   state.roomPing = state.roomPing ?? RoomPingLedger(); state.roomPing?.arm(now:now)   // ...or ping anyone
    save()
    add("on","Switchboard ON (turned on by \(source)). Watching the Hotline every \(Switchboard.intervalText).")
    startLoop()
@@ -175,39 +184,32 @@ private struct SwitchboardState: Codable {
     await start(c,relay:name)
    }
   }
-  await pingRoom(since:since)
+  await pingRoom()
  }
 
  // MARK: room pings (Phase 2). New owner messages on issue 15 addressed to a chat BY NAME wake that open chat with a link. Never starts a job.
- private func pingRoom(since: Date) async {
-  guard let rows = await fetch(thread:SwitchboardRules.roomIssue,since:since) else {
+ private func pingRoom() async {
+  var ledger = state.roomPing ?? RoomPingLedger()
+  guard let rows = await fetch(thread:SwitchboardRules.roomIssue,since:ledger.since(now:Date())) else {
    add("error","Couldn't read the room (issue 15) for pings; trying again next check.")
    return
   }
-  let seen = Set(state.seenRoom ?? [])
-  for c in rows.sorted(by:{ $0.createdAt < $1.createdAt }) where !seen.contains(c.id) {
-   switch PingRules.route(c,now:Date(),armedAt:state.armedAt) {
+  let todo = ledger.pass(rows,now:Date())
+  state.roomPing = ledger
+  if !todo.isEmpty { save() }   // seen ids saved BEFORE anything is woken, so a crash or relaunch can't repeat a wake
+  for (c,route) in todo {
+   switch route {
    case .none:
-    rememberRoom(c.id)
+    break
    case .wake(let chats):
-    rememberRoom(c.id)
     add("ping","Room message \(c.id): waking \(chats.joined(separator:", ")).")   // names only, never the words
     WakeRunner.shared.submitRoom(commentID:c.id,chats:chats,link:c.url)
    case .hotlinePointer:
-    rememberRoom(c.id)
     let ok = await post(PingRules.pointerText(link:c.url),thread:SwitchboardRules.hotline)
     add("ping","Room message \(c.id): pointer to cloud Claude on the Hotline \(ok ? "posted" : "failed").")
     WakeRunner.shared.recordPointer(commentID:c.id,posted:ok)
    }
   }
- }
-
- private func rememberRoom(_ id: Int64) {
-  var list = state.seenRoom ?? []
-  list.append(id)
-  if list.count > SwitchboardLimits.seenKeep { list.removeFirst(list.count - SwitchboardLimits.seenKeep) }
-  state.seenRoom = list
-  save()
  }
 
  // The wake runner's log lines (names and outcomes only).

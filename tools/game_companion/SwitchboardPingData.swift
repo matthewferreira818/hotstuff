@@ -140,6 +140,33 @@ enum PingRules {
 }
 
 // What the screen shows for one room message ("pinged ✓/✗"). Stored per comment id, local only; it holds names and outcomes, never text.
+// MARK: the room-ping ledger (saved in state.json). Fix 2026-11-06 (LC-Pixels, for LC-Manager): a test copy left ON, quit, and relaunched
+// hours later woke Friday for 7 room messages posted while the app was closed, because the switch-on time (armedAt) was hours old.
+// Rule: room pings only ever cover messages posted AFTER the latest arming, and arming happens on EVERY switch-on (Touch ID, test hook)
+// AND on every launch that finds the switch still ON. Seen ids persist, so a message is routed at most once across relaunches.
+struct RoomPingLedger: Codable, Equatable {
+ var armedAt: Date = .distantFuture      // nothing pings until the first arming
+ var seen: [Int64] = []
+
+ mutating func arm(now: Date) { armedAt = now }                 // switch turned ON
+ mutating func relaunch(stillOn: Bool,now: Date) { if stillOn { armedAt = now } }   // app launched with the ON state kept
+
+ // The window to ask GitHub for (a minute of slack; never older than 6 hours).
+ func since(now: Date) -> Date { max(armedAt,now.addingTimeInterval(-SwitchboardLimits.maxAge)).addingTimeInterval(-60) }
+
+ // One pass over fetched room comments: each unseen one is routed once and remembered. Returns what to do, oldest first.
+ mutating func pass(_ rows: [SwitchboardComment],now: Date) -> [(comment: SwitchboardComment,route: PingRoute)] {
+  var out: [(comment: SwitchboardComment,route: PingRoute)] = []
+  var known = Set(seen)
+  for c in rows.sorted(by:{ $0.createdAt < $1.createdAt }) where !known.contains(c.id) {
+   out.append((c,PingRules.route(c,now:now,armedAt:armedAt)))
+   known.insert(c.id); seen.append(c.id)
+  }
+  if seen.count > SwitchboardLimits.seenKeep { seen.removeFirst(seen.count - SwitchboardLimits.seenKeep) }
+  return out
+ }
+}
+
 struct PingResult: Codable, Equatable {
  var id: Int64                       // the issue-15 comment id (RoomMessage.id on the screen)
  var at: Date

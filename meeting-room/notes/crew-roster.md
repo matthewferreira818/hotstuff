@@ -13,6 +13,7 @@ The morning brief does a roll call from this list every day. Add a line when a c
 | LC-Makeover | Local Claude (Mac) | store look and store copy (today: the "trending" honesty sweep) | Sonnet |
 | LC-Trends | Local Claude (Mac) | trend watcher, Mon + Thu, look-only | Sonnet |
 | LC-Work | Local Claude (Mac) | Gmail checks, outreach count, follow-ups | Sonnet |
+| Friday (chat) | Local Claude chat "Friday" (Mac, since 11-06 ~6:45 AM) | Matthew's own AI: her character + memory (Helm-Private friday/), LC tools and rules; next: The Helm's chat box talks to this chat | Sonnet |
 | Friday | The Helm on the Mac | the Switchboard (wakes LC jobs, relays to open chats); next: typed chat on a Claude brain | — |
 | Roxy (GPT) | ChatGPT Project | Claude's right hand: drafts, research, second honesty check. Back ~Nov 9 | — |
 | Grok | xAI | practice trading robots + research. Back ~Nov 11 | — |

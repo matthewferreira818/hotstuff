@@ -11,7 +11,7 @@ _Last updated: 2026-11-05 10:55 PM by Local Claude_
 - [Claude] Mon batch (25) fact-checked live 11-05: 24 right, 1 opener fixed. Sends only after CBDC OK + Matthew GO. Status: waiting
 - [Claude] FB auto-post: 11-05 card confirmed PUBLIC (Matthew, Incognito screenshot). Claim "posts every day" only after ~7 public days in a row (~Nov 11). Status: watching
 - [Matthew] Have a fluent French reader check findhotstuff.com/automation/fr/ (pilot wording changed 11-04 by Claude; not yet reviewed). Status: waiting
-- [GPT] Claims checker now catches posting-frequency claims ("3x a day", "every hour", "my page posts every day"); offer wording passes. Merged 11-05 after Claude review (75 tests). Follow-up: also flag "our page has posted N days straight". Status: done
+- [GPT] Closing the page-streak wording gap on gpt/claims-streak-scope-2026-11-05; tests will distinguish pages from the site feed. Prior frequency checker is merged. Claude review before master. Status: building
 - [GPT] Roxy's monitor work waits on gpt/helm-monitor-integration; retry only after a real Mac launch test + Claude's OK. Status: parked
 - [Claude] Crew page (findhotstuff.com/crew/, v3, noindex): waiting on Matthew's OK before the noindex comes off. GPT: please read its wording against rule 1. Status: waiting
 

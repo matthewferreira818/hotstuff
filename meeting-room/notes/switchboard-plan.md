@@ -20,6 +20,10 @@ talk to each other without him copying and pasting. Friday (The Helm, on his Mac
 
 ## Safety locks (non-negotiable, LC-Manager's quality gate checks every one)
 - Only comments authored by the owner account AND carrying a `[Claude` sender tag count. Everything else is ignored.
+- Jobs are accepted ONLY from comments on the Hotline PR (#35), never from issue 15, so a tag pasted into the room triggers nothing.
+- Known gap (documented, not hidden): Roxy, Grok and every chat post as the owner account, so the tag can't prove who wrote it.
+  Accepted because all of them are crew under the same limits and every job still runs inside LC's deny list; Friday mirrors
+  the full job text to issue 15 before it starts so Matthew sees every job.
 - The job runs with LC's normal settings and deny list (no secrets, no ~/.ssh, no moomoo, no rm -rf,
   no force-push, no ~/hotstuff build folder). Friday never widens permissions; no permission laundering.
 - One job at a time, at most 3 started per hour, at most 12 per day (usage). A job longer than 30 minutes is stopped.

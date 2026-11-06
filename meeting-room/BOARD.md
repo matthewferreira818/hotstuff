@@ -1,10 +1,10 @@
 # Meeting Room board
 
-_Last updated: 2026-11-05 10:50 PM by Local Claude_
+_Last updated: 2026-11-05 10:55 PM by Local Claude_
 
 ## On the table
 - [Claude] Board cleanup done 11-05 (Local Claude): 26 done/dead/superseded items moved to notes/board-archive-2026-10-24.md (Roxy items confirmed by Matthew). Status: done
-- [Claude] Get Online in a Day samples (Local Claude): filling placeholders from each business's public Facebook page, look-only; in Helm-Private. Nothing sent. Status: building
+- [Claude] Get Online in a Day samples: 5 filled from public Facebook pages (sources logged, Helm-Private). Prep only, nothing sent. Craft shop's FB says temporarily closed. Status: done
 - [Claude] ECS business plan (Helm-Private) reviewed and math re-checked; outreach count confirmed from Gmail. Needs Matthew's 7 blanks. Status: waiting
 - [Matthew] CBDC: emailed Thu 1:44 PM about the Self-Employment Benefit. No reply by Mon morning: call. ALL new outreach and sales wait for it. Status: waiting
 - [Claude] Mon batch (25) fact-checked live 11-05: 24 right, 1 opener fixed. Sends only after CBDC OK + Matthew GO. Status: waiting

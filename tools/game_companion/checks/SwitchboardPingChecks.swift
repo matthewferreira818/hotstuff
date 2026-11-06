@@ -56,10 +56,10 @@ import Foundation
 
   print("\n== Cooldown (2 min per chat) and caps")
   expect(PingRules.gate(chat:"LC-Manager",now:now,last:[:],sent:[],calendar:cal) == .go,"first wake goes")
-  expect(PingRules.gate(chat:"LC-Manager",now:now,last:["lc-manager":now.addingTimeInterval(-60)],sent:[],calendar:cal) == .cooldown,"same chat 60 s later: cooldown")
-  expect(PingRules.gate(chat:"LC_Manager",now:now,last:["lc-manager":now.addingTimeInterval(-60)],sent:[],calendar:cal) == .cooldown,"underscore spelling shares the cooldown")
-  expect(PingRules.gate(chat:"LC-Manager",now:now,last:["lc-manager":now.addingTimeInterval(-121)],sent:[],calendar:cal) == .go,"same chat after 2 min: goes")
-  expect(PingRules.gate(chat:"Friday",now:now,last:["lc-manager":now.addingTimeInterval(-10)],sent:[],calendar:cal) == .go,"a different chat is not blocked by someone else's cooldown")
+  expect(PingRules.gate(chat:"LC-Manager",now:now,last:["lcmanager":now.addingTimeInterval(-60)],sent:[],calendar:cal) == .cooldown,"same chat 60 s later: cooldown")
+  expect(PingRules.gate(chat:"LC_Manager",now:now,last:["lcmanager":now.addingTimeInterval(-60)],sent:[],calendar:cal) == .cooldown,"underscore spelling shares the cooldown")
+  expect(PingRules.gate(chat:"LC-Manager",now:now,last:["lcmanager":now.addingTimeInterval(-121)],sent:[],calendar:cal) == .go,"same chat after 2 min: goes")
+  expect(PingRules.gate(chat:"Friday",now:now,last:["lcmanager":now.addingTimeInterval(-10)],sent:[],calendar:cal) == .go,"a different chat is not blocked by someone else's cooldown")
   expect(PingRules.gate(chat:"Friday",now:now,last:[:],sent:(1...30).map { now.addingTimeInterval(-Double($0) * 60) },calendar:cal) == .hourCap,"30 wakes in the last hour: hour cap")
   expect(PingRules.gate(chat:"Friday",now:now,last:[:],sent:(1...29).map { now.addingTimeInterval(-Double($0) * 60) },calendar:cal) == .go,"29 in the hour: goes")
 
@@ -126,6 +126,79 @@ import Foundation
   expect(DMRules.note(for:DMStatus(id:"b",at:now,state:"closed")) == "Friday's chat is closed — open it to talk","closed chat: the screen note is exactly 'Friday's chat is closed — open it to talk'")
   expect(DMRules.note(for:DMStatus(id:"b",at:now,state:"woken")) == nil,"woken: no note")
   expect(Set((1...50).map { _ in DMRules.newID() }).count > 40,"ids are unique")
+
+  print("\n== Forgiving chat-name matching (LC-Pixels vs the open chat LC-Pixel)")
+  typealias NM = SwitchboardRules.NameMatch
+  let listing = ["LC_Manager [2d9a46]","LC-Pixel [aa1111]","LC-Helm: build revamp (B v2) [e4bf1e]","Friday [bb2222]","LC-TikTok [0830bd]","LC-Trends [ac175c]"]
+  expect(NM.resolve("LC-Pixels",listed:listing) == .one("LC-Pixel"),"LC-Pixels = LC-Pixel (trailing s)")
+  expect(NM.resolve("LC-Pixel",listed:listing) == .one("LC-Pixel"),"LC-Pixel = LC-Pixel")
+  expect(NM.resolve("lc pixels",listed:listing) == .one("LC-Pixel"),"spaces and case don't matter: 'lc pixels'")
+  expect(NM.resolve("LC-Manager",listed:listing) == .one("LC_Manager"),"LC-Manager = LC_Manager")
+  expect(NM.resolve("LC_Manager",listed:listing) == .one("LC_Manager"),"LC_Manager = LC_Manager")
+  expect(NM.resolve("LC-Helm build",listed:listing) == .one("LC-Helm: build revamp (B v2)"),"'LC-Helm build' = 'LC-Helm: build revamp (B v2)' (unique short name)")
+  expect(NM.resolve("LC-Helm: build",listed:listing) == .one("LC-Helm: build revamp (B v2)"),"colon and spaces ignored")
+  expect(NM.resolve("friday",listed:listing) == .one("Friday"),"friday = Friday")
+  expect(NM.resolve("LC-Hel",listed:listing) == .many(["LC-Helm: build revamp (B v2)"]) || NM.resolve("LC-Hel",listed:listing) == .one("LC-Helm: build revamp (B v2)"),"a 5-letter prefix finds the one chat")
+  let two = listing + ["LC-Helm: design [cc3333]"]
+  expect(NM.resolve("LC-Helm",listed:two) == .many(["LC-Helm: build revamp (B v2)","LC-Helm: design"]),"two candidates = refuse, never guess: \(NM.resolve("LC-Helm",listed:two))")
+  expect(NM.resolve("LC-Nobody",listed:listing) == .none(closest:nil),"no match = not open")
+  expect(NM.resolve("LC-Trend",listed:listing) == .one("LC-Trends"),"the other direction of the trailing s")
+  expect(NM.resolve("LC-Pixelz",listed:listing) == .none(closest:"LC-Pixel"),"no match names the closest chat")
+  expect(NM.resolve("lc",listed:listing) == .none(closest:nil),"'lc' alone is too short to match everyone")
+  expect(NM.resolve("LC-TikTok",listed:listing + ["LC-TikTok [dd4444]"]) == .many(["LC-TikTok","LC-TikTok"]),"the same name twice = refuse")
+  expect(NM.strip("LC-Helm: build revamp (B v2) [e4bf1e]") == "LC-Helm: build revamp (B v2)","the [ref] is not part of the name")
+  expect(PingRules.gate(chat:"LC-Pixels",now:now,last:["lcpixel":now.addingTimeInterval(-30)],sent:[],calendar:cal) == .cooldown,"LC-Pixels and LC-Pixel share one cooldown")
+  expect(PingRules.chatName("Local Claude (LC-Pixels)") == "LC-Pixels" && PingRules.chatName("LC Pixels") == "LC Pixels","tag targets 'LC-Pixels' and 'LC Pixels' are chat names")
+  expect(PingRules.route(msg("**[Matthew → Local Claude (LC-Pixels)]** roll call"),now:now,armedAt:armed) == .wake(["LC-Pixels"]),"the roll call to LC-Pixels still routes to a wake")
+  // the delivery proof under forgiving matching
+  func send(_ to: String,_ list: String,_ text: String,reply: String = #"{"success":true}"#) -> Data {
+   func j(_ o: [String: Any]) -> String { String(decoding:try! JSONSerialization.data(withJSONObject:o),as:UTF8.self) }
+   return Data([j(["type":"assistant","message":["content":[["type":"tool_use","id":"L","name":"ListAgents","input":[:]]]]]),
+                j(["type":"user","message":["content":[["type":"tool_result","tool_use_id":"L","content":"Peer sessions:\n" + list]]]]),
+                j(["type":"assistant","message":["content":[["type":"tool_use","id":"S","name":"SendMessage","input":["to":to,"message":text]]]]]),
+                j(["type":"user","message":["content":[["type":"tool_result","tool_use_id":"S","content":reply]]]]),
+                j(["type":"result","is_error":false,"result":"DELIVERED","num_turns":3])].joined(separator:"\n").utf8)
+  }
+  let listText = listing.map { "  \($0)  ·  idle" }.joined(separator:"\n")
+  expect(SwitchboardRules.parseRelay(send("LC-Pixel",listText,"hi"),target:"LC-Pixels",expected:"hi").delivered,"target LC-Pixels, sent to the open LC-Pixel: delivered")
+  expect(SwitchboardRules.parseRelay(send("LC-Helm: build revamp (B v2)",listText,"hi"),target:"LC-Helm build",expected:"hi").delivered,"short name delivered to a chat whose name has spaces and a colon")
+  expect(!SwitchboardRules.parseRelay(send("Friday",listText,"hi"),target:"LC-Pixels",expected:"hi").delivered,"sent to the wrong chat: not delivered")
+  let amb = SwitchboardRules.parseRelay(send("LC-Helm: design",listText + "\n  LC-Helm: design [cc3333]  ·  idle","hi"),target:"LC-Helm",expected:"hi")
+  expect(!amb.delivered && amb.unproven,"two chats match but it sent anyway: UNPROVEN, not 'delivered'")
+  func noSend(_ list: String,_ final: String) -> Data {
+   func j(_ o: [String: Any]) -> String { String(decoding:try! JSONSerialization.data(withJSONObject:o),as:UTF8.self) }
+   return Data([j(["type":"assistant","message":["content":[["type":"tool_use","id":"L","name":"ListAgents","input":[:]]]]]),
+                j(["type":"user","message":["content":[["type":"tool_result","tool_use_id":"L","content":"Peer sessions:\n" + list]]]]),
+                j(["type":"result","is_error":false,"result":final,"num_turns":2])].joined(separator:"\n").utf8)
+  }
+  let none = SwitchboardRules.parseRelay(noSend(listText,"NOT DELIVERED: x"),target:"LC-Pixelz",expected:"hi")
+  expect(!none.delivered && none.detail == "LC-Pixelz isn't open (closest: LC-Pixel)","none = 'isn't open (closest: <name>)' decided by the app, not the model: \(none.detail)")
+  let many = SwitchboardRules.parseRelay(noSend(listText + "\n  LC-Helm: design [cc3333]  ·  idle","NOT DELIVERED"),target:"LC-Helm",expected:"hi")
+  expect(!many.delivered && many.detail.contains("more than one chat matches"),"two candidates = refused with both names: \(many.detail)")
+  expect(SwitchboardRules.relayPrompt(for:msg("**[Claude → Local Claude (LC-Pixels)]** x",thread:35),name:"LC-Pixels").contains("LC-Pixels\" = \"LC-Pixel\""),"the relay prompt teaches the same matching rules")
+
+  print("\n== Closed chat: hand off at once, keep one copy (no retry loop)")
+  expect(PingRules.backups(for:"LC-Pixels") == ["Friday","LC-Manager"],"closed chat -> Friday first, LC-Manager second")
+  expect(PingRules.backups(for:"Friday") == ["LC-Manager"],"Friday closed -> LC-Manager")
+  expect(PingRules.backups(for:"friday") == ["LC-Manager"],"friday (any spelling) closed -> LC-Manager")
+  expect(PingRules.handOffText(chat:"LC-Pixels",original:"new room message for LC-Pixels: https://x") == "for LC-Pixels, whose chat is closed; handle it or reassign: new room message for LC-Pixels: https://x","hand-off label is exactly 'for <name>, whose chat is closed; handle it or reassign: …'")
+  let hl = PingRules.hotlineLine(chat:"LC-Pixels",backup:"Friday",ref:"room message 123")
+  expect(hl == "**[Friday (LC-Switchboard) → Claude]** LC-Pixels is closed; Friday has it (room message 123)." && !SwitchboardRules.isTrigger(hl) && SwitchboardRules.relayTarget(hl) == nil,"one Hotline line per hand-off, under Friday's tag, can't trigger a job or relay")
+  expect(PingRules.hotlineLine(chat:"LC-Pixels",backup:nil,ref:"x").contains("nobody else could take it"),"no backup open: the Hotline line says so")
+  expect(PingRules.route(msg(hl),now:now,armedAt:armed) == .none("Friday's own line or a receipt"),"the hand-off line can't ping anyone (no loop)")
+  let h = PingRules.Held(id:"1-lcpixel",chat:"LC-Pixels",text:"new room message for LC-Pixels: https://x",origin:1,since:now)
+  expect(!PingRules.heldDue(h,now:now.addingTimeInterval(14 * 60)) && PingRules.heldDue(h,now:now.addingTimeInterval(15 * 60)),"the held copy is probed every 15 minutes, not sooner")
+  var tried = h; tried.lastTry = now.addingTimeInterval(20 * 60)
+  expect(!PingRules.heldDue(tried,now:now.addingTimeInterval(30 * 60)) && PingRules.heldDue(tried,now:now.addingTimeInterval(36 * 60)),"after a try the next probe is 15 minutes later")
+  expect(!PingRules.heldExpired(h,now:now.addingTimeInterval(11 * 3600)) && PingRules.heldExpired(h,now:now.addingTimeInterval(13 * 3600)),"a held copy is dropped after 12 hours")
+  expect(PingRules.heldText(h).contains("held for you since") && PingRules.heldText(h).hasSuffix(h.text),"the late delivery says it was held, then gives the same text")
+  let handed = PingResult(id:5,at:now,targets:["LC-Pixel":"handed to Friday"])
+  expect(handed.badge == "LC-Pixel closed → Friday has it" && handed.handedOff && !handed.allOK,"crew chat shows '<name> closed → Friday has it': \(handed.badge)")
+  expect(PingResult(id:6,at:now,targets:["LC-Pixel":"closed"]).badge == "LC-Pixel closed, and nobody could take it","nobody could take it is shown plainly")
+  let later = PingResult(id:7,at:now,targets:["LC-Pixel":"delivered later"])
+  expect(later.badge == "pinged ✓ LC-Pixel (when it reopened)","delivered when it reopened: \(later.badge)")
+  let wakeBack = PingRules.wakeArguments(name:"Friday",message:PingRules.handOffText(chat:"LC-Pixels",original:"new room message for LC-Pixels: https://x"))
+  expect(PingRules.wakeArgumentsAreSafe(wakeBack),"a hand-off wake uses the same locked-down command line")
 
   print("\n\(failures == 0 ? "ALL PASS" : "\(failures) FAILED")")
   exit(failures == 0 ? 0 : 1)

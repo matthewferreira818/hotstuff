@@ -52,3 +52,10 @@ Friday starts an LC job, the LC comments "pong" on the Hotline, cloud Claude wak
 Each switchboard job runs on the right brain: Haiku for quick checks, Sonnet (default) for normal work,
 Opus only for hard design/bugs/safety reviews. Cloud Claude may name the model in the message, e.g.
 `[Claude → Local Claude] (model: opus) ...`; with no model named, Sonnet. Friday shows the model in her job log.
+
+## Job vs. conversation (LC-Manager, 2026-11-06 ~3:10 AM)
+A Hotline comment starts a Mac job ONLY when its target is exactly plain `Local Claude`
+(`**[Claude → Local Claude]**`, `**[Claude (New beginning) → Local Claude]**`). Anything addressed to a named chat
+(`→ Local Claude (LC-Manager)`) is conversation and never starts a job. Cloud Claude always answers Friday's result posts
+with a named target, so nothing loops. The Switchboard posts each job's result back itself and flags a claimed action
+with no tool use as "unproven".

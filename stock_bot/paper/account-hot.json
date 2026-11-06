@@ -1,7 +1,7 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 694.86,
+ "cash": 696.13,
  "spy_at_start": 777.22,
  "positions": {},
  "orders": [
@@ -1103,6 +1103,26 @@
    "qty": 23.098852,
    "price": 15.3546,
    "dollars": 352.68,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-06T16:58:37+00:00",
+   "symbol": "BKD",
+   "side": "buy",
+   "status": "filled",
+   "qty": 38.38653,
+   "price": 8.999,
+   "dollars": 347.43,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-06T17:19:53+00:00",
+   "symbol": "BKD",
+   "side": "sell",
+   "status": "filled",
+   "qty": 38.38653,
+   "price": 9.1359,
+   "dollars": 348.7,
    "fee": 1.99
   }
  ],

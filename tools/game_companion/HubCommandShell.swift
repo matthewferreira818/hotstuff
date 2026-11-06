@@ -179,6 +179,33 @@ func coreTitle(_ s: String) -> String {
  return t
 }
 
+// Matthew, 2026-11-06: "maybe have it locked at a certain minimization?" While Command Core is on screen the window can't shrink below
+// a size where its layouts still breathe; if it is already smaller it grows to that size. Leaving Command Core gives back the app's normal minimum.
+@MainActor enum CoreWindowLock {
+ static let minimum = NSSize(width:1000,height:680)
+ private static var previous: NSSize?
+ private static var window: NSWindow? { NSApp.windows.first { $0.isVisible && $0.canBecomeMain && !($0 is NSPanel) } }
+ static var showing = 0   // Command Core tabs on screen (appear/disappear can arrive in either order when switching tabs)
+ static func engage() {
+  showing += 1
+  guard let w = window else { return }
+  if previous == nil { previous = w.minSize }
+  w.minSize = minimum
+  var f = w.frame
+  let needW = max(0,minimum.width - w.contentLayoutRect.width), needH = max(0,minimum.height - w.contentLayoutRect.height)
+  if needW > 0 || needH > 0 {
+   f.size.width += needW; f.size.height += needH; f.origin.y -= needH
+   if let screen = w.screen?.visibleFrame { f = f.intersection(screen).isEmpty ? f : NSRect(x:max(screen.minX,min(f.minX,screen.maxX - f.width)),y:max(screen.minY,f.minY),width:min(f.width,screen.width),height:min(f.height,screen.height)) }
+   w.setFrame(f,display:true,animate:true)
+  }
+ }
+ static func release() {
+  guard let w = window, let p = previous else { return }
+  w.minSize = p
+  previous = nil
+ }
+}
+
 extension CompanionInterfaceView {
  // One call builds the shared frame for any tab.
  func coreFrame(_ title: String,_ subtitle: String,tone: Int = 0,observations: [CoreObservation],content: AnyView) -> some View {
@@ -192,10 +219,16 @@ extension CompanionInterfaceView {
              content:content)
   }
   .onAppear {
+   CoreWindowLock.engage()
    Task { await meeting.chat.refresh(token:meeting.hasToken ? meeting.savedToken() : nil) }
    CrewSignals.refreshIfStale()
    let g = GuardHub.shared
    if g.results.isEmpty && !g.locked && !g.offline { Task { await g.runChecks() } }
+  }
+  .onDisappear {
+   CoreWindowLock.showing = max(0,CoreWindowLock.showing - 1)
+   // Switching between Command Core tabs re-engages at once; leaving it for another page gives the window its normal minimum back.
+   DispatchQueue.main.asyncAfter(deadline:.now() + 0.3) { if CoreWindowLock.showing == 0 { CoreWindowLock.release() } }
   }
  }
 

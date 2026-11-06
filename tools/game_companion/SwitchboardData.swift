@@ -341,13 +341,21 @@ enum SwitchboardRules {
 
  // stream-json (+ --verbose) is how the tool calls and their results come back, so "delivered" can be PROVEN from SendMessage's own reply.
  // --tools limits the built-in tools to these three; --strict-mcp-config drops every MCP connector. dontAsk + no prompts, as for jobs.
+ // Haiku for relays and wakes (Matthew's GO, 2026-11-06 ~5:50 PM, after the Haiku test: tools/crew/haiku-test/results/2026-11-06-1742.md,
+ // 40/40 = Sonnet, LC-Manager PASS; plus Friday's live wake test: 3/3 delivered word for word, the missing chat correctly NOT DELIVERED).
+ // These runs only list chats and pass fixed text along, and parseRelay below still proves every delivery (target + exact text), so a
+ // Haiku slip shows as NOT DELIVERED / UNPROVEN and goes to the backup, never as a silent wrong send. Full jobs and Friday's brain keep their models.
+ static let lightModel = "haiku"
+
  static func relayArguments(prompt: String) -> [String] {
-  ["-p",prompt,"--output-format","stream-json","--verbose","--permission-mode","dontAsk","--permission-prompts","none",
+  ["-p",prompt,"--model",lightModel,"--output-format","stream-json","--verbose","--permission-mode","dontAsk","--permission-prompts","none",
    "--tools",relayTools,"--strict-mcp-config",noTranscript]
  }
 
  static func relayArgumentsAreSafe(_ args: [String]) -> Bool {
   guard argumentsAreSafe(args), let i = args.firstIndex(of:"--tools"), i + 1 < args.count, i != 1 else { return false }
+  guard let m = args.firstIndex(of:"--model"), m != 1, m + 1 < args.count, args[m + 1] == lightModel,
+        args.enumerated().filter({ $0.offset != 1 && $0.element == "--model" }).count == 1 else { return false }   // exactly one --model: haiku
   return args[i + 1] == relayTools
  }
 

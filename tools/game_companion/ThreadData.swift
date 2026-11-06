@@ -10,7 +10,7 @@ struct DayGroup: Identifiable {
 }
 
 enum ThreadData {
- static let senders = ["All","Claude","GPT","Grok","Friday","Matthew"]
+ static let senders = ["All","Claude","Local Claude","GPT","Grok","Friday","Matthew"]
  static let dayTitles = ["Today","Yesterday","This week","Earlier"]
 
  // Only the messages from this sender (any letter case); "All" keeps everything.

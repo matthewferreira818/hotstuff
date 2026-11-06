@@ -157,7 +157,8 @@ import Foundation
   precondition(readWaiting.contains { $0.speaker == "Narrator" && $0.text == "Roxy wrote to you:" } && readWaiting.contains { $0.speaker == "GPT" && $0.text == "for you" } && !readWaiting.contains { $0.text == "The rest are in the You tab." })
   // Nicknames: GPT's tag can carry its names ("GPT (Roxy)", "Carrie (GPT)"), and on screen GPT is called Roxy. "Chrome Claude" is not Claude.
   precondition(MeetingData.canonical("GPT (Roxy)") == "GPT" && MeetingData.canonical("Carrie (GPT)") == "GPT" && MeetingData.canonical("roxy") == "GPT" && MeetingData.canonical("Friday") == "Friday")
-  precondition(MeetingData.canonical("Chrome Claude") == nil && MeetingData.canonical("Claude") == "Claude" && MeetingData.canonical("?") == nil && MeetingData.canonical("") == nil)
+  precondition(MeetingData.parseMessage(body:"[GPT → Claude] hi").author == "GPT" && MeetingData.parseMessage(body:"**[Local Claude → Matthew]** ok").author == "Local Claude" && MeetingData.label("GPT") == "Roxy" && MeetingData.label("?") == "Untagged")
+  precondition(MeetingData.canonical("Chrome Claude") == nil && MeetingData.canonical("Claude") == "Claude" && MeetingData.canonical("Local Claude") == "Local Claude" && !MeetingData.same("Local Claude","Claude") && MeetingData.canonical("?") == nil && MeetingData.canonical("") == nil)
   precondition(MeetingData.display("GPT") == "Roxy" && MeetingData.display("Claude") == "Claude" && MeetingData.same("GPT (Roxy)","gpt") && !MeetingData.same("Chrome Claude","Claude"))
   let nick = [said(21,"GPT (Roxy)","hello from roxy","2026-10-24T11:00:00Z")]
   let nickTab = MeetingData.crew("GPT",board:crewBoard,messages:nick)

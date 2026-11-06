@@ -140,7 +140,7 @@ enum FridayNudge {
   }
   guard let newest = wanted.last else { return nil }
   let extra = wanted.count > 1 ? " (and \(wanted.count - 1) more)" : ""
-  return "New in the Meeting Room\(extra): from \(newest.author) to \(newest.to): \(MeetingData.brief(newest.text,limit:160))"
+  return "New in the Meeting Room\(extra): from \(MeetingData.label(newest.author)) to \(MeetingData.label(newest.to)): \(MeetingData.brief(newest.text,limit:160))"
  }
 
  static func wrap(_ text: String) -> String {

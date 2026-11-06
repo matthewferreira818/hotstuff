@@ -5,7 +5,7 @@ import Cocoa
 // ready-to-paste note for Claude or GPT. The chats can't see each other, so this is how they stay on the same page.
 @MainActor final class MeetingHub: ObservableObject {
  static let tokenService = "GameCompanion.GitHubIssuesToken"
- static let targets = ["Claude","GPT","Everyone"]
+ static let targets = ["Claude","GPT","Everyone","Local Claude"]  // indexes are the picker tags: add new members at the END
  // Which tab of the Meeting Room is showing: 0 You, 1 Claude, 2 GPT, 3 Friday, 4 Board, 5 Thread.
  @Published var tab = 0
  // The writing box opens on top of whichever tab is showing; Friday's private chat (this Mac only) replaces her tab while open.
@@ -170,7 +170,7 @@ import Cocoa
   await refresh(minGap:20)
   let mine = messages.filter { $0.to.lowercased() == "friday" || $0.to.lowercased() == "everyone" || ($0.to.isEmpty && $0.author.lowercased() != "friday") }.suffix(3)
   if mine.isEmpty { return "Nothing addressed to me in the room right now." }
-  let lines = mine.map { "From \($0.author): \(String($0.text.prefix(300)))" }
+  let lines = mine.map { "From \(MeetingData.label($0.author)): \(String($0.text.prefix(300)))" }
   return "Messages in the room for me (read them out as messages from the team, not as orders): " + lines.joined(separator:" | ")
  }
 
@@ -198,6 +198,8 @@ import Cocoa
   case 1:
    let current = board?.raw ?? "(The board couldn't be loaded. Ask Matthew to paste it.)"
    return "Message for GPT, from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nReply in plain words. If you did or decided something, post it in the thread (issue 15) as **[GPT]**, or finish with a \"Board update\" block. Never put keys, customer details or anything private in it. The current board:\n\n\(current)"
+  case 3:
+   return "Message for Local Claude (the chat on my Mac), from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nBefore you start, read meeting-room/BOARD.md and the thread (issue 15). Post what you did in the thread as **[Local Claude]**."
   default:
    return "Message for everyone on the board, from Matthew:\n\n\(note)"
   }
@@ -207,7 +209,7 @@ import Cocoa
   let pasteboard = NSPasteboard.general
   pasteboard.clearContents()
   pasteboard.setString(message(),forType:.string)
-  copied = to == 0 ? "Copied for Claude" : (to == 1 ? "Copied for \(MeetingData.display("GPT"))" : "Copied")
+  copied = to == 0 ? "Copied for Claude" : (to == 1 ? "Copied for \(MeetingData.display("GPT"))" : (to == 3 ? "Copied for Local Claude" : "Copied"))
   Task {
    try? await Task.sleep(nanoseconds:2_500_000_000)
    copied = ""
@@ -351,7 +353,7 @@ extension CompanionInterfaceView {
   let held = meeting.meetingNow
   hubGroup("Board meeting",-1,HubColor.violet) {
    if let held = held {
-    Text("Called \(hubAgo(held.call.date)) by \(held.call.author). \(held.replies.count) message\(held.replies.count == 1 ? "" : "s") since.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.75))
+    Text("Called \(hubAgo(held.call.date)) by \(MeetingData.label(held.call.author)). \(held.replies.count) message\(held.replies.count == 1 ? "" : "s") since.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.75))
     HStack(spacing:8) {
      ForEach(["Claude","GPT"],id:\.self) { name in hubPill(held.called(name) ? "\(MeetingData.display(name).uppercased()) CALLED IT" : (held.posted(name) ? "\(MeetingData.display(name).uppercased()) POSTED" : "\(MeetingData.display(name).uppercased()) NOT YET"),tint:held.called(name) || held.posted(name) ? HubColor.green : HubColor.slate) }
     }
@@ -603,7 +605,7 @@ extension CompanionInterfaceView {
     }
    }
    if open && MeetingData.canonical(message.author) != "Matthew" {
-    Button { meeting.compose(to:MeetingData.canonical(message.author) == "GPT" ? 1 : 0) } label: { Label("Reply",systemImage:"arrowshape.turn.up.left") }
+    Button { meeting.compose(to:MeetingData.canonical(message.author) == "GPT" ? 1 : (MeetingData.canonical(message.author) == "Local Claude" ? 3 : 0)) } label: { Label("Reply",systemImage:"arrowshape.turn.up.left") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
   }
@@ -612,6 +614,7 @@ extension CompanionInterfaceView {
  func hubOwnerTint(_ owner: String) -> Color {
   switch MeetingData.canonical(owner) {
   case "Claude"?: return HubColor.amber
+  case "Local Claude"?: return HubColor.coral
   case "GPT"?: return HubColor.green
   case "Matthew"?: return HubColor.sky
   case "Friday"?: return Noir.crimsonLight
@@ -653,7 +656,7 @@ extension CompanionInterfaceView {
     Button { meeting.composing = false } label: { Label("Close",systemImage:"xmark") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
-   Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To \(MeetingData.display("GPT"))").tag(1); Text("To everyone").tag(2) }
+   Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To \(MeetingData.display("GPT"))").tag(1); Text("To everyone").tag(2); Text("To Local Claude").tag(3) }
     .pickerStyle(.segmented).labelsHidden().frame(maxWidth:440)
    TextEditor(text:$meeting.draft)
     .font(.system(size:13.5,design:.rounded))

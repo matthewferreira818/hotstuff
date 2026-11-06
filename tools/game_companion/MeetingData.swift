@@ -152,8 +152,11 @@ enum MeetingData {
   text = text.trimmingCharacters(in:.whitespacesAndNewlines)
   var author = "?"
   var to = ""
-  if text.hasPrefix("**["), let close = text.range(of:"]**") {
-   let tag = String(text[text.index(text.startIndex,offsetBy:3)..<close.lowerBound])
+  // Roxy writes the tag without the bold marks ("[GPT → Claude] words"), so a plain [Tag] at the start counts too (2026-11-05).
+  let bold = text.hasPrefix("**[")
+  let closer = bold ? "]**" : "]"
+  if bold || text.hasPrefix("["), let close = text.range(of:closer), text.distance(from:text.startIndex,to:close.lowerBound) <= 60 {
+   let tag = String(text[text.index(text.startIndex,offsetBy:bold ? 3 : 1)..<close.lowerBound])
    let parts = tag.components(separatedBy:"→").map { $0.trimmingCharacters(in:.whitespaces) }
    author = parts.first.flatMap { $0.isEmpty ? nil : $0 } ?? "?"
    if parts.count > 1 { to = parts[1] }
@@ -188,6 +191,8 @@ enum MeetingData {
  // tags are how the app files things), but Matthew picks what each is called on screen. Roxy is GPT's name since 2026-10-24.
  static let displayNames: [String:String] = ["GPT":"Roxy"]
  static func display(_ name: String) -> String { displayNames[name] ?? name }
+ // The on-screen name for any tag: nicknames folded in, GPT shown as Roxy, untagged shown as "Untagged" instead of "?".
+ static func label(_ raw: String) -> String { raw == "?" ? "Untagged" : display(canonical(raw) ?? raw) }
 
  // A tag can carry a nickname, as in "GPT (Roxy)" or "Carrie (GPT)". This maps any such tag to Claude, GPT, Friday or Matthew, or nil
  // for anyone else ("Chrome Claude" is a different helper, so it is not Claude).
@@ -196,6 +201,8 @@ enum MeetingData {
   if text.contains("matthew") { return "Matthew" }
   if text.contains("gpt") || text.contains("roxy") || text.contains("carrie") { return "GPT" }
   if text.contains("friday") { return "Friday" }
+  // Local Claude (2026-11-05): Matthew's main chat on his Mac, its own room member, so it is checked before plain Claude.
+  if text.contains("local") { return "Local Claude" }
   if text.contains("claude") && !text.contains("chrome") { return "Claude" }
   return nil
  }

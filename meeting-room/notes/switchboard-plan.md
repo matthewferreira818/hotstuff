@@ -60,7 +60,7 @@ A Hotline comment starts a Mac job ONLY when its target is exactly plain `Local 
 with a named target, so nothing loops. The Switchboard posts each job's result back itself and flags a claimed action
 with no tool use as "unproven".
 
-## Fix G: forward to open LC chats ("the receptionist"). Agreed 2026-11-06 ~3:25 AM, build after Matthew's GO, not tonight
+## Fix G: forward to open LC chats ("the receptionist"). APPROVED by Matthew 2026-11-06 ~3:25 AM ("yes to G"), build tomorrow
 Goal (Matthew): stop being the mailman. A Hotline comment addressed to a named chat (`→ Local Claude (LC-Manager)`) is
 forwarded to that open chat on the Mac.
 - Step 1: test first whether a background `claude -p` run can see and message open desktop chats (ListAgents/SendMessage).

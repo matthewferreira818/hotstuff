@@ -209,7 +209,9 @@ import AppKit
   if SwitchboardRules.settingsProblem(try? Data(contentsOf:settings)) != nil { return "failed" }
   let args = PingRules.wakeArguments(name:job.chat,message:job.text)
   guard PingRules.wakeArgumentsAreSafe(args) else { return "failed" }
+  let began = Date()
   let out = await runProcess(exe,args)
+  UsageLedger.shared.record(who:"Wake",job:job.chat,started:began,ok:!out.timedOut,data:out.data)
   if out.timedOut { return "failed" }
   let r = SwitchboardRules.parseRelay(out.data,target:job.chat,expected:job.text)
   if r.delivered { return "delivered" }

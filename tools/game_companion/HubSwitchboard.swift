@@ -362,6 +362,8 @@ private struct SwitchboardState: Codable {
 
  private func finished(job: Int,code: Int32,began: Date,out: URL) {
   let minutes = max(0,Int(Date().timeIntervalSince(began) / 60 + 0.5))
+  UsageLedger.shared.record(who:runningRelay.map { "Relay to \($0.name)" } ?? "Switchboard job",job:"#\(job)",started:began,ok:code == 0,
+                            data:(try? Data(contentsOf:out)) ?? Data())
   if let r = runningRelay {
    runningRelay = nil
    let data = (try? Data(contentsOf:out)) ?? Data()
@@ -473,6 +475,7 @@ struct SwitchboardPanel: View {
      ForEach(recent) { row($0) }
     }
    }
+   UsageLedgerSummary(compact:compact).padding(.top,compact ? 0 : 4)
    Button { sb.showLog = true } label: {
     Text(compact ? "Switchboard log (\(sb.log.count)) ›" : "Full log (\(sb.log.count)) ›").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.teal)
    }.buttonStyle(.plain)

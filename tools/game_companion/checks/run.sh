@@ -25,3 +25,7 @@ ok = "FridayMeModel.shared.open = true" in body and "\"Message Friday\"" in body
 print("PASS" if ok else "FAIL","Home button opens the DM panel, not Voice (no mainAction/live.start/'Talk to Friday' on Home)")
 sys.exit(0 if ok else 1)
 PY
+# Usage ledger rules (measured fields only; unknown is never zero; no prices, no message text)
+cp "$D/checks/usageledger_check.swift" "$T/main.swift"
+xcrun swiftc -target arm64-apple-macos14.0 "$D"/{UsageLedger,HubTheme}.swift "$T/main.swift" -o "$T/u" 2>&1 | grep error
+"$T/u"

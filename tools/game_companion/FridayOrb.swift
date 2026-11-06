@@ -55,6 +55,7 @@ final class OrbDynamics: ObservableObject {
   var ripplePhase = 0.0
   var sparks = 0.15          // 0 to 1: how visible the orbiting lights are
   var breath = 0.012         // size of the slow breathing
+  var teal = 0.0             // 0 to 1: the thin halo ring turns teal while she listens (Signal Deck, 2026-11-06)
  }
 
  private var last: Double?
@@ -99,6 +100,7 @@ final class OrbDynamics: ObservableObject {
   ease(&rippleSpeed,to:state == .speaking ? 0.55 : 0.35,tau:0.9)
   ease(&frame.sparks,to:min(1,sparkGoal + (sounding ? frame.level * 0.25 : 0)),tau:0.8)
   ease(&frame.breath,to:breathGoal,tau:0.9)
+  ease(&frame.teal,to:state == .listening ? 1 : 0,tau:0.45)
 
   // the meter: quick to rise with the voice, slow to fall when it stops
   let wanted = sounding ? clamp(raw) : 0
@@ -176,6 +178,13 @@ struct FridayOrb: View {
    Circle().stroke(Noir.crimsonLight.opacity(0.26 * m.glow + m.level * 0.30),lineWidth:size * 0.03)
     .frame(width:size,height:size)
     .blur(radius:size * 0.05)
+   // The thin halo ring: crimson-pink at rest, Night Harbor's teal while she listens, and it swells a little with his voice.
+   Circle().stroke(Noir.crimsonLight.opacity((0.50 + 0.2 * m.glow) * (1 - m.teal)),lineWidth:max(1,size * 0.008))
+    .frame(width:size * (1.08 + m.level * 0.05),height:size * (1.08 + m.level * 0.05))
+    .shadow(color:Noir.crimsonLight.opacity(0.45 * (1 - m.teal)),radius:size * 0.03)
+   Circle().stroke(HubTheme.teal.opacity((0.55 + m.level * 0.35) * m.teal),lineWidth:max(1,size * 0.008))
+    .frame(width:size * (1.08 + m.level * 0.05),height:size * (1.08 + m.level * 0.05))
+    .shadow(color:HubTheme.teal.opacity(0.55 * m.teal),radius:size * 0.035)
    // Three wavy rings of light, crimson, blue and white, the same as the Helm icon (Matthew to Roxy: "a reddish hue ... a nice blue
    // and white ... not as cloudy, more so like wavy"). They ripple faster and wider when she hears or speaks.
    ForEach(0..<3,id:\.self) { i in waveRing(i,m,time) }

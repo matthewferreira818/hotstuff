@@ -17,7 +17,7 @@ enum HubColor {
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper, shield, realFake, lab, council
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper, shield, realFake, lab, council, hacking, crewStation
  var id: Int { rawValue }
  var title: String {
   switch self {
@@ -37,6 +37,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .realFake: return "Real or Fake?"
   case .lab: return "Lab"
   case .council: return "Council"
+  case .hacking: return "Live tape"
+  case .crewStation: return "Crew station"
   }
  }
  var icon: String {
@@ -57,6 +59,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .realFake: return "checkmark.seal.fill"
   case .lab: return "flask.fill"
   case .council: return "person.3.sequence.fill"
+  case .hacking: return "terminal.fill"
+  case .crewStation: return "building.2.fill"
   }
  }
  var tint: Color {
@@ -77,6 +81,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .realFake: return HubColor.cyan
   case .lab: return HubColor.cyan
   case .council: return HubColor.cyan
+  case .hacking,.crewStation: return HubColor.green
   }
  }
  var blurb: String {
@@ -97,6 +102,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .realFake: return "Paste a message or alert; Friday points out the red flags."
   case .lab: return "Learn to defend: lessons and free practice sites."
   case .council: return "Roxy, Claude and Grok take turns on your question (test mode)."
+  case .hacking: return "Our own systems only: robot trades, automation runs and room messages. Read-only."
+  case .crewStation: return "Who is at their desk, who is idle, who is away. Real states only."
   }
  }
 }
@@ -108,6 +115,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var jumpPresented = false
  // True when the window is narrow (under 720 points): a slimmer rail and top bar, so the window can be shrunk a lot.
  @Published var compact = false
+ // The window's width, so the top bar can drop its small badges before it would squeeze the tabs.
+ @Published var width: CGFloat = 1200
  // Which card or button the pointer is over, so it can lift a little. Empty means none.
  @Published var hovered = ""
  // Which account row on the Accounts page is open, showing its connect form. Empty means none.

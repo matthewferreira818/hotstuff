@@ -7,23 +7,7 @@ import UniformTypeIdentifiers
 extension CompanionInterfaceView {
  // MARK: shell
 
- var hubShell: some View {
-  GeometryReader { geo in
-   HStack(spacing:0) {
-    hubRail
-    VStack(spacing:0) {
-     hubTopBar
-     hubContent
-      .frame(maxWidth:.infinity,maxHeight:.infinity)
-      .id(hub.section)
-      .transition(.opacity.combined(with:.scale(scale:0.985)))
-    }
-   }
-   .onAppear { hub.compact = geo.size.width < 720 }
-   .onChange(of:geo.size.width) { _,width in hub.compact = width < 720 }
-   .sheet(isPresented:$hub.jumpPresented) { hubJumpSheet }
-  }
- }
+ var hubShell: some View { deckShell }
 
  // Compact windows keep a labelled, keyboard-accessible way to reach every page.
  var hubRail: some View {
@@ -279,18 +263,8 @@ extension CompanionInterfaceView {
 
  @ViewBuilder var hubContent: some View {
   switch hub.section {
-  case .home: hubHome
-  case .friday:
-   GeometryReader { geo in
-    // In a small window the orb shrinks, the round buttons stay on screen (smaller) and the rest scrolls.
-    let tight = hub.compact || geo.size.height < 560
-    HStack {
-     Spacer(minLength:0)
-     fridayStage(orb:tight ? min(max(geo.size.height * 0.26,80),200) : min(max(geo.size.height * 0.36,150),360),tight:tight)
-      .frame(width:min(max(geo.size.width * 0.55,520),760,max(geo.size.width - 24,280)),height:geo.size.height)
-     Spacer(minLength:0)
-    }
-   }
+  case .home: deckHome
+  case .friday: deckFriday
   case .stocks: hubStocks
   case .store: hubStore
   case .ecs: hubEcs
@@ -305,6 +279,8 @@ extension CompanionInterfaceView {
   case .realFake: hubRealOrFake
   case .lab: hubLab
   case .council: hubCouncil
+  case .hacking: deckHackLive
+  case .crewStation: deckCrewStation
   }
  }
 }

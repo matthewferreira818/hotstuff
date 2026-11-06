@@ -1,0 +1,318 @@
+import SwiftUI
+import AppKit
+
+// Signal Deck (2026-11-06): the window around every page. A top tab bar (Home, Friday, Stock bot, Store, ECS, the green Hacking area and a
+// More menu that holds every other page), and Friday docked on the right of every page. Nothing was deleted: every page that used to be on
+// the left rail is still one click away. The dock only shows what the live session already knows; it starts nothing by itself.
+extension CompanionInterfaceView {
+ static let deckPrimary: [HubSection] = [.home,.friday,.stocks,.store,.ecs]
+ static let deckHack: [HubSection] = [.hacking,.systems,.shield,.lab,.realFake,.crewStation]
+ static let deckMore: [HubSection] = [.launchpad,.game,.accounts,.meeting,.stream,.helper,.council]
+
+ var deckInHack: Bool { Self.deckHack.contains(hub.section) }
+ var deckInMore: Bool { Self.deckMore.contains(hub.section) }
+ // Wide enough for the dock? Friday's own page is the big version of it, so the dock steps aside there.
+ var deckShowsDock: Bool { !hub.compact && hub.section != .friday }
+
+ var deckShell: some View {
+  GeometryReader { geo in
+   VStack(spacing:0) {
+    deckTopBar
+    HStack(spacing:0) {
+     VStack(spacing:0) {
+      if deckInHack { deckHackNav }
+      else if ![.home,.friday].contains(hub.section) { deckPageHeader }
+      hubContent
+       .frame(maxWidth:.infinity,maxHeight:.infinity)
+       .id(hub.section)
+       .transition(.opacity)
+     }
+     if deckShowsDock { deckDock.transition(.opacity) }
+    }
+   }
+   .onAppear { hub.compact = geo.size.width < 900; hub.width = geo.size.width }
+   .onChange(of:geo.size.width) { _,width in hub.compact = width < 900; hub.width = width }
+   .sheet(isPresented:$hub.jumpPresented) { hubJumpSheet }
+  }
+  .background(HubTheme.background)
+ }
+
+ // MARK: top bar
+
+ var deckTopBar: some View {
+  HStack(spacing:hub.compact ? 8 : 14) {
+   Button { hubSelect(.home) } label: {
+    HStack(spacing:5) {
+     Text("The").foregroundStyle(HubTheme.text)
+     Text("Helm").foregroundStyle(HubTheme.green)
+    }
+    .font(.system(size:17,weight:.bold,design:.rounded))
+   }
+   .buttonStyle(.plain).accessibilityLabel("The Helm Home")
+   HStack(spacing:2) {
+    ForEach(Self.deckPrimary) { section in deckTab(section) }
+   }
+   .padding(3)
+   .overlay(RoundedRectangle(cornerRadius:11).stroke(HubTheme.line,lineWidth:1))
+   deckHackButton
+   deckMoreMenu
+   Spacer(minLength:6)
+   if c.tab == 0 && live.running {
+    HStack(spacing:6) {
+     Circle().fill(Noir.crimsonLight).frame(width:7,height:7)
+     Text("LIVE").font(.system(size:10,weight:.bold,design:.monospaced)).tracking(1.2)
+    }
+    .foregroundStyle(HubTheme.text)
+    .padding(.horizontal,10).padding(.vertical,6)
+    .background(Capsule().fill(Noir.crimson.opacity(0.35)))
+    .accessibilityLabel("Friday is live")
+   }
+   if hub.width >= 1180 {
+    Text(GuardHub.isOffline ? "OFFLINE: ON" : "OFFLINE: OFF")
+     .font(.system(size:11,weight:.medium,design:.monospaced))
+     .foregroundStyle(GuardHub.isOffline ? HubTheme.amber : HubTheme.subtext)
+     .padding(.horizontal,10).frame(height:28)
+     .overlay(RoundedRectangle(cornerRadius:6).stroke(GuardHub.isOffline ? HubTheme.amber : HubTheme.line,lineWidth:1))
+     .help("The Offline switch lives in Guard. When it is ON the app makes no network requests.")
+    TimelineView(.periodic(from:.now,by:20)) { timeline in
+     Text(deckClock(timeline.date))
+      .font(.system(size:11,weight:.medium,design:.monospaced)).foregroundStyle(HubTheme.subtext)
+      .padding(.horizontal,10).frame(height:28)
+      .overlay(RoundedRectangle(cornerRadius:6).stroke(HubTheme.line,lineWidth:1))
+    }
+    .help("Moncton time")
+   }
+   deckIconButton("arrow.clockwise",label:"Refresh everything (Command-R)",spinning:hubAnyLoading) { Task { await hubRefreshAll() } }
+    .keyboardShortcut("r",modifiers:.command).disabled(hubAnyLoading)
+   deckIconButton("magnifyingglass",label:"Jump to a page (Command-K)") { hub.jumpQuery = ""; hub.jumpPresented = true }
+    .keyboardShortcut("k",modifiers:.command)
+   deckIconButton("slider.horizontal.3",label:"Settings (Command-comma)") { c.showPanel = true }
+    .keyboardShortcut(",",modifiers:.command)
+  }
+  .padding(.horizontal,hub.compact ? 12 : 22).frame(height:56)
+  .background(HubTheme.sidebar)
+  .overlay(alignment:.bottom) { Rectangle().fill(HubTheme.line).frame(height:1) }
+ }
+
+ func deckClock(_ date: Date) -> String {
+  let formatter = DateFormatter()
+  formatter.dateFormat = "HH:mm"
+  formatter.timeZone = TimeZone(identifier:"America/Moncton") ?? .current
+  return formatter.string(from:date)
+ }
+
+ func deckIconButton(_ icon: String,label: String,spinning: Bool = false,action: @escaping () -> Void) -> some View {
+  Button(action:action) {
+   Group {
+    if spinning { ProgressView().controlSize(.small) } else { Image(systemName:icon).font(.system(size:14,weight:.medium)) }
+   }
+   .foregroundStyle(HubTheme.subtext)
+   .frame(width:32,height:32)
+   .contentShape(Rectangle())
+  }
+  .buttonStyle(.plain).accessibilityLabel(label).help(label)
+ }
+
+ func deckTab(_ section: HubSection) -> some View {
+  let selected = hub.section == section
+  let index = (Self.deckPrimary.firstIndex(of:section) ?? 0) + 1
+  return Button { hubSelect(section) } label: {
+   Text(section.title).lineLimit(1).fixedSize()
+    .font(.system(size:13,weight:selected ? .semibold : .medium))
+    .foregroundStyle(selected ? HubTheme.text : HubTheme.subtext)
+    .padding(.horizontal,hub.compact ? 8 : 12).frame(height:30)
+    .background(selected ? HubTheme.card : Color.clear,in:RoundedRectangle(cornerRadius:8))
+    .overlay(RoundedRectangle(cornerRadius:8).stroke(selected ? HubTheme.controlOutline : Color.clear,lineWidth:1))
+    .contentShape(Rectangle())
+  }
+  .buttonStyle(.plain)
+  .accessibilityLabel(section.title).accessibilityAddTraits(selected ? .isSelected : [])
+  .keyboardShortcut(KeyEquivalent(Character(String(index))),modifiers:.command)
+ }
+
+ var deckHackButton: some View {
+  let on = deckInHack
+  return Button { hubSelect(.hacking) } label: {
+   HStack(spacing:5) {
+    Text(">_").font(.system(size:11,weight:.bold,design:.monospaced))
+    if hub.width >= 1020 { Text("hacking area").font(.system(size:12,weight:.medium,design:.monospaced)) }
+   }
+   .foregroundStyle(on ? HubTheme.background : HubTheme.green)
+   .padding(.horizontal,10).frame(height:32)
+   .background(on ? HubTheme.green : HubTheme.green.opacity(0.10),in:RoundedRectangle(cornerRadius:8))
+   .overlay(RoundedRectangle(cornerRadius:8).stroke(HubTheme.green.opacity(0.55),lineWidth:1))
+   .contentShape(Rectangle())
+  }
+  .buttonStyle(.plain)
+  .keyboardShortcut("6",modifiers:.command)
+  .accessibilityLabel("Hacking area").accessibilityAddTraits(on ? .isSelected : [])
+  .help("Our own systems: live tape, Systems, Guard, Lab, Real or Fake?, Crew station")
+ }
+
+ var deckMoreMenu: some View {
+  Menu {
+   ForEach(Self.deckMore) { section in
+    Button { hubSelect(section) } label: { Label("\(section.title)  ·  \(deckMoreBlurb(section))",systemImage:section.icon) }
+   }
+  } label: {
+   HStack(spacing:4) {
+    Text("More").font(.system(size:13,weight:deckInMore ? .semibold : .medium))
+    Image(systemName:"chevron.down").font(.system(size:9,weight:.bold))
+   }
+   .foregroundStyle(deckInMore ? HubTheme.text : HubTheme.subtext)
+   .padding(.horizontal,12).frame(height:32)
+   .background(deckInMore ? HubTheme.card : Color.clear,in:RoundedRectangle(cornerRadius:8))
+   .overlay(RoundedRectangle(cornerRadius:8).stroke(deckInMore ? HubTheme.controlOutline : HubTheme.line,lineWidth:1))
+  }
+  .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
+  .accessibilityLabel("More pages")
+ }
+
+ func deckMoreBlurb(_ section: HubSection) -> String {
+  switch section {
+  case .launchpad: return "start apps + games"
+  case .game: return "the game you're playing"
+  case .accounts: return "login status, no secrets"
+  case .meeting: return "crew room + board"
+  case .stream: return "stream setup"
+  case .helper: return "how-to + help"
+  case .council: return "decision council"
+  default: return ""
+  }
+ }
+
+ var deckPageHeader: some View {
+  HStack(alignment:.firstTextBaseline,spacing:10) {
+   Text(hub.section.title).font(.system(size:24,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+   Text(hub.section.blurb).font(.system(size:12.5)).foregroundStyle(HubTheme.subtext).lineLimit(1)
+   Spacer(minLength:0)
+   if let at = hub.refreshedAt { Text("updated \(hubAgo(at))").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.subtext) }
+  }
+  .padding(.horizontal,hub.compact ? 16 : 32).padding(.top,16).padding(.bottom,8)
+ }
+
+ // The Hacking area's own tabs, in terminal type.
+ var deckHackNav: some View {
+  HStack(spacing:6) {
+   Circle().fill(HubTheme.green).frame(width:7,height:7).accessibilityHidden(true)
+   Text("HACKING AREA").font(.system(size:12,weight:.bold,design:.monospaced)).foregroundStyle(HubTheme.text)
+   Text("// our own systems only · read-only").font(.system(size:12,design:.monospaced)).foregroundStyle(HubTheme.subtext).lineLimit(1)
+   Spacer(minLength:8)
+   ForEach(Self.deckHack) { section in
+    let on = hub.section == section
+    Button { hubSelect(section) } label: {
+     Text(deckHackLabel(section)).font(.system(size:11,weight:.semibold,design:.monospaced))
+      .foregroundStyle(on ? HubTheme.background : HubTheme.subtext)
+      .padding(.horizontal,10).frame(height:28)
+      .background(on ? HubTheme.green : Color.clear,in:RoundedRectangle(cornerRadius:6))
+      .overlay(RoundedRectangle(cornerRadius:6).stroke(on ? HubTheme.green : HubTheme.line,lineWidth:1))
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain).accessibilityLabel(section.title).accessibilityAddTraits(on ? .isSelected : [])
+   }
+  }
+  .padding(.horizontal,hub.compact ? 12 : 24).padding(.vertical,10)
+  .background(Color.black.opacity(0.35))
+  .overlay(alignment:.bottom) { Rectangle().fill(HubTheme.line).frame(height:1) }
+ }
+
+ func deckHackLabel(_ section: HubSection) -> String {
+  switch section {
+  case .hacking: return "LIVE"
+  case .systems: return "SYSTEMS"
+  case .shield: return "GUARD"
+  case .lab: return "LAB"
+  case .realFake: return "REAL OR FAKE?"
+  case .crewStation: return "CREW STATION"
+  default: return section.title.uppercased()
+  }
+ }
+
+ // MARK: Friday dock
+
+ var deckDock: some View {
+  VStack(alignment:.leading,spacing:14) {
+   Text("FRIDAY").font(.system(size:10.5,weight:.medium,design:.monospaced)).tracking(1.4).foregroundStyle(HubTheme.subtext)
+   TimelineView(.animation(minimumInterval:1.0/30.0,paused:reduceMotion)) { timeline in
+    let now = timeline.date
+    let state = orbState(at:now)
+    VStack(spacing:4) {
+     FridayOrb(state:state,t:now.timeIntervalSinceReferenceDate,level:orbLevel(at:now),size:92,animated:!reduceMotion,showsPicker:false)
+      .frame(maxWidth:.infinity)
+     Text(deckStateWords(state)).font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
+    }
+   }
+   Button { mainAction() } label: {
+    HStack(spacing:8) {
+     Image(systemName:mainIcon).font(.system(size:13,weight:.bold))
+     Text(c.tab == 0 ? (live.running ? "Stop Friday" : "Talk to Friday") : (c.listening ? "Stop listening" : "Talk to Friday")).font(.system(size:14,weight:.semibold))
+    }
+    .foregroundStyle(HubTheme.background)
+    .frame(maxWidth:.infinity,minHeight:40)
+    .background(live.running || c.listening ? HubTheme.amber : HubTheme.green,in:RoundedRectangle(cornerRadius:8))
+   }
+   .buttonStyle(.plain).disabled(DesignPreview.enabled)
+   .accessibilityLabel(live.running ? "Stop Friday" : "Talk to Friday")
+   .help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session: shares your mic and screen with Google while it runs") : "Talk")
+   deckDockSection("DOING NOW") {
+    ForEach(Array(deckDoingLines.enumerated()),id:\.offset) { _,line in
+     Text(line).font(.system(size:12.5)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
+    }
+   }
+   deckDockSection("MUSIC") {
+    if live.spotifyInstalled {
+     Text("Ask Friday to play, pause, skip or say what's playing.").font(.system(size:12.5)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
+     Button { if let url = URL(string:"spotify:") { NSWorkspace.shared.open(url) } } label: {
+      Label("Open Spotify",systemImage:"music.note").font(.system(size:11.5,weight:.medium)).foregroundStyle(HubTheme.green)
+     }.buttonStyle(.plain)
+    } else {
+     Text("Spotify isn't installed on this Mac.").font(.system(size:12.5)).foregroundStyle(HubTheme.subtext)
+    }
+   }
+   Spacer(minLength:0)
+   HStack(spacing:8) {
+    Image(systemName:"sparkles").foregroundStyle(Noir.crimsonLight).accessibilityHidden(true)
+    TextField("Ask Friday…",text:$hub.query).textFieldStyle(.plain).font(.system(size:13)).onSubmit { hubAskFromBar() }
+   }
+   .padding(.horizontal,12).frame(height:36)
+   .background(HubTheme.control,in:RoundedRectangle(cornerRadius:8))
+   .overlay(RoundedRectangle(cornerRadius:8).stroke(HubTheme.controlOutline,lineWidth:1))
+  }
+  .padding(16)
+  .frame(width:264)
+  .frame(maxHeight:.infinity,alignment:.top)
+  .background(HubTheme.sidebar)
+  .overlay(alignment:.leading) { Rectangle().fill(HubTheme.line).frame(width:1) }
+ }
+
+ func deckDockSection<Content: View>(_ title: String,@ViewBuilder content: () -> Content) -> some View {
+  VStack(alignment:.leading,spacing:6) {
+   Text(title).font(.system(size:10.5,weight:.medium,design:.monospaced)).tracking(1.4).foregroundStyle(HubTheme.subtext)
+   content()
+  }
+  .frame(maxWidth:.infinity,alignment:.leading)
+ }
+
+ func deckStateWords(_ state: OrbState) -> String {
+  switch state {
+  case .off: return "Asleep · live buddy is off"
+  case .idle: return c.tab == 0 ? "Awake · breathing" : "Ready"
+  case .listening: return "Listening to you"
+  case .thinking: return "Thinking"
+  case .speaking: return "Speaking"
+  }
+ }
+
+ // What she is really doing, from the live session's own status. Nothing is invented: when she is asleep it says so.
+ var deckDoingLines: [String] {
+  var lines: [String] = []
+  let status = c.tab == 0 ? live.status : c.status
+  if c.tab == 0 && !live.running {
+   lines.append("Asleep. Tap Talk to Friday to wake her.")
+  } else if !status.isEmpty { lines.append(status) }
+  if hands.enabled && hands.hasAccess && !hands.status.isEmpty { lines.append("Hands: \(hands.status)") }
+  if !clips.status.isEmpty { lines.append(clips.status) }
+  if c.tab == 0 && live.running && !live.toolNames.isEmpty { lines.append("Tools on: \(live.toolNames.count)") }
+  return Array(lines.prefix(4))
+ }
+}

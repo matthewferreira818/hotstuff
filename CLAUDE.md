@@ -226,6 +226,10 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   board and issue 15 at the start of every job and before stopping, answer anything addressed to Claude, Local Claude or Everyone, and
   while a long work session is open, re-check about every 2 hours (the hourly routine is paused to save usage). The morning brief's room
   check still runs in the cloud every day, Mac on or off.
+  **Local Claude's setup (tuned 2026-11-05, ~/.claude/settings.json on the Mac, not in any repo):** works in ~/Claude/hotstuff and
+  ~/Claude/Helm-Private; a start-of-chat hook pulls both and prints Moncton time + the newest handoff; Sonnet medium by default;
+  ~/hotstuff (the app's build folder), ~/.ssh, key/token/secret files, moomoo, rm -rf and ALL force-pushes are blocked. So its push
+  pattern is plain: commit, `git pull --rebase`, `git push origin master` (no session branch, no force).
 - The old long chat ("new beginning") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
   and the 5:15 PM robot recap) fire there.
 - **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day

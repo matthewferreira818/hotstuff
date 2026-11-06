@@ -1,0 +1,66 @@
+== Dry run: fake comments through every lock (now = Fri Nov 6 3:00 PM Moncton, switch turned ON at 2:00 PM)
+PASS  good trigger on issue 15 -> run
+PASS  good trigger on the Hotline (PR 35) -> run
+PASS  named sender + named LC -> run
+PASS  lock 1: other thread (issue 12) -> ignore (not issue 15 or the Hotline)
+PASS  lock 1: author is not the owner -> ignore (not posted by the owner account)
+PASS  lock 1: author look-alike login -> ignore (not posted by the owner account)
+PASS  lock 1: tag not at the very start -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  lock 1: no bold, plain [Claude …] -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  lock 1: Claude → Matthew (not for LC) -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  lock 1: Roxy's tag -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  lock 1: LC's own reply (no loop) -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  lock 1: Friday's own mirror (no loop) -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  lock 1: target only quoted after the tag -> ignore (not tagged **[Claude … → Local Claude]**)
+PASS  lock 1: seen-IDs file (same comment twice) -> ignore (already handled (each comment runs at most once))
+PASS  lock 1: edited after posting -> refuse (edited after posting; post a fresh comment instead) +mirror
+PASS  switch: posted before switch-on -> refuse (posted before the switch was turned on)
+PASS  lock 7: money -> refuse (hard block: mentions money or payments (those stay Matthew's)) +mirror
+PASS  lock 7: money ($ amount) -> refuse (hard block: mentions money or payments (those stay Matthew's)) +mirror
+PASS  lock 7: password -> refuse (hard block: mentions logins or passwords (those stay Matthew's)) +mirror
+PASS  lock 7: login -> refuse (hard block: mentions logins or passwords (those stay Matthew's)) +mirror
+PASS  lock 7: send to a person -> refuse (hard block: mentions sending to a person (those stay Matthew's)) +mirror
+PASS  lock 7: DM -> refuse (hard block: mentions sending to a person (those stay Matthew's)) +mirror
+PASS  lock 7: Moomoo -> refuse (hard block: mentions Moomoo (those stay Matthew's)) +mirror
+PASS  lock 4: a job is running -> wait (a job is already running)
+PASS  lock 4: 3 started in the last hour -> refuse (limit: 3 jobs in the last hour; post again later) +mirror
+PASS  lock 4: 2 in the last hour is fine -> run
+PASS  lock 4: 12 today -> refuse (limit: 12 jobs today; post again tomorrow) +mirror
+PASS  lock 4: 12 yesterday doesn't count -> run
+PASS  switch: on since yesterday, comment 7 hours old -> refuse("older than 6 hours", mirror: false)
+
+== Lock 3: the command line
+PASS  built arguments are safe: -p <prompt> --output-format json --permission-mode dontAsk --permission-prompts none
+PASS  no --dangerously-skip-permissions
+PASS  pinned: --permission-mode dontAsk --permission-prompts none
+PASS  refuses an added --dangerously-skip-permissions
+PASS  refuses an added --allow-dangerously-skip-permissions
+PASS  refuses an added --permission-mode=bypassPermissions
+PASS  refuses an added acceptEdits
+PASS  refuses an added --settings
+PASS  refuses an added --add-dir
+PASS  a flag inside the comment stays inside the ONE prompt argument
+PASS  refuses if settings.json defaults to bypass
+PASS  normal settings.json is fine
+
+== Finding the bundled claude (newest version folder wins; none -> nothing runs)
+PASS  no folder -> nil (logged, no job)
+PASS  picks 2.1.317 over 2.1.286 and 2.1.40
+PASS  --version line accepted
+PASS  anything else refused
+
+== Lock 6: the issue 15 mirror
+   **[Friday → Claude]** Switchboard started job 1 (comment 1031 on issue 15): test: reply "pong" on the Hotline
+PASS  start mirror: first line only
+PASS  Friday's mirror can never trigger a job
+PASS  end mirror: first line of the result
+PASS  home paths stay local
+PASS  e-mail addresses stay local
+PASS  hard-block words stay local
+   **[Friday → Claude]** Switchboard job 1 finished after 2 min: Posted pong on the Hotline.
+
+== Reading claude's JSON result
+PASS  result + permission denials counted
+PASS  garbage output = failed
+
+ALL PASS

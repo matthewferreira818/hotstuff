@@ -180,6 +180,7 @@ extension CompanionInterfaceView {
   HackRoomFrame(state:HackRoomState.shared) {
    VStack(spacing:0) {
     hackTopBar
+    coreTiles.padding(.horizontal,16).padding(.top,12)
     HStack(alignment:.top,spacing:12) {
      hackCrewRail.frame(width:220)
      hackTapePanel
@@ -199,7 +200,7 @@ extension CompanionInterfaceView {
  var hackTopBar: some View {
   HStack(spacing:14) {
    Text("F.R.I.D.A.Y.").font(DeckMono.font(14,.heavy)).foregroundStyle(HackPalette.crimson).shadow(color:HackPalette.crimson.opacity(0.7),radius:6)
-   Text("// HELM OPS").font(DeckMono.font(13,.bold)).foregroundStyle(HubTheme.text.opacity(0.85))
+   Text("// COMMAND CORE").font(DeckMono.font(13,.bold)).foregroundStyle(HubTheme.text.opacity(0.85))
    TimelineView(.periodic(from:.now,by:1)) { t in
     Text(hackClock(t.date)).font(DeckMono.font(12)).foregroundStyle(HubTheme.subtext)
    }

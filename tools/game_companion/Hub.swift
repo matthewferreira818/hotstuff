@@ -37,7 +37,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .realFake: return "Real or Fake?"
   case .lab: return "Lab"
   case .council: return "Council"
-  case .hacking: return "Live tape"
+  case .hacking: return "Command Core"
   case .crewStation: return "Crew station"
   }
  }
@@ -102,7 +102,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .realFake: return "Paste a message or alert; Friday points out the red flags."
   case .lab: return "Learn to defend: lessons and free practice sites."
   case .council: return "Roxy, Claude and Grok take turns on your question (test mode)."
-  case .hacking: return "Our own systems only: robot trades, automation runs and room messages. Read-only."
+  case .hacking: return "Your Mac, your network and your crew in one place: real health checks, live activity and a command line to Friday."
   case .crewStation: return "Who is at their desk, who is idle, who is away. Real states only."
   }
  }

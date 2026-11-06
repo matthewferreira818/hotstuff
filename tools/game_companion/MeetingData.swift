@@ -207,6 +207,19 @@ enum MeetingData {
   return nil
  }
 
+ // The chat name inside a Local Claude tag: "Local Claude (LC-Manager)" gives "LC-Manager". Plain "Local Claude" (or any other member) gives nil.
+ static func lcName(_ raw: String) -> String? {
+  let text = raw.trimmingCharacters(in:.whitespaces)
+  guard text.lowercased().hasPrefix("local claude"), let open = text.firstIndex(of:"("), let close = text.lastIndex(of:")"), open < close else { return nil }
+  let inner = String(text[text.index(after:open)..<close]).trimmingCharacters(in:.whitespaces)
+  return inner.isEmpty ? nil : inner
+ }
+ // "Local Claude · LC-Manager" for a named chat, otherwise the usual on-screen name.
+ static func speaker(_ raw: String) -> String {
+  if let name = lcName(raw) { return "Local Claude · \(name)" }
+  return display(canonical(raw) ?? raw)
+ }
+
  // True when two tags are the same person, nicknames included.
  static func same(_ a: String,_ b: String) -> Bool { (canonical(a) ?? a.lowercased()) == (canonical(b) ?? b.lowercased()) }
 

@@ -11,23 +11,25 @@ enum HubTheme {
  }
 
  // Surfaces: layered blacks instead of shadows.
- static var background: Color { hex(highContrast ? 0x000000 : 0x050507) }
- static var sidebar: Color { hex(highContrast ? 0x000000 : 0x08080C) }
- static var card: Color { hex(highContrast ? 0x0A0A0C : 0x0D0D13) }
- static var line: Color { hex(highContrast ? 0x33333C : 0x23232D) }
+ static var background: Color { hex(highContrast ? 0x000000 : 0x141817) }
+ static var sidebar: Color { hex(highContrast ? 0x000000 : 0x101413) }
+ static var card: Color { hex(highContrast ? 0x0A0C0B : 0x1D2420) }
+ static var line: Color { hex(highContrast ? 0x33403A : 0x2C3631) }
  // Controls: black with a visible outline (white in High contrast).
- static var control: Color { hex(0x000000) }
- static var controlOutline: Color { hex(highContrast ? 0xFFFFFF : 0x4A4A5C) }
+ static var control: Color { hex(highContrast ? 0x000000 : 0x101413) }
+ static var controlOutline: Color { hex(highContrast ? 0xFFFFFF : 0x76897E) }
 
  // Text: off-white by default (pure white on pure black glares), pure white in High contrast.
- static var text: Color { hex(highContrast ? 0xFFFFFF : 0xF2F2F5) }
- static var subtext: Color { hex(highContrast ? 0xB4B4C0 : 0xA9A9B8) }   // 8.4:1 on the card (Midnight), 9.6:1 (High contrast)
+ static var text: Color { hex(highContrast ? 0xFFFFFF : 0xE8ECE5) }
+ static var subtext: Color { hex(highContrast ? 0xB8C4BC : 0x9CAC9D) }   // 8.4:1 on the card (Midnight), 9.6:1 (High contrast)
 
  // Small highlights only. Never the only signal: every status also has a word or an icon.
  static let crimson = hex(0xD94A63)
  static let blue = hex(0x4D8DFF)
- static let green = hex(0x4ADE80)
- static let amber = hex(0xF5B544)
+ static let green = hex(0x87C895)
+ static let amber = hex(0xDDB66D)
+ static let teal = hex(0x83C9C0)   // Night Harbor's teal: only a subtle accent (the orb's halo while she listens)
+ static let sage = hex(0x9CAC9D)
 
  // Orbs, one per member of the crew.
  static let orbClaude = amber

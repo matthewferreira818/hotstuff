@@ -224,6 +224,12 @@
   .plan ul li { padding-left: 24px; position: relative; }
   .plan ul li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 800; }
   .plans-note { font-size: 13.5px; color: var(--muted); margin-top: 12px; }
+  /* Open book: checkable numbers only (feed streak from stats.json, client count from ledger.json) */
+  .ledger { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 8px; }
+  .ledger-k { display: block; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+  .ledger-v { display: block; font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
+  .ledger-src { display: block; font-size: 13px; color: var(--muted); }
+  .plan ul.not li::before { content: "✗"; color: var(--muted); }
   .feed-fresh { font-size: 13.5px; font-weight: 700; color: var(--ok); margin: 0 0 14px; }
   .hero-proof {
     display: inline-block; margin: 0 auto 22px; padding: 7px 15px;
@@ -457,6 +463,47 @@ findhotstuff.com #cozyhome</p>
     <p class="plans-note"><b>Text me STOP any time and the posting stops that day</b> — no notice, no reason needed. It's your page; you keep the brake.<br><b>Every pilot starts with 7 free sample posts</b> — you see what your feed would look like before you pay a cent.<br>One month, no ongoing commitment. It continues only if we both want it to.</p>
   </section>
 
+  <section id="open-book">
+    <p class="eyebrow">Open book</p>
+    <h2 class="serif">Where things stand today, in plain numbers.</h2>
+    <p class="lede">Only things you can check. The feed number is read from the feed's own file each time this page opens. The client count is updated by me the same day it changes.</p>
+    <div class="ledger">
+      <div class="plan" id="ob-feed" data-src="feed/stats.json" data-streak="{n} days in a row" data-count="{n} posts since {d}" data-range="{a} to {b}, from the feed's own stats file" data-none="Unknown right now (the feed file didn't load)">
+        <span class="ledger-k">Our own feed, on this page</span>
+        <b class="ledger-v">…</b>
+        <span class="ledger-src"></span>
+      </div>
+      <div class="plan" id="ob-clients" data-src="ledger.json" data-zero="0 · first client: not yet" data-one="1 paying client" data-many="{n} paying clients" data-asof="Updated {d}" data-none="Unknown right now (the count didn't load)">
+        <span class="ledger-k">Paying clients</span>
+        <b class="ledger-v">…</b>
+        <span class="ledger-src"></span>
+      </div>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <h3>What $79 CAD buys: a month of the pilot</h3>
+        <ul>
+          <li>30 posts on your Facebook page in the month, made from your real details</li>
+          <li>7 free sample posts first, privately, nothing posted</li>
+          <li>You approve every post before it goes up</li>
+          <li>One round of changes a week (up to 3 posts); wrong facts fixed free</li>
+          <li>Text STOP any time and the posting stops that day</li>
+          <li>Paid by e-Transfer before the first post; no ongoing commitment</li>
+        </ul>
+      </div>
+      <div class="plan">
+        <h3>What it does not buy</h3>
+        <ul class="not">
+          <li>Ad spending</li>
+          <li>Replying to comments or messages</li>
+          <li>Other platforms (Instagram, TikTok, X, Google)</li>
+          <li>Any promise of likes, followers or sales</li>
+        </ul>
+      </div>
+    </div>
+    <p class="plans-note"><b>Pilot: the first two businesses only.</b></p>
+  </section>
+
   <section>
     <p class="eyebrow">Questions owners ask</p>
     <h2 class="serif">Fair questions, straight answers.</h2>
@@ -654,6 +701,46 @@ findhotstuff.com #cozyhome</p>
       }
     })
     .catch(function () { /* no stats, no line */ });
+})();
+</script>
+<script>
+/* Open book (#open-book): every number comes from a file, never typed into
+ * this page. Feed: feed/stats.json written by the engine; "in a row" shows
+ * only when the count equals the calendar days from first to last post.
+ * Clients: automation/ledger.json, one file for EN + FR, updated the same day.
+ * If a file doesn't load, the row says "unknown" instead of guessing. */
+(function () {
+  var loc = document.documentElement.lang === "fr" ? "fr-CA" : "en-CA";
+  var iso = /^\d{4}-\d{2}-\d{2}$/;
+  function day(s) { return new Date(s + "T12:00:00").toLocaleDateString(loc, { month: "long", day: "numeric", year: "numeric" }); }
+  function put(row, v, src) {
+    row.querySelector(".ledger-v").textContent = v;
+    row.querySelector(".ledger-src").textContent = src || "";
+  }
+  function load(row, use) {
+    if (!row) return;
+    fetch(row.dataset.src, { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (j) { if (!use(j)) throw new Error("bad data"); })
+      .catch(function () { put(row, row.dataset.none, ""); });
+  }
+  var feed = document.getElementById("ob-feed");
+  load(feed, function (s) {
+    var n = +s.total;
+    if (!(n >= 1) || n % 1 || !iso.test(s.since || "") || !iso.test(s.last || "")) return false;
+    var span = Math.round((new Date(s.last + "T12:00:00") - new Date(s.since + "T12:00:00")) / 864e5) + 1;
+    var v = (n === span ? feed.dataset.streak : feed.dataset.count).replace("{n}", n).replace("{d}", day(s.since));
+    put(feed, v, feed.dataset.range.replace("{a}", day(s.since)).replace("{b}", day(s.last)));
+    return true;
+  });
+  var cl = document.getElementById("ob-clients");
+  load(cl, function (j) {
+    var n = j.paying_clients;
+    if (typeof n !== "number" || n < 0 || n % 1 || !iso.test(j.updated || "")) return false;
+    var v = n === 0 ? cl.dataset.zero : n === 1 ? cl.dataset.one : cl.dataset.many.replace("{n}", n);
+    put(cl, v, cl.dataset.asof.replace("{d}", day(j.updated)));
+    return true;
+  });
 })();
 </script>
 <a class="sticky-text" id="sticky-text" href="sms:+15068899737?body=Hi%20Matthew%20-%20saw%20East%20Coast%20Social%20online%2C%20I%27d%20like%20the%20free%20week%20of%20sample%20posts.">💬 Text Matthew — free week of samples</a>

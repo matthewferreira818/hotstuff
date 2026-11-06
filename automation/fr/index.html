@@ -224,6 +224,12 @@
   .plan ul li { padding-left: 24px; position: relative; }
   .plan ul li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 800; }
   .plans-note { font-size: 13.5px; color: var(--muted); margin-top: 12px; }
+  /* Open book: checkable numbers only (feed streak from stats.json, client count from ledger.json) */
+  .ledger { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 8px; }
+  .ledger-k { display: block; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+  .ledger-v { display: block; font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
+  .ledger-src { display: block; font-size: 13px; color: var(--muted); }
+  .plan ul.not li::before { content: "✗"; color: var(--muted); }
   .feed-fresh { font-size: 13.5px; font-weight: 700; color: var(--ok); margin: 0 0 14px; }
   .hero-proof {
     display: inline-block; margin: 0 auto 22px; padding: 7px 15px;
@@ -457,6 +463,47 @@ findhotstuff.com #maison</p>
     <p class="plans-note"><b>Textez-moi STOP n'importe quand et les publications arrêtent la journée même</b> — aucun préavis, aucune raison à donner. C'est votre page; c'est vous qui gardez le frein.<br><b>Chaque projet pilote commence par 7 exemples gratuits</b> — vous voyez de quoi aurait l'air votre fil avant de payer un sou.<br>Un mois, sans engagement continu. Ça continue seulement si on le veut tous les deux.</p>
   </section>
 
+  <section id="open-book"> <!-- FR: every line in this section is new French wording; French reader, please check -->
+    <p class="eyebrow">À livre ouvert</p>
+    <h2 class="serif">Où on en est aujourd'hui, en chiffres simples.</h2>
+    <p class="lede">Seulement des choses que vous pouvez vérifier. Le chiffre du fil est lu dans le fichier du fil chaque fois que cette page s'ouvre. Le nombre de clients, je le mets à jour le jour même où il change.</p>
+    <div class="ledger">
+      <div class="plan" id="ob-feed" data-src="../feed/stats.json" data-streak="{n} jours de suite" data-count="{n} publications depuis le {d}" data-range="Du {a} au {b}, d'après le fichier de statistiques du fil" data-none="Inconnu pour l'instant (le fichier du fil n'a pas chargé)">
+        <span class="ledger-k">Notre propre fil, sur cette page</span>
+        <b class="ledger-v">…</b>
+        <span class="ledger-src"></span>
+      </div>
+      <div class="plan" id="ob-clients" data-src="../ledger.json" data-zero="0 · premier client : pas encore" data-one="1 client payant" data-many="{n} clients payants" data-asof="Mis à jour le {d}" data-none="Inconnu pour l'instant (le nombre n'a pas chargé)">
+        <span class="ledger-k">Clients payants</span>
+        <b class="ledger-v">…</b>
+        <span class="ledger-src"></span>
+      </div>
+    </div>
+    <div class="plans">
+      <div class="plan">
+        <h3>Ce que 79 $ CA achète : un mois du projet pilote</h3>
+        <ul>
+          <li>30 publications sur votre page Facebook pendant le mois, faites à partir de vos vrais détails</li>
+          <li>7 exemples gratuits d'abord, en privé, rien de publié</li>
+          <li>Vous approuvez chaque publication avant qu'elle sorte</li>
+          <li>Une ronde de changements par semaine (jusqu'à 3 publications); erreurs de faits corrigées gratuitement</li>
+          <li>Textez STOP n'importe quand et les publications arrêtent la journée même</li>
+          <li>Payé par virement Interac avant la première publication; sans engagement continu</li>
+        </ul>
+      </div>
+      <div class="plan">
+        <h3>Ce que ça n'achète pas</h3>
+        <ul class="not">
+          <li>Budget publicitaire</li>
+          <li>Réponses aux commentaires ou messages</li>
+          <li>Autres plateformes (Instagram, TikTok, X, Google)</li>
+          <li>Toute promesse de mentions J'aime, d'abonnés ou de ventes</li>
+        </ul>
+      </div>
+    </div>
+    <p class="plans-note"><b>Projet pilote : les deux premières entreprises seulement.</b></p>
+  </section>
+
   <section>
     <p class="eyebrow">Les questions que les proprios posent</p>
     <h2 class="serif">Bonnes questions, réponses franches.</h2>
@@ -650,6 +697,46 @@ findhotstuff.com #maison</p>
       }
     })
     .catch(function () { /* pas de stats, pas de ligne */ });
+})();
+</script>
+<script>
+/* Open book (#open-book): every number comes from a file, never typed into
+ * this page. Feed: feed/stats.json written by the engine; "in a row" shows
+ * only when the count equals the calendar days from first to last post.
+ * Clients: automation/ledger.json, one file for EN + FR, updated the same day.
+ * If a file doesn't load, the row says "unknown" instead of guessing. */
+(function () {
+  var loc = document.documentElement.lang === "fr" ? "fr-CA" : "en-CA";
+  var iso = /^\d{4}-\d{2}-\d{2}$/;
+  function day(s) { return new Date(s + "T12:00:00").toLocaleDateString(loc, { month: "long", day: "numeric", year: "numeric" }); }
+  function put(row, v, src) {
+    row.querySelector(".ledger-v").textContent = v;
+    row.querySelector(".ledger-src").textContent = src || "";
+  }
+  function load(row, use) {
+    if (!row) return;
+    fetch(row.dataset.src, { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (j) { if (!use(j)) throw new Error("bad data"); })
+      .catch(function () { put(row, row.dataset.none, ""); });
+  }
+  var feed = document.getElementById("ob-feed");
+  load(feed, function (s) {
+    var n = +s.total;
+    if (!(n >= 1) || n % 1 || !iso.test(s.since || "") || !iso.test(s.last || "")) return false;
+    var span = Math.round((new Date(s.last + "T12:00:00") - new Date(s.since + "T12:00:00")) / 864e5) + 1;
+    var v = (n === span ? feed.dataset.streak : feed.dataset.count).replace("{n}", n).replace("{d}", day(s.since));
+    put(feed, v, feed.dataset.range.replace("{a}", day(s.since)).replace("{b}", day(s.last)));
+    return true;
+  });
+  var cl = document.getElementById("ob-clients");
+  load(cl, function (j) {
+    var n = j.paying_clients;
+    if (typeof n !== "number" || n < 0 || n % 1 || !iso.test(j.updated || "")) return false;
+    var v = n === 0 ? cl.dataset.zero : n === 1 ? cl.dataset.one : cl.dataset.many.replace("{n}", n);
+    put(cl, v, cl.dataset.asof.replace("{d}", day(j.updated)));
+    return true;
+  });
 })();
 </script>
 <a class="sticky-text" id="sticky-text" href="sms:+15068899737?body=Bonjour%20Matthew%20-%20j%27ai%20vu%20East%20Coast%20Social%20en%20ligne%2C%20je%20veux%20la%20semaine%20d%27exemples%20gratuite.">💬 Textez Matthew — semaine d'exemples gratuite</a>

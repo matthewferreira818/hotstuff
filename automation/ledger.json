@@ -1,0 +1,5 @@
+{
+ "paying_clients": 0,
+ "updated": "2026-11-06",
+ "_how": "One place for the client count on /automation/ (EN + FR, #open-book). The same day a business pays, change paying_clients and set updated to that day (YYYY-MM-DD). Paying clients only; free samples do not count."
+}

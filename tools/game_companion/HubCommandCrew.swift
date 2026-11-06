@@ -191,7 +191,7 @@ extension CompanionInterfaceView {
   let working = crew.filter { $0.state == .working }.count
   let failing = crew.filter { $0.state == .failing }
   var obs = coreObservations()
-  for a in away { obs.append(CoreObservation(tone:0,text:"\(a.name) is away" + (a.awayUntil.map { " until " + $0.formatted(.dateTime.month().day()) } ?? "") + ".",why:"They said so in the room; nothing is waiting on them.",source:"Room message")) }
+  for a in away { obs.append(CoreObservation(tone:0,text:"\(a.name) is away" + (a.awayUntil.map { " until " + $0.formatted(.dateTime.month().day()) } ?? "") + ".",why:"They said so in a room message.",source:"Room message")) }
   for f in failing { obs.insert(CoreObservation(tone:3,text:"\(f.name): \(f.detail)",why:"Its last run failed. The crew can look at it.",source:"GitHub Actions read"),at:0) }
   if needs.questions.count + confirms.count > 0 {
    obs.insert(CoreObservation(tone:2,text:"\(needs.questions.count + confirms.count) thing\(needs.questions.count + confirms.count == 1 ? "" : "s") waiting on your OK.",why:"They're listed in the Waiting on you card.",source:"Board and room, now",actionTitle:"Open Meeting Room",run:{ hubSelect(.meeting) }),at:0)

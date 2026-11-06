@@ -242,6 +242,11 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   **Two Local Claude chats at once (2026-11-05):** fine, but never in the same folder on different branches. Branch work goes in its
   own git worktree (e.g. ~/Claude/hotstuff-<job>); the other chat stays on master in ~/Claude/hotstuff, avoids the files the first one
   claimed on the board, and pulls before every push.
+  **LC-Manager (set by New beginning, 2026-11-06):** the Mac-side manager of the Local Claude chats. It (1) hands out and tracks LC
+  jobs on the board, (2) reviews LC branches (tests, screenshots, rules) before they ask Matthew for GO, (3) runs Mac-only checks
+  (the morning robot-start backup, Chrome look-checks) and (4) keeps the board and handoff tidy. Cloud Claude (New beginning / the
+  Room watcher) still reviews and merges crew branches into master and handles reminders; LC-Manager doesn't repeat its room replies.
+  It stays idle unless Matthew or the room gives it work (saves usage) and posts as **[Local Claude (LC-Manager)]**.
 - The old long chat ("new beginning", tag 🏷️ New beginning: his pick and Claude's, 2026-11-05, "where it all started") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
   and the 5:15 PM robot recap) fire there.
 - **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day

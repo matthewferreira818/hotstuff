@@ -17,4 +17,4 @@ iMessage · memory bank as a scrapbook with Keep/Edit/Forget · "Too much" butto
 a local owner, honest claims only) · local lead scout (research only, date-stamped, ~30 cap, re-checked on send day).
 **Cut:** Christmas store sprint: CJ to Canada is often 1-3 weeks with no stock check and manual refunds, store promotion is on hold,
 and a late-December yes risks late gifts and chargebacks. Revisit only with CBDC's OK in writing + real CJ quotes of 10 days or less.
-**Matthew's pick:** (pending)
+**Matthew's pick (4:55 AM):** all 3. Order: honest numbers → one money move → trust ladder (after text-first Friday).

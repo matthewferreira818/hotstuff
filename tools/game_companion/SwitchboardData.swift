@@ -15,7 +15,7 @@ enum SwitchboardLimits {
  static let jobTimeout: TimeInterval = 30 * 60   // a job still running at 30 minutes is stopped
  static let killGrace: TimeInterval = 10         // after the polite stop, a hard kill
  // Fix G: relays (Hotline comment -> an open LC chat) have their own caps, apart from jobs.
- static let relayPerHour = 10
+ static let relayPerHour = 30
  static let relayPerDay = 40
  static let relayTimeout: TimeInterval = 3 * 60
  static let pollEvery: TimeInterval = 60         // how often Friday reads the threads while ON (Matthew, 2026-11-06: 1 min; reading GitHub costs no Claude usage)
@@ -117,6 +117,8 @@ enum SwitchboardRules {
                           "send her","message him","message her","message them","follow up with"],true),
   ("Moomoo",["moomoo","futu","brokerage","broker"],false),
  ]
+ // Names of our own features that contain a topic word. "One Money Move card" is a Friday feature, not a money request (Co-CEO notes 6683101427 and 6683126242).
+ static let featureNames = ["money move","money moves","memory bank"]
  static let ownCrewWords = ["hotline","room","board","issue","pull request","pr","lc-","lc_","local claude","claude","friday","roxy","gpt","grok","crew","chat","thread","everyone"]
 
  static func whole(_ term: String,in text: String) -> Bool {
@@ -155,7 +157,10 @@ enum SwitchboardRules {
  }
 
  static func hardBlock(_ body: String) -> HardBlock? {
-  for sentence in sentences(body) where isRequest(sentence) {
+  for original in sentences(body) where isRequest(original) {
+   // A clause that says NEVER do something ("look and act, never logins/payments") is a prohibition, not a request: drop it.
+   let sentence = featureNames.reduce(original) { $0.replacingOccurrences(of:$1,with:"feature") }
+    .replacingOccurrences(of:#"\bnever\b[^,;:()]*"#,with:" ",options:.regularExpression)
    if sentence.range(of:#"\$\s?\d"#,options:.regularExpression) != nil { return HardBlock(category:"money or payments",line:sentence) }
    if peopleVerbs.contains(leadVerb(sentence)) && !ownCrewWords.contains(where:{ whole($0,in:sentence) }) { return HardBlock(category:"sending to a person",line:sentence) }
    for c in categories {

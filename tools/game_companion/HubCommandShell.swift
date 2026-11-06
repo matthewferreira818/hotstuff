@@ -215,11 +215,16 @@ extension CompanionInterfaceView {
    let failing = runs.filter { $0.isFailing }
    if !failing.isEmpty {
     out.append(CoreObservation(tone:3,text:"\(failing.count) automation\(failing.count == 1 ? " is" : "s are") failing: \(failing.prefix(2).map { $0.name }.joined(separator:", ")).",
-     why:"A failing automation can mean a post or a robot didn't run. The crew can look at it.",source:"GitHub Actions read, \(ventures.lastRefresh == .distantPast ? "just now" : coreAgo(ventures.lastRefresh))"))
+     why:"A failing automation can mean a post or a robot didn't run. The crew can look at it.",source:"GitHub Actions read, \(ventures.lastRefresh == .distantPast ? "time unknown" : coreAgo(ventures.lastRefresh))"))
    }
   }
+  let unread = g.results.filter { $0.verdict == .unknown }
+  if !unread.isEmpty, !g.locked {
+   out.append(CoreObservation(tone:0,text:"\(unread.count) check\(unread.count == 1 ? "" : "s") couldn't be read: \(unread.prefix(2).map { $0.title }.joined(separator:", ")).",
+    why:"I can't say these are fine or not. Running the checks again sometimes reads them.",source:guardWhen))
+  }
   if out.isEmpty, !g.results.isEmpty {
-   out.append(CoreObservation(tone:1,text:"Nothing needs attention right now.",why:"Guard's \(g.results.count) checks are fine and no automations are failing.",source:guardWhen))
+   out.append(CoreObservation(tone:1,text:"Nothing needs attention right now.",why:"Guard's \(g.results.count) checks came back ok and no automations are failing.",source:guardWhen))
   }
   return out
  }

@@ -137,7 +137,7 @@ extension CompanionInterfaceView {
    if stocks.failed { return (.failed,"robot snapshots unavailable") }
    let n = deckRobots.filter { $0.robot != nil }.count
    let newest = deckRobots.compactMap { $0.robot?.updated }.max()
-   return n == 0 ? (.off,"robots not loaded") : (age(newest,fresh:3600),"\(n) of 7 robot snapshots, newest \(hubAgo(newest))")
+   return n == 0 ? (.off,"robots not loaded") : (age(newest,fresh:3600),"\(n) of \(deckRobots.count) robot snapshots, newest \(hubAgo(newest))")
   case .runs:
    guard let runs = ventures.runs else { return (ventures.failed ? .failed : .off,"automation runs not loaded") }
    return (runs.contains { $0.isFailing } ? .stale : .fresh,"\(runs.count) GitHub automations, \(runs.filter { $0.isFailing }.count) failing")
@@ -151,7 +151,7 @@ extension CompanionInterfaceView {
   case .orders:
    if !sales.hasKey { return (.off,"Stripe isn't connected to The Helm") }
    guard sales.sales != nil else { return (.failed,"couldn't read Stripe yet") }
-   return (age(sales.lastRefresh == .distantPast ? nil : sales.lastRefresh,fresh:1800),"Stripe read \(hubAgo(sales.lastRefresh))")
+   return (age(sales.lastRefresh == .distantPast ? nil : sales.lastRefresh,fresh:1800),(sales.lastRefresh == .distantPast ? "Stripe read, time unknown" : "Stripe read \(hubAgo(sales.lastRefresh))"))
   case .inbox:
    guard let ib = HackInbox.read() else { return (.off,"inbox not connected: waiting for the crew's counts file") }
    return (age(ib.at,fresh:12 * 3600),"inbox checked by \(ib.inbox.by) \(hubAgo(ib.at))")
@@ -384,10 +384,14 @@ struct HackCommandLine: View {
    if brain.thinking { Text("friday › thinking…").font(DeckMono.font(11.5)).foregroundStyle(HubTheme.subtext) }
    if !brain.note.isEmpty { Text(brain.note).font(DeckMono.font(10)).foregroundStyle(HubTheme.subtext) }
    if let job = room.pendingJob {
-    HStack(spacing:10) {
-     Text("Send to the crew on the Hotline as [Matthew → Local Claude]: \"\(MeetingData.brief(job,limit:80))\"? It's a public repo.").font(DeckMono.font(11)).foregroundStyle(HubTheme.amber)
-     Button(room.sending ? "Sending…" : "Yes, send") { room.sendToHotline(job) }.disabled(room.sending)
-     Button("Cancel") { room.pendingJob = nil }.disabled(room.sending)
+    VStack(alignment:.leading,spacing:6) {
+     Text("Send this to the crew on the Hotline as [Matthew → Local Claude]? The Hotline is a PUBLIC repo: anyone can read it. This is the whole message:").font(DeckMono.font(11)).foregroundStyle(HubTheme.amber)
+     ScrollView { Text(job).font(DeckMono.font(11.5)).foregroundStyle(HubTheme.text).textSelection(.enabled).frame(maxWidth:.infinity,alignment:.leading) }
+      .frame(maxHeight:120).padding(8).background(RoundedRectangle(cornerRadius:6).fill(Color.white.opacity(0.04)))
+     HStack(spacing:10) {
+      Button(room.sending ? "Sending…" : "Yes, send all of it") { room.sendToHotline(job) }.disabled(room.sending)
+      Button("Cancel") { room.pendingJob = nil }.disabled(room.sending)
+     }
     }
    }
    if !room.jobNote.isEmpty { Text(room.jobNote).font(DeckMono.font(10.5)).foregroundStyle(HubTheme.subtext) }

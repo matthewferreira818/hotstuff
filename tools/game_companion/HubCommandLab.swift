@@ -141,7 +141,7 @@ enum ScopeRules {
    LabTool(id:"nmap",name:"Nmap",role:"network and port checker",installed:nmap != nil,detail:nmap ?? "not found on this Mac (free; installing it is your call)",appPath:nil,infoURL:"https://nmap.org"),
    LabTool(id:"wireshark",name:"Wireshark",role:"network traffic viewer",installed:wire != nil,detail:wire ?? "not found on this Mac (free)",appPath:wire,infoURL:"https://www.wireshark.org"),
    LabTool(id:"zap",name:"OWASP ZAP",role:"web app security tester",installed:zap != nil,detail:zap ?? "not found on this Mac (free)",appPath:zap,infoURL:"https://www.zaproxy.org"),
-   LabTool(id:"kali",name:"Kali Linux",role:"security lab OS, runs in a virtual machine",installed:vm != nil,detail:vm.map { "a VM app is installed (\(URL(fileURLWithPath:$0).lastPathComponent)); I can't see whether you have a Kali image" } ?? "no VM app found (UTM is free; an 8 GB Mac runs one small VM at a time)",appPath:vm,infoURL:"https://www.kali.org"),
+   LabTool(id:"kali",name:"Kali Linux",role:"security lab OS, runs in a virtual machine",installed:vm != nil,detail:vm.map { "a VM app is installed (\(URL(fileURLWithPath:$0).lastPathComponent)); I can't see whether you have a Kali image" } ?? "no VM app found (UTM is free; a \(Int(CoreFacts.memoryGB().rounded())) GB Mac runs one small VM at a time)",appPath:vm,infoURL:"https://www.kali.org"),
   ]
  }
 
@@ -218,9 +218,16 @@ enum ScopeRules {
 // Research notes for the lab: plain text, this Mac only.
 @MainActor final class LabNotes: ObservableObject {
  static let shared = LabNotes()
- private let url = FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/CommandCore/research-notes.txt")
- @Published var text: String { didSet { try? text.write(to:url,atomically:true,encoding:.utf8) } }
- init() { text = (try? String(contentsOf:FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/CommandCore/research-notes.txt"),encoding:.utf8)) ?? "" }
+ static let folder = FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/CommandCore",isDirectory:true)
+ private let url = LabNotes.folder.appendingPathComponent("research-notes.txt")
+ @Published private(set) var saveFailed = false
+ @Published var text: String {
+  didSet {
+   try? FileManager.default.createDirectory(at:LabNotes.folder,withIntermediateDirectories:true,attributes:[.posixPermissions:0o700])
+   saveFailed = (try? text.write(to:url,atomically:true,encoding:.utf8)) == nil
+  }
+ }
+ init() { text = (try? String(contentsOf:LabNotes.folder.appendingPathComponent("research-notes.txt"),encoding:.utf8)) ?? "" }
 }
 
 // Cyber Lab, redesigned after Matthew's notes ("keep the engineering, redesign the cockpit"): device library left, the selected device drawn in the
@@ -442,7 +449,7 @@ struct CoreLabView: View {
     ("CPU now",monitor.cpu.map { "\(Int(($0 * 100).rounded()))%" } ?? "measuring…",0),
     ("Memory used",monitor.memUsedGB.map { String(format:"%.1f GB",$0) } ?? "measuring…",0),
     ("Free disk",CoreFacts.freeDiskGB().map { "\(Int($0.rounded())) GB" } ?? "?",0),
-    ("Guard",guardHub.results.isEmpty ? "not checked" : (c.warn == 0 ? "all \(c.ok) ok" : "\(c.warn) to look at"),guardHub.results.isEmpty ? 0 : (c.warn == 0 ? 1 : 2)),
+    ("Guard",guardHub.results.isEmpty ? "not checked" : (c.warn > 0 ? "\(c.warn) to look at" : (c.unknown > 0 ? "\(c.ok) ok · \(c.unknown) unread" : "all \(c.ok) ok")),guardHub.results.isEmpty ? 0 : (c.warn > 0 ? 2 : (c.unknown > 0 ? 0 : 1))),
    ]
   }
   guard let d else { return [] }
@@ -539,7 +546,7 @@ struct CoreLabView: View {
     HStack(spacing:10) {
      if t.installed, let path = t.appPath { Button("Open") { NSWorkspace.shared.open(URL(fileURLWithPath:path)) }.buttonStyle(.plain).font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal) }
      Button("About") { if let u = URL(string:t.infoURL) { NSWorkspace.shared.open(u) } }.buttonStyle(.plain).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.teal)
-     Button("Ask Friday") { askFriday("Explain \(t.name) in plain words: what it's for, how I'd use it safely on my own devices, and whether it's worth installing on my 8 GB Mac.") }.buttonStyle(.plain).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.teal)
+     Button("Ask Friday") { askFriday("Explain \(t.name) in plain words: what it's for, how I'd use it safely on my own devices, and whether it's worth installing on my \(Int(CoreFacts.memoryGB().rounded())) GB Mac.") }.buttonStyle(.plain).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.teal)
     }
    }
    Spacer(minLength:0)
@@ -586,7 +593,7 @@ struct CoreLabView: View {
   CoreCard(title:"Research notes",icon:"note.text") {
    TextEditor(text:$notes.text).font(.system(size:12,design:.rounded)).scrollContentBackground(.hidden).foregroundStyle(CoreStyle.ink)
     .background(RoundedRectangle(cornerRadius:6).fill(Color.white.opacity(0.03)))
-   Text("Saved on this Mac as you type.").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
+   Text(notes.saveFailed ? "Couldn't save the last change on this Mac." : "Saved on this Mac as you type.").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim)
   }
  }
 }

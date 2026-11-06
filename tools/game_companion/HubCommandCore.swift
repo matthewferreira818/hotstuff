@@ -115,7 +115,7 @@ struct CoreTilesView: View {
  }
 
  var devicesTile: some View {
-  tile("DEVICES",HubTheme.green) {
+  tile("DEVICES",HubTheme.subtext) {
    line("1 · this Mac")
    line("Other devices you own (an old phone, a tablet) get added here in step 2, by you, by hand.",true)
   }
@@ -132,7 +132,7 @@ struct CoreTilesView: View {
     line(switchboard.on ? "Switchboard ON · no job running" : "Switchboard OFF",true)
    }
    if let runs { line("\(runs.count) automations · \(running) running · \(failing) failing",failing == 0) } else { line("automations not read yet",true) }
-   line(robotsFailed ? "robot snapshots unavailable" : "\(robotsLoaded) of 7 practice robots loaded",!robotsFailed)
+   line(robotsFailed ? "robot snapshots unavailable" : "\(robotsLoaded) of \(CrewData.robotWorkflows.count) practice robots loaded",!robotsFailed)
   }
  }
 }

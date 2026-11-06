@@ -106,7 +106,7 @@ extension CompanionInterfaceView {
   }
   if let used = m.memUsedGB {
    let total = Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824
-   if used / total > 0.85 { out.append(CoreObservation(tone:2,text:"Memory is nearly full: \(String(format:"%.1f",used)) of \(Int(total.rounded())) GB.",why:"On an 8 GB Mac this slows everything down. Quit apps you aren't using.",source:"kernel memory counters, \(when)")) }
+   if used / total > 0.85 { out.append(CoreObservation(tone:2,text:"Memory is nearly full: \(String(format:"%.1f",used)) of \(Int(total.rounded())) GB.",why:"With \(Int(total.rounded())) GB this slows everything down. Quit apps you aren't using.",source:"kernel memory counters, \(when)")) }
   }
   if let free = CoreFacts.freeDiskGB(), let total = SysFacts.totalDiskGB(), free / total < 0.10 {
    out.append(CoreObservation(tone:2,text:"Storage is almost full: \(Int(free.rounded())) GB free.",why:"Under 10% free can slow the Mac and break updates.",source:"file system, now"))

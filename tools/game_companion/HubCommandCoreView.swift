@@ -137,11 +137,11 @@ extension CompanionInterfaceView {
     ],ring:5,label:r.name,detail:r.isFailing ? "failing" : "running",lit:r.isRunning,warn:r.isFailing,weight:0.5))
   }
 
-  let verdict: Int = (g.results.isEmpty && g.network.isEmpty && runs.isEmpty) ? 0 : (macWarn ? 2 : 1)
+  let verdict: Int = macWarn ? 2 : (g.results.isEmpty ? 0 : 1)   // "calm" only once Guard has actually checked this Mac
   let headline: String
   if g.locked { headline = "Lockdown is on" }
   else if verdict == 0 { headline = "Waiting for the first readings" }
-  else if verdict == 1 { headline = "All systems calm" }
+  else if verdict == 1 { headline = counts.unknown > 0 ? "No problems found · \(counts.unknown) check\(counts.unknown == 1 ? "" : "s") couldn't be read" : "All systems calm" }
   else {
    var bits: [String] = []
    if counts.warn > 0 { bits.append("\(counts.warn) Mac check\(counts.warn == 1 ? "" : "s")") }
@@ -154,7 +154,7 @@ extension CompanionInterfaceView {
   if g.locked {
    cards.append(CoreCardData(id:"mac",title:"THIS MAC",big:"Lockdown",bigTone:2,sub:macSub,foot:"checks paused until you unlock"))
   } else if let at = g.lastChecked, !g.results.isEmpty {
-   cards.append(CoreCardData(id:"mac",title:"THIS MAC",big:counts.warn == 0 ? "All clear" : "\(counts.warn) to look at",bigTone:counts.warn == 0 ? 1 : 2,sub:macSub,foot:"Guard checked \(coreAgo(at)) · \(counts.ok) ok"))
+   cards.append(CoreCardData(id:"mac",title:"THIS MAC",big:counts.warn > 0 ? "\(counts.warn) to look at" : (counts.unknown > 0 ? "\(counts.ok) ok · \(counts.unknown) unread" : "All clear"),bigTone:counts.warn > 0 ? 2 : (counts.unknown > 0 ? 0 : 1),sub:macSub,foot:"Guard checked \(coreAgo(at)) · \(counts.ok) ok"))
   } else {
    cards.append(CoreCardData(id:"mac",title:"THIS MAC",big:"Not checked",bigTone:0,sub:macSub,foot:"press Run checks"))
   }
@@ -180,7 +180,7 @@ extension CompanionInterfaceView {
   else { opsBig = "All running"; opsTone = 1 }
   cards.append(CoreCardData(id:"ops",title:"OPERATIONS",big:opsBig,bigTone:opsTone,
    sub:"\(runs.count) automations · Switchboard \(sb.on ? "on" : "off")",
-   foot:stocks.failed ? "robot snapshots unavailable" : "\(loadedBots) of 7 practice robots loaded"))
+   foot:stocks.failed ? "robot snapshots unavailable" : "\(loadedBots) of \(robots.count) practice robots loaded"))
 
   let newest = hackTape.first.map { "\(deckTapeTime($0.date))  \($0.tag)  \($0.text)" } ?? "quiet: nothing read yet"
   return CoreSnapshot(verdict:verdict,headline:headline,nodes:nodes,cards:cards,newest:newest)

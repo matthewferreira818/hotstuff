@@ -103,21 +103,10 @@ struct CrewComposerBar: View {
 struct PingBadge: View {
  let id: Int
  @ObservedObject var wake = WakeRunner.shared
- // "pinged ✓ X", "pinging X…", "X isn't open" (chat closed), otherwise "pinged ✗ X (reason)". A pointer-only ping keeps the engine's own wording.
- static func words(_ r: PingResult) -> String {
-  if r.targets.isEmpty { return r.badge }
-  return r.targets.keys.sorted().map { name in
-   switch r.targets[name] ?? "?" {
-   case "delivered": return "pinged ✓ \(name)"
-   case "pending": return "pinging \(name)…"
-   case "not open": return "\(name) isn't open"
-   case let other: return "pinged ✗ \(name) (\(other))"
-   }
-  }.joined(separator:" · ")
- }
+ // The engine writes the wording itself (pinged ✓ X, X isn't open, "X closed → Friday has it", "pinged ✓ X (when it reopened)"); the screen shows it as is.
  var body: some View {
   if let r = wake.result(forComment:Int64(id)) {
-   let words = PingBadge.words(r)
+   let words = r.badge
    Text(words).font(.system(size:11.5,weight:.medium)).foregroundStyle(r.allOK ? HubTheme.green : HubTheme.amber)
     .accessibilityLabel(words)
   }

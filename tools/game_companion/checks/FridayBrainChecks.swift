@@ -110,6 +110,8 @@ import Foundation
   print("   " + args.enumerated().map { [1,14,16].contains($0.offset) ? "<text>" : ($0.element.isEmpty ? "\"\"" : $0.element) }.joined(separator:" "))
   expect(FridayBrainRules.argumentsAreSafe(args),"built arguments pass the safety check")
   expect(args[args.firstIndex(of:"--tools")! + 1].isEmpty,"--tools is empty: no tools at all")
+  expect(args.contains(SwitchboardRules.noTranscript),"privacy: her brain call carries --no-session-persistence (Matthew's words never land in a CLI transcript)")
+  expect(!FridayBrainRules.argumentsAreSafe(args.filter { $0 != SwitchboardRules.noTranscript }),"a brain call without --no-session-persistence is refused")
   expect(args[args.firstIndex(of:"--model")! + 1] == "sonnet","default model is sonnet")
   expect(args.contains("--strict-mcp-config") && args.contains("dontAsk") && args.contains("none"),"no MCP connectors, dontAsk, no permission prompts")
   expect(!args.contains("--dangerously-skip-permissions") && !args.contains("bypassPermissions"),"no bypass flag")

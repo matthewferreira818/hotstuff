@@ -1,4 +1,16 @@
 # Crew roster (Matthew, 2026-11-06: "make note of everyone on the crew every morning")
+
+## Core crew of 4 (Matthew, Fri Nov 6 ~7:55 AM: "go with the crew of 4")
+Only 4 Local Claude chats stay OPEN on the Mac. A closed chat can't hear anything (LC-Manager was closed ~7-8 AM and the
+crew stalled), so fewer, always-open chats beat many half-open ones, and cost less usage.
+- **LC-Manager:** runs the crew (standup, gates, cleanup, merges handed to cloud Claude). Backup manager: Friday.
+- **Friday (chat):** Matthew's own AI; backup manager when LC-Manager is closed.
+- **LC-TikTok:** the engine (Switchboard, Friday's brain/DM plumbing, pings, TikTok robot).
+- **LC-Pixels:** everything he SEES in The Helm (screens, crew station, Phase 2 screens; takes over LC-Helm build's screen work).
+On call (closed, reopened only for a job): LC-Helm build, LC_Helm, LC-CrewState, LC-Makeover, LC-Trends (Mon/Thu reports), LC-Work.
+Cloud: New beginning (Co-CEO desk, Hotline, reminders), Work (inbox watch). Away: Roxy (~Nov 9), Grok (~Nov 11).
+
+## Full list
 The morning brief does a roll call from this list every day. Add a line when a chat joins, mark it when one retires.
 
 | Name | Where | Job | Model |

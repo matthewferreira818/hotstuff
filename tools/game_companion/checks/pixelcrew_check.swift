@@ -55,4 +55,9 @@ check("link: chat without post -> Hotline", PixelCrew.link(crew[1]).url.hasSuffi
 check("walk loop: there, talk, back, home", PixelCrew.walk(1.5).walking && PixelCrew.walk(5).talking && PixelCrew.walk(9.5).walking && PixelCrew.walk(15).progress == 0)
 let line = PixelCrew.line(crew[3],visit:PixelVisit(from:"LC-Pixels",to:"LC-Manager",date:now.addingTimeInterval(-120),what:"hi"),crew:crew,now:now)
 check("click line names the visit: \(line)", line.hasPrefix("Messaged LC-Manager 2 min ago"))
+// Board bug (11-06): the old station showed chats "away, back Nov 9" (Roxy's date). A chat is never away because a line mentions Roxy's return.
+let roomLines = [msg("Local Claude (LC-Manager)","Everyone",300,"LC-Manager here: Roxy back Mon Nov 9, Grok away until Nov 11"),msg("GPT","Claude",86400,"Roxy back Mon Nov 9")]
+let built = CrewData.build(messages:roomLines,runs:[],now:now)
+check("no chat is away from Roxy's date", !built.contains { $0.kind == .chat && ($0.state == .away || $0.awayUntil != nil) })
+check("Roxy herself is away until Nov 9", built.first(where:{ $0.id == "Roxy" })?.state == .away)
 exit(fails == 0 ? 0 : 1)

@@ -65,7 +65,7 @@ struct CrewStationView: View {
 
  // Where a character stands right now. A visitor follows the hallway: out of its room, along the hall, into the other room.
  func place(_ s: Spot,all: [Spot],t: Double) -> Place {
-  let home = CGPoint(x:s.desk.x,y:s.desk.y + 28)
+  let home = CGPoint(x:s.desk.x + 10,y:s.desk.y + 12)
   guard !reduceMotion, s.member.kind != .friday, let v = visits.first(where:{ $0.from == s.member.id }),
         let target = all.first(where:{ $0.member.id == v.to }) else { return Place(feet:home,walking:false,talking:false,away:false) }
   let w = PixelCrew.walk(t + Self.seed(s.member.id).truncatingRemainder(dividingBy:20))
@@ -240,8 +240,9 @@ struct CrewStationView: View {
 
  private func drawDesk(_ g: GraphicsContext,_ d: CGPoint,_ m: CrewMember,flash: Bool) {
   g.fill(Path(roundedRect:CGRect(x:d.x - 26,y:d.y - 6,width:52,height:18),cornerRadius:2),with:.color(HubTheme.hex(0x3A4640)))
-  g.fill(Path(CGRect(x:d.x - 11,y:d.y - 23,width:22,height:16)),with:.color(HubTheme.hex(0x0C100E)))
-  g.fill(Path(CGRect(x:d.x - 10,y:d.y - 22,width:20,height:14)),with:.color(screenColor(m,flash:flash)))
+  g.fill(Path(CGRect(x:d.x - 25,y:d.y - 23,width:22,height:16)),with:.color(HubTheme.hex(0x0C100E)))
+  g.fill(Path(CGRect(x:d.x - 24,y:d.y - 22,width:20,height:14)),with:.color(screenColor(m,flash:flash)))
+  g.fill(Path(CGRect(x:d.x - 16,y:d.y - 7,width:4,height:2)),with:.color(HubTheme.hex(0x0C100E)))
  }
 
  func draw(_ ctx: GraphicsContext,size: CGSize,t: Double) {
@@ -266,13 +267,13 @@ struct CrewStationView: View {
     figure(g,m,at:p.feet,px:px,step:false,armsUp:Int(t * 4 + Self.seed(m.id)) % 2 == 0,dim:1,flash:flash,t:t)
     drawDesk(g,d,m,flash:flash)
     let dots = Int(t * 3) % 4
-    g.draw(Text(String(repeating:".",count:max(1,dots))).font(.system(size:12,weight:.heavy,design:.monospaced)).foregroundColor(HubTheme.green),at:CGPoint(x:d.x + 16,y:d.y - 22),anchor:.leading)
+    g.draw(Text(String(repeating:".",count:max(1,dots))).font(.system(size:12,weight:.heavy,design:.monospaced)).foregroundColor(HubTheme.green),at:CGPoint(x:d.x - 24,y:d.y - 30),anchor:.leading)
    case .idle:
     figure(g,m,at:p.feet,px:px,step:false,armsUp:false,dim:0.8,flash:flash,t:t,asleep:true)
     drawDesk(g,d,m,flash:flash)
     let rise = CGFloat(Int(t * 1.5 + Self.seed(m.id)) % 3) * 4
-    g.draw(Text("z").font(.system(size:9,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:d.x + 15,y:d.y - 26 - rise),anchor:.center)
-    g.draw(Text("Z").font(.system(size:11,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage.opacity(0.7)),at:CGPoint(x:d.x + 22,y:d.y - 36 - rise),anchor:.center)
+    g.draw(Text("z").font(.system(size:9,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:d.x + 25,y:d.y - 28 - rise),anchor:.center)
+    g.draw(Text("Z").font(.system(size:11,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage.opacity(0.7)),at:CGPoint(x:d.x + 32,y:d.y - 38 - rise),anchor:.center)
    case .away:
     drawDesk(g,d,m,flash:flash)
     figure(g,m,at:p.feet,px:px,step:false,armsUp:false,dim:0.3,flash:flash,t:t)
@@ -284,12 +285,12 @@ struct CrewStationView: View {
    case .failing:
     figure(g,m,at:p.feet,px:px,step:false,armsUp:flash,dim:1,flash:flash,t:t)
     drawDesk(g,d,m,flash:flash)
-    g.fill(Path(ellipseIn:CGRect(x:d.x + 14,y:d.y - 14,width:10,height:10)),with:.color(flash ? Color(red:1,green:0.2,blue:0.2) : Color(red:0.45,green:0.1,blue:0.1)))
-    g.draw(Text("ALARM").font(.system(size:7,weight:.heavy,design:.monospaced)).foregroundColor(Color(red:1,green:0.4,blue:0.4)),at:CGPoint(x:d.x + 19,y:d.y - 20),anchor:.center)
+    g.fill(Path(ellipseIn:CGRect(x:d.x - 19,y:d.y - 38,width:10,height:10)),with:.color(flash ? Color(red:1,green:0.2,blue:0.2) : Color(red:0.45,green:0.1,blue:0.1)))
+    g.draw(Text("ALARM").font(.system(size:7,weight:.heavy,design:.monospaced)).foregroundColor(Color(red:1,green:0.4,blue:0.4)),at:CGPoint(x:d.x + 2,y:d.y - 33),anchor:.leading)
    case .unknown:
     drawDesk(g,d,m,flash:flash)
     figure(g,m,at:p.feet,px:px,step:false,armsUp:false,dim:0.28,flash:flash,t:t)
-    g.draw(Text("?").font(.system(size:13,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:d.x + 16,y:d.y - 14),anchor:.center)
+    g.draw(Text("?").font(.system(size:13,weight:.bold,design:.monospaced)).foregroundColor(HubTheme.sage),at:CGPoint(x:d.x + 27,y:d.y - 26),anchor:.center)
    }
   }
   // names (and who they messaged) under every desk
@@ -387,7 +388,7 @@ struct PixelCrewCard: View {
        Text(m.name).font(.system(size:13,weight:.semibold)).foregroundStyle(HubTheme.text)
        Text(m.role).font(.system(size:10.5)).foregroundStyle(HubTheme.subtext).lineLimit(1)
       }
-      Text(PixelCrew.line(m,visit:visits.first(where:{ $0.from == id }),crew:crew)).font(.system(size:12)).foregroundStyle(HubTheme.text.opacity(0.9)).fixedSize(horizontal:false,vertical:true)
+      Text(PixelCrew.line(m,visit:visits.first(where:{ $0.from == id }),crew:crew)).font(.system(size:12)).foregroundStyle(HubTheme.text.opacity(0.9)).lineLimit(2)
       if let url = URL(string:link.url) { Link(link.title + " ↗",destination:url).font(.system(size:11,weight:.medium)).foregroundStyle(HubTheme.amber) }
      }
      Spacer(minLength:6)
@@ -395,6 +396,7 @@ struct PixelCrewCard: View {
       .buttonStyle(.plain).foregroundStyle(HubTheme.subtext).accessibilityLabel("Close details")
     }
     .padding(10)
+    .frame(maxHeight:96,alignment:.top)
     .background(HubTheme.hex(0x141A17),in:RoundedRectangle(cornerRadius:8))
     .overlay(RoundedRectangle(cornerRadius:8).stroke(HubTheme.amber.opacity(0.5),lineWidth:1))
    } else {
@@ -433,12 +435,12 @@ extension CompanionInterfaceView {
      .frame(maxWidth:.infinity,maxHeight:.infinity)
      .background(DeckMono.bg,in:RoundedRectangle(cornerRadius:8))
      .overlay(RoundedRectangle(cornerRadius:8).stroke(HubTheme.line,lineWidth:1))
-    PixelCrewCard(crew:crew,visits:visits)
-    HStack(spacing:16) {
+    PixelCrewCard(crew:crew,visits:visits).frame(height:96,alignment:.top)
+    LazyVGrid(columns:[GridItem(.adaptive(minimum:190),spacing:12,alignment:.leading)],alignment:.leading,spacing:4) {
      ForEach([(CrewState.working,"typing · post/commit in 30 min"),(.idle,"asleep · nothing in 30 min"),(.away,"away"),(.failing,"run failed"),(.unknown,"no data")],id:\.1) { entry in
-      HStack(spacing:6) { Circle().fill(deckStateColor(entry.0)).frame(width:8,height:8); Text(entry.1).font(DeckMono.font(10.5)).foregroundStyle(HubTheme.subtext) }
+      HStack(spacing:6) { Circle().fill(deckStateColor(entry.0)).frame(width:8,height:8); Text(entry.1).font(DeckMono.font(10.5)).foregroundStyle(HubTheme.subtext).lineLimit(1) }
      }
-     HStack(spacing:6) { Text("✉").font(.system(size:10)).foregroundStyle(HubTheme.amber); Text("walking · messaged in 15 min").font(DeckMono.font(10.5)).foregroundStyle(HubTheme.subtext) }
+     HStack(spacing:6) { Text("✉").font(.system(size:10)).foregroundStyle(HubTheme.amber); Text("walking · messaged in 15 min").font(DeckMono.font(10.5)).foregroundStyle(HubTheme.subtext).lineLimit(1) }
     }
    }
    VStack(alignment:.leading,spacing:8) {

@@ -216,12 +216,15 @@ struct CoreRoomView: View {
 
  var body: some View {
   GeometryReader { geo in
-   let col = min(270,max(196,geo.size.width * 0.17))
-   HStack(alignment:.center,spacing:14) {
-    VStack(spacing:10) { card(0,"laptopcomputer"); card(1,"wifi") }.frame(width:col)
-    hero.frame(minWidth:320,maxWidth:.infinity,maxHeight:min(geo.size.height,520))
-    VStack(spacing:10) { card(2,"person.2"); card(3,"waveform.path.ecg") }.frame(width:col)
+   // One centred composition (reference): it grows to a point, then stays together instead of drifting to the window edges.
+   let width = min(geo.size.width,1240)
+   let col = min(272,max(196,width * 0.2))
+   HStack(alignment:.center,spacing:18) {
+    VStack(spacing:12) { card(0,"laptopcomputer"); card(1,"wifi") }.frame(width:col)
+    hero.frame(minWidth:320,maxWidth:.infinity).frame(height:min(geo.size.height,560))
+    VStack(spacing:12) { card(2,"person.2"); card(3,"waveform.path.ecg") }.frame(width:col)
    }
+   .frame(width:width)
    .frame(width:geo.size.width,height:geo.size.height)
   }
   .padding(.horizontal,22).padding(.top,4).padding(.bottom,8)
@@ -253,7 +256,7 @@ struct CoreRoomView: View {
 
  func geometry(_ size: CGSize) -> (center: CGPoint,r: CGFloat) {
   let c = CGPoint(x:size.width / 2,y:size.height / 2 - 2)
-  return (c,min(size.width * 0.38,size.height * 0.36,190))
+  return (c,min(size.width * 0.38,size.height * 0.37,215))
  }
 
  func hubPoint(_ index: Int,_ size: CGSize,_ t: Double) -> CGPoint {

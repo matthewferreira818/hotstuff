@@ -1158,30 +1158,45 @@ a.merch-card {
 }
 
 @media (max-width: 640px) {
+  /* Phone header in ONE row: brand · Automation pill · Shop trending · FR (11-05 touch-up) */
   .nav-inner {
-    flex-wrap: wrap;
-    gap: 12px;
-    row-gap: 10px;
-    padding: 12px 16px 14px;
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 10px 12px;
   }
-  .nav-inner > .btn-primary {
-    margin-left: auto;
-  }
+  .brand { font-size: 16px; gap: 6px; flex: none; }
   .nav-links {
     display: flex;
-    order: 3;
-    width: 100%;
+    flex: none;
   }
   .nav-links a {
     display: none;
   }
   .nav-links a.nav-automation {
     display: inline-flex;
-    flex: 1;
-    justify-content: center;
-    font-size: 14px;
-    padding: 10px 12px;
+    flex: none;
+    gap: 5px;
+    font-size: 12px;
+    padding: 6px 10px;
+    white-space: nowrap;
   }
+  .nav-links a.nav-automation::before { width: 6px; height: 6px; }
+  .nav-inner > .btn-primary {
+    font-size: 13px;
+    padding: 8px 12px;
+    white-space: nowrap;
+  }
+  .nav-inner > .lang-toggle { flex: none; margin-left: 0; }
+}
+@media (max-width: 400px) {
+  .nav-inner { gap: 5px; padding: 10px 10px; }
+  .nav-inner > .btn-primary { padding: 8px 10px; }
+  .nav-inner > .lang-toggle { padding: 5px 8px; font-size: 12px; }
+}
+@media (max-width: 360px) {
+  .brand { font-size: 14px; }
+  .nav-links a.nav-automation { padding: 6px 7px; font-size: 11.5px; }
+  .nav-inner > .btn-primary { padding: 7px 8px; font-size: 12.5px; }
 }
 
 /* ---- app install pill ---- */
@@ -1440,6 +1455,13 @@ a.merch-card {
     padding: 0 16px 4px;
   }
   .quick-cat { flex-shrink: 0; font-size: 13.5px; }
+  /* Soft fade on the right so it's clear the row scrolls sideways (11-05).
+     The extra right padding lets the last chip scroll fully clear of the fade. */
+  .quick-cats, .category-bar, .subgroup-bar {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent);
+    padding-right: 40px;
+  }
   .expect-line { font-size: 12px; margin-top: -4px; }
 }
 @media (max-width: 640px) {

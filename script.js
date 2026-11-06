@@ -740,14 +740,36 @@ loadProducts();
     pill.appendChild(hint);
   }
 
+  // Phones (11-05): the bubble waits until the visitor has scrolled past the
+  // first products, so it never covers the first screen. Desktop: unchanged.
+  const isPhone = window.matchMedia("(max-width: 640px)").matches;
+  let scrolledPast = !isPhone || !document.getElementById("product-grid");
+  let wanted = false;
+  function pastFirstProducts() {
+    const first = document.querySelector("#product-grid > *");
+    if (!first) return false;
+    return first.getBoundingClientRect().bottom < 0;
+  }
+  function onScroll() {
+    if (scrolledPast || !pastFirstProducts()) return;
+    scrolledPast = true;
+    window.removeEventListener("scroll", onScroll);
+    if (wanted) makePill();
+  }
+  if (!scrolledPast) window.addEventListener("scroll", onScroll, { passive: true });
+  function offerPill() {
+    wanted = true;
+    if (scrolledPast) makePill();
+  }
+
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    makePill();
+    offerPill();
   });
 
   // iOS Safari never fires beforeinstallprompt — offer the hint instead
-  if (isIOS) makePill();
+  if (isIOS) offerPill();
 
   window.addEventListener("appinstalled", () => {
     localStorage.setItem(DISMISS_KEY, "1");

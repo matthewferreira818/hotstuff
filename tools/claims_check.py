@@ -96,6 +96,17 @@ def validate_facts(facts: object) -> dict:
         for price in offer["monthly_prices"]:
             _integer(price, "monthly price", 1)
         _integer(offer["setup_total"], "offer.setup_total")
+        if "posting_frequency" in offer:
+            rate = offer["posting_frequency"]
+            if rate["channel"] not in {"facebook", "instagram", "x", "tiktok", "pinterest"}:
+                raise ValueError("The offer rate must name a social channel")
+            _integer(rate["posts"], "offer posting frequency", 1)
+            if rate["per"] not in {"hour", "day", "week"}:
+                raise ValueError("The offer rate must use hour, day or week")
+            if _date(rate["verified_on"], "offer rate verification") > verified:
+                raise ValueError("The offer rate cannot be newer than the snapshot")
+            if not isinstance(rate["source"], str) or not rate["source"].strip():
+                raise ValueError("The offer rate needs a reviewed source")
         for key in ("approved_statistics", "approved_testimonials"):
             if not isinstance(facts[key], list) or any(not isinstance(s, str) or not s.strip() for s in facts[key]):
                 raise ValueError(f"{key} must contain only nonempty, reviewed public phrases")
@@ -129,6 +140,9 @@ FREQUENCY = re.compile(
     re.IGNORECASE,
 )
 SITE_FEED = r"\b(?:(?:my|our) (?:own )?store['’]s feed|(?:my|our) (?:own )?(?:site|website)(?:['’]s)? feed|(?:site|website)[ -]feed)\b"
+CLIENT_PAGE = r"\byour\s+(?:(?:facebook|instagram|x|twitter|tik\s*tok|pinterest)\s+)?(?:business|page|feed)\b"
+OFFER_WORDING = rf"{CLIENT_PAGE}|\bfor every day of (?:the )?month\b|\bi post them\b|\bfor a month of daily posts\b"
+DELIVERY_HISTORY = r"\b(?:posted|published|already|since|yesterday|today)\b"
 
 
 def _number(s: str) -> int:
@@ -157,10 +171,22 @@ def _named_channels(text: str) -> set[str]:
     return {name for name, pattern in CHANNELS.items() if re.search(pattern, without_rates)}
 
 
+def _client_offer_scopes(clause: str) -> set[str]:
+    targets = set()
+    for target in re.findall(CLIENT_PAGE, clause):
+        targets |= _named_channels(target)
+    return {f"client_offer:{target}" for target in targets} if targets else {"client_offer"}
+
+
 def _subject_scopes(clause: str) -> set[str]:
     """Recognize subject-only list items, never whole statements like 'X is off'."""
-    scopes = _named_channels(clause) | ({"site_feed"} if re.search(SITE_FEED, clause) else set())
-    rest = re.sub(SITE_FEED, "", clause)
+    if re.fullmatch(r"i post them", clause.strip()):
+        return {"client_offer"}  # "I post them, one a day."
+    own_text = re.sub(CLIENT_PAGE, "", clause)
+    scopes = _named_channels(own_text) | ({"site_feed"} if re.search(SITE_FEED, clause) else set())
+    if re.search(CLIENT_PAGE, clause):
+        scopes |= _client_offer_scopes(clause)
+    rest = re.sub(SITE_FEED, "", own_text)
     for pattern in CHANNELS.values():
         rest = re.sub(pattern, "", rest)
     rest = re.sub(r"\b(?:my|our|the|own|page|pages|feed|feeds|account|accounts|both|on|'s)\b", "", rest)
@@ -178,9 +204,12 @@ def _frequency_findings(text: str, facts: dict, as_of: date) -> list[Finding]:
     clauses = [c.strip() for c in re.split(r",|\n+|\b(?:and|but|while|although|however)\b", text) if c.strip()]
     for i, clause in enumerate(clauses):
         mentions = list(FREQUENCY.finditer(clause))
-        channels = _named_channels(clause)
+        offer_scope = bool(re.search(OFFER_WORDING, clause)) and not re.search(DELIVERY_HISTORY, clause)
+        channels = _named_channels(re.sub(CLIENT_PAGE, "", clause) if offer_scope else clause)
         site = bool(re.search(SITE_FEED, clause))
         scopes = channels | ({"site_feed"} if site else set())
+        if offer_scope:
+            scopes |= _client_offer_scopes(clause)
         if not mentions:
             # Keep compound subjects: "Facebook and our site feed post daily".
             # An unrelated complete clause ("Facebook is off") must not carry over.
@@ -208,18 +237,27 @@ def _frequency_findings(text: str, facts: dict, as_of: date) -> list[Finding]:
             rate = _rate(mention)
             supported = bool(scopes)
             for scope in scopes:
-                live = facts["channels"][scope] == "active"
-                if scope == "site_feed":
+                if scope == "client_offer" or scope.startswith("client_offer:"):
+                    evidence = facts["offer"].get("posting_frequency")
+                    target = scope.partition(":")[2]
+                    supported &= bool(evidence) and fresh and (
+                        evidence["verified_on"] == as_of.isoformat()
+                        and rate == (evidence["posts"], evidence["per"], 1)
+                        and (not target or target == evidence["channel"])
+                    )
+                elif scope == "site_feed":
+                    live = facts["channels"][scope] == "active"
                     recent = _date(facts["feed"]["last"], "feed.last") >= as_of - timedelta(days=1)
                     supported &= fresh and live and recent and rate == (facts["feed"]["posts_per_day"], "day", 1)
                 else:
+                    live = facts["channels"][scope] == "active"
                     evidence = facts.get("posting_frequencies", {}).get(scope)
                     supported &= bool(evidence) and fresh and live and (
                         evidence["verified_on"] == as_of.isoformat()
                         and rate == (evidence["posts"], evidence["per"], 1)
                     )
             if not supported:
-                findings.append(Finding("POST_FREQUENCY", "The posting frequency lacks matching, current evidence for the stated feed or channel. Review the facts and scope."))
+                findings.append(Finding("POST_FREQUENCY", "The posting frequency lacks matching, current evidence for the stated feed, channel or client offer. Review the facts and scope."))
             if not scopes:
                 findings.append(Finding("UNCLEAR_FEED", "Name the feed or channel; an unnamed page has no reviewed posting frequency."))
     return findings
@@ -264,7 +302,7 @@ def check_text(text: str, facts: dict, as_of: date | None = None) -> list[Findin
             denial = False  # A mixed clause needs review; do not hide a positive claim.
         past = bool(re.search(r"\b(?:used to|previously|in the past|stopped|paused|shelved)\b", s))
         drafting = bool(re.search(r"\b(?:drafts?|drafting|packs? only|sample(?:s)? only)\b", s))
-        named_channels = _named_channels(s)
+        named_channels = _named_channels(re.sub(CLIENT_PAGE, "", s))
         for channel in CHANNELS:
             if channel not in named_channels:
                 continue

@@ -11,7 +11,10 @@ from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
-from claims_check import check_text, load_facts, main, validate_facts
+if __package__:
+    from .claims_check import check_text, load_facts, main, validate_facts
+else:
+    from claims_check import check_text, load_facts, main, validate_facts
 
 TODAY = date(2026, 10, 5)
 FIXTURE = Path(__file__).with_name("claims_facts_test_fixture.json")
@@ -231,6 +234,71 @@ class ClaimsChecks(unittest.TestCase):
         facts['offer']['setup_total'] = 0
         self.assertEqual(facts, validate_facts(facts))
         self.assertNotIn('PRICE_OR_MONEY_PROOF', self.codes('Setup is $0.', facts))
+
+    def offer_facts(self):
+        facts = copy.deepcopy(self.facts)
+        facts['offer']['posting_frequency'] = {
+            'channel': 'facebook', 'posts': 1, 'per': 'day',
+            'verified_on': TODAY.isoformat(), 'source': 'Synthetic reviewed offer for this test',
+        }
+        return facts
+
+    def test_client_offer_wording_passes_without_own_channel_history(self):
+        for text in [
+            'Your business posts every day. You just approve it.',
+            'I post them, one a day.',
+            'A post for every day of the month on your Facebook page.',
+            '$79 for a month of daily posts on your Facebook page',
+            '$79 for a month of daily posts',
+        ]:
+            with self.subTest(text=text):
+                self.assertEqual(set(), self.codes(text, self.offer_facts()))
+
+    def test_offer_rate_does_not_approve_wrong_rate_or_channel(self):
+        for text in ['Your Facebook page posts 3x a day.', 'Your page posts every hour.',
+                     'Your Instagram page posts daily.', 'Your TikTok page posts daily.',
+                     'Your X page posts daily.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+
+    def test_offer_does_not_excuse_own_or_mixed_channel_claims(self):
+        for text in ['Our Facebook page posts every day.', '3x a day on X.',
+                     'Every hour on TikTok.',
+                     'Your business posts every day and our Facebook page posts every hour.',
+                     'I post them, one a day, and TikTok posts every hour.',
+                     'Your Facebook page and our Facebook page post daily.',
+                     'Our Facebook page and your business post daily.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+        for text in ['Your Instagram page and our website feed post daily.',
+                     'Our website feed posts daily and your TikTok page.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+
+    def test_client_delivery_history_is_not_an_offer(self):
+        for text in ['Your Facebook page has posted every day for 62 days.',
+                     'Your business already posts daily.',
+                     'Your page has published daily since August 4.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+
+    def test_offer_rate_needs_current_evidence(self):
+        self.assertIn('POST_FREQUENCY', self.codes('Your business posts every day.'))
+        facts = self.offer_facts()
+        facts['offer']['posting_frequency']['verified_on'] = '2026-10-04'
+        self.assertIn('POST_FREQUENCY', self.codes('Your business posts every day.', facts))
+        self.assertIn('POST_FREQUENCY', self.codes('Your business posts every day.', self.offer_facts(), date(2026, 10, 6)))
+
+    def test_offer_rate_validation(self):
+        for bad in [None, [], {}, {'channel': 'unknown'},
+                    {'channel': 'facebook', 'posts': True, 'per': 'day', 'verified_on': '2026-10-05', 'source': 'test'},
+                    {'channel': 'facebook', 'posts': 1, 'per': 'minute', 'verified_on': '2026-10-05', 'source': 'test'},
+                    {'channel': 'facebook', 'posts': 1, 'per': 'day', 'verified_on': '2026-10-06', 'source': 'test'},
+                    {'channel': 'facebook', 'posts': 1, 'per': 'day', 'verified_on': '2026-10-05', 'source': ''}]:
+            facts = self.offer_facts()
+            facts['offer']['posting_frequency'] = bad
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                validate_facts(facts)
 
     def test_off_channels(self):
         for channel in ['X', 'Twitter', 'Facebook', 'Instagram', 'TikTok', 'Pinterest']:

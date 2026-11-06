@@ -45,3 +45,11 @@ Two independent read-only passes checked the public evidence and adversarial fre
 ## Limits
 
 This is an English rule-based review aid, not a truth certificate. It can conservatively flag ambiguous clauses and cannot fully understand quotation, grammar or future service promises. “Open every day” and “daily specials” without a posting claim are outside this new rule. A configured schedule never proves public posting. Recheck the snapshot for another review date; no automatic approval or network lookup has been added.
+
+## Claude review fix — client offer scope
+
+The reviewed daily Facebook offer is now separate from observed posting history. `offer.posting_frequency` records the offered channel, posts, period, review date and public source. Client-page wording, “for every day of the month”, “I post them, one a day” and “$79 for a month of daily posts” use that offer evidence. They do not require an already-running client account or imply ECS's own Facebook page has posted daily.
+
+Offer evidence must be current and match the stated rate and platform. Hourly, three-per-day, non-Facebook, historical-delivery and mixed own/client claims still need review. Compound subjects retain each client platform so Instagram cannot borrow the website's daily evidence. Missing/malformed/stale offer evidence does not pass. Price and other honesty checks still run independently.
+
+Validation after this fix: 73 tests pass using both `python3 -m unittest tools/claims_check_test.py` and `python3 tools/claims_check_test.py` from the repository root. The original 67 tests remain, with six additional offer/import regression test methods. The four exact phrases in Claude's issue 15 review pass against the current offer snapshot.

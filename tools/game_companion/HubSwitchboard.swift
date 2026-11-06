@@ -27,6 +27,7 @@ private struct SwitchboardState: Codable {
  // Real default 1 min; 30 s only in a test copy with switchboard.testFastPoll (hooks are dead in the real Helm).
  static var interval: TimeInterval { SwitchboardTestHooks.active && UserDefaults.standard.bool(forKey:"switchboard.testFastPoll") ? SwitchboardLimits.testPollEvery : SwitchboardLimits.pollEvery }
  static var intervalText: String { interval < 60 ? "\(Int(interval)) s" : "\(Int(interval / 60)) min" }
+ static var haikuLight: Bool { UserDefaults.standard.bool(forKey:SwitchboardRules.lightKey) }   // the Haiku setting; absent = OFF
  static let onKey = "switchboard.on"   // UserDefaults, per app ID: absent = OFF, so a fresh install and the test copy start OFF
 
  @Published private(set) var on = UserDefaults.standard.bool(forKey:Switchboard.onKey)
@@ -285,7 +286,7 @@ private struct SwitchboardState: Codable {
    add("error","\(problem). Job not started.")
    return
   }
-  let args = relay.map { SwitchboardRules.relayArguments(prompt:SwitchboardRules.relayPrompt(for:c,name:$0)) } ?? SwitchboardRules.arguments(prompt:SwitchboardRules.prompt(for:c))
+  let args = relay.map { SwitchboardRules.relayArguments(prompt:SwitchboardRules.relayPrompt(for:c,name:$0),light:Switchboard.haikuLight) } ?? SwitchboardRules.arguments(prompt:SwitchboardRules.prompt(for:c))
   guard relay == nil ? SwitchboardRules.argumentsAreSafe(args) : SwitchboardRules.relayArgumentsAreSafe(args) else { add("error","Unsafe command line; job not started."); return }
   let work = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Claude/hotstuff",isDirectory:true)
   guard FileManager.default.fileExists(atPath:work.appendingPathComponent(".git").path) else {
@@ -443,6 +444,7 @@ private struct SwitchboardState: Codable {
 struct SwitchboardPanel: View {
  @ObservedObject var sb = Switchboard.shared
  var compact = false
+ @AppStorage(SwitchboardRules.lightKey) private var haikuLight = false
 
  private static let time: DateFormatter = { let f = DateFormatter(); f.dateFormat = "h:mm a"; return f }()
  private static let dayTime: DateFormatter = { let f = DateFormatter(); f.dateFormat = "EEE h:mm a"; return f }()
@@ -480,6 +482,14 @@ struct SwitchboardPanel: View {
     } else {
      ForEach(recent) { row($0) }
     }
+   }
+   if !compact {
+    VStack(alignment:.leading,spacing:2) {
+     Toggle("Use Haiku for deliveries (lighter model)",isOn:$haikuLight)
+      .toggleStyle(.switch).controlSize(.small).font(.system(size:12))
+      .accessibilityHint("Off uses your default model for wakes and relays. On uses Haiku. Full jobs and Friday's chat never change.")
+     Text(SwitchboardRules.lightNote).font(.system(size:11)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
+    }.padding(.top,4)
    }
    UsageLedgerSummary(compact:compact).padding(.top,compact ? 0 : 4)
    Button { sb.showLog = true } label: {

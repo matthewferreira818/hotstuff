@@ -127,8 +127,8 @@ enum PingRules {
  }
 
  // Wake runs skip hooks too (they would otherwise git-pull both repos on every wake). Exactly one --settings value is allowed.
- static func wakeArguments(name: String,message: String) -> [String] {
-  SwitchboardRules.relayArguments(prompt:wakePrompt(name:name,message:message)) + ["--settings",FridayBrainRules.noHooks]
+ static func wakeArguments(name: String,message: String,light: Bool = false) -> [String] {
+  SwitchboardRules.relayArguments(prompt:wakePrompt(name:name,message:message),light:light) + ["--settings",FridayBrainRules.noHooks]
  }
 
  static func wakeArgumentsAreSafe(_ args: [String]) -> Bool {

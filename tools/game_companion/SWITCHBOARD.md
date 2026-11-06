@@ -6,7 +6,7 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
 ## What it is
 - `SwitchboardData.swift`: every rule and limit, no UI, no network (tested offline).
 - `HubSwitchboard.swift`: the runner + the panel (switch, log) at the bottom of the Friday page. Test-copy-only hooks at the end.
-- `checks/SwitchboardChecks.swift`: the dry run (123 checks). `switchboard-proof/`: its output + screenshots.
+- `checks/SwitchboardChecks.swift`: the dry run (121 checks). `switchboard-proof/`: its output + screenshots.
 - Wiring in LC-Helm's files (3 small edits): `rebuild.sh` (2 names added to SOURCES), `HubDeckFriday.swift` (1 line: the panel),
   `CompanionInterface.swift` (1 line: `Switchboard.shared.boot()`).
 
@@ -57,7 +57,7 @@ Friday carries Hotline messages to an OPEN LC chat by name so Matthew doesn't ha
 - **Honesty:** "delivered" only if SendMessage was called once, its own reply says `success:true`, it went to the one listed chat that matches, and the text is the label + comment verbatim. A send that went through but fails those checks is reported "not confirmed" (UNPROVEN): it can't be recalled, so the check is after the fact. Nothing sent = "Couldn't relay: <name> isn't open".
 - **Mirror:** "relayed comment <id> to <name>: delivered / not confirmed / not delivered" is posted to issue 15 AND PR #35 under Friday's tag (can't trigger a job or a relay; checked).
 - **KNOWN GAP (not hidden):** any process on this Mac can send cross-session messages, so the "Relayed by Friday … not Matthew's approval" label is a convention, not proof. Receiving chats still follow their own permission settings and treat it like a room message. Also: a Friday result line on the Hotline wakes cloud Claude, whose named-target reply is relayed again; the relay caps (10/hour, 40/day) bound any back-and-forth.
-- **Tested here:** 123 checks (target kinds, name matching with dash/underscore, no match, two matches, hard block before relay, label, delivery proof from synthetic stream-json shaped like a real run, limits). Real run of a relay-shaped headless job with `ListAgents` only confirmed the tool names and the stream format (it saw the peer list). **Not tested here:** a live SendMessage delivery from inside the app (LC-Manager's live relay is the first).
+- **Tested here:** 121 checks (target kinds, name matching with dash/underscore, no match, two matches, hard block before relay, label, delivery proof from synthetic stream-json shaped like a real run, limits). Real run of a relay-shaped headless job with `ListAgents` only confirmed the tool names and the stream format (it saw the peer list). **Not tested here:** a live SendMessage delivery from inside the app (LC-Manager's live relay is the first).
 
 ## Turning ON needs the person at the Mac (Co-CEO blocker, ~5 AM)
 - **Why:** in a test an automated (accessibility) click flipped the switch ON past the old click-through alert. Anything that can click, including Friday's own hands, could do the same.

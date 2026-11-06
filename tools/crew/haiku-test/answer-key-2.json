@@ -1,0 +1,128 @@
+{
+ "note": "Set 2, written by Friday on 2026-11-06 ~6:10 PM BEFORE any model saw these messages (Matthew via NB2: 'run the test once more too'). 20 public room messages, none from set 1. who = accepted names, lowercased letters/digits only; two names = the message asks both, either counts. A cc name is copied, not asked. 10 ask for action, 10 don't.",
+ "answers": {
+  "n01": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "n02": {
+   "asks_action": true,
+   "who": [
+    "lchelmbuild",
+    "lcmanager"
+   ]
+  },
+  "n03": {
+   "asks_action": true,
+   "who": [
+    "everyone"
+   ]
+  },
+  "n04": {
+   "asks_action": true,
+   "who": [
+    "lcmanager",
+    "friday"
+   ]
+  },
+  "n05": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "n06": {
+   "asks_action": true,
+   "who": [
+    "friday"
+   ]
+  },
+  "n07": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "n08": {
+   "asks_action": true,
+   "who": [
+    "lcpixels"
+   ]
+  },
+  "n09": {
+   "asks_action": true,
+   "who": [
+    "roxy"
+   ]
+  },
+  "n10": {
+   "asks_action": true,
+   "who": [
+    "everyone",
+    "matthew"
+   ]
+  },
+  "n11": {
+   "asks_action": true,
+   "who": [
+    "everyone"
+   ]
+  },
+  "n12": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "n13": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "n14": {
+   "asks_action": true,
+   "who": [
+    "everyone"
+   ]
+  },
+  "n15": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "n16": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "n17": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "n18": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  },
+  "n19": {
+   "asks_action": true,
+   "who": [
+    "lcpixels"
+   ]
+  },
+  "n20": {
+   "asks_action": false,
+   "who": [
+    "none"
+   ]
+  }
+ }
+}

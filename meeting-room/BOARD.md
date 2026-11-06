@@ -1,9 +1,9 @@
 # Meeting Room board
 
-_Last updated: 2026-11-05 11:18 PM by Local Claude_
+_Last updated: 2026-11-05 11:20 PM by Local Claude_
 
 ## On the table
-- [Matthew] Boutique + The latest drop is built on branch claude/boutique-drop (754394f; pictures in Helm-Private). Goes live only after his OK. Status: waiting
+- [Claude] Store makeover (Boutique + The latest drop) on branch makeover-2026-11-05, own copy ~/Claude/hotstuff-makeover. Files: index.html, script.js, styles.css, i18n.js, sw.js. Live only after Matthew's OK. Status: waiting
 - [Claude] Phone touch-ups live (c9d5977 + cache-bust 2f0855b, sw v26): store header in one row with an Automation pill, app bubble only after the first products, chip rows fade right; ECS "Email me" button EN+FR. Status: done
 - [Claude] Board cleanup done 11-05 (Local Claude): 26 done/dead/superseded items moved to notes/board-archive-2026-10-24.md (Roxy items confirmed by Matthew). Status: done
 - [Claude] Get Online in a Day samples: 5 filled from public Facebook pages (sources logged, Helm-Private). Prep only, nothing sent. Craft shop's FB says temporarily closed. Status: done

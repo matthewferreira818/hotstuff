@@ -5,7 +5,11 @@ import AppKit
 // close); under them sit four small cards: the three orb states with the current one marked, what she is doing, memory and music.
 // Nothing here starts anything by itself.
 extension CompanionInterfaceView {
- var deckFriday: some View {
+ @ViewBuilder var deckFriday: some View {
+  if hub.simple { simpleFriday } else { deckFridayFull }
+ }
+
+ var deckFridayFull: some View {
   GeometryReader { geo in
    let tight = hub.compact || geo.size.height < 560
    let showCards = !hub.compact && geo.size.height >= 640
@@ -13,17 +17,25 @@ extension CompanionInterfaceView {
     fridayStage(orb:tight ? min(max(geo.size.height * 0.26,80),200) : min(max(geo.size.height * 0.30,140),300),tight:tight)
      .frame(maxWidth:620)
      .frame(maxWidth:.infinity)
-    if showCards {
-     HStack(alignment:.top,spacing:12) {
-      deckStatesCard
-      deckDoingCard
-      deckMemoryCard
-      deckMusicCard
+    // Everything under the orb scrolls, so the box, the cards and the Switchboard never squeeze the orb out of the window.
+    ScrollView {
+     VStack(spacing:0) {
+      // Friday Phase 1 "She thinks" (FridayBrain.swift): one text box + Send, answered by Claude with no tools.
+      FridayChatBox(compact:tight).padding(.horizontal,22).padding(.bottom,12)
+      if showCards {
+       HStack(alignment:.top,spacing:12) {
+        deckStatesCard
+        deckDoingCard
+        deckMemoryCard
+        deckMusicCard
+       }
+       .padding(.horizontal,22).padding(.bottom,18)
+      }
+      // Friday's Switchboard (HubSwitchboard.swift): its on/off switch and job log.
+      SwitchboardPanel(compact:!showCards).padding(.horizontal,22).padding(.bottom,14)
      }
-     .padding(.horizontal,22).padding(.bottom,18)
     }
-    // Friday's Switchboard (HubSwitchboard.swift): its on/off switch and job log.
-    SwitchboardPanel(compact:!showCards).padding(.horizontal,22).padding(.bottom,14)
+    .scrollIndicators(.hidden)
    }
   }
   .background(HubTheme.background.opacity(0.0))
@@ -67,7 +79,7 @@ extension CompanionInterfaceView {
  var deckMemoryCard: some View {
   let recent = Array(conversation.notes.suffix(3).reversed())
   return deckCard {
-   deckLabel(conversation.memoryEnabled ? "MEMORY · \(conversation.notes.count) NOTES" : "MEMORY · OFF")
+   deckLabel(conversation.memoryEnabled ? "MEMORY · \(conversation.notes.count) \(conversation.notes.count == 1 ? "NOTE" : "NOTES")" : "MEMORY · OFF")
    if !conversation.memoryEnabled {
     Text("Memory is off. Notes are only saved if you turn it on in Settings.").font(.system(size:12)).foregroundStyle(HubTheme.subtext)
    } else if recent.isEmpty {

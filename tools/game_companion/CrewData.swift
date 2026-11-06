@@ -25,7 +25,7 @@ enum CrewData {
   ("stock-quality","Stock bot - Quality Dip"),("stock-volatility","Stock bot - Volatility"),
  ]
 
- static let workingWindow: TimeInterval = 30 * 60      // posted in the last 30 minutes: counts as working
+ static let workingWindow: TimeInterval = 30 * 60      // any sign of life (post or commit) in the last 30 minutes: working
  static let tagForRoomAgent = ["Roxy","Grok","Cloud Claude","Browser Claude"]
 
  // "Local Claude (LC-Helm)" is LC-Helm; "GPT (Roxy)" is Roxy; plain "Claude" is the cloud chat.
@@ -123,6 +123,22 @@ enum CrewData {
    }
    if let away = away, state != .working { state = .away; detail = "away, back \(away.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day()))" }
    result.append(CrewMember(id:name,name:name,role:role,kind:kind,state:state,detail:detail,since:when,awayUntil:away,url:post.url))
+  }
+
+  // Chats: working / idle / unknown from Hotline + room posts and branch commits in the last 30 min (CrewSignals.swift).
+  CrewSignals.refreshIfStale()
+  let snap = CrewSignals.current()
+  var signals = snap.signals
+  for (name,post) in last { if let d = post.date { signals.append(CrewSignal(chat:CrewSignals.canon(name),date:d,what:MeetingData.brief(post.text,limit:60))) } }
+  for entry in CrewSignals.roster where !result.contains(where:{ CrewSignals.canon($0.name) == entry.key && $0.kind == .chat }) {
+   result.append(CrewMember(id:entry.name,name:entry.name,role:entry.role,kind:.chat,state:.unknown,detail:"",since:nil,awayUntil:nil))
+  }
+  for i in result.indices where result[i].kind == .chat {
+   let verdict = snap.loaded ? CrewSignals.decide(key:CrewSignals.canon(result[i].name),signals:signals,failed:snap.failed,now:now)
+    : CrewSignals.decide(key:CrewSignals.canon(result[i].name),signals:signals,failed:true,now:now)
+   result[i].state = verdict.state
+   result[i].detail = snap.loaded || verdict.state == .working ? verdict.detail : "unknown (checking GitHub…)"
+   result[i].since = verdict.since
   }
 
   // Scheduled workers: from GitHub's public runs (latest run per workflow).

@@ -20,3 +20,27 @@ NOT on master. Goes to master only after Matthew's GO and LC-Manager's gate.
 - Composer "To <LC chat>" picker (compiled, not seen); the More dropdown menu itself (menus can't be screenshotted; its pages were opened directly).
 - Away + alarm crew pictures were checked with a labelled test switch (`crew.testStates`) and a unit run, not with real away/failing data.
 - Test builds use `-Onone` in a separate test app (own app ID); the final release build with `-O` via rebuild.sh has not been run by me.
+
+## Friday Phase 1 pieces 2+3 (branch friday-phase1-crew)
+- **Crew chat** (Messages > Crew chat; new file CrewChat.swift, last in rebuild.sh SOURCES): the room (issue 15) + Hotline (PR 35), read-only, newest at the bottom, one switch "Show technical lines". A failed read shows an empty list and "Couldn't load the room (as of <time>)".
+- **Honest numbers** on Simple Home: "as of <time>, from <source>" under every number; failed read = "unknown (couldn't reach <source>)", never the last good value. Orders come only from Stripe's read-only key; without it: "Orders: not tracked yet".
+- **ROLLBACK:** same as above (old build zip, or rebuild master). These pieces add no saved data. To drop just this work: `git revert` the merge, or rebuild from `friday-phase1`/master without CrewChat.swift (remove it from SOURCES and the `meeting.tab == 6` lines in MeetingRoom.swift).
+- **Test-only switches** (never set in the real app): `test.failChat`, `test.failStore`, `hub.testStart`, `hub.testHour`.
+- **Not tested:** noise-switch behaviour on every message shape (only a sample of real lines); Stripe orders path with a real key (no key on this Mac, so "not tracked yet" is what shows); long-run refresh over hours; VoiceOver on the new views; real app (-O build).
+
+## Phase 1 polish round
+- Messages (Simple mode) opens on the crew chat only: header "Your crew's messages.", ONE Filter button (everyone / one chat / other views), Refresh, the chat, the "Show technical lines" switch. Friday's Switchboard lines show only when the switch is ON.
+- Crew strip: CrewSignals.token is set from the Helm's saved GitHub access (MeetingHub.refresh); no new key, no new Keychain entry. Keyless it stays at one read per 6 min.
+- Plain words: "Meeting Room" and "snapshots" wording removed from Home.
+- ROLLBACK: same as above; or revert the polish commit(s) on friday-phase1-crew.
+- Not tested: the Filter menu items (menus can't be screenshotted), the token path with a real saved key on the crew strip (this Mac's test copy read the room without error but the strip's 3-min cadence was not timed), -O release build.
+
+## Phase 1 polish round 2
+- Friday page (Simple mode): orb, then the chat box, then ONE Voice button; voice/hands/clip controls and the Google Live pill appear only when Voice is opened or voice is on. Advanced mode keeps the old layout (deckFridayFull).
+- Store tab: orders journey line on top ("Orders: not tracked yet · Goal: first sale", same source as Home), plain visitor wording (Visitors today / This week / This month), "as of <time>, from GoatCounter".
+- ROLLBACK: revert the polish-2 commit on friday-phase1-crew. Not tested: Voice controls with a live session on, Store with a real Stripe key, Sources/Catalog/Sales sub-tabs wording, -O build.
+
+## Rate-limit fix (GitHub free limit)
+- GitHubRead.swift: every GitHub read goes key -> Matthew's gh login -> keyless. A used-up free limit (403/429, remaining 0) shows "GitHub's free limit is used up. Trying again at <time>." on Messages, Home and the crew strip, and the Meeting Room retries right after the reset. Offline check: checks/githubread_check.swift (run checks/run.sh). Test hook: test.forceLimit.
+- ROLLBACK: revert this commit; the app then reads keyless/with the saved key as before.
+- Not tested: gh not logged in / missing on a real install (falls back to keyless), the auto-retry firing at the reset time, -O build.

@@ -9,10 +9,10 @@ PASS  fix G: target Friday -> ignore (addressed to Friday herself, not another c
 PASS  fix G: [Claude (X) → Local Claude (LC-TikTok)] relays -> relay:LC-TikTok
 PASS  fix G: empty name () is nothing -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
 PASS  fix G: nested parens are nothing -> ignore (not tagged **[Claude … → Local Claude]** or **[Claude … → Local Claude (<chat>)]**)
-PASS  fix G: relay hard block (money) refused, not relayed -> refuse (hard block: mentions money or payments (those stay Matthew's)) +mirror
-PASS  fix G: relay hard block (login) -> refuse (hard block: mentions logins or passwords (those stay Matthew's)) +mirror
-PASS  fix G: relay hard block (Moomoo) -> refuse (hard block: mentions Moomoo (those stay Matthew's)) +mirror
-PASS  fix G: relay hard block (send to a person) -> refuse (hard block: mentions sending to a person (those stay Matthew's)) +mirror
+PASS  fix G: relay hard block (money) refused, not relayed -> refuse (hard block: a line asks Local Claude to act on money or payments: "pay the invoice". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
+PASS  fix G: relay hard block (login) -> refuse (hard block: a line asks Local Claude to act on logins or passwords: "log in to buffer". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
+PASS  fix G: relay hard block (Moomoo) -> refuse (hard block: a line asks Local Claude to act on Moomoo: "check the moomoo status". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
+PASS  fix G: relay hard block (send to a person) -> refuse (hard block: a line asks Local Claude to act on sending to a person: "email dana". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
 PASS  fix G: relay edited after posting refused -> refuse (edited after posting; post a fresh comment instead) +mirror
 PASS  fix G: relay waits while something runs -> wait (a job is already running)
 PASS  fix G: 10 relays in the last hour -> refused -> refuse (limit: 10 relays in the last hour) +mirror
@@ -35,19 +35,60 @@ PASS  lock 1: target only quoted after the tag -> ignore (not tagged **[Claude �
 PASS  lock 1: seen-IDs file (same comment twice) -> ignore (already handled (each comment runs at most once))
 PASS  lock 1: edited after posting -> refuse (edited after posting; post a fresh comment instead) +mirror
 PASS  switch: posted before switch-on -> refuse (posted before the switch was turned on)
-PASS  lock 7: money -> refuse (hard block: mentions money or payments (those stay Matthew's)) +mirror
-PASS  lock 7: money ($ amount) -> refuse (hard block: mentions money or payments (those stay Matthew's)) +mirror
-PASS  lock 7: password -> refuse (hard block: mentions logins or passwords (those stay Matthew's)) +mirror
-PASS  lock 7: login -> refuse (hard block: mentions logins or passwords (those stay Matthew's)) +mirror
-PASS  lock 7: send to a person -> refuse (hard block: mentions sending to a person (those stay Matthew's)) +mirror
-PASS  lock 7: DM -> refuse (hard block: mentions sending to a person (those stay Matthew's)) +mirror
-PASS  lock 7: Moomoo -> refuse (hard block: mentions Moomoo (those stay Matthew's)) +mirror
+PASS  lock 7: money -> refuse (hard block: a line asks Local Claude to act on money or payments: "set up the stripe payment link". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
+PASS  lock 7: money ($ amount) -> refuse (hard block: a line asks Local Claude to act on money or payments: "change the mug to $19". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
+PASS  lock 7: password -> refuse (hard block: a line asks Local Claude to act on logins or passwords: "reset the shopify password". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
+PASS  lock 7: login -> refuse (hard block: a line asks Local Claude to act on logins or passwords: "log in to buffer and check". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
+PASS  lock 7: send to a person -> refuse (hard block: a line asks Local Claude to act on sending to a person: "email the dentist the sample". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
+PASS  lock 7: DM -> refuse (hard block: a line asks Local Claude to act on sending to a person: "dm the cafe on instagram". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
+PASS  lock 7: Moomoo -> refuse (hard block: a line asks Local Claude to act on Moomoo: "check moomoo positions". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him) +mirror
 PASS  lock 4: a job is running -> wait (a job is already running)
 PASS  lock 4: 3 started in the last hour -> refuse (limit: 3 jobs in the last hour; post again later) +mirror
 PASS  lock 4: 2 in the last hour is fine -> run
 PASS  lock 4: 12 today -> refuse (limit: 12 jobs today; post again tomorrow) +mirror
 PASS  lock 4: 12 yesterday doesn't count -> run
 PASS  switch: on since yesterday, comment 7 hours old -> refuse("older than 6 hours", mirror: false)
+
+== Lock 7 rewrite: refuse REQUESTS about money/logins/people/Moomoo, never notes about them
+PASS  fixture holds the real refused Hotline comments (7)
+PASS  real Co-CEO comment 6681117429 now passes as a relay (thew confirms: both Touch ID/password approvals on…) -> relay("LC-Manager")
+PASS  real Co-CEO comment 6681532738 now passes as a relay (thew: the Helm's crew strip "doesnt say the others…) -> relay("LC-Manager")
+PASS  real Co-CEO comment 6681850989 now passes as a relay (atthew: "can we give it the key?" Yes, and no new …) -> relay("LC-CrewState")
+PASS  real Co-CEO comment 6681952010 now passes as a relay (iewed `friday-phase1` 7efacc9: approved for Matthe…) -> relay("LC-Manager")
+PASS  real Co-CEO comment 6682058605 now passes as a relay (thew tested Phase 1: Friday's answer was good. His…) -> relay("LC-Manager")
+PASS  real Co-CEO comment 6682112059 now passes as a relay (thew: no GO yet. He wants Phase 1 polished first (…) -> relay("LC-Manager")
+PASS  real Co-CEO comment 6681798046 now passes as a relay ( your gate on friday-phase1-crewstate (294f27d, LC…) -> relay("LC-Manager")
+PASS  note passes: Amazon refund ~Nov 16 is Matthew's to check.
+PASS  note passes: CBDC hold: no sending until GO.
+PASS  note passes: Reviewed the branch: no secrets, no passwords and no tokens in the code.
+PASS  note passes: Matthew's Buffer login stays his; the key lives in a GitHub secret.
+PASS  note passes: The Stripe payment link is still waiting on Matthew's OK.
+PASS  note passes: Don't email anyone until Matthew says GO.
+PASS  note passes: Moomoo trading stays Matthew's. Practice robots only.
+PASS  note passes: Never log in to anything for him.
+PASS  note passes: Price changes happen at the Saturday refresh. Check the board for what's waiting.
+PASS  note passes: The dentist outreach is on HOLD, so nothing goes out.
+PASS  note passes: Token follow-up noted: the crew strip will use the saved key.
+PASS  request still refused: set up the Stripe payment link -> hard block: a line asks Local Claude to act on money or payments: "set
+PASS  request still refused: change the mug to $19 -> hard block: a line asks Local Claude to act on money or payments: "cha
+PASS  request still refused: reset the Shopify password -> hard block: a line asks Local Claude to act on logins or passwords: "r
+PASS  request still refused: log in to Buffer and check -> hard block: a line asks Local Claude to act on logins or passwords: "l
+PASS  request still refused: email the dentist the sample -> hard block: a line asks Local Claude to act on sending to a person: "e
+PASS  request still refused: DM the cafe on Instagram -> hard block: a line asks Local Claude to act on sending to a person: "d
+PASS  request still refused: check MooMoo positions -> hard block: a line asks Local Claude to act on Moomoo: "check moomoo p
+PASS  request still refused: Please pay the invoice -> hard block: a line asks Local Claude to act on money or payments: "ple
+PASS  request still refused: Can you send the invoice to Dana? -> hard block: a line asks Local Claude to act on money or payments: "can
+PASS  request still refused: Buy the domain today -> hard block: a line asks Local Claude to act on money or payments: "buy
+PASS  request still refused: Trade 10 shares on Moomoo -> hard block: a line asks Local Claude to act on Moomoo: "trade 10 share
+PASS  request still refused: Call the dentist and book a time -> hard block: a line asks Local Claude to act on sending to a person: "c
+PASS  request still refused: Text Dana the sample photo -> hard block: a line asks Local Claude to act on sending to a person: "t
+PASS  request still refused: Sign in to Shopify and change the price -> hard block: a line asks Local Claude to act on money or payments: "sig
+PASS  request still refused: Paste the API key here -> hard block: a line asks Local Claude to act on logins or passwords: "p
+PASS  request still refused: Enter the password and continue -> hard block: a line asks Local Claude to act on logins or passwords: "e
+PASS  request still refused: Transfer $50 to the supplier -> hard block: a line asks Local Claude to act on money or payments: "tra
+PASS  the refusal says which line, which topic, and how to rephrase: hard block: a line asks Local Claude to act on sending to a person: "email the dentist the sample". Those stay Matthew's. Notes and reports are fine, so reword it as a note, or ask him
+PASS  normal asks to the crew still pass (reply on the Hotline, message an LC chat)
+PASS  result lines still stay private if they mention secrets
 
 == Lock 3: the command line
 PASS  built arguments are safe: -p <prompt> --output-format json --permission-mode dontAsk --permission-prompts none
@@ -70,7 +111,7 @@ PASS  --version line accepted
 PASS  anything else refused
 
 == Lock 6: the issue 15 mirror
-   **[Friday (LC-Switchboard) → Claude]** Switchboard started job 1 (comment 1051 on the Hotline): test: reply "pong" on the Hotline
+   **[Friday (LC-Switchboard) → Claude]** Switchboard started job 1 (comment 1089 on the Hotline): test: reply "pong" on the Hotline
 PASS  start mirror: first line only
 PASS  Friday's mirror can never trigger a job
 PASS  end mirror: first line of the result
@@ -91,7 +132,7 @@ PASS  fix E: job 3's honest result (disclaimer on later lines) is NOT flagged
 PASS  fix E: a claim on the FIRST line with no tools still flags
 PASS  action words match whole words only
 PASS  prompt carries the honesty rule
-PASS  poll: 300 s real, 30 s test-only constant
+PASS  poll: 60 s real, 30 s test-only constant
 PASS  num_turns is read from claude's JSON
 PASS  result line (target Claude) can't trigger, so no result<->reply loop
 PASS  prompt tells the job not to post its own result (Friday does)
@@ -103,7 +144,7 @@ PASS  relay with other tools is refused
 PASS  relay with a bypass flag is refused
 PASS  a normal job's arguments are not a relay (no --tools)
 PASS  normal jobs unchanged: no --tools
-PASS  label: [Relayed by Friday from Hotline comment 1054 · not Matthew's approval] **[Claude (New beginning) → Local Claud…
+PASS  label: [Relayed by Friday from Hotline comment 1092 · not Matthew's approval] **[Claude (New beginning) → Local Claud…
 PASS  prompt passes the comment as quoted data
 PASS  names match ignoring case and dash/underscore
 PASS  ListAgents output parsed to names
@@ -115,8 +156,8 @@ PASS  text changed by the relay job: UNPROVEN, not delivered
 PASS  job SAYS DELIVERED but SendMessage did not report success: not delivered
 PASS  two SendMessage calls: UNPROVEN
 PASS  mirror 'delivered', and it can't trigger a job or a relay
-   **[Friday (LC-Switchboard) → Claude]** Switchboard relayed comment 1054 to LC-Manager: delivered.
-   **[Friday (LC-Switchboard) → Claude]** Switchboard relayed comment 1054 to zz-nobody: not delivered. Couldn't relay: NOT DELIVERED: zz-nobody isn't open
+   **[Friday (LC-Switchboard) → Claude]** Switchboard relayed comment 1092 to LC-Manager: delivered.
+   **[Friday (LC-Switchboard) → Claude]** Switchboard relayed comment 1092 to zz-nobody: not delivered. Couldn't relay: NOT DELIVERED: zz-nobody isn't open
 PASS  mirror 'couldn't relay'
 PASS  relay caps 10/hour, 40/day, 3-minute kill are constants
 
@@ -124,7 +165,19 @@ PASS  relay caps 10/hour, 40/day, 3-minute kill are constants
 PASS  result + permission denials counted
 PASS  garbage output = failed
 
-== Real `gh api` output (SB_REAL_JSON)
-PASS  parsed 18 real comments; owner-authored: 18
+== Switch ON can only come from the Touch ID / password success path or the test-copy hook (source scan)
+PASS  HubSwitchboard.swift found for the scan (75 Swift files read)
+PASS  no call to the old setOn( anywhere
+PASS  the one function that changes the switch (apply) is private, so no other file can call it
+PASS  exactly 2 places call apply(true…) (found 2)
+PASS  they are the marked auth path and the marked test hook path
+PASS  the auth path sits directly inside `if success {` of the LocalAuthentication callback
+PASS  the test path is guarded by the test-bundle check (dead in the real Helm)
+PASS  ON asks macOS for Touch ID or the Mac password (LocalAuthentication)
+PASS  nothing assigns on = true directly
+PASS  the saved ON state is written in exactly one place (apply)
+PASS  no other file touches the saved switch state
+PASS  the old click-through alert confirm is gone
+PASS  turning OFF stays one click with no password
 
 ALL PASS

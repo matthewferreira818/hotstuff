@@ -1,5 +1,6 @@
 import SwiftUI
 import Cocoa
+import Combine
 
 // The Meeting Room page: the shared board (see MeetingData.swift) plus a box that turns Matthew's message into a
 // ready-to-paste note for Claude or GPT. The chats can't see each other, so this is how they stay on the same page.
@@ -8,6 +9,14 @@ import Cocoa
  static let targets = ["Claude","GPT","Everyone","Local Claude"]  // indexes are the picker tags: add new members at the END
  // Which tab of the Meeting Room is showing: 0 You, 1 Claude, 2 GPT, 3 Friday, 4 Board, 5 Thread.
  @Published var tab = 0
+ // The crew chat (tab 6): one read-only timeline of the room and the Hotline. Its changes are passed on so views refresh.
+ let chat = CrewChatHub()
+ private var chatWatch: AnyCancellable?
+ private var retryTask: Task<Void,Never>?
+ // Honest status of the room read: when it last worked, and whether the last try failed (then nothing old is shown as current).
+ @Published var threadAt: Date?
+ @Published var threadFailed = false
+ init() { chatWatch = chat.objectWillChange.sink { [weak self] _ in self?.objectWillChange.send() } }
  // The writing box opens on top of whichever tab is showing; Friday's private chat (this Mac only) replaces her tab while open.
  @Published var composing = false
  @Published var fridayPrivate = false
@@ -45,16 +54,26 @@ import Cocoa
   defer { loading = false }
   // With the saved key GitHub allows far more reads, so the page can refresh every minute while it is open.
   let token: String? = hasToken ? savedToken() : nil
-  async let boardResult = MeetingData.fetch(token:token)
-  async let messageResult = MeetingData.fetchMessages(token:token)
+  // The crew strip uses the same saved GitHub access (no new key): it then refreshes every 3 minutes instead of 6.
+  CrewSignals.token = token
+  async let boardResult = RoomRead.board(token:token)
+  async let messageResult = RoomRead.thread(MeetingData.issue,token:token)
   var (fresh,thread) = await (boardResult,messageResult)
   if token != nil {
-   if fresh == nil { fresh = await MeetingData.fetch(token:nil) }
-   if thread == nil { thread = await MeetingData.fetchMessages(token:nil) }
   }
   if let fresh = fresh { board = fresh; failed = false } else { failed = (board == nil) }
-  if let thread = thread { messages = thread }
+  if let thread = thread { messages = thread; threadAt = Date(); threadFailed = false } else { threadFailed = true }
   lastRefresh = Date()
+  // The crew chat reads with the same Refresh (and the once-a-minute refresh while the Messages page is open).
+  if tab == 6 { await chat.refresh(token:token,force:force) }
+  // When GitHub's free limit is used up, try again right after it resets.
+  if let until = GitHubRead.limitedUntil, retryTask == nil {
+   retryTask = Task { [weak self] in
+    try? await Task.sleep(nanoseconds:UInt64(max(1,until.timeIntervalSinceNow + 5) * 1_000_000_000))
+    await MainActor.run { self?.retryTask = nil }
+    await self?.refresh(force:true)
+   }
+  }
  }
 
  var needs: MatthewNeeds { MeetingData.needs(board:board,messages:messages) }
@@ -254,8 +273,11 @@ extension CompanionInterfaceView {
  // and their messages), the whole Board, and the Thread. Long lines show short and open on a tap, so it isn't one long scroll.
  var hubMeeting: some View {
   VStack(spacing:0) {
-   hubMeetingHeader.padding(.horizontal,32).padding(.bottom,10)
+   if hub.simple { simpleMessagesBar.padding(.horizontal,32).padding(.bottom,10) }
+   else { hubMeetingHeader.padding(.horizontal,32).padding(.bottom,10) }
+   if !hub.simple {
    Picker("View",selection:$meeting.tab) {
+    Text("Crew chat").tag(6)
     Text(meeting.needs.count > 0 ? "You · \(meeting.needs.count)" : "You").tag(0)
     Text("Claude").tag(1)
     Text(MeetingData.display("GPT")).tag(2)
@@ -265,7 +287,10 @@ extension CompanionInterfaceView {
    }
    .pickerStyle(.segmented).labelsHidden()
    .padding(.horizontal,32).padding(.bottom,12)
-   if meeting.tab == 3 && meeting.fridayPrivate {
+   }
+   if meeting.tab == 6 {
+    crewChatPage.padding(.horizontal,32).padding(.bottom,16).frame(maxHeight:.infinity,alignment:.top)
+   } else if meeting.tab == 3 && meeting.fridayPrivate {
     HStack {
      Button { meeting.fridayPrivate = false } label: { Label("Back to Friday",systemImage:"chevron.left") }
       .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
@@ -281,7 +306,7 @@ extension CompanionInterfaceView {
     .scrollIndicators(.hidden)
    }
   }
-  .onAppear { Task { await meeting.refresh(minGap:60) } }
+  .onAppear { if hub.simple && meeting.tab == 0 && !meeting.composing { meeting.tab = 6 }; Task { await meeting.refresh(minGap:60) } }
   .onChange(of:meeting.tab) { _,tab in if tab != 3 { meeting.fridayPrivate = false } }
   .onChange(of:live.running) { _,running in if running { voice.stop() } }
   .onChange(of:c.listening) { _,listening in if listening { voice.stop() } }
@@ -308,7 +333,8 @@ extension CompanionInterfaceView {
  }
 
  @ViewBuilder var hubMeetingPage: some View {
-  if meeting.board == nil && meeting.tab != 5 {
+  if meeting.tab == 6 { crewChatPage }
+  else if meeting.board == nil && meeting.tab != 5 {
    if meeting.failed { hubOffline("the board") } else { ProgressView().controlSize(.large).frame(maxWidth:.infinity).padding(40) }
   } else {
    switch meeting.tab {

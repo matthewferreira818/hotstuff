@@ -30,7 +30,7 @@ extension CompanionInterfaceView {
   case .home: return "Everything important, in one place."
   case .friday: return "Talk to Friday, your voice helper."
   case .store: return "How many people visit your store."
-  case .meeting: return "What Claude, Roxy and Friday are saying, and what needs you."
+  case .meeting: return "Your crew's messages."
   case .stocks: return "Practice-money robots. No real money, ever."
   case .ecs: return "Your daily posting business."
   case .crewStation: return "See who is busy, resting or away."
@@ -77,7 +77,7 @@ extension CompanionInterfaceView {
  func simpleTab(_ section: HubSection) -> some View {
   let on = hub.section == section
   let index = (Self.simpleTabs.firstIndex(of:section) ?? 0) + 1
-  return Button { hubSelect(section) } label: {
+  return Button { if section == .meeting { meeting.tab = 6 }; hubSelect(section) } label: {
    Text(simpleName(section)).lineLimit(1).fixedSize()
     .font(.system(size:15,weight:on ? .semibold : .medium))
     .foregroundStyle(on ? HubTheme.text : HubTheme.subtext)
@@ -115,6 +115,7 @@ extension CompanionInterfaceView {
 
  var simpleGreetingLine: String {
   let cards = deckOkCards
+  if meeting.threadFailed { return GitHubRead.limitMessage().map { "I can't see what needs you. \($0)" } ?? "Couldn't reach your crew's messages, so I can't say what needs you." }
   if meeting.messages.isEmpty { return meeting.loading ? "Checking in with the crew…" : "Tap Refresh to check in with the crew." }
   return cards.isEmpty ? "Nothing is waiting for you right now." : "\(cards.count) \(cards.count == 1 ? "thing is" : "things are") waiting for you."
  }
@@ -122,10 +123,10 @@ extension CompanionInterfaceView {
  var simpleHome: some View {
   GeometryReader { geo in
    let narrow = geo.size.width < 760
-   let orb: CGFloat = geo.size.height < 600 ? 96 : 120
-   VStack(spacing:14) {
+   let orb: CGFloat = geo.size.height < 760 ? 88 : 120
+   VStack(spacing:10) {
     VStack(spacing:2) {
-     Text(hubGreeting).font(.system(size:30,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+     Text(hubGreeting).font(.system(size:28,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
      Text(simpleGreetingLine).font(.system(size:15)).foregroundStyle(HubTheme.subtext)
     }
     TimelineView(.animation(minimumInterval:1.0/30.0,paused:reduceMotion)) { timeline in
@@ -135,7 +136,7 @@ extension CompanionInterfaceView {
       Text(deckStateWords(orbState(at:now))).font(.system(size:13)).foregroundStyle(HubTheme.subtext)
      }
     }
-    .frame(height:orb * 1.5)
+    .frame(height:orb * 1.42)
     HStack(spacing:8) {
      Button { mainAction() } label: {
       HStack(spacing:10) {
@@ -185,7 +186,7 @@ extension CompanionInterfaceView {
    content()
    Spacer(minLength:0)
   }
-  .padding(16).frame(maxWidth:.infinity,minHeight:170,alignment:.topLeading)
+  .padding(14).frame(maxWidth:.infinity,minHeight:150,alignment:.topLeading)
   .background(HubTheme.card,in:RoundedRectangle(cornerRadius:16))
   .overlay(RoundedRectangle(cornerRadius:16).stroke(HubTheme.line,lineWidth:1))
  }
@@ -193,9 +194,11 @@ extension CompanionInterfaceView {
  // 1. Needs you: one plain sentence per real request. "Yes" opens the reply box with a yes already typed (Matthew presses Post);
  // nothing is sent from here. "Not now" hides it until the app is closed.
  var simpleNeedsCard: some View {
-  let cards = Array(deckOkCards.prefix(2))
+  let cards = meeting.threadFailed ? [] : Array(deckOkCards.prefix(2))
   return simpleCard("Needs you",help:"Things the crew is waiting on you for. Yes opens a reply with a yes typed in; you still press Post. Not now hides it for today.") {
-   if cards.isEmpty {
+   if meeting.threadFailed {
+    Text(GitHubRead.limitMessage() ?? "Unknown right now (couldn't reach your crew's messages).").font(.system(size:15)).foregroundStyle(HubTheme.amber)
+   } else if cards.isEmpty {
     Text(meeting.messages.isEmpty ? "The room hasn't loaded yet." : "Nothing right now. Enjoy it.").font(.system(size:15)).foregroundStyle(HubTheme.subtext)
    }
    ForEach(cards) { message in
@@ -208,7 +211,15 @@ extension CompanionInterfaceView {
      }
     }
    }
+   Text(meeting.threadFailed ? (GitHubRead.limitMessage() != nil ? "" : "unknown (couldn't reach your crew's messages)") : (meeting.threadAt.map { "as of \(crewChatTime($0)), from your crew's messages" } ?? "loading from your crew's messages…")).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
   }
+ }
+
+ // The robots carry their own snapshot times, so the newest one is the honest "as of". No snapshots at all means unknown.
+ var simpleRobotsAsOf: String {
+  let newest = deckRobots.compactMap { $0.robot?.updated }.max()
+  if let newest = newest { return "latest check-in \(crewChatTime(newest)), from the robots' public pages" }
+  return stocks.loading ? "loading from the robots' public pages…" : "unknown (couldn't reach the robots' public pages)"
  }
 
  // 2. Today: plain words about the crew.
@@ -221,28 +232,50 @@ extension CompanionInterfaceView {
   return simpleCard("Today",help:"A quick look at what your helpers and practice robots are doing. Real data from the room and GitHub.") {
    if crew.count <= 1 && meeting.messages.isEmpty { Text("Loading what everyone is up to…").font(.system(size:15)).foregroundStyle(HubTheme.subtext) }
    else {
-    Text(working.isEmpty ? "Nobody is in the middle of a job right now." : "Working now: " + working.prefix(3).joined(separator:", ") + (working.count > 3 ? " and \(working.count - 3) more" : "") + ".")
+    Text(meeting.threadFailed ? "Who is working: unknown. \(GitHubRead.limitMessage() ?? "Couldn't reach your crew's messages.")" : working.isEmpty ? "Nobody is in the middle of a job right now." : "Working now: " + working.prefix(3).joined(separator:", ") + (working.count > 3 ? " and \(working.count - 3) more" : "") + ".")
      .font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
-    if !robots.isEmpty { Text("\(robots.filter { $0.state != .unknown }.count) of \(robots.count) practice robots have checked in" + (robotsRunning > 0 ? ", \(robotsRunning) running now." : ".")).font(.system(size:14)).foregroundStyle(HubTheme.text) }
+    if !robots.isEmpty {
+     Text("\(robots.filter { $0.state != .unknown }.count) of \(robots.count) practice robots have checked in" + (robotsRunning > 0 ? ", \(robotsRunning) running now." : ".")).font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
+     Text(simpleRobotsAsOf).font(.system(size:11)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
+    }
     if !failing.isEmpty { Text("Needs a look: \(failing.joined(separator:", ")) hit a problem.").font(.system(size:14,weight:.semibold)).foregroundStyle(HubTheme.amber) }
     Button { hubSelect(.crewStation) } label: { Text("See who's who ›").font(.system(size:13,weight:.medium)).foregroundStyle(HubTheme.teal) }.buttonStyle(.plain)
    }
   }
  }
 
- // 3. Your businesses: real numbers only.
+ // 3. Your businesses: real numbers only, each with "as of <time>, from <source>". A failed read says unknown, never the last good value.
+ func simpleAsOf(_ date: Date?,_ source: String,failed: Bool) -> String {
+  if failed { return "unknown (couldn't reach \(source))" }
+  guard let date = date else { return "loading from \(source)…" }
+  return "as of \(crewChatTime(date)), from \(source)"
+ }
+
+ // Orders come only from Stripe's read-only key (SalesHub). With no key there is no honest order number, so it says so.
+ var simpleOrdersLine: (String,String) {
+  if !sales.hasKey { return ("Orders: not tracked yet","Stripe isn't connected to The Helm") }
+  guard let s = sales.sales else { return ("Orders: unknown","couldn't read Stripe yet") }
+  let n = s.month.orders
+  let when = sales.lastRefresh == .distantPast ? "" : "as of \(crewChatTime(sales.lastRefresh)), "
+  return (n == 0 ? "Orders (30 days): none yet · Goal: first sale" : "Orders (30 days): \(n)", when + "from Stripe" + (s.testMode ? " (test mode)" : ""))
+ }
+
  var simpleBusinessCard: some View {
-  simpleCard("Your businesses",help:"Your store and East Coast Social at a glance. Tap a line to open it. Numbers are the public counters.") {
+  simpleCard("Your businesses",help:"Your store and East Coast Social at a glance. Tap a line to open it. Under every number: when it was read and where from.") {
    Button { hubSelect(.store) } label: {
     VStack(alignment:.leading,spacing:2) {
      Text("HotsTuff store").font(.system(size:13)).foregroundStyle(HubTheme.subtext)
-     Text(ventures.store.map { "\($0.week) visitors this week" } ?? (ventures.loading ? "Loading…" : "Not loaded yet")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(ventures.store.map { "\($0.week) visitors this week" } ?? (ventures.storeFailed ? "Visitors: unknown" : "Loading…")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(simpleAsOf(ventures.storeAt,"GoatCounter",failed:ventures.storeFailed)).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
+     Text(simpleOrdersLine.0).font(.system(size:14,weight:.medium)).foregroundStyle(HubTheme.text).padding(.top,3)
+     Text(simpleOrdersLine.1).font(.system(size:11)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
     }.frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
    }.buttonStyle(.plain)
    Button { hubSelect(.ecs) } label: {
     VStack(alignment:.leading,spacing:2) {
      Text("East Coast Social").font(.system(size:13)).foregroundStyle(HubTheme.subtext)
-     Text(ventures.feed.map { "\($0.total) cards on the site feed" } ?? (ventures.loading ? "Loading…" : "Not loaded yet")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(ventures.feed.map { "\($0.total) cards on the site feed" } ?? (ventures.feedFailed ? "Site feed: unknown" : "Loading…")).font(.system(size:16,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(simpleAsOf(ventures.feedAt,"the site feed",failed:ventures.feedFailed)).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
     }.frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
    }.buttonStyle(.plain)
   }
@@ -281,5 +314,90 @@ extension CompanionInterfaceView {
    .overlay(RoundedRectangle(cornerRadius:18).stroke(HubTheme.controlOutline,lineWidth:1))
   }
   .accessibilityAddTraits(.isModal)
+ }
+}
+
+
+// Messages in Simple mode opens on the crew chat only. Everything else (other views, a single chat) hides behind ONE Filter button.
+extension CompanionInterfaceView {
+ var simpleMessagesBar: some View {
+  HStack(spacing:10) {
+   Menu {
+    Button { meeting.lcFilter = ""; meeting.tab = 6 } label: { Label("Everyone",systemImage:meeting.lcFilter.isEmpty && meeting.tab == 6 ? "checkmark" : "person.3") }
+    ForEach(meeting.lcNames,id:\.self) { name in
+     Button { meeting.lcFilter = name; meeting.tab = 6 } label: { Label(name,systemImage:meeting.lcFilter == name && meeting.tab == 6 ? "checkmark" : "person") }
+    }
+    Divider()
+    Button { meeting.lcFilter = ""; meeting.tab = 0 } label: { Label("What needs you",systemImage:"hand.raised") }
+    Button { meeting.lcFilter = ""; meeting.tab = 1 } label: { Label("Claude's work",systemImage:"person.text.rectangle") }
+    Button { meeting.lcFilter = ""; meeting.tab = 2 } label: { Label("\(MeetingData.display("GPT"))'s work",systemImage:"person.text.rectangle") }
+    Button { meeting.lcFilter = ""; meeting.tab = 3 } label: { Label("Friday's work",systemImage:"waveform") }
+    Button { meeting.lcFilter = ""; meeting.tab = 4 } label: { Label("The plan board",systemImage:"list.bullet.rectangle") }
+    Button { meeting.lcFilter = ""; meeting.tab = 5 } label: { Label("Write a message / old thread",systemImage:"square.and.pencil") }
+   } label: {
+    HStack(spacing:6) {
+     Image(systemName:"line.3.horizontal.decrease.circle")
+     Text(meeting.tab == 6 ? (meeting.lcFilter.isEmpty ? "Filter" : "Filter: \(meeting.lcFilter)") : "Filter").font(.system(size:14,weight:.medium))
+    }
+    .foregroundStyle(HubTheme.text).padding(.horizontal,14).frame(height:38)
+    .overlay(RoundedRectangle(cornerRadius:10).stroke(HubTheme.controlOutline,lineWidth:1))
+   }
+   .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
+   .accessibilityLabel("Filter: pick one chat or another view")
+   if meeting.tab != 6 {
+    Button { meeting.lcFilter = ""; meeting.tab = 6 } label: { Label("Back to the chat",systemImage:"chevron.left").font(.system(size:14,weight:.medium)).foregroundStyle(HubTheme.green) }.buttonStyle(.plain)
+   }
+   Spacer(minLength:8)
+   Button { Task { await meeting.refresh(force:true) } } label: {
+    Label(meeting.loading || { if case .loading = meeting.chat.status { return true }; return false }() ? "Refreshing…" : "Refresh",systemImage:"arrow.clockwise")
+     .font(.system(size:14,weight:.medium)).foregroundStyle(HubTheme.text).padding(.horizontal,14).frame(height:38)
+     .overlay(RoundedRectangle(cornerRadius:10).stroke(HubTheme.controlOutline,lineWidth:1))
+   }.buttonStyle(.plain).disabled(meeting.loading)
+  }
+ }
+}
+
+
+// Friday's page in Simple mode: the orb, then the chat box (typing is the main door), then ONE Voice button. Voice, hands and clip
+// controls (and the "Google Live" pill) appear only after he opens Voice, or while voice is actually on.
+extension CompanionInterfaceView {
+ var simpleFriday: some View {
+  GeometryReader { geo in
+   let small = geo.size.height < 700
+   ScrollView {
+    VStack(spacing:14) {
+     orbSection(small ? 110 : 150).padding(.top,6)
+     if live.running { captions }
+     FridayChatBox(compact:small).frame(maxWidth:640).padding(.horizontal,22)
+     VStack(spacing:10) {
+      Button { withAnimation(.easeOut(duration:0.2)) { hub.voiceOpen.toggle() } } label: {
+       HStack(spacing:8) {
+        Image(systemName:"waveform")
+        Text(live.running ? "Voice is on" : "Voice").font(.system(size:15,weight:.medium))
+        Image(systemName:hub.voiceOpen || live.running ? "chevron.up" : "chevron.down").font(.system(size:10,weight:.bold))
+       }
+       .foregroundStyle(HubTheme.text).padding(.horizontal,18).frame(height:42)
+       .overlay(RoundedRectangle(cornerRadius:12).stroke(live.running ? HubTheme.green : HubTheme.controlOutline,lineWidth:1))
+      }
+      .buttonStyle(.plain).accessibilityLabel("Voice, hands and clip controls").accessibilityValue(hub.voiceOpen || live.running ? "open" : "closed")
+      if hub.voiceOpen || live.running {
+       if live.running { modePill }
+       controlBar(compact:true)
+       seesRow
+       Text("Voice shares your microphone and screens with Google while it is on.").font(.system(size:12)).foregroundStyle(HubTheme.subtext)
+      }
+     }
+     HStack(alignment:.top,spacing:12) {
+      deckDoingCard
+      deckMemoryCard
+      if !hub.compact { deckMusicCard }
+     }
+     .padding(.horizontal,22)
+     SwitchboardPanel(compact:true).padding(.horizontal,22).padding(.bottom,14)
+    }
+    .frame(maxWidth:.infinity)
+   }
+   .scrollIndicators(.hidden)
+  }
  }
 }

@@ -204,11 +204,20 @@ enum FridayBrainRules {
  // No tools ("--tools" with an empty value), no MCP connectors, dontAsk and no prompts (anything that would ask is denied), no bypass.
  static func arguments(prompt: String,model: String) -> [String] {
   ["-p",prompt,"--model",model,"--tools","","--strict-mcp-config","--permission-mode","dontAsk","--permission-prompts","none",
-   "--output-format","json","--system-prompt",system]
+   "--output-format","json","--system-prompt",system,"--settings",noHooks]
  }
 
+ // Brain calls skip ALL hooks. Without this, Matthew's SessionStart hook (git pull of both repos, then a time/handoff printout) ran on every
+ // question and its output went into her context (LC-Manager, 2026-11-06; proven with FETCH_HEAD times and the stream's hook events).
+ // This is the ONLY --settings value allowed; it adds no permission, it only turns hooks off. His settings.json and the hook are untouched.
+ static let noHooks = #"{"disableAllHooks": true}"#
+
  static func argumentsAreSafe(_ args: [String]) -> Bool {
-  guard SwitchboardRules.argumentsAreSafe(args) else { return false }
+  // --settings is on the Switchboard's forbidden list (it could widen permissions). Here exactly one value is allowed, and it is required.
+  guard let sIndex = args.firstIndex(of:"--settings"), sIndex != 1, sIndex + 1 < args.count, args[sIndex + 1] == noHooks else { return false }
+  var rest = args
+  rest.removeSubrange(sIndex...(sIndex + 1))
+  guard SwitchboardRules.argumentsAreSafe(rest) else { return false }
   guard let t = args.firstIndex(of:"--tools"), t != 1, t + 1 < args.count, args[t + 1].isEmpty else { return false }   // no tools at all
   guard let m = args.firstIndex(of:"--model"), m != 1, m + 1 < args.count,
         [FridayBrainLimits.model,FridayBrainLimits.hardModel].contains(args[m + 1]) else { return false }                // sonnet or opus, never haiku in Phase 1

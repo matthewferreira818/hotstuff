@@ -6,13 +6,14 @@ Nothing is on master. Plan: `meeting-room/notes/friday-roadmap.md` (Phase 1) and
 ## What it is
 - `FridayBrainData.swift`: the rules (context pack, command line, answer checks). No UI, no network, no process.
 - `FridayBrain.swift`: the runner and the box (one text field + one **Send** button, a small "thinking…" tag).
-- `checks/FridayBrainChecks.swift`: 52 offline checks (51 + one on real data when the files are given).
+- `checks/FridayBrainChecks.swift`: 56 offline checks (55 + one on real data when the files are given).
 - Wiring (smallest possible): `rebuild.sh` SOURCES (2 names at the END of the line) and `HubDeckFriday.swift` (the box added above the cards, and the area under the orb wrapped in a ScrollView so the box, cards and Switchboard can't squeeze the orb out of a short window).
 
 ## How a message is answered
 One call per message, started only by his Send. No background calls.
-`claude -p <context + recent chat + his message> --model sonnet --tools "" --strict-mcp-config --permission-mode dontAsk --permission-prompts none --output-format json --system-prompt <rules>`
+`claude -p <context + recent chat + his message> --model sonnet --tools "" --strict-mcp-config --permission-mode dontAsk --permission-prompts none --output-format json --system-prompt <rules> --settings '{"disableAllHooks": true}'`
 - **No tools at all** (`--tools ""`) and no MCP connectors: she can only talk; she can't read, post, run or change anything. No bypass flag anywhere; the command line is re-checked in code before every launch (`argumentsAreSafe`: empty tools, sonnet or opus only, strict MCP, dontAsk, prompts none, plus the Switchboard's forbidden-flag list).
+- **Hooks off (gate fix):** every `claude -p` loads Matthew's user settings, so his SessionStart hook (`~/Claude/bin/session-start.sh`: a `git pull` of both repos, then a time + newest-handoff printout into the context) ran on EVERY question: ~5 s extra, pulls in the repo checkout other chats work in, and ~1k tokens of noise. Brain calls now pass `--settings '{"disableAllHooks": true}'`, a supported setting that only turns hooks off (it adds no permission). It is the ONLY `--settings` value the code accepts, and it is required (`argumentsAreSafe`; the Switchboard's list still forbids `--settings` for jobs, which keep the hook because they work in the repo). Proof (2026-11-06 ~4:45 AM, same command with and without the flag, measured on the two repos' `.git/FETCH_HEAD` times and the stream's events): without it `hook_started`/`hook_response` appear and both FETCH_HEAD files change (pull ran); with it neither happens and both FETCH_HEAD files are unchanged. His settings.json and the hook script are untouched.
 - **Model:** Sonnet. Opus only when his message contains "think hard" (and the box says so). No Haiku in Phase 1 (refused in code).
 - **Kill at 2 minutes** (`FridayBrainLimits.callTimeout`), SIGTERM then SIGKILL.
 - **Where it runs:** an empty per-app folder, not `~/Claude/hotstuff`. With no tools there is nothing to read, and from the repo it would load the whole CLAUDE.md (the LC chats' name-tag rules, thousands of tokens) into every answer. This is a deliberate change from the brief; say if you want the repo folder anyway. A one-line call costs about 1,000 tokens baseline.

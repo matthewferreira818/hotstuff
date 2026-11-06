@@ -7,7 +7,7 @@ import Foundation
 // Signs of life for each crew chat, read from GitHub: owner-authored comments on the Hotline (PR #35) and issue 15, plus commits in the
 // last 30 minutes on each chat's branch. Pure decision logic (CrewSignals.decide) is separate from the fetching so it can be checked offline.
 
-struct CrewSignal { var chat: String; var date: Date; var what: String }   // chat = canonical key (CrewSignals.canon)
+struct CrewSignal { var chat: String; var date: Date; var what: String; var to: String = "" }   // chat = canonical key (CrewSignals.canon); to = the tag's "→ name" (Hotline posts), used by the pixel station
 
 enum CrewSignals {
  // Every chat in meeting-room/notes/crew-roster.md that is a chat (display name, canonical key, role).
@@ -20,11 +20,12 @@ enum CrewSignals {
   ("LC-Trends","lc-trends","Local Claude chat on Matthew's Mac"),
   ("LC-Work","lc-work","Local Claude chat on Matthew's Mac"),
   ("LC-CrewState","lc-crewstate","Local Claude chat on Matthew's Mac"),
+  ("LC-Pixels","lc-pixels","Local Claude chat on Matthew's Mac"),
  ]
  // Branch -> owner key (BOARD.md / crew-roster.md).
  static let branchOwners: [(branch: String,key: String)] = [
   ("friday-phase1-chat","lc-tiktok"),("friday-phase1-crew","lc-helm-build"),
-  ("friday-phase1-crewstate","lc-crewstate"),("tiktok-samples","lc-trends"),
+  ("friday-phase1-crewstate","lc-crewstate"),("tiktok-samples","lc-trends"),("pixel-agents","lc-pixels"),
  ]
  static let window: TimeInterval = 30 * 60
 
@@ -83,7 +84,7 @@ enum CrewSignals {
           let user = comment["user"] as? [String:Any], (user["login"] as? String) == MeetingData.trustedLogin else { continue }
     let parsed = MeetingData.parseMessage(body:body)
     guard let name = CrewData.agentName(parsed.author), name != "Friday" else { continue }
-    out.append(CrewSignal(chat:canon(name),date:when,what:MeetingData.brief(parsed.text,limit:60)))
+    out.append(CrewSignal(chat:canon(name),date:when,what:MeetingData.brief(parsed.text,limit:60),to:parsed.to))
    } else if type == "PushEvent" {
     guard let ref = payload["ref"] as? String, ref.hasPrefix("refs/heads/"),
           let owner = branchOwners.first(where:{ $0.branch == String(ref.dropFirst(11)) }) else { continue }

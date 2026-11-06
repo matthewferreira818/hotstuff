@@ -18,6 +18,8 @@ import Cocoa
  @Published var expanded: Set<String> = []
  @Published var messageCount = 8
  @Published var board: Board?
+ // Which Local Claude chat the thread is filtered to (empty means all messages). Chat names come from the tags seen in the room.
+ @Published var lcFilter = ""
  @Published var messages: [RoomMessage] = []
  @Published var loading = false
  @Published var failed = false
@@ -99,6 +101,23 @@ import Cocoa
  func crew(_ name: String) -> CrewView { MeetingData.crew(name,board:board,messages:messages) }
 
  // Opens the writing box addressed to Claude (0), GPT (1) or everyone (2).
+ // The Local Claude chat names seen in the room (as sender or receiver), sorted. The message picker and the filter are built from these.
+ var lcNames: [String] {
+  var names = Set<String>()
+  for message in messages { if let n = MeetingData.lcName(message.author) { names.insert(n) }; if let n = MeetingData.lcName(message.to) { names.insert(n) } }
+  return names.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+ }
+ // Picker tags: 0 Claude, 1 GPT, 2 everyone, 3 all Local Claudes, 10 and up one per chat name.
+ func lcTag(_ name: String) -> Int? { lcNames.firstIndex(of:name).map { 10 + $0 } }
+ func targetName(_ index: Int) -> String {
+  if index >= 10 { let list = lcNames; if index - 10 < list.count { return "Local Claude (\(list[index - 10]))" } ; return "Local Claude" }
+  return MeetingHub.targets[min(max(index,0),MeetingHub.targets.count - 1)]
+ }
+ func matchesFilter(_ message: RoomMessage) -> Bool {
+  guard !lcFilter.isEmpty else { return true }
+  return MeetingData.lcName(message.author) == lcFilter || MeetingData.lcName(message.to) == lcFilter
+ }
+
  func compose(to index: Int) {
   to = index
   sendNote = ""
@@ -134,7 +153,7 @@ import Cocoa
   }
   sending = true
   defer { sending = false }
-  switch await MeetingData.post(words,from:"Matthew",to:MeetingHub.targets[to],token:token) {
+  switch await MeetingData.post(words,from:"Matthew",to:targetName(to),token:token) {
   case .ok:
    draft = ""
    sendNote = "Posted to the room."
@@ -198,7 +217,12 @@ import Cocoa
   case 1:
    let current = board?.raw ?? "(The board couldn't be loaded. Ask Matthew to paste it.)"
    return "Message for GPT, from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nReply in plain words. If you did or decided something, post it in the thread (issue 15) as **[GPT]**, or finish with a \"Board update\" block. Never put keys, customer details or anything private in it. The current board:\n\n\(current)"
+  case 10...:
+   let name = MeetingData.lcName(targetName(to)) ?? "Local Claude"
+   return "Message for the Local Claude chat \"\(name)\" (on my Mac), from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nBefore you start, read meeting-room/BOARD.md and the thread (issue 15). Post what you did in the thread as **[Local Claude (\(name))]**."
   case 3:
+   return "Message for every Local Claude chat (on my Mac), from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nBefore you start, read meeting-room/BOARD.md and the thread (issue 15). Post what you did in the thread as **[Local Claude (your chat name)]**."
+  case 99:
    return "Message for Local Claude (the chat on my Mac), from Matthew (sent through the Meeting Room in my app):\n\n\(note)\n\nBefore you start, read meeting-room/BOARD.md and the thread (issue 15). Post what you did in the thread as **[Local Claude]**."
   default:
    return "Message for everyone on the board, from Matthew:\n\n\(note)"
@@ -209,7 +233,7 @@ import Cocoa
   let pasteboard = NSPasteboard.general
   pasteboard.clearContents()
   pasteboard.setString(message(),forType:.string)
-  copied = to == 0 ? "Copied for Claude" : (to == 1 ? "Copied for \(MeetingData.display("GPT"))" : (to == 3 ? "Copied for Local Claude" : "Copied"))
+  copied = to == 0 ? "Copied for Claude" : (to == 1 ? "Copied for \(MeetingData.display("GPT"))" : (to == 3 ? "Copied for all Local Claudes" : (to >= 10 ? "Copied for \(MeetingData.lcName(targetName(to)) ?? "Local Claude")" : "Copied")))
   Task {
    try? await Task.sleep(nanoseconds:2_500_000_000)
    copied = ""
@@ -541,13 +565,37 @@ extension CompanionInterfaceView {
     Button { if let url = URL(string:MeetingData.threadPage) { NSWorkspace.shared.open(url) } } label: { Label("Open the thread",systemImage:"arrow.up.right.square") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
+   hubLCFilter
    if meeting.messages.isEmpty {
     Text("No messages yet. Write the first one.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
    }
-   ForEach(Array(meeting.messages.suffix(meeting.messageCount).reversed())) { message in hubMessageRow(message) }
-   if meeting.messages.count > meeting.messageCount {
+   ForEach(Array(meeting.messages.filter { meeting.matchesFilter($0) }.suffix(meeting.messageCount).reversed())) { message in hubMessageRow(message) }
+   if !meeting.lcFilter.isEmpty && !meeting.messages.contains(where:{ meeting.matchesFilter($0) }) {
+    Text("No messages from or to \(meeting.lcFilter) in the loaded thread.").font(.system(size:13,design:.rounded)).foregroundStyle(Color.white.opacity(0.5))
+   }
+   if meeting.messages.filter({ meeting.matchesFilter($0) }).count > meeting.messageCount {
     Button { meeting.messageCount += 8 } label: { Label("Show 8 earlier",systemImage:"chevron.down") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
+   }
+  }
+ }
+
+ // Chips: All, then one per Local Claude chat seen in the room. Only shown when at least one named chat exists.
+ @ViewBuilder var hubLCFilter: some View {
+  let names = meeting.lcNames
+  if !names.isEmpty {
+   ScrollView(.horizontal,showsIndicators:false) {
+    HStack(spacing:8) {
+     Text("Chat").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(Color.white.opacity(0.55))
+     ForEach([""] + names,id:\.self) { name in
+      let on = meeting.lcFilter == name
+      Button { meeting.lcFilter = name } label: {
+       Text(name.isEmpty ? "All" : name).font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(on ? Color.black : Color.white.opacity(0.85))
+        .padding(.horizontal,12).frame(minHeight:32)
+        .background(on ? HubColor.coral : Color.white.opacity(0.10),in:Capsule())
+      }.buttonStyle(.plain).accessibilityAddTraits(on ? .isSelected : [])
+     }
+    }
    }
   }
  }
@@ -582,8 +630,8 @@ extension CompanionInterfaceView {
   return VStack(alignment:.leading,spacing:8) {
    VStack(alignment:.leading,spacing:5) {
     HStack(spacing:8) {
-     hubPill(MeetingData.display(MeetingData.canonical(message.author) ?? message.author).uppercased(),tint:hubOwnerTint(message.author))
-     if !message.to.isEmpty { Text("→ \(MeetingData.display(MeetingData.canonical(message.to) ?? message.to))").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
+     hubPill(MeetingData.speaker(message.author).uppercased(),tint:hubOwnerTint(message.author))
+     if !message.to.isEmpty { Text("→ \(MeetingData.speaker(message.to))").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(forMatthew ? HubColor.amber : Color.white.opacity(0.55)) }
      Text(hubWhen(message.date)).font(.system(size:11.5,design:.rounded)).foregroundStyle(Color.white.opacity(0.4))
      Spacer(minLength:0)
      Button { voice.toggle(id,SpeechData.messageLines(message)) } label: { Image(systemName:voice.playing == id ? "stop.fill" : "speaker.wave.2.fill").font(.system(size:12)).foregroundStyle(Color.white.opacity(0.6)).frame(width:28,height:24).contentShape(Rectangle()) }
@@ -605,7 +653,7 @@ extension CompanionInterfaceView {
     }
    }
    if open && MeetingData.canonical(message.author) != "Matthew" {
-    Button { meeting.compose(to:MeetingData.canonical(message.author) == "GPT" ? 1 : (MeetingData.canonical(message.author) == "Local Claude" ? 3 : 0)) } label: { Label("Reply",systemImage:"arrowshape.turn.up.left") }
+    Button { meeting.compose(to:MeetingData.canonical(message.author) == "GPT" ? 1 : (MeetingData.canonical(message.author) == "Local Claude" ? (MeetingData.lcName(message.author).flatMap { meeting.lcTag($0) } ?? 3) : 0)) } label: { Label("Reply",systemImage:"arrowshape.turn.up.left") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
   }
@@ -656,8 +704,11 @@ extension CompanionInterfaceView {
     Button { meeting.composing = false } label: { Label("Close",systemImage:"xmark") }
      .buttonStyle(PillButtonStyle(tint:Color.white.opacity(0.12)))
    }
-   Picker("To",selection:$meeting.to) { Text("To Claude").tag(0); Text("To \(MeetingData.display("GPT"))").tag(1); Text("To everyone").tag(2); Text("To Local Claude").tag(3) }
-    .pickerStyle(.segmented).labelsHidden().frame(maxWidth:440)
+   Picker("To",selection:$meeting.to) {
+    Text("To Claude").tag(0); Text("To \(MeetingData.display("GPT"))").tag(1); Text("To everyone").tag(2); Text("To all Local Claudes").tag(3)
+    ForEach(Array(meeting.lcNames.enumerated()),id:\.offset) { index,name in Text("To \(name)").tag(10 + index) }
+   }
+    .pickerStyle(.menu).labelsHidden().frame(maxWidth:300,alignment:.leading)
    TextEditor(text:$meeting.draft)
     .font(.system(size:13.5,design:.rounded))
     .scrollContentBackground(.hidden)

@@ -26,7 +26,7 @@ extension CompanionInterfaceView {
   }.sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
  }
 
- var deckCrew: [CrewMember] { CrewData.build(messages:meeting.messages,runs:ventures.runs,snapshots:Dictionary(uniqueKeysWithValues:deckRobots.compactMap { entry in entry.robot.map { (entry.name,$0) } })) }
+ var deckCrew: [CrewMember] { CrewData.build(messages:meeting.messages,runs:ventures.runs,snapshots:Dictionary(uniqueKeysWithValues:deckRobots.compactMap { entry in entry.robot.map { (entry.name,$0) } }),fridayLive:live.running) }
 
  var deckRobots: [(name: String,robot: StockRobot?)] {
   [("stock-bot",stocks.dip),("stock-momentum",stocks.momentum),("stock-hot",stocks.hot),("stock-moonshot",stocks.moon),

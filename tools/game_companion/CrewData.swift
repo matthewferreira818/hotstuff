@@ -84,8 +84,9 @@ enum CrewData {
   return nil
  }
 
- static func build(messages: [RoomMessage],runs: [AutomationRun]?,snapshots: [String:StockRobot] = [:],now: Date = Date()) -> [CrewMember] {
+ static func build(messages: [RoomMessage],runs: [AutomationRun]?,snapshots: [String:StockRobot] = [:],fridayLive: Bool = false,now: Date = Date()) -> [CrewMember] {
   var result: [CrewMember] = []
+  result.append(CrewMember(id:"Friday",name:"Friday",role:"Voice companion on Matthew's Mac",kind:.friday,state:fridayLive ? .working : .idle,detail:fridayLive ? "live session running" : "asleep until Matthew starts her",since:nil,awayUntil:nil))
 
   // People and agents: from the room thread.
   var last: [String:RoomMessage] = [:]

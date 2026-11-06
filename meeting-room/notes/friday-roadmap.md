@@ -29,6 +29,12 @@ Friday = **one brain + one memory + many doors.**
 6. **Her own home (when the business pays, money mode):** smart plugs/bulbs (HomeKit), a small speaker, an old iPad as the wall
    screen, a private local brain as backup, better hardware. Then the dream: her bigger brain, all our memory, one day the chassis.
 
+## Quality bar (Matthew, Fri Nov 6 ~5:55 AM: "i wanna wait, i really wanna build it up, refine and polish, make it the best it can be")
+Every phase gets a **polish round** before his GO: he tests the test copy, says what feels crowded/confusing/off, the crew fixes it,
+he tests again. GO only when HE says it's the best it can be. Polish list for each phase lives on the board under that phase.
+Long-term, in his words: "eventually not rely on a company's AI, have one of my own": that's Phase 6 (own brain). Everything we build
+(memory bank, character, doors, rules) is designed to move to her own brain later, so nothing is wasted.
+
 ## Who does what
 - **LC-Manager:** project manager for this roadmap: one phase at a time, gate + test pack, keeps the board honest.
 - **LC-TikTok:** the engine (brain calls, Switchboard, memory files, pings).

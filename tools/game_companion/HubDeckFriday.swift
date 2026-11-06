@@ -22,6 +22,7 @@ extension CompanionInterfaceView {
      VStack(spacing:0) {
       // Friday Phase 1 "She thinks" (FridayBrain.swift): one text box + Send, answered by Claude with no tools.
       FridayChatBox(compact:tight).padding(.horizontal,22).padding(.bottom,12)
+      FridayMeSection(reduceMotion:reduceMotion).padding(.horizontal,22).padding(.bottom,12)
       if showCards {
        HStack(alignment:.top,spacing:12) {
         deckStatesCard
@@ -87,6 +88,7 @@ extension CompanionInterfaceView {
    } else {
     ForEach(recent) { note in Text(note.text).font(.system(size:12)).foregroundStyle(HubTheme.text).lineLimit(2) }
    }
+   Button { hubSelect(.memory) } label: { Text("Keep / edit / forget ›").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.teal) }.buttonStyle(.plain)
    Button { c.showPanel = true } label: { Text("Open memory settings ›").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.teal) }.buttonStyle(.plain)
   }
  }

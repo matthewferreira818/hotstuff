@@ -71,7 +71,7 @@ extension CompanionInterfaceView {
   return f.string(from:date)
  }
 
- // The Messages tab's main view: the group chat. Read-only: there is no writing box here.
+ // The Messages tab's main view: the group chat, with one writing box at the bottom (ScreensP2.swift).
  var crewChatPage: some View {
   let list = meeting.chat.visible { meeting.matchesFilter($0) }
   return VStack(alignment:.leading,spacing:10) {
@@ -94,6 +94,7 @@ extension CompanionInterfaceView {
     if list.isEmpty { Text(meeting.lcFilter.isEmpty ? "Nothing in the chat yet." : "No messages from \(meeting.lcFilter) yet.").font(.system(size:15)).foregroundStyle(HubTheme.subtext).padding(.vertical,30).frame(maxWidth:.infinity) }
     else { crewChatList(list) }
    }
+   crewComposer
   }
   .onAppear { Task { await meeting.chat.refresh(token:meeting.hasToken ? meeting.savedToken() : nil) } }
  }
@@ -146,6 +147,7 @@ extension CompanionInterfaceView {
    }
    Text(crewChatMarkdown(open ? message.text : MeetingData.brief(message.text,limit:320))).font(.system(size:14)).foregroundStyle(HubTheme.text)
     .fixedSize(horizontal:false,vertical:true).textSelection(.enabled)
+   if message.source != "hotline" { PingBadge(id:message.id) }
   }
   .padding(12).frame(maxWidth:.infinity,alignment:.leading)
   .background(HubTheme.card,in:RoundedRectangle(cornerRadius:12))

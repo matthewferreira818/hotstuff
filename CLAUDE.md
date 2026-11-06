@@ -272,6 +272,10 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   its status. Content pieces live in `content/notes/*.md` (rendered by
   `make_notes.py`); category pages + sitemap come from
   `make_category_pages.py`, which the 3-day refresh workflow runs.
+- **TikTok via Buffer (READY, posting OFF, 2026-11-05 ~midnight):** tiktok-buffer.yml builds one honest video per day for each
+  catalogue cycle (only products still in the store) and queues them in Buffer (free plan, find.hotstuff Business account connected,
+  key in secret BUFFER_API_KEY, verified). Posting starts only when Matthew adds repo variable BUFFER_POSTING=on, after CBDC answers and
+  his GO; that same day update tools/claims_facts.json (TikTok no longer drafts-only) and switch off the daily inbox draft.
 - Morning brief fires as a scheduled trigger; it verifies TikTok drafts
   (since 2026-11-05 ONE pack a day, the product pack; SEND_TO_USER_INBOX), reads GoatCounter public counters, and
   lists callbacks due.

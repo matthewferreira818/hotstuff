@@ -46,6 +46,7 @@ _Last updated: 2026-11-06 6:11 AM by Local Claude (LC-Makeover)_
 - (none open: the October questions went to the archive on 11-05)
 
 ## Decisions
+- 2026-11-06: Matthew (in LC-Manager's chat, ~6:40 AM): the LC standup runs AUTOMATICALLY on weekdays ~9:30 AM while the Mac is on (local scheduled task lc-manager-standup): board section + one room line; robots reported, never started (LC-Work starts them).
 - 2026-11-06: Matthew GO on Friday Phase 1 "She thinks" (typed chat on Claude, crew chat, honest numbers, crew strip). Rule kept: crew runs polish rounds with a "Matthew's eyes" review; Matthew looks once per phase.
 - 2026-10-24: Matthew's later decisions: GPT is now called Roxy on screen (tag stays GPT); he wants a full surprise revamp by Roxy and Claude with the Meeting Room checked every few minutes; Roxy builds on gpt/moneyhub-* branches and asks for a Mac compile before each merge, Claude merges. Master 15912c8 compile-verified (exit 0, 28 warnings, Roxy, 1:16 PM).
 - 2026-10-24: Matthew's decision, later: GPT gets "a chance off restrictions". It may edit and push app files straight to master (any page, Hub.swift included), announcing what it takes on here; Claude reviews after and reverts what breaks a protection. Still on: honesty, secrets, Friday's off-limits list, the Moomoo switches, nothing paid, no public posts or messages to people without a go.

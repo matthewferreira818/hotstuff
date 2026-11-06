@@ -142,7 +142,7 @@ extension CompanionInterfaceView {
 
 @MainActor final class FridayMeModel: ObservableObject {
  static let shared = FridayMeModel()
- @Published var open = false
+ @Published var open = true
  @Published var draft = ""
 }
 
@@ -164,17 +164,6 @@ struct FridayMeSection: View {
 
  var body: some View {
   VStack(alignment:.leading,spacing:8) {
-   Button { withAnimation(.easeOut(duration:0.2)) { model.open.toggle() } } label: {
-    HStack(spacing:8) {
-     Image(systemName:"lock.fill").font(.system(size:12))
-     Text("Friday & me").font(.system(size:15,weight:.medium))
-     Image(systemName:model.open ? "chevron.up" : "chevron.down").font(.system(size:10,weight:.bold))
-    }
-    .foregroundStyle(HubTheme.text).padding(.horizontal,18).frame(height:42)
-    .overlay(RoundedRectangle(cornerRadius:12).stroke(model.open ? HubTheme.green : HubTheme.controlOutline,lineWidth:1))
-   }
-   .buttonStyle(.plain).frame(maxWidth:.infinity)
-   .accessibilityLabel("Friday and me, a private chat").accessibilityValue(model.open ? "open" : "closed")
    if model.open { panel }
   }
  }
@@ -187,8 +176,8 @@ struct FridayMeSection: View {
     }
     .frame(width:36,height:36)
     VStack(alignment:.leading,spacing:1) {
-     Text("Private chat with Friday").font(.system(size:13,weight:.semibold)).foregroundStyle(HubTheme.text)
-     Text(thinking ? "Friday is thinking…" : "Only on this Mac. Not in the crew chat, the room or GitHub.").font(.system(size:11.5)).foregroundStyle(thinking ? HubTheme.amber : HubTheme.subtext)
+     Text("Message Friday").font(.system(size:15,weight:.semibold)).foregroundStyle(HubTheme.text)
+     Text(thinking ? "Friday is thinking…" : "Private: only on this Mac, not in the crew chat or GitHub. Voice is the small button below.").font(.system(size:11.5)).foregroundStyle(thinking ? HubTheme.amber : HubTheme.subtext)
     }
     Spacer(minLength:0)
    }
@@ -208,13 +197,13 @@ struct FridayMeSection: View {
     .onChange(of:lines.count) { _,_ in proxy.scrollTo("end",anchor:.bottom) }
    }
    HStack(spacing:8) {
-    TextField("Message Friday…",text:$model.draft)
+    TextField("Message Friday… for example: what needs me today?",text:$model.draft)
      .textFieldStyle(.plain).font(.system(size:13))
      .padding(.horizontal,10).frame(minHeight:HubTheme.minTarget)
      .background(HubTheme.control,in:RoundedRectangle(cornerRadius:8))
      .overlay(RoundedRectangle(cornerRadius:8).stroke(HubTheme.controlOutline,lineWidth:1))
      .onSubmit { sendNow() }
-     .accessibilityLabel("Private message to Friday")
+     .accessibilityLabel("Message Friday")
     Button { sendNow() } label: {
      Text("Send").font(.system(size:13,weight:.semibold)).foregroundStyle(HubTheme.background).padding(.horizontal,14).frame(height:HubTheme.minTarget)
       .background(HubTheme.green.opacity(model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty ? 0.4 : 1),in:RoundedRectangle(cornerRadius:8))

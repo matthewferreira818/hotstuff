@@ -21,7 +21,6 @@ extension CompanionInterfaceView {
     ScrollView {
      VStack(spacing:0) {
       // Friday Phase 1 "She thinks" (FridayBrain.swift): one text box + Send, answered by Claude with no tools.
-      FridayChatBox(compact:tight).padding(.horizontal,22).padding(.bottom,12)
       FridayMeSection(reduceMotion:reduceMotion).padding(.horizontal,22).padding(.bottom,12)
       if showCards {
        HStack(alignment:.top,spacing:12) {

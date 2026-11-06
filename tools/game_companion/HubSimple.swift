@@ -29,7 +29,7 @@ extension CompanionInterfaceView {
  func simpleBlurb(_ section: HubSection) -> String {
   switch section {
   case .home: return "Everything important, in one place."
-  case .friday: return "Talk to Friday, your voice helper."
+  case .friday: return "Message Friday. Voice is one tap away."
   case .store: return "How many people visit your store."
   case .meeting: return "Your crew's messages."
   case .stocks: return "Practice-money robots. No real money, ever."
@@ -136,24 +136,24 @@ extension CompanionInterfaceView {
      let now = timeline.date
      VStack(spacing:0) {
       FridayOrb(state:orbState(at:now),t:now.timeIntervalSinceReferenceDate,level:orbLevel(at:now),size:orb,animated:!reduceMotion,showsPicker:false)
-      Text(deckStateWords(orbState(at:now))).font(.system(size:13)).foregroundStyle(HubTheme.subtext)
+      Text(orbState(at:now) == .off ? "Here when you need her" : deckStateWords(orbState(at:now))).font(.system(size:13)).foregroundStyle(HubTheme.subtext)
      }
     }
     .frame(height:orb * 1.42)
     HStack(spacing:8) {
-     Button { mainAction() } label: {
+     Button { FridayMeModel.shared.open = true; hubSelect(.friday) } label: {
       HStack(spacing:10) {
-       Text(live.running || c.listening ? "⏹" : "🎙️").font(.system(size:22))
-       Text(live.running || c.listening ? "Stop talking" : "Talk to Friday").font(.system(size:20,weight:.semibold,design:.rounded))
+       Image(systemName:"bubble.left.fill").font(.system(size:20))
+       Text("Message Friday").font(.system(size:20,weight:.semibold,design:.rounded))
       }
       .foregroundStyle(HubTheme.background)
       .frame(width:300,height:60)
-      .background(live.running || c.listening ? HubTheme.amber : HubTheme.green,in:RoundedRectangle(cornerRadius:16))
+      .background(HubTheme.green,in:RoundedRectangle(cornerRadius:16))
      }
      .buttonStyle(.plain).disabled(DesignPreview.enabled)
-     .accessibilityLabel(live.running ? "Stop talking to Friday" : "Talk to Friday")
-     .help(live.running ? "Stop the live session" : "Starts Friday. While she is on, she hears your mic and sees your screens.")
-     simpleHelp("talk","Tap once to wake Friday, then just speak. Tap again to stop. While she is on she can hear you and see your screens.")
+     .accessibilityLabel("Message Friday")
+     .help("Opens your private chat with Friday. Voice is on the Friday tab.")
+     simpleHelp("talk","Tap to write to Friday. It's a private chat, only on this Mac. If you want to talk out loud, open the Friday tab and tap Voice.")
     }
     MoneyMoveCard()
     Group {
@@ -374,7 +374,6 @@ extension CompanionInterfaceView {
     VStack(spacing:14) {
      orbSection(small ? 110 : 150).padding(.top,6)
      if live.running { captions }
-     FridayChatBox(compact:small).frame(maxWidth:640).padding(.horizontal,22)
      FridayMeSection(reduceMotion:reduceMotion).frame(maxWidth:640).padding(.horizontal,22)
      VStack(spacing:10) {
       Button { withAnimation(.easeOut(duration:0.2)) { hub.voiceOpen.toggle() } } label: {

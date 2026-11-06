@@ -253,6 +253,8 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   Friday, on his own hardware, holds everything we share. Until then these files are that memory. Like the chassis dream, it's a dream,
   not a purchase: money mode applies, and private things stay out of this public repo.
 
+**The Crew Handbook** (`meeting-room/notes/crew-handbook.md`, 2026-11-06, Matthew: "build it up like a company ... go the whole 9"): org chart, daily standup, the manager's job (verify, question, tie work to money), how a job runs, the Sunday scorecard, retros, escalation. Every chat follows it.
+
 ## Where the real ledgers live (read before answering "what's next")
 
 - `meeting-room/BOARD.md` — the shared board for every Claude chat, GPT (his ChatGPT Project) and Friday; Matthew sees it

@@ -18,7 +18,7 @@ enum SwitchboardLimits {
  static let relayPerHour = 10
  static let relayPerDay = 40
  static let relayTimeout: TimeInterval = 3 * 60
- static let pollEvery: TimeInterval = 300        // how often Friday reads the two threads while ON (Matthew: 5 min)
+ static let pollEvery: TimeInterval = 60         // how often Friday reads the threads while ON (Matthew, 2026-11-06: 1 min; reading GitHub costs no Claude usage)
  static let testPollEvery: TimeInterval = 30     // test copies only (own app ID, switchboard.testFastPoll)
  static let maxAge: TimeInterval = 6 * 3600      // a comment older than this never starts a job (e.g. the Mac was off)
  static let editGrace: TimeInterval = 5          // GitHub can stamp updated_at a moment after created_at on a fresh comment

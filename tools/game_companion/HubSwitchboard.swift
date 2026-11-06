@@ -21,7 +21,7 @@ private struct SwitchboardState: Codable {
 
 @MainActor final class Switchboard: ObservableObject {
  static let shared = Switchboard()
- // Real default 5 min; 30 s only in a test copy with switchboard.testFastPoll (hooks are dead in the real Helm).
+ // Real default 1 min; 30 s only in a test copy with switchboard.testFastPoll (hooks are dead in the real Helm).
  static var interval: TimeInterval { SwitchboardTestHooks.active && UserDefaults.standard.bool(forKey:"switchboard.testFastPoll") ? SwitchboardLimits.testPollEvery : SwitchboardLimits.pollEvery }
  static var intervalText: String { interval < 60 ? "\(Int(interval)) s" : "\(Int(interval / 60)) min" }
  static let onKey = "switchboard.on"   // UserDefaults, per app ID: absent = OFF, so a fresh install and the test copy start OFF
@@ -472,7 +472,7 @@ struct SwitchboardLogSheet: View {
 //   switchboard.testTurnOn   (bool)    turn the switch ON at launch through the normal setOn(true)
 //   switchboard.testComments (path)    a JSON list of fake comments mixed into each check: [{id,thread,login,body,ago,edited}]
 //   switchboard.testShowLog  (bool)    open the full log sheet
-//   switchboard.testFastPoll (bool)    check every 30 s instead of 5 min
+//   switchboard.testFastPoll (bool)    check every 30 s instead of 1 min
 //   switchboard.testShot     (path)    after 8 s, save the window (and the sheet, if open) as <path>-window.png / <path>-sheet.png
 enum SwitchboardTestHooks {
  static let realHelmID = "local.mattyb.gamecompanion"

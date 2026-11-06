@@ -62,6 +62,11 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   cache fix so returning visitors actually got them. Then a store makeover: three mockups built from the real catalogue, Matthew mixed
   his favourite two, and findhotstuff.com went live as "Boutique" photo tiles over "The latest drop" swipe rows, with search, in EN and FR
   (smoke test 15/15). His word for the night: "You're asking me a lot." Since then, small reversible calls get made and reported, not asked.
+  Near midnight, a second Claude on his Mac (LC-TikTok) took on "post to TikTok every week". A check showed every catalogue
+  refresh swaps all 200 products, so a week of videos made in advance would show things that are gone by day 2. So it became
+  one short product video per day until the next refresh, built by a robot after each refresh, ready to queue in Buffer's free
+  plan (it publishes to TikTok for us; TikTok's own app route still needs a person on every post). Matthew made the Buffer
+  account and saved the key in GitHub himself; a read-only check said it works. Posting stays off until CBDC answers.
 
 ## Lessons that cost something (don't repeat them)
 - Two chats, one folder: never switch branches in a shared folder. Each branch job gets its own copy (a git worktree), and the board says which files it touches.
@@ -72,6 +77,7 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
 - Big multi-agent runs burn real usage: ask before launching them (two review runs hit his monthly spend limit on 2026-10-14).
 - Facebook DMs to businesses: 20+ sent, 0 replies. Calls and walk-ins are what respond. Tailored emails to businesses that publish an email: 9 sent, 1 warm reply on day one (2026-11-04).
 - Honest beats clever: say what really happened, even to a government office; a fib costs more than the truth ever does.
+- Anything that names a product expires with the catalogue (every 3 days): build per refresh, never a week ahead.
 - Long chats burn usage (each message re-reads everything): start a fresh chat each day; the memory lives in these files.
 
 ## Open threads

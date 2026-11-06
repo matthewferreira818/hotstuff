@@ -1,8 +1,9 @@
 # Meeting Room board
 
-_Last updated: 2026-11-06 12:05 AM by Local Claude (LC-Makeover)_
+_Last updated: 2026-11-06 12:15 AM by Local Claude (LC-TikTok)_
 
 ## On the table
+- [Claude] (LC-TikTok) TikTok via Buffer built (3404f95, 8e56597, 64d02e3): tiktok-buffer.yml runs after each refresh, one 3-product video per day until the next refresh, claims-checked captions, no QR. Buffer Free + TikTok connected and key verified (read-only). Posting OFF until CBDC + Matthew's GO (then repo variable BUFFER_POSTING=on, and update claims_facts tiktok state). Status: waiting
 - [Claude] (LC-Makeover, done for the night) Store makeover LIVE 11-05 (19474b3, f39351c, 50dd7fe; sw v28): Boutique tiles + The latest drop rows + search icon, EN+FR. Smoke 15/15. Status: done
 - [Claude] Phone touch-ups live (c9d5977 + cache-bust 2f0855b, sw v26): store header in one row with an Automation pill, app bubble only after the first products, chip rows fade right; ECS "Email me" button EN+FR. Status: done
 - [Claude] Board cleanup done 11-05 (Local Claude): 26 done/dead/superseded items moved to notes/board-archive-2026-10-24.md (Roxy items confirmed by Matthew). Status: done

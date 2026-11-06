@@ -268,19 +268,19 @@ extension CompanionInterfaceView {
   case .stocks: hubStocks
   case .store: hubStore
   case .ecs: hubEcs
-  case .systems: hubSystems
+  case .systems: commandCoreSystems
   case .launchpad: hubLaunchpad
   case .game: hubGame
   case .accounts: hubAccounts
   case .meeting: hubMeeting
   case .stream: hubStream
   case .helper: hubHelper
-  case .shield: hubGuard
-  case .realFake: hubRealOrFake
-  case .lab: hubLab
+  case .shield: commandCoreGuard
+  case .realFake: commandCoreVerify
+  case .lab: commandCoreLab
   case .council: hubCouncil
-  case .hacking: hackRoom
-  case .crewStation: deckCrewStation
+  case .hacking: commandCoreRoom
+  case .crewStation: commandCoreCrew
   case .memory: fridayMemoryPage
   }
  }

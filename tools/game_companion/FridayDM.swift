@@ -48,12 +48,25 @@ import AppKit
  // MARK: for the screen
 
  // Writes Matthew's message and wakes Friday. Returns the inbox id (nil if the text is empty or the file can't be written).
- @discardableResult func send(_ text: String) -> String? {
+ @discardableResult func send(_ text: String,images: [String] = []) -> String? {
   ensureFolder()
-  guard let made = DMRules.inboxLine(text:text) else { return nil }
+  guard let made = DMRules.inboxLine(text:text,images:images) else { return nil }
   guard append(made.line,to:inboxURL) else { return nil }
   refresh()
   return made.id
+ }
+
+ static var imagesURL: URL { folderURL.appendingPathComponent("images",isDirectory:true) }
+
+ // Saves a picture (PNG data) in the private folder (700/600) and returns its path, or nil.
+ func saveImage(_ png: Data) -> String? {
+  ensureFolder()
+  let fm = FileManager.default
+  try? fm.createDirectory(at:Self.imagesURL,withIntermediateDirectories:true,attributes:[.posixPermissions:0o700])
+  let u = Self.imagesURL.appendingPathComponent("img-\(Int(Date().timeIntervalSince1970 * 1000))-\(Int.random(in:100...999)).png")
+  guard (try? png.write(to:u,options:.atomic)) != nil else { return nil }
+  try? fm.setAttributes([.posixPermissions:0o600],ofItemAtPath:u.path)
+  return u.path
  }
 
  // The small note under a message ("Friday's chat is closed — open it to talk"), nil when fine.

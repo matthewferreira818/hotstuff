@@ -362,8 +362,13 @@ private struct SwitchboardState: Codable {
 
  private func finished(job: Int,code: Int32,began: Date,out: URL) {
   let minutes = max(0,Int(Date().timeIntervalSince(began) / 60 + 0.5))
-  UsageLedger.shared.record(who:runningRelay.map { "Relay to \($0.name)" } ?? "Switchboard job",job:"#\(job)",started:began,ok:code == 0,
-                            data:(try? Data(contentsOf:out)) ?? Data())
+  // Ledger "ok" = PROVEN, not "the process ended" (New beginning, rule 1): a relay counts only if delivery was proven from
+  // SendMessage's own reply; a job only if the engine's result says it succeeded and nothing stopped it.
+  let ledgerData = (try? Data(contentsOf:out)) ?? Data()
+  let proven: Bool = runningRelay.map { r in
+   stopReason == nil && SwitchboardRules.parseRelay(ledgerData,target:r.name,expected:SwitchboardRules.relayMessage(r.comment)).delivered
+  } ?? (stopReason == nil && SwitchboardRules.parseOutcome(ledgerData,exitCode:code).ok)
+  UsageLedger.shared.record(who:runningRelay.map { "Relay to \($0.name)" } ?? "Switchboard job",job:"#\(job)",started:began,ok:proven,data:ledgerData)
   if let r = runningRelay {
    runningRelay = nil
    let data = (try? Data(contentsOf:out)) ?? Data()

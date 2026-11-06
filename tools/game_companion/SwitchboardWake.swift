@@ -211,9 +211,10 @@ import AppKit
   guard PingRules.wakeArgumentsAreSafe(args) else { return "failed" }
   let began = Date()
   let out = await runProcess(exe,args)
-  UsageLedger.shared.record(who:"Wake",job:job.chat,started:began,ok:!out.timedOut,data:out.data)
-  if out.timedOut { return "failed" }
   let r = SwitchboardRules.parseRelay(out.data,target:job.chat,expected:job.text)
+  // Ledger "ok" = delivery PROVEN (New beginning, rule 1). A wake that only finished, or is unproven, is not a green check.
+  UsageLedger.shared.record(who:"Wake",job:job.chat,started:began,ok:!out.timedOut && r.delivered,data:out.data)
+  if out.timedOut { return "failed" }
   if r.delivered { return "delivered" }
   if r.unproven { return "unconfirmed" }
   return r.detail.contains("isn't open") ? "not open" : "failed"

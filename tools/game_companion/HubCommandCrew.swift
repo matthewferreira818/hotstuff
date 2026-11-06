@@ -96,16 +96,22 @@ struct CoreCrewView: View {
     .background(HubTheme.hex(0x08080A),in:RoundedRectangle(cornerRadius:8))
     .overlay(RoundedRectangle(cornerRadius:8).stroke(Color.white.opacity(0.07),lineWidth:1))
    PixelCrewCard(crew:crew,visits:visits).frame(height:96,alignment:.top)
-   LazyVGrid(columns:[GridItem(.adaptive(minimum:118),spacing:10,alignment:.leading)],alignment:.leading,spacing:4) {
-    ForEach([(CrewState.working,"typing"),(.idle,"asleep"),(.away,"away"),(.failing,"run failed"),(.unknown,"no data")],id:\.1) { e in
-     HStack(spacing:5) { Circle().fill(color(e.0)).frame(width:7,height:7); Text(e.1).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
-    }
-    HStack(spacing:4) { Text("✉").font(.system(size:10)).foregroundStyle(CoreStyle.dim); Text("walking: messaged").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim) }
+   // One line whenever it fits (Matthew's 1000×680 minimum included); wraps only on a narrower window.
+   ViewThatFits(in:.horizontal) {
+    HStack(spacing:12) { legendItems }
+    LazyVGrid(columns:[GridItem(.adaptive(minimum:118),spacing:10,alignment:.leading)],alignment:.leading,spacing:4) { legendItems }
    }
   }
   .padding(13).frame(maxWidth:.infinity,alignment:.topLeading)
   .background(RoundedRectangle(cornerRadius:11).fill(HubTheme.hex(0x111114)))
   .overlay(RoundedRectangle(cornerRadius:11).stroke(Color.white.opacity(0.065),lineWidth:1))
+ }
+
+ @ViewBuilder var legendItems: some View {
+  ForEach([(CrewState.working,"typing"),(.idle,"asleep"),(.away,"away"),(.failing,"run failed"),(.unknown,"no data")],id:\.1) { e in
+   HStack(spacing:5) { Circle().fill(color(e.0)).frame(width:7,height:7); Text(e.1).font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1).fixedSize() }
+  }
+  HStack(spacing:4) { Text("✉").font(.system(size:10)).foregroundStyle(CoreStyle.dim); Text("walking: messaged").font(.system(size:10.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1).fixedSize() }
  }
 
  var listCard: some View {

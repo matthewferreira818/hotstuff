@@ -3,7 +3,7 @@
  * visits, with a best-effort offline mode.
  *
  * Strategy:
- *   - navigations + products.json: network first (never a stale catalog while
+ *   - navigations + products.json + lineup.json: network first (never a stale catalog while
  *     online), cached copy only as the offline fallback
  *   - same-origin static files: stale-while-revalidate
  *   - CJ product photos: stale-while-revalidate, capped so quota can't balloon
@@ -13,7 +13,7 @@
  * installed apps pick the new shell up on their next visit.
  */
 
-const VERSION = "v22";
+const VERSION = "v23";
 const SHELL_CACHE = `hotstuff-shell-${VERSION}`;
 const RUNTIME_CACHE = `hotstuff-runtime-${VERSION}`;
 const IMAGE_CACHE = `hotstuff-images-${VERSION}`;
@@ -104,7 +104,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (url.origin === self.location.origin) {
-    if (url.pathname.endsWith("/products.json")) {
+    if (url.pathname.endsWith("/products.json") || url.pathname.endsWith("/lineup.json")) {
       event.respondWith(networkFirst(request, RUNTIME_CACHE));
     } else {
       event.respondWith(staleWhileRevalidate(request, SHELL_CACHE));

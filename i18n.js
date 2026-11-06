@@ -30,6 +30,12 @@
     "trust-2": "<b>Livraison suivie gratuite</b><small>Sur les produits tendance — 24 pays</small>",
     "trust-3": "<b>Garantie 30 jours</b><small>Remboursement complet ou remplacement gratuit</small>",
     "trust-4": "<b>Un vrai humain au soutien</b><small>Réponse en 1 à 2 jours ouvrables</small>",
+    "chip-gifts": "🎁 Cadeaux à moins de 25 $",
+    "chip-jewelry": "Bijoux",
+    "chip-pet": "Animaux",
+    "chip-home": "Maison",
+    "chip-kitchen": "Cuisine",
+    "chip-fashion": "Mode",
     "trending-title": "Tendances de la semaine",
     "trending-sub": "Classé par score de tendance : le nombre de vendeurs qui listent chaque produit chez CJ Dropshipping, notre fournisseur. C'est un signal de popularité, pas des données de ventes.",
     "merch-eyebrow": "✨ Fraîchement arrivé",
@@ -88,6 +94,11 @@
     noMatches: "No matches — try fewer or different words.",
     sheetClose: "Close", sheetTrend: "Trend score",
     sheetListed: "Listed as:",
+    expectCard: "Ships from our supplier · usually 1–3 weeks · prices in USD · 30-day guarantee · <a href=\"terms/\">Terms</a>",
+    expectFull: "Ships from our supplier. Orders are processed in 1–3 business days and usually arrive in 1–3 weeks. Prices are in USD. 30-day guarantee. <a href=\"terms/\">Read the terms</a>",
+    lineupSoon: "New lineup in less than a day",
+    lineupOne: "New lineup in about 1 day",
+    lineupMany: "New lineup in about {n} days",
   };
   const T_FR = {
     buyNow: "Acheter", buy: "Acheter", redirecting: "Redirection…", uploading: "Téléversement…",
@@ -104,6 +115,11 @@
     noMatches: "Aucun résultat — essayez d'autres mots.",
     sheetClose: "Fermer", sheetTrend: "Indice de tendance",
     sheetListed: "Nom complet :",
+    expectCard: "Expédié par notre fournisseur · habituellement 1 à 3 semaines · prix en USD · garantie 30 jours · <a href=\"terms/\">Conditions</a>",
+    expectFull: "Expédié par notre fournisseur. Les commandes sont traitées en 1 à 3 jours ouvrables et arrivent habituellement en 1 à 3 semaines. Prix en USD. Garantie de 30 jours. <a href=\"terms/\">Lire les conditions</a>",
+    lineupSoon: "Nouvelle sélection dans moins d'une journée",
+    lineupOne: "Nouvelle sélection dans environ 1 jour",
+    lineupMany: "Nouvelle sélection dans environ {n} jours",
   };
 
   const saved = new Map(); // element -> original EN innerHTML
@@ -140,6 +156,12 @@
       const m = c.textContent.match(/^(All|Tout) \((\d+)\)$/);
       if (m) c.textContent = `${window.HT_T.all} (${m[2]})`;
     });
+
+    document.querySelectorAll(".expect-line[data-expect]").forEach((el) => {
+      const t = window.HT_T[el.dataset.expect];
+      if (t) el.innerHTML = t;
+    });
+    if (typeof window.HT_RENDER_LINEUP === "function") window.HT_RENDER_LINEUP();
 
     const searchBox = document.getElementById("product-search");
     if (searchBox) searchBox.placeholder = window.HT_T.searchPlaceholder;

@@ -77,6 +77,67 @@ function focusLinkedProduct() {
   requestAnimationFrame(() => card.scrollIntoView({ behavior: "smooth", block: "center" }));
 }
 
+/* --- "New lineup in about N days" -------------------------------------
+   The catalogue is rebuilt by .github/workflows/refresh-products.yml, cron
+   "0 9 every-3rd-day-of-month * *" = 09:00 UTC on days 1,4,7,...,31 of each month (days that
+   don't exist in a month are skipped, so the gap before the 1st can be 1-3
+   days). lineup.json holds the UTC time of the last real refresh, written by
+   refresh_products.py. The note shows ONLY when the last refresh has already
+   landed for the most recent scheduled slot; if that refresh is missing,
+   late or failed, the file is unreadable, or the clock looks wrong, the note
+   stays hidden rather than guess. If the cron changes, change SLOT_* here. */
+const SLOT_HOUR_UTC = 9;
+function scheduledSlot(year, month, day) {
+  return Date.UTC(year, month, day, SLOT_HOUR_UTC, 0, 0);
+}
+function lineupSlots(now) {
+  // every scheduled slot from last month through next month, in order
+  const out = [];
+  const base = new Date(now);
+  for (let m = -1; m <= 1; m++) {
+    const first = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + m, 1));
+    const y = first.getUTCFullYear(), mo = first.getUTCMonth();
+    const dim = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate();
+    for (let d = 1; d <= dim; d += 3) out.push(scheduledSlot(y, mo, d));
+  }
+  return out;
+}
+// Returns whole-day estimate (0 = under a day) or null when not sure.
+function nextLineupDays(refreshedAtMs, now) {
+  if (!Number.isFinite(refreshedAtMs)) return null;
+  if (refreshedAtMs > now + 5 * 60 * 1000) return null;        // clock or file looks wrong
+  const slots = lineupSlots(now);
+  const last = [...slots].reverse().find((t) => t <= now);
+  const next = slots.find((t) => t > now);
+  if (last == null || next == null) return null;
+  if (refreshedAtMs < last) return null;                       // latest refresh not seen: late/failed
+  const hours = (next - now) / 36e5;
+  if (hours < 2) return null;                                  // too close to call: runs can lag hours
+  if (hours < 24) return 0;
+  return Math.round(hours / 24);
+}
+let lineupRefreshedAt = null;
+function renderLineupNote() {
+  const el = document.getElementById("next-lineup");
+  if (!el) return;
+  const n = lineupRefreshedAt == null ? null : nextLineupDays(lineupRefreshedAt, Date.now());
+  if (n == null) { el.hidden = true; el.textContent = ""; return; }
+  el.textContent = n === 0 ? T("lineupSoon", "New lineup in less than a day")
+    : n === 1 ? T("lineupOne", "New lineup in about 1 day")
+    : T("lineupMany", "New lineup in about {n} days").replace("{n}", n);
+  el.hidden = false;
+}
+async function loadLineupNote() {
+  try {
+    const res = await fetch("lineup.json", { cache: "no-store" });
+    if (!res.ok) return;
+    const data = await res.json();
+    lineupRefreshedAt = Date.parse(data && data.refreshedAt);
+    renderLineupNote();
+  } catch (e) { /* no note is better than a wrong note */ }
+}
+window.HT_RENDER_LINEUP = renderLineupNote;
+
 function renderSkeletons(grid, n) {
   for (let i = 0; i < n; i++) {
     const card = document.createElement("div");
@@ -244,6 +305,19 @@ function categoryColor(cat) {
   return CATEGORY_FALLBACK[h % CATEGORY_FALLBACK.length];
 }
 
+/* "What to expect" line next to every Buy now button. Wording mirrors
+   terms/index.html (processed within 1-3 business days; delivery typically
+   1-3 weeks; prices in US dollars; 30-day guarantee). If the terms change,
+   change these strings (and the FR ones in i18n.js) the same day. The
+   data-expect key lets i18n.js re-translate it when the language toggles. */
+function expectLine(key, fallback) {
+  const el = document.createElement("p");
+  el.className = "expect-line";
+  el.dataset.expect = key;
+  el.innerHTML = T(key, fallback);
+  return el;
+}
+
 function buildCard(p) {
   const price = (Number(p.price) || 0).toFixed(2);
 
@@ -341,7 +415,8 @@ function buildCard(p) {
   buyButton.textContent = T("buyNow", "Buy now");
   buyButton.addEventListener("click", () => startCheckout(p.id, buyButton));
 
-  body.append(category, name, desc, footer, buyButton);
+  body.append(category, name, desc, footer, buyButton, expectLine("expectCard",
+    "Ships from our supplier · usually 1–3 weeks · prices in USD · 30-day guarantee · <a href=\"terms/\">Terms</a>"));
   card.append(thumb, body);
 
   return card;
@@ -456,7 +531,8 @@ function openProductSheet(p) {
     listed.textContent = `${T("sheetListed", "Listed as:")} ${p.fullName}`;
     els.body.appendChild(listed);
   }
-  els.body.append(meta, buyButton);
+  els.body.append(meta, buyButton, expectLine("expectFull",
+    "Ships from our supplier. Orders are processed in 1–3 business days and usually arrive in 1–3 weeks. Prices are in USD. 30-day guarantee. <a href=\"terms/\">Read the terms</a>"));
 
   els.backdrop.hidden = false;
   requestAnimationFrame(() => els.backdrop.classList.add("open"));
@@ -539,6 +615,7 @@ function showOrderStatusBanner() {
 document.getElementById("year").textContent = new Date().getFullYear();
 showOrderStatusBanner();
 loadProducts();
+loadLineupNote();
 
 /* --- Custom-design merch: upload art, then buy (middleman flow) --- */
 (function initCustomMerch() {

@@ -2,6 +2,8 @@ name: Refresh trending products
 
 on:
   schedule:
+    # NOTE: script.js (nextLineupDays) mirrors this schedule for the store's
+    # "New lineup in about N days" note. Change one, change the other.
     # every 3 days at 09:00 UTC (fires on days 1,4,7,...,28,31 of each month;
     # the month boundary makes one interval shorter than 3 days — close enough)
     - cron: "0 9 */3 * *"
@@ -78,7 +80,7 @@ jobs:
         id: commit
         if: steps.gate.outputs.run == 'true'
         run: |
-          git add products.json rotation-history.json marketing/latest-posts.md marketing/tiktok marketing/pinterest c gifts sitemap.xml
+          git add products.json lineup.json rotation-history.json marketing/latest-posts.md marketing/tiktok marketing/pinterest c gifts sitemap.xml
           if ! git diff --cached --quiet; then
             git config user.name "wavelist-bot"
             git config user.email "actions@users.noreply.github.com"

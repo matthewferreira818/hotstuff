@@ -16,6 +16,7 @@ import re
 import time
 import urllib.request
 import urllib.error
+from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).parent
@@ -1110,6 +1111,12 @@ def main():
     polish_names(site_products)
     PRODUCTS_FILE.write_text(json.dumps(site_products, indent=2) + "\n")
     print(f"Wrote {len(site_products)} products to {PRODUCTS_FILE}")
+
+    # When this rotation really happened (UTC). The storefront's "New lineup in
+    # about N days" note reads it and hides itself if it is older than the
+    # latest scheduled run, so it can never show a number for a missed refresh.
+    (HERE / "lineup.json").write_text(json.dumps(
+        {"refreshedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}, indent=2) + "\n")
 
     save_history(history, [p["id"] for p in site_products])
     print(f"Rotation history now spans {min(len(history) + 1, ROTATION_MEMORY)} "

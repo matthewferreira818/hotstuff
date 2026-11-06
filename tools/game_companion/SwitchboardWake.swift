@@ -12,8 +12,12 @@ import AppKit
  // Per room message: who was pinged and how it went. The screen reads this (result(forComment:)); the same shape is saved to pings.json.
  @Published private(set) var results: [Int64: PingResult] = [:]
 
- enum Kind { case room(Int64),dm([String]) }
+ // .handoff: this wake goes to a BACKUP (Friday / LC-Manager) because `original` chat was closed; `rest` are the backups still to try.
+ // .held: a later probe, delivering the copy kept for the chat that was closed.
+ enum Kind { case room(Int64),dm([String]),handoff(origin: Int64,original: String,body: String,rest: [String],ref: String),held(String) }
  struct Job { var chat: String; var text: String; var kind: Kind }
+ @Published private(set) var held: [PingRules.Held] = []
+ private var probeLoop: Task<Void,Never>?
 
  private var queue: [Job] = []
  private var running = false
@@ -26,6 +30,7 @@ import AppKit
   try? FileManager.default.createDirectory(at:dir,withIntermediateDirectories:true)
   return dir
  }()
+ private var heldURL: URL { folder.appendingPathComponent("held.json") }
  private var resultsURL: URL { folder.appendingPathComponent("pings.json") }
  private var workURL: URL {
   let dir = folder.appendingPathComponent("wake-work",isDirectory:true)
@@ -35,6 +40,71 @@ import AppKit
 
  private init() {
   if let d = try? Data(contentsOf:resultsURL), let r = try? DMRules.decoder.decode([PingResult].self,from:d) { results = Dictionary(uniqueKeysWithValues:r.map { ($0.id,$0) }) }
+  if let d = try? Data(contentsOf:heldURL), let h = try? DMRules.decoder.decode([PingRules.Held].self,from:d) { held = h }
+ }
+
+ // Called once at app start (Switchboard.boot): resumes the 15-minute probes for copies still held for a closed chat.
+ func start() {
+  guard probeLoop == nil else { return }
+  probeLoop = Task { [weak self] in
+   while !Task.isCancelled {
+    try? await Task.sleep(nanoseconds:60_000_000_000)
+    self?.probeHeld()
+   }
+  }
+ }
+
+ private func saveHeld() { if let d = try? DMRules.encoder.encode(held) { try? d.write(to:heldURL,options:.atomic) } }
+
+ private func probeHeld(now: Date = Date()) {
+  let expired = held.filter { PingRules.heldExpired($0,now:now) }
+  if !expired.isEmpty {
+   held.removeAll { h in expired.contains { $0.id == h.id } }
+   saveHeld()
+   for h in expired { Switchboard.shared.logPing("Held copy for \(h.chat) (message \(h.origin)) dropped after 12 hours.") }
+  }
+  guard queue.isEmpty, !running else { return }
+  guard let i = held.firstIndex(where:{ PingRules.heldDue($0,now:now) }) else { return }
+  guard PingRules.gate(chat:held[i].chat,now:now,last:[:],sent:sent) == .go else { return }
+  held[i].lastTry = now
+  saveHeld()
+  sent.append(now)
+  queue.append(Job(chat:held[i].chat,text:PingRules.heldText(held[i]),kind:.held(held[i].id)))
+  pump()
+ }
+
+ // MARK: closed chats (a wake or relay came back "isn't open")
+
+ // Hand the message to the backup manager AT ONCE, and keep one copy for the original chat.
+ func handOff(chat: String,original: String,origin: Int64,ref: String,now: Date = Date()) {
+  var r = results[origin] ?? PingResult(id:origin,at:now,targets:[:])
+  r.targets[chat] = "pending"
+  results[origin] = r
+  saveResults()
+  let id = "\(origin)-\(SwitchboardRules.NameMatch.loose(chat))"
+  if !held.contains(where:{ $0.id == id }) {
+   held.append(PingRules.Held(id:id,chat:chat,text:original,origin:origin,since:now))
+   saveHeld()
+  }
+  startHandOff(chat:chat,original:original,rest:PingRules.backups(for:chat),origin:origin,ref:ref)
+ }
+
+ private func startHandOff(chat: String,original: String,rest: [String],origin: Int64,ref: String) {
+  guard let backup = rest.first else {
+   // nobody could take it: the screen says so, the Hotline gets one line, the held copy stays for when the chat reopens
+   setTarget(origin,chat,"closed")
+   Task { _ = await Switchboard.shared.postHotline(PingRules.hotlineLine(chat:chat,backup:nil,ref:ref)) }
+   return
+  }
+  queue.append(Job(chat:backup,text:PingRules.handOffText(chat:chat,original:original),kind:.handoff(origin:origin,original:chat,body:original,rest:Array(rest.dropFirst()),ref:ref)))
+  pump()
+ }
+
+ private func setTarget(_ origin: Int64,_ chat: String,_ state: String) {
+  var r = results[origin] ?? PingResult(id:origin,at:Date(),targets:[:])
+  r.targets[chat] = state
+  results[origin] = r
+  saveResults()
  }
 
  func result(forComment id: Int64) -> PingResult? { results[id] }
@@ -52,7 +122,7 @@ import AppKit
   for chat in chats {
    switch PingRules.gate(chat:chat,now:now,last:lastWake,sent:sent) {
    case .go:
-    lastWake[SwitchboardRules.normalized(chat)] = now
+    lastWake[SwitchboardRules.NameMatch.loose(chat)] = now
     sent.append(now)
     r.targets[chat] = "pending"
     queue.append(Job(chat:chat,text:PingRules.wakeText(link:link),kind:.room(commentID)))
@@ -100,11 +170,34 @@ import AppKit
  private func finish(_ job: Job,state: String) {
   switch job.kind {
   case .room(let id):
-   if var r = results[id] { r.targets[job.chat] = state; results[id] = r; saveResults() }
    Switchboard.shared.logPing("Room message \(id): pinged \(job.chat): \(state).")
+   if state == "not open" {
+    // The text of a room ping is a link, so it can be passed on as is.
+    let link = job.text.hasPrefix(PingRules.wakeFor) ? String(job.text.dropFirst(PingRules.wakeFor.count)) : job.text
+    handOff(chat:job.chat,original:"new room message for \(job.chat): \(link)",origin:id,ref:"room message \(id)")
+   } else {
+    setTarget(id,job.chat,state)
+   }
   case .dm(let ids):
    FridayDM.shared.record(ids:ids,state:state == "delivered" ? "woken" : (state == "not open" ? "closed" : (state == "unconfirmed" ? "unconfirmed" : "failed")))
    Switchboard.shared.logPing("Friday DM wake: \(state).")   // never the DM
+  case .handoff(let origin,let original,let body,let rest,let ref):
+   if state == "delivered" {
+    setTarget(origin,original,"handed to \(job.chat)")
+    Switchboard.shared.logPing("\(original) is closed: \(job.chat) has \(ref).")
+    Task { _ = await Switchboard.shared.postHotline(PingRules.hotlineLine(chat:original,backup:job.chat,ref:ref)) }
+   } else {
+    Switchboard.shared.logPing("\(original) is closed and \(job.chat) couldn't take \(ref): \(state).")
+    startHandOff(chat:original,original:body,rest:rest,origin:origin,ref:ref)
+   }
+  case .held(let id):
+   guard let h = held.first(where:{ $0.id == id }) else { return }
+   if state == "delivered" {
+    held.removeAll { $0.id == id }
+    saveHeld()
+    setTarget(h.origin,h.chat,"delivered later")
+    Switchboard.shared.logPing("\(h.chat) reopened: the held copy for message \(h.origin) was delivered.")
+   }   // not open / failed: it stays held, the next probe is in 15 minutes
   }
  }
 

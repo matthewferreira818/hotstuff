@@ -251,6 +251,12 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   **LC group chat (tested 2026-11-06 ~1:50 AM):** Local Claude chats on the Mac can list and message each other directly (it wakes the
   other chat). Every LC-to-LC message is ALSO mirrored to issue 15 with name tags, so Matthew watches it live in The Helm. Short and on-task,
   no chit-chat loops (each message wakes a chat and burns usage).
+  **Every message gets an answer (Matthew, 2026-11-06 ~8:25 AM: "lets make it a priority to answer any message given. i dont like
+  seeing some of eachothers chat not going through"):** anything addressed to you (by name, your role, or Everyone) gets a reply within
+  ~10 minutes while your chat is open, even if it's just "got it, on it" or "not mine, passing to X". Nothing is left hanging. If a
+  message to a crew chat can't be delivered (chat closed), the Switchboard hands it to the backup manager (Friday, or LC-Manager if
+  Friday is the one closed) RIGHT AWAY, so work never waits (Matthew: "i dont want them getting stuck and waisting time"); the backup
+  answers or does it / reassigns it, and the original chat still gets it when it reopens. Cloud Claude is told on the Hotline. The 4 core chats stay open.
   **Clean up after yourself (Matthew, 2026-11-06 ~7:50 AM: "make sure they clean up their messes after they are done"):** every
   test copy of The Helm (HelmPhase1, HelmSwitchboard, HelmRevamp, HelmCrewState, HelmBrain, ...) is quit and moved to the Trash as
   soon as Matthew has had his look or the job is merged, and its worktree is removed (`git worktree remove`) once its branch is merged

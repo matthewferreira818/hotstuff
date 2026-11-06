@@ -74,6 +74,7 @@ private struct SwitchboardState: Codable {
   claudeVersion = Self.checkClaude().version
   if on { startLoop() }
   FridayDM.shared.start()   // the private Friday-and-me DM engine (works with the switch ON or OFF)
+  WakeRunner.shared.start() // resumes probing for copies held for a closed chat
   SwitchboardTestHooks.boot(self)
  }
 
@@ -211,6 +212,9 @@ private struct SwitchboardState: Codable {
 
  // The wake runner's log lines (names and outcomes only).
  func logPing(_ text: String) { add("ping",text) }
+
+ // One line on the Hotline (PR 35) so cloud Claude sees a hand-off. Names and a reference only, never message words.
+ func postHotline(_ text: String) async -> Bool { await post(text,thread:SwitchboardRules.hotline) }
 
  // GitHub goes through Matthew's own `gh` login (the same one every Local Claude uses). The Switchboard never holds or stores a key.
  // Arguments are an array, no shell, so a comment's text can't become a command.
@@ -364,6 +368,10 @@ private struct SwitchboardState: Codable {
    add(result.delivered ? "done" : (result.unproven ? "unproven" : "failed"),
        "Relay \(job) of comment \(r.comment.id) to \(r.name): \(result.delivered ? "delivered" : (result.detail.isEmpty ? "not delivered" : result.detail)) (\(minutes) min)")
    stopReason = nil; process = nil; runningJob = nil; runningSince = nil; runningTitle = ""
+   if !result.delivered && !result.unproven && result.detail.contains("isn't open") {
+    // The chat is closed: hand the message to the backup manager at once and keep a copy for when it reopens (Co-CEO, Matthew: "no waiting").
+    WakeRunner.shared.handOff(chat:r.name,original:SwitchboardRules.relayMessage(r.comment),origin:r.comment.id,ref:"Hotline comment \(r.comment.id)")
+   }
    let line = SwitchboardRules.mirrorRelay(r.comment,name:r.name,result:result)
    // Fix H (cloud Claude, 07:25): relay receipts go to issue 15 ONLY. A Hotline post would wake cloud Claude on every relay
    // (usage), and a named reply to it would be relayed again (loop risk).

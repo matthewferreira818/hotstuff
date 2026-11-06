@@ -42,7 +42,7 @@ enum CrewSignals {
   if let newest = recent.max(by:{ $0.date < $1.date }) {
    return (.working,"working · \(newest.what) (\(CrewData.ago(newest.date,now:now)))",newest.date)
   }
-  if failed { return (.unknown,"unknown (couldn't reach GitHub)",nil) }
+  if failed { return (.unknown,"unknown (\(GitHubRead.limitMessage() ?? "couldn't reach GitHub"))",nil) }
   let older = signals.filter { $0.chat == key }.max(by:{ $0.date < $1.date })
   return (.idle,older.map { "idle · no sign in 30 min (last: \(CrewData.ago($0.date,now:now)))" } ?? "idle · no sign in 30 min",older?.date)
  }
@@ -60,7 +60,7 @@ enum CrewSignals {
  static var token: String? = nil   // optional: a caller that already holds the GitHub key can set it (5000 reads/h instead of 60)
  static func refreshIfStale() {
   lock.lock()
-  if inFlight || Date().timeIntervalSince(lastStart) < ((token ?? "").isEmpty ? 360 : 180) { lock.unlock(); return }
+  if inFlight || (GitHubRead.limitedUntil != nil && token == nil && !FileManager.default.isExecutableFile(atPath:GitHubRead.ghPath)) || Date().timeIntervalSince(lastStart) < ((token ?? "").isEmpty ? 360 : 180) { lock.unlock(); return }
   inFlight = true; lastStart = Date(); lock.unlock()
   Task.detached {
    let result = await fetch(token:token)
@@ -96,8 +96,7 @@ enum CrewSignals {
  }
 
  static func fetch(token: String?,now: Date = Date()) async -> (signals: [CrewSignal],failed: Bool,loaded: Bool) {
-  guard let req = MeetingData.api("/events?per_page=100",token:token), let (data,resp) = try? await URLSession.shared.data(for:req),
-        (resp as? HTTPURLResponse)?.statusCode == 200, let signals = parseEvents(data,now:now) else { return ([],true,true) }
+  guard let r = await GitHubRead.get("/events?per_page=100",token:token), r.status == 200, let signals = parseEvents(r.body,now:now) else { return ([],true,true) }
   return (signals,false,true)
  }
 }

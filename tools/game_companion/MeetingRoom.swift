@@ -12,6 +12,7 @@ import Combine
  // The crew chat (tab 6): one read-only timeline of the room and the Hotline. Its changes are passed on so views refresh.
  let chat = CrewChatHub()
  private var chatWatch: AnyCancellable?
+ private var retryTask: Task<Void,Never>?
  // Honest status of the room read: when it last worked, and whether the last try failed (then nothing old is shown as current).
  @Published var threadAt: Date?
  @Published var threadFailed = false
@@ -55,18 +56,24 @@ import Combine
   let token: String? = hasToken ? savedToken() : nil
   // The crew strip uses the same saved GitHub access (no new key): it then refreshes every 3 minutes instead of 6.
   CrewSignals.token = token
-  async let boardResult = MeetingData.fetch(token:token)
-  async let messageResult = MeetingData.fetchMessages(token:token)
+  async let boardResult = RoomRead.board(token:token)
+  async let messageResult = RoomRead.thread(MeetingData.issue,token:token)
   var (fresh,thread) = await (boardResult,messageResult)
   if token != nil {
-   if fresh == nil { fresh = await MeetingData.fetch(token:nil) }
-   if thread == nil { thread = await MeetingData.fetchMessages(token:nil) }
   }
   if let fresh = fresh { board = fresh; failed = false } else { failed = (board == nil) }
   if let thread = thread { messages = thread; threadAt = Date(); threadFailed = false } else { threadFailed = true }
   lastRefresh = Date()
   // The crew chat reads with the same Refresh (and the once-a-minute refresh while the Messages page is open).
   if tab == 6 { await chat.refresh(token:token,force:force) }
+  // When GitHub's free limit is used up, try again right after it resets.
+  if let until = GitHubRead.limitedUntil, retryTask == nil {
+   retryTask = Task { [weak self] in
+    try? await Task.sleep(nanoseconds:UInt64(max(1,until.timeIntervalSinceNow + 5) * 1_000_000_000))
+    await MainActor.run { self?.retryTask = nil }
+    await self?.refresh(force:true)
+   }
+  }
  }
 
  var needs: MatthewNeeds { MeetingData.needs(board:board,messages:messages) }

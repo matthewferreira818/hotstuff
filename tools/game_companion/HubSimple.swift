@@ -115,7 +115,7 @@ extension CompanionInterfaceView {
 
  var simpleGreetingLine: String {
   let cards = deckOkCards
-  if meeting.threadFailed { return "Couldn't reach your crew's messages, so I can't say what needs you." }
+  if meeting.threadFailed { return GitHubRead.limitMessage().map { "I can't see what needs you. \($0)" } ?? "Couldn't reach your crew's messages, so I can't say what needs you." }
   if meeting.messages.isEmpty { return meeting.loading ? "Checking in with the crew…" : "Tap Refresh to check in with the crew." }
   return cards.isEmpty ? "Nothing is waiting for you right now." : "\(cards.count) \(cards.count == 1 ? "thing is" : "things are") waiting for you."
  }
@@ -197,7 +197,7 @@ extension CompanionInterfaceView {
   let cards = meeting.threadFailed ? [] : Array(deckOkCards.prefix(2))
   return simpleCard("Needs you",help:"Things the crew is waiting on you for. Yes opens a reply with a yes typed in; you still press Post. Not now hides it for today.") {
    if meeting.threadFailed {
-    Text("Unknown right now (couldn't reach your crew's messages).").font(.system(size:15)).foregroundStyle(HubTheme.amber)
+    Text(GitHubRead.limitMessage() ?? "Unknown right now (couldn't reach your crew's messages).").font(.system(size:15)).foregroundStyle(HubTheme.amber)
    } else if cards.isEmpty {
     Text(meeting.messages.isEmpty ? "The room hasn't loaded yet." : "Nothing right now. Enjoy it.").font(.system(size:15)).foregroundStyle(HubTheme.subtext)
    }
@@ -211,7 +211,7 @@ extension CompanionInterfaceView {
      }
     }
    }
-   Text(meeting.threadFailed ? "unknown (couldn't reach your crew's messages)" : (meeting.threadAt.map { "as of \(crewChatTime($0)), from your crew's messages" } ?? "loading from your crew's messages…")).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
+   Text(meeting.threadFailed ? (GitHubRead.limitMessage() != nil ? "" : "unknown (couldn't reach your crew's messages)") : (meeting.threadAt.map { "as of \(crewChatTime($0)), from your crew's messages" } ?? "loading from your crew's messages…")).font(.system(size:11)).foregroundStyle(HubTheme.subtext)
   }
  }
 
@@ -232,7 +232,7 @@ extension CompanionInterfaceView {
   return simpleCard("Today",help:"A quick look at what your helpers and practice robots are doing. Real data from the room and GitHub.") {
    if crew.count <= 1 && meeting.messages.isEmpty { Text("Loading what everyone is up to…").font(.system(size:15)).foregroundStyle(HubTheme.subtext) }
    else {
-    Text(meeting.threadFailed ? "Who is working: unknown (couldn't reach your crew's messages)." : working.isEmpty ? "Nobody is in the middle of a job right now." : "Working now: " + working.prefix(3).joined(separator:", ") + (working.count > 3 ? " and \(working.count - 3) more" : "") + ".")
+    Text(meeting.threadFailed ? "Who is working: unknown. \(GitHubRead.limitMessage() ?? "Couldn't reach your crew's messages.")" : working.isEmpty ? "Nobody is in the middle of a job right now." : "Working now: " + working.prefix(3).joined(separator:", ") + (working.count > 3 ? " and \(working.count - 3) more" : "") + ".")
      .font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
     if !robots.isEmpty {
      Text("\(robots.filter { $0.state != .unknown }.count) of \(robots.count) practice robots have checked in" + (robotsRunning > 0 ? ", \(robotsRunning) running now." : ".")).font(.system(size:14)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)

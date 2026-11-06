@@ -39,3 +39,8 @@ NOT on master. Goes to master only after Matthew's GO and LC-Manager's gate.
 - Friday page (Simple mode): orb, then the chat box, then ONE Voice button; voice/hands/clip controls and the Google Live pill appear only when Voice is opened or voice is on. Advanced mode keeps the old layout (deckFridayFull).
 - Store tab: orders journey line on top ("Orders: not tracked yet · Goal: first sale", same source as Home), plain visitor wording (Visitors today / This week / This month), "as of <time>, from GoatCounter".
 - ROLLBACK: revert the polish-2 commit on friday-phase1-crew. Not tested: Voice controls with a live session on, Store with a real Stripe key, Sources/Catalog/Sales sub-tabs wording, -O build.
+
+## Rate-limit fix (GitHub free limit)
+- GitHubRead.swift: every GitHub read goes key -> Matthew's gh login -> keyless. A used-up free limit (403/429, remaining 0) shows "GitHub's free limit is used up. Trying again at <time>." on Messages, Home and the crew strip, and the Meeting Room retries right after the reset. Offline check: checks/githubread_check.swift (run checks/run.sh). Test hook: test.forceLimit.
+- ROLLBACK: revert this commit; the app then reads keyless/with the saved key as before.
+- Not tested: gh not logged in / missing on a real install (falls back to keyless), the auto-retry firing at the reset time, -O build.

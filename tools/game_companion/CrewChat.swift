@@ -11,19 +11,7 @@ enum CrewChatData {
 
  // Newest 200 comments of one issue or pull request thread, tagged with where they came from. Nil means the read failed.
  static func fetch(issue: Int,source: String,token: String?) async -> [RoomMessage]? {
-  guard let first = MeetingData.api("/issues/\(issue)/comments?per_page=100",token:token) else { return nil }
-  guard let (data,response) = try? await URLSession.shared.data(for:first),
-        (response as? HTTPURLResponse)?.statusCode == 200, var all = MeetingData.parseMessages(data) else { return nil }
-  if let link = (response as? HTTPURLResponse)?.value(forHTTPHeaderField:"Link"), let last = MeetingData.lastPage(link), last > 1 {
-   var more: [RoomMessage] = []
-   for page in (last > 2 ? [last - 1,last] : [last]) {
-    guard let request = MeetingData.api("/issues/\(issue)/comments?per_page=100&page=\(page)",token:token),
-          let (d,resp) = try? await URLSession.shared.data(for:request), (resp as? HTTPURLResponse)?.statusCode == 200,
-          let got = MeetingData.parseMessages(d) else { return nil }   // a missing page would leave a hole: treat as a failed read
-    more += got
-   }
-   all = more
-  }
+  guard var all = await RoomRead.thread(issue,token:token) else { return nil }
   for i in all.indices { all[i].source = source }
   return all
  }
@@ -65,11 +53,6 @@ enum CrewChatData {
   async let room = CrewChatData.fetch(issue:MeetingData.issue,source:"",token:token)
   async let hotline = CrewChatData.fetch(issue:CrewChatData.hotlinePR,source:"hotline",token:token)
   var (a,b) = await (room,hotline)
-  // A saved key that GitHub no longer accepts (401) must not hide a public thread: retry the failed read without it, like the Meeting Room does.
-  if token != nil {
-   if a == nil { a = await CrewChatData.fetch(issue:MeetingData.issue,source:"",token:nil) }
-   if b == nil { b = await CrewChatData.fetch(issue:CrewChatData.hotlinePR,source:"hotline",token:nil) }
-  }
   if let a = a, let b = b, !forced {
    messages = (a + b).sorted { ($0.date ?? .distantPast) < ($1.date ?? .distantPast) }
    status = .loaded(Date())
@@ -103,7 +86,7 @@ extension CompanionInterfaceView {
    }
    switch meeting.chat.status {
    case .failed:
-    Text("Couldn't load your crew's messages. Tap Refresh to try again.").font(.system(size:15)).foregroundStyle(HubTheme.amber).padding(.vertical,30).frame(maxWidth:.infinity)
+    Text(GitHubRead.limitMessage() ?? "Couldn't load your crew's messages. Tap Refresh to try again.").font(.system(size:15)).foregroundStyle(HubTheme.amber).padding(.vertical,30).frame(maxWidth:.infinity)
    case .idle,.loading:
     if list.isEmpty { Text("Loading…").font(.system(size:15)).foregroundStyle(HubTheme.subtext).padding(.vertical,30).frame(maxWidth:.infinity) }
     else { crewChatList(list) }
@@ -120,7 +103,7 @@ extension CompanionInterfaceView {
   case .idle: return "Not loaded yet"
   case .loading: return "Loading…"
   case .loaded(let at): return "Updated \(crewChatTime(at)) · newest at the bottom"
-  case .failed(let at): return "Couldn't load your crew's messages (as of \(crewChatTime(at)))"
+  case .failed(let at): return GitHubRead.limitMessage() ?? "Couldn't load your crew's messages (as of \(crewChatTime(at)))"
   }
  }
 

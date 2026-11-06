@@ -22,6 +22,8 @@ extension CompanionInterfaceView {
      }
      .padding(.horizontal,22).padding(.bottom,18)
     }
+    // Friday's Switchboard (HubSwitchboard.swift): its on/off switch and job log.
+    SwitchboardPanel(compact:!showCards).padding(.horizontal,22).padding(.bottom,14)
    }
   }
   .background(HubTheme.background.opacity(0.0))

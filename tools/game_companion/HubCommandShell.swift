@@ -24,6 +24,10 @@ struct CoreObservation: Identifiable {
  var run: (() -> Void)? = nil
 }
 
+// The width the Command Core content has, so every tab can reflow instead of squeezing (Matthew, 2026-11-06: "shift sizes", no overlaps).
+private struct CoreWidthKey: EnvironmentKey { static let defaultValue: CGFloat = 1200 }
+extension EnvironmentValues { var coreWidth: CGFloat { get { self[CoreWidthKey.self] } set { self[CoreWidthKey.self] = newValue } } }
+
 struct CoreShell: View {
  var title: String
  var subtitle: String
@@ -45,14 +49,16 @@ struct CoreShell: View {
  }
 
  var body: some View {
-  VStack(spacing:0) {
-   header
-   content.frame(maxWidth:.infinity,maxHeight:.infinity)
-   bottomBar
+  GeometryReader { geo in
+   VStack(spacing:0) {
+    header(geo.size.width)
+    content.frame(maxWidth:.infinity,maxHeight:.infinity).environment(\.coreWidth,geo.size.width)
+    bottomBar(geo.size.width)
+   }
   }
  }
 
- var header: some View {
+ func header(_ width: CGFloat) -> some View {
   HStack(alignment:.bottom,spacing:14) {
    VStack(alignment:.leading,spacing:3) {
     (Text("Command Core ").foregroundStyle(CoreStyle.crimson) + Text("/ \(title)").foregroundStyle(CoreStyle.ink))
@@ -60,6 +66,7 @@ struct CoreShell: View {
     Text(subtitle).font(.system(size:12,design:.rounded)).foregroundStyle(subtitleTone == 0 ? CoreStyle.dim : tone(subtitleTone)).lineLimit(1)
    }
    Spacer(minLength:0)
+   if width >= 900 {
    HStack(spacing:12) {
     ForEach(Array(lights.enumerated()),id:\.offset) { _,l in
      HStack(spacing:5) {
@@ -69,19 +76,20 @@ struct CoreShell: View {
      .help(l.2)
     }
    }
+   }
   }
   .padding(.horizontal,24).padding(.top,12).padding(.bottom,10)
  }
 
  // MARK: one slim bottom bar (reference): activity & command line on the left, Friday on the right. Each opens its own panel above it.
 
- var bottomBar: some View {
+ func bottomBar(_ width: CGFloat) -> some View {
   let top = observations.first
   return VStack(spacing:0) {
    if ui.drawerOpen || ui.fridayOpen {
     HStack(alignment:.top,spacing:14) {
      if ui.drawerOpen { VStack(spacing:8) { tape.frame(height:140); terminal }.frame(maxWidth:.infinity) }
-     if ui.fridayOpen { fridayList.frame(width:ui.drawerOpen ? 340 : nil).frame(maxWidth:ui.drawerOpen ? 340 : .infinity) }
+     if ui.fridayOpen && !(ui.drawerOpen && width < 900) { fridayList.frame(width:ui.drawerOpen ? 340 : nil).frame(maxWidth:ui.drawerOpen ? 340 : .infinity) }
     }
     .padding(.horizontal,22).padding(.top,10).padding(.bottom,4)
     .transition(.move(edge:.bottom).combined(with:.opacity))
@@ -91,7 +99,7 @@ struct CoreShell: View {
      HStack(spacing:8) {
       Circle().fill(CoreStyle.emerald).frame(width:6,height:6)
       Text("Activity & Command Line").font(.system(size:12,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.85))
-      Text(newest).font(DeckMono.font(11)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+      if width >= 900 { Text(newest).font(DeckMono.font(11)).foregroundStyle(CoreStyle.dim).lineLimit(1) }
      }
      .contentShape(Rectangle())
     }.buttonStyle(.plain)
@@ -99,7 +107,7 @@ struct CoreShell: View {
     Button { withAnimation(reduceMotion ? nil : .easeInOut(duration:0.25)) { ui.fridayOpen.toggle() } } label: {
      HStack(spacing:7) {
       Circle().fill(top.map { tone($0.tone) } ?? CoreStyle.dim).frame(width:6,height:6)
-      Text(top.map { "Friday: " + $0.text } ?? "Friday").font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.8)).lineLimit(1).frame(maxWidth:300,alignment:.trailing)
+      Text(width >= 760 ? (top.map { "Friday: " + $0.text } ?? "Friday") : "Friday").font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.8)).lineLimit(1).frame(maxWidth:300,alignment:.trailing)
      }
      .contentShape(Rectangle())
     }.buttonStyle(.plain)

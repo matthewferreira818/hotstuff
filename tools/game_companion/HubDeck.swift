@@ -202,8 +202,10 @@ extension CompanionInterfaceView {
  var deckHackNav: some View {
   HStack(spacing:6) {
    Circle().fill(HubTheme.green).frame(width:7,height:7).accessibilityHidden(true)
-   Text("Command Core").font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text).lineLimit(1).fixedSize()
+   if hub.width >= 980 { Text("Command Core").font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text).lineLimit(1).fixedSize() }
    Spacer(minLength:8)
+   ScrollView(.horizontal,showsIndicators:false) {
+   HStack(spacing:hub.width >= 980 ? 6 : 2) {
    ForEach(Self.deckHack) { section in
     let on = hub.section == section
     Button { hubSelect(section) } label: {
@@ -217,6 +219,9 @@ extension CompanionInterfaceView {
     }
     .buttonStyle(.plain).accessibilityLabel(section.title).accessibilityAddTraits(on ? .isSelected : [])
    }
+   }
+   }
+   .fixedSize(horizontal:hub.width >= 980,vertical:false)
   }
   .padding(.horizontal,hub.compact ? 12 : 24).padding(.top,4)
   .background(CoreStyle.bg.opacity(0.9))

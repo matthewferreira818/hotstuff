@@ -46,6 +46,8 @@ struct CoreGuardView: View {
   return ("ALL CHECKS OK","\(c.ok) of \(guardHub.results.count) checks ok · \(when)",CoreStyle.emerald,"checkmark.shield.fill")
  }
 
+ @Environment(\.coreWidth) private var width
+
  var body: some View {
   if ui.classic {
    VStack(spacing:0) {
@@ -55,10 +57,17 @@ struct CoreGuardView: View {
   } else {
    ScrollView {
     VStack(alignment:.leading,spacing:12) {
-     HStack(alignment:.top,spacing:14) {
-      shieldCard.frame(width:250)
-      checksCard
-      eventsCard.frame(width:250)
+     if width >= 1000 {
+      HStack(alignment:.top,spacing:14) {
+       shieldCard.frame(width:250)
+       checksCard
+       eventsCard.frame(width:250)
+      }
+     } else if width >= 700 {
+      HStack(alignment:.top,spacing:12) { shieldCard.frame(width:230); checksCard }
+      eventsCard
+     } else {
+      shieldCard; checksCard; eventsCard
      }
      statTiles
      recommended
@@ -133,7 +142,7 @@ struct CoreGuardView: View {
   let c = counts
   let fresh = guardHub.network.filter { $0.isNew }.count
   let when = guardHub.lastChecked.map { "as of \(ago($0))" } ?? "not checked"
-  return HStack(spacing:12) {
+  return LazyVGrid(columns:[GridItem(.adaptive(minimum:140),spacing:12)],spacing:12) {
    stat("Checks ok","\(guardHub.results.isEmpty ? "–" : "\(c.ok)")",CoreStyle.emerald,when)
    stat("Need a look","\(guardHub.results.isEmpty ? "–" : "\(c.warn)")",c.warn > 0 ? CoreStyle.amber : CoreStyle.ink,when)
    stat("Apps online",guardHub.network.isEmpty ? "–" : "\(guardHub.network.count)",CoreStyle.teal,when)
@@ -154,7 +163,7 @@ struct CoreGuardView: View {
 
  var recommended: some View {
   card("CONTROLS & NEXT STEPS") {
-   HStack(spacing:10) {
+   LazyVGrid(columns:[GridItem(.adaptive(minimum:170),spacing:8,alignment:.leading)],alignment:.leading,spacing:8) {
     if guardHub.locked {
      pill("Unlock",CoreStyle.emerald) { guardHub.unlock() }
     } else {
@@ -162,7 +171,6 @@ struct CoreGuardView: View {
     }
     pill(guardHub.offline ? "Offline mode: ON (turn off)" : "Offline mode") { guardHub.setOffline(!guardHub.offline) }
     pill("Account sweep, keys and bad-day kit ›") { ui.classic = true }
-    Spacer(minLength:0)
    }
    let warns = guardHub.results.filter { $0.verdict == .warn }
    if warns.isEmpty {

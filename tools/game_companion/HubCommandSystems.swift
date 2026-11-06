@@ -152,7 +152,7 @@ struct CoreSystemsView: View {
  var body: some View {
   ScrollView {
    VStack(alignment:.leading,spacing:14) {
-    HStack(alignment:.top,spacing:14) {
+    LazyVGrid(columns:[GridItem(.adaptive(minimum:180),spacing:12)],spacing:12) {
      ring("CPU",monitor.cpu,monitor.cpu.map { "\(Int(($0 * 100).rounded()))%" } ?? "…",monitor.cpu == nil ? "reading…" : "in use")
      ring("MEMORY",monitor.memUsedGB.map { $0 / (Double(ProcessInfo.processInfo.physicalMemory) / 1_073_741_824) },
           monitor.memUsedGB.map { String(format:"%.1f GB",$0) } ?? "…",
@@ -183,7 +183,7 @@ struct CoreSystemsView: View {
       Text(monitor.cpuHistory.count < 2 ? "collecting readings…" : "one reading every 2 seconds").font(.system(size:10,design:.rounded)).foregroundStyle(CoreStyle.dim)
      }
     }
-    HStack(alignment:.top,spacing:14) {
+    LazyVGrid(columns:[GridItem(.adaptive(minimum:250),spacing:12,alignment:.top)],alignment:.leading,spacing:12) {
      card("SYSTEM INFO") {
       infoRow("Chip",SysFacts.string("machdep.cpu.brand_string") ?? "unknown")
       infoRow("Model",SysFacts.string("hw.model") ?? "unknown")

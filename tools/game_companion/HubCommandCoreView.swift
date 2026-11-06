@@ -214,7 +214,25 @@ struct CoreRoomView: View {
   switch t { case 1: return CoreStyle.emerald; case 2: return CoreStyle.amber; case 3: return CoreStyle.crimson; default: return CoreStyle.ink }
  }
 
+ @Environment(\.coreWidth) private var coreWidth
+
  var body: some View {
+  if coreWidth < 860 { narrowBody } else { wideBody }
+ }
+
+ // Narrow windows: cards two by two above and below the ring, and the page scrolls.
+ var narrowBody: some View {
+  ScrollView {
+   VStack(spacing:10) {
+    HStack(alignment:.top,spacing:10) { card(0,"laptopcomputer"); card(1,"wifi") }
+    hero.frame(height:380)
+    HStack(alignment:.top,spacing:10) { card(2,"person.2"); card(3,"waveform.path.ecg") }
+   }
+   .padding(.horizontal,14).padding(.top,4).padding(.bottom,8)
+  }
+ }
+
+ var wideBody: some View {
   GeometryReader { geo in
    // One centred composition (reference): it grows to a point, then stays together instead of drifting to the window edges.
    let width = min(geo.size.width,1240)

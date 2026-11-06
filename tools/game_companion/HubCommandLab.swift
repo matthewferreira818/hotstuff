@@ -248,24 +248,43 @@ struct CoreLabView: View {
  private func ago(_ d: Date) -> String { let s = Int(Date().timeIntervalSince(d)); return s < 90 ? "just now" : (s < 3600 ? "\(s / 60) min ago" : (s < 86400 ? "\(s / 3600) h ago" : "\(s / 86400) d ago")) }
  var selectedDevice: LabDevice? { store.devices.first { $0.id == ui.selected } }
 
+ @Environment(\.coreWidth) private var width
+
+ // Three layouts so nothing ever overlaps (Matthew: "shift sizes"): wide = three columns; medium = library + workspace, Tool Vault below;
+ // narrow = everything stacked. The page scrolls instead of squeezing.
  var body: some View {
-  GeometryReader { geo in
-   let wide = geo.size.width > 1100
-   VStack(spacing:10) {
-    HStack(alignment:.top,spacing:10) {
-     library.frame(width:wide ? 220 : 190)
-     workspace.frame(maxWidth:.infinity)
-     vault.frame(width:wide ? 300 : 250)
+  Group {
+   if width >= 1080 {
+    VStack(spacing:10) {
+     HStack(alignment:.top,spacing:10) {
+      library.frame(width:width > 1300 ? 220 : 196)
+      workspace.frame(maxWidth:.infinity,maxHeight:.infinity)
+      vault.frame(width:width > 1300 ? 300 : 260)
+     }
+     .frame(maxHeight:.infinity)
+     HStack(alignment:.top,spacing:10) { experiments; learning; research }.frame(height:width > 1300 ? 170 : 150)
     }
-    .frame(maxHeight:.infinity)
-    HStack(alignment:.top,spacing:10) {
-     experiments
-     learning
-     research
+    .padding(.horizontal,22).padding(.top,2).padding(.bottom,8)
+   } else {
+    ScrollView {
+     VStack(spacing:10) {
+      if width >= 720 {
+       HStack(alignment:.top,spacing:10) { library.frame(width:190,height:440); workspace.frame(maxWidth:.infinity,minHeight:440) }
+      } else {
+       library.frame(height:220)
+       workspace
+      }
+      vault.frame(height:width >= 720 ? 250 : 330)
+      if width >= 720 {
+       HStack(alignment:.top,spacing:10) { experiments; learning }.frame(height:150)
+       research.frame(height:150)
+      } else {
+       experiments.frame(height:150); learning; research.frame(height:150)
+      }
+     }
+     .padding(.horizontal,width >= 720 ? 22 : 14).padding(.top,2).padding(.bottom,8)
     }
-    .frame(height:wide ? 170 : 150)
    }
-   .padding(.horizontal,22).padding(.top,2).padding(.bottom,8)
   }
   .onAppear { monitor.start() }
   .onDisappear { monitor.stop() }
@@ -338,34 +357,45 @@ struct CoreLabView: View {
     VStack(alignment:.leading,spacing:2) {
      HStack(spacing:6) {
       Circle().fill(isMac ? CoreStyle.emerald : Color.white.opacity(0.3)).frame(width:6,height:6)
-      Text(isMac ? "Connected · readings are live" : "Not connected · a record you added · \(platform.connector)").font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
+      Text(isMac ? "Connected · readings are live" : "Not connected · a record you added").font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
      }
     }
     Spacer()
     Button { askFriday(isMac ? "Look at this Mac's readings in Command Core and tell me anything worth doing." : "Explain how we could safely look at my \(platform.label) device (\(d?.name ?? "")) and what Command Core would need.") } label: {
-     Label("Ask Friday about this",systemImage:"sparkles").font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal)
+     Label(width >= 720 ? "Ask Friday about this" : "Ask Friday",systemImage:"sparkles").font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.teal)
     }.buttonStyle(.plain)
    }
-   GeometryReader { g in
-    let side = min(g.size.width * 0.55,g.size.height * 0.62)
-    VStack(spacing:10) {
-     Spacer(minLength:0)
-     deviceArt(platform:platform,isMac:isMac,size:side)
-     HStack(spacing:8) {
-      Text(isMac ? "This Mac" : (d?.name ?? "Device")).font(.system(size:16,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink)
-      Text(isMac ? "Active" : "Record only").font(.system(size:10.5,weight:.medium,design:.rounded)).foregroundStyle(isMac ? CoreStyle.emerald : CoreStyle.dim)
-       .padding(.horizontal,8).padding(.vertical,2).overlay(Capsule().stroke((isMac ? CoreStyle.emerald : CoreStyle.dim).opacity(0.6),lineWidth:1))
-     }
-     Text(factLine(isMac:isMac,d:d)).font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1)
-     if isMac {
-      HStack(spacing:8) { ForEach(rightFacts(isMac:true,d:nil),id:\.0) { f in miniStat(f.0,f.1,f.2) } }
-     }
-     HStack(spacing:8) { ForEach(store.tools) { t in toolChip(t) } }
-     Spacer(minLength:0)
+   VStack(spacing:10) {
+    Spacer(minLength:0)
+    deviceArt(platform:platform,isMac:isMac,size:max(150,min(300,width * (width >= 1080 ? 0.22 : 0.34))))
+    HStack(spacing:8) {
+     Text(isMac ? "This Mac" : (d?.name ?? "Device")).font(.system(size:16,weight:.medium,design:.rounded)).foregroundStyle(CoreStyle.ink).lineLimit(1)
+     Text(isMac ? "Active" : "Record only").font(.system(size:10.5,weight:.medium,design:.rounded)).foregroundStyle(isMac ? CoreStyle.emerald : CoreStyle.dim)
+      .padding(.horizontal,8).padding(.vertical,2).overlay(Capsule().stroke((isMac ? CoreStyle.emerald : CoreStyle.dim).opacity(0.6),lineWidth:1))
     }
-    .frame(width:g.size.width,height:g.size.height)
+    Text(factLine(isMac:isMac,d:d)).font(.system(size:12,design:.rounded)).foregroundStyle(CoreStyle.dim).multilineTextAlignment(.center).fixedSize(horizontal:false,vertical:true)
+    if isMac {
+     LazyVGrid(columns:[GridItem(.adaptive(minimum:92,maximum:130),spacing:8)],spacing:8) { ForEach(rightFacts(isMac:true,d:nil),id:\.0) { f in miniStat(f.0,f.1,f.2) } }
+      .frame(maxWidth:560)
+    }
+    LazyVGrid(columns:[GridItem(.adaptive(minimum:72,maximum:80),spacing:8)],spacing:8) { ForEach(store.tools) { t in toolChip(t) } }
+     .frame(maxWidth:340)
+    Spacer(minLength:0)
    }
-   HStack(spacing:8) {
+   .frame(maxWidth:.infinity)
+   ViewThatFits(in:.horizontal) {
+    actionRow(isMac:isMac,d:d,vertical:false)
+    actionRow(isMac:isMac,d:d,vertical:true)
+   }
+  }
+  .padding(13).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.top)
+  .background(RoundedRectangle(cornerRadius:11).fill(HubTheme.hex(0x0E0E11)))
+  .overlay(RoundedRectangle(cornerRadius:11).stroke(Color.white.opacity(0.065),lineWidth:1))
+ }
+
+ @ViewBuilder func actionRow(isMac: Bool,d: LabDevice?,vertical: Bool) -> some View {
+  let layout = vertical ? AnyLayout(VStackLayout(alignment:.leading,spacing:6)) : AnyLayout(HStackLayout(spacing:8))
+  layout {
     if isMac {
      pill(guardHub.checking ? "checking…" : "Run Mac checks") { Task { await guardHub.runChecks() } }.disabled(guardHub.checking || guardHub.locked)
      pill(store.running ? "looking…" : "Look for USB devices") { store.scanUSB() }.disabled(store.running)
@@ -374,13 +404,9 @@ struct CoreLabView: View {
      pill("Remove",CoreStyle.crimson) { let id = d.id; ui.selected = "this-mac"; store.remove(id) }
      if let why = ScopeRules.refusal(for:d) { Text("Port check off: \(why)").font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1) }
     }
-    Spacer(minLength:0)
-    if !store.note.isEmpty { Text(store.note).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.teal).lineLimit(1) }
-   }
+    if !vertical { Spacer(minLength:0) }
+    if !store.note.isEmpty { Text(store.note).font(.system(size:11.5,design:.rounded)).foregroundStyle(CoreStyle.teal).lineLimit(2) }
   }
-  .padding(13).frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.top)
-  .background(RoundedRectangle(cornerRadius:11).fill(HubTheme.hex(0x0E0E11)))
-  .overlay(RoundedRectangle(cornerRadius:11).stroke(Color.white.opacity(0.065),lineWidth:1))
  }
 
  func factLine(isMac: Bool,d: LabDevice?) -> String {

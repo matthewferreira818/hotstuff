@@ -1,9 +1,15 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 696.13,
+ "cash": 348.07,
  "spy_at_start": 777.22,
- "positions": {},
+ "positions": {
+  "IREN": {
+   "qty": 16.56164195086351,
+   "avg_entry_price": 21.016,
+   "fill": 20.8959
+  }
+ },
  "orders": [
   {
    "time": "2026-10-08T15:10:24+00:00",
@@ -1123,6 +1129,16 @@
    "qty": 38.38653,
    "price": 9.1359,
    "dollars": 348.7,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-06T17:37:31+00:00",
+   "symbol": "IREN",
+   "side": "buy",
+   "status": "filled",
+   "qty": 16.561642,
+   "price": 20.8959,
+   "dollars": 348.06,
    "fee": 1.99
   }
  ],

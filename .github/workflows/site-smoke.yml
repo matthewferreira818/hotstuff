@@ -9,6 +9,9 @@ name: Site smoke test
 on:
   schedule:
     - cron: "15 10 * * *"
+    # Store alarm (Matthew, 2026-11-06): also every 4 hours through the day, so a broken store or checkout
+    # buzzes his phone within hours instead of waiting a day. Green stays silent.
+    - cron: "15 14,18,22,2 * * *"
   workflow_dispatch:
     inputs:
       quiet:

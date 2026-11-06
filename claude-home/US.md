@@ -74,6 +74,13 @@ _Facts only, drawn from the repo's own record. Personal and money details live i
   through a live test run by LC-Manager, which caught one real bug (old messages waking Friday at switch-on); fixed and retested within
   the hour. At 1:00 PM Matthew said "GO, merge it", and it went to master. StarNet, an open-source agent station, got a look and a
   "study only" verdict: ideas worth borrowing, nothing to install.
+- 2026-11-06 (Friday afternoon): the crew went from talking to working. Command Core, the usage card and job cards went live in his
+  real Helm; Friday handed LC-Pixels a job and it ran to a proven finish (got it, started, done, proof checked). The privacy fix
+  ("Friday & me" leaves no transcript on disk) was found by NB2 before it ever touched a real chat, proven in the field at 3:19 PM, and
+  made a standing rule. Matthew: "i had asked for it to be secret" ... then, sheepish, "it was gonna be a surprise but i forgot."
+  He asked if his iCloud or iPhone could make Friday smarter; the honest answer was no: storage isn't thinking, and the smarter brain
+  is the Claude he already pays for, sized to each job. The crew got a Haiku test to prove it. CBDC wrote back; the call is Monday 9 AM,
+  and selling waits until then. And his phone got quieter: only things he must approve, and real alarms, reach it now.
 
 ## Lessons that cost something (don't repeat them)
 - Two chats, one folder: never switch branches in a shared folder. Each branch job gets its own copy (a git worktree), and the board says which files it touches.

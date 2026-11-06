@@ -94,6 +94,7 @@ extension CompanionInterfaceView {
     if list.isEmpty { Text(meeting.lcFilter.isEmpty ? "Nothing in the chat yet." : "No messages from \(meeting.lcFilter) yet.").font(.system(size:15)).foregroundStyle(HubTheme.subtext).padding(.vertical,30).frame(maxWidth:.infinity) }
     else { crewChatList(list) }
    }
+   Spacer(minLength:0)
    crewComposer
   }
   .onAppear { Task { await meeting.chat.refresh(token:meeting.hasToken ? meeting.savedToken() : nil) } }

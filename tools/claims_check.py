@@ -141,6 +141,7 @@ FREQUENCY = re.compile(
 )
 SITE_FEED = r"\b(?:(?:my|our) (?:own )?store['’]s feed|(?:my|our) (?:own )?(?:site|website)(?:['’]s)? feed|(?:site|website)[ -]feed)\b"
 CLIENT_PAGE = r"\byour\s+(?:(?:facebook|instagram|x|twitter|tik\s*tok|pinterest)\s+)?(?:business|page|feed)\b"
+OWN_PAGE = r"\b(?:my|our)\s+(?:own\s+)?(?:business|page|feed|account)\b"
 OFFER_WORDING = rf"{CLIENT_PAGE}|\bfor every day of (?:the )?month\b|\bi post them\b|\bfor a month of daily posts\b"
 DELIVERY_HISTORY = r"\b(?:posted|published|already|since|yesterday|today)\b"
 
@@ -184,6 +185,8 @@ def _subject_scopes(clause: str) -> set[str]:
         return {"client_offer"}  # "I post them, one a day."
     own_text = re.sub(CLIENT_PAGE, "", clause)
     scopes = _named_channels(own_text) | ({"site_feed"} if re.search(SITE_FEED, clause) else set())
+    if re.search(OWN_PAGE, clause):
+        scopes.add("unnamed_own_page")
     if re.search(CLIENT_PAGE, clause):
         scopes |= _client_offer_scopes(clause)
     rest = re.sub(SITE_FEED, "", own_text)
@@ -208,6 +211,8 @@ def _frequency_findings(text: str, facts: dict, as_of: date) -> list[Finding]:
         channels = _named_channels(re.sub(CLIENT_PAGE, "", clause) if offer_scope else clause)
         site = bool(re.search(SITE_FEED, clause))
         scopes = channels | ({"site_feed"} if site else set())
+        if re.search(OWN_PAGE, clause):
+            scopes.add("unnamed_own_page")
         if offer_scope:
             scopes |= _client_offer_scopes(clause)
         if not mentions:
@@ -237,11 +242,14 @@ def _frequency_findings(text: str, facts: dict, as_of: date) -> list[Finding]:
             rate = _rate(mention)
             supported = bool(scopes)
             for scope in scopes:
-                if scope == "client_offer" or scope.startswith("client_offer:"):
+                if scope == "unnamed_own_page":
+                    supported = False
+                elif scope == "client_offer" or scope.startswith("client_offer:"):
                     evidence = facts["offer"].get("posting_frequency")
                     target = scope.partition(":")[2]
                     supported &= bool(evidence) and fresh and (
                         evidence["verified_on"] == as_of.isoformat()
+                        and not re.search(DELIVERY_HISTORY, clause)
                         and rate == (evidence["posts"], evidence["per"], 1)
                         and (not target or target == evidence["channel"])
                     )
@@ -258,7 +266,7 @@ def _frequency_findings(text: str, facts: dict, as_of: date) -> list[Finding]:
                     )
             if not supported:
                 findings.append(Finding("POST_FREQUENCY", "The posting frequency lacks matching, current evidence for the stated feed, channel or client offer. Review the facts and scope."))
-            if not scopes:
+            if not scopes or "unnamed_own_page" in scopes:
                 findings.append(Finding("UNCLEAR_FEED", "Name the feed or channel; an unnamed page has no reviewed posting frequency."))
     return findings
 

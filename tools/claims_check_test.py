@@ -282,6 +282,21 @@ class ClaimsChecks(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
 
+    def test_client_marker_does_not_override_an_unnamed_own_page(self):
+        for text in ['Our page posts every day for your business.',
+                     'My page posts daily for your business.',
+                     'Our page and your business post every day.']:
+            with self.subTest(text=text):
+                self.assertTrue({'POST_FREQUENCY', 'UNCLEAR_FEED'} <= self.codes(text, self.offer_facts()))
+
+    def test_carried_offer_scope_cannot_approve_delivery_history(self):
+        for text in ['Your Facebook page, posted daily since August 7.',
+                     'I post them, one a day since August 7.',
+                     'Your Facebook page, has posted every day.',
+                     'Your Facebook page and our website feed posted daily since August 7.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, self.offer_facts()))
+
     def test_offer_rate_needs_current_evidence(self):
         self.assertIn('POST_FREQUENCY', self.codes('Your business posts every day.'))
         facts = self.offer_facts()

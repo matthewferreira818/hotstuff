@@ -57,7 +57,7 @@ struct CoreGuardView: View {
   } else {
    ScrollView {
     VStack(alignment:.leading,spacing:12) {
-     if width >= 1000 {
+     if width >= 1150 {
       HStack(alignment:.top,spacing:14) {
        shieldCard.frame(width:250)
        checksCard
@@ -187,7 +187,7 @@ extension CompanionInterfaceView {
  var commandCoreGuard: some View {
   let g = GuardHub.shared
   let c = CoreFacts.summarize(g.results)
-  let sub = g.locked ? "Lockdown is on" : (g.results.isEmpty ? "Not checked yet" : (c.warn > 0 ? "\(c.warn) check\(c.warn == 1 ? "" : "s") need a look" : (c.unknown > 0 ? "\(c.ok) ok · \(c.unknown) couldn't be read" : "All of Guard's checks are ok")) + (g.lastChecked.map { " · checked \(coreAgo($0))" } ?? ""))
+  let sub = g.locked ? "Lockdown is on" : (g.results.isEmpty ? "Not checked yet" : (c.warn > 0 ? (c.warn == 1 ? "1 check needs a look" : "\(c.warn) checks need a look") : (c.unknown > 0 ? "\(c.ok) ok · \(c.unknown) couldn't be read" : "All of Guard's checks are ok")) + (g.lastChecked.map { " · checked \(coreAgo($0))" } ?? ""))
   return coreFrame("Guard",sub,tone:c.warn > 0 || g.locked ? 2 : 0,observations:coreObservations(),
                    content:AnyView(CoreGuardView(guardHub:g,classic:AnyView(hubGuard))))
  }

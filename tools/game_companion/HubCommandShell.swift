@@ -66,12 +66,12 @@ struct CoreShell: View {
     Text(subtitle).font(.system(size:12,design:.rounded)).foregroundStyle(subtitleTone == 0 ? CoreStyle.dim : tone(subtitleTone)).lineLimit(1)
    }
    Spacer(minLength:0)
-   if width >= 900 {
-   HStack(spacing:12) {
+   if width >= 760 {
+   HStack(spacing:width >= 1250 ? 12 : 7) {
     ForEach(Array(lights.enumerated()),id:\.offset) { _,l in
      HStack(spacing:5) {
       Circle().fill(l.1 == .off ? Color.clear : lightColor(l.1)).overlay(Circle().stroke(lightColor(l.1),lineWidth:1)).frame(width:7,height:7)
-      Text(l.0).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim)
+      if width >= 1250 { Text(l.0).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.dim).lineLimit(1).fixedSize() }
      }
      .help(l.2)
     }

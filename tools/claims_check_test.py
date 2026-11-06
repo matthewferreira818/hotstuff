@@ -183,8 +183,15 @@ class ClaimsChecks(unittest.TestCase):
                 self.assertIn('POST_FREQUENCY', self.codes(text, self.active_facebook()))
         facts = self.evidenced_facebook()
         facts['channels']['instagram'] = 'active'
-        self.assertIn('POST_FREQUENCY', self.codes('Instagram and Facebook post daily.', facts))
+        for text in ['Instagram and Facebook post daily.',
+                     'We post daily on Facebook and Instagram.',
+                     'We post daily on Facebook, and Instagram.']:
+            with self.subTest(text=text):
+                self.assertIn('POST_FREQUENCY', self.codes(text, facts))
         self.assertNotIn('POST_FREQUENCY', self.codes('Facebook is off and our website feed posts daily.'))
+
+    def test_not_yet_is_a_local_denial(self):
+        self.assertNotIn('POST_FREQUENCY', self.codes('We do not yet publish on Facebook daily.'))
 
     def test_denial_cannot_hide_a_second_posting_verb(self):
         for text in ["We don't post on X because Facebook posts daily.",

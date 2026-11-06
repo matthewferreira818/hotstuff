@@ -157,6 +157,16 @@ def _named_channels(text: str) -> set[str]:
     return {name for name, pattern in CHANNELS.items() if re.search(pattern, without_rates)}
 
 
+def _subject_scopes(clause: str) -> set[str]:
+    """Recognize subject-only list items, never whole statements like 'X is off'."""
+    scopes = _named_channels(clause) | ({"site_feed"} if re.search(SITE_FEED, clause) else set())
+    rest = re.sub(SITE_FEED, "", clause)
+    for pattern in CHANNELS.values():
+        rest = re.sub(pattern, "", rest)
+    rest = re.sub(r"\b(?:my|our|the|own|page|pages|feed|feeds|account|accounts|both|on|'s)\b", "", rest)
+    return scopes if not re.search(r"\w", rest) else set()
+
+
 def _frequency_findings(text: str, facts: dict, as_of: date) -> list[Finding]:
     findings = []
     # Preserve line-wrapped rates ("every\nhour"), but keep separate caption lines scoped.
@@ -165,7 +175,8 @@ def _frequency_findings(text: str, facts: dict, as_of: date) -> list[Finding]:
     historical = rf"\b(?:used to|previously|in the past(?: we| it| they| i)?|stopped|paused|shelved)\s+{verb}\b"
     pending_scopes: set[str] = set()
     # Evidence and negations belong to a clause, never to the whole paragraph.
-    for clause in re.split(r",|\n+|\b(?:and|but|while|although|however|yet)\b", text):
+    clauses = [c.strip() for c in re.split(r",|\n+|\b(?:and|but|while|although|however)\b", text) if c.strip()]
+    for i, clause in enumerate(clauses):
         mentions = list(FREQUENCY.finditer(clause))
         channels = _named_channels(clause)
         site = bool(re.search(SITE_FEED, clause))
@@ -173,17 +184,20 @@ def _frequency_findings(text: str, facts: dict, as_of: date) -> list[Finding]:
         if not mentions:
             # Keep compound subjects: "Facebook and our site feed post daily".
             # An unrelated complete clause ("Facebook is off") must not carry over.
-            rest = re.sub(SITE_FEED, "", clause)
-            for pattern in CHANNELS.values():
-                rest = re.sub(pattern, "", rest)
-            rest = re.sub(r"\b(?:my|our|the|own|page|pages|feed|feeds|account|accounts|both|on|'s)\b", "", rest)
-            if scopes and not re.search(r"\w", rest):
-                pending_scopes |= scopes
+            subjects = _subject_scopes(clause)
+            if subjects:
+                pending_scopes |= subjects
             else:
                 pending_scopes.clear()
             continue
         scopes |= pending_scopes
         pending_scopes.clear()
+        # A rate can precede the final subject: "post daily on Facebook and Instagram".
+        for following in clauses[i + 1:]:
+            subjects = _subject_scopes(following)
+            if not subjects:
+                break
+            scopes |= subjects
         remainder = FREQUENCY.sub("", clause).strip(" .!:?—-()")
         if not (re.search(POSTING, clause) or scopes or not remainder):
             continue  # "Open every day" and "daily specials" are not posting claims.
@@ -250,12 +264,10 @@ def check_text(text: str, facts: dict, as_of: date | None = None) -> list[Findin
             denial = False  # A mixed clause needs review; do not hide a positive claim.
         past = bool(re.search(r"\b(?:used to|previously|in the past|stopped|paused|shelved)\b", s))
         drafting = bool(re.search(r"\b(?:drafts?|drafting|packs? only|sample(?:s)? only)\b", s))
-        has_channel = False
         named_channels = _named_channels(s)
-        for channel, pattern in CHANNELS.items():
+        for channel in CHANNELS:
             if channel not in named_channels:
                 continue
-            has_channel = True
             if posting and not denial and not past:
                 state = facts["channels"][channel]
                 if state != "active" and not (drafting and not frequency and not re.search(r"\b(?:public|live)\b", s) and state in {"drafts_only", "packs_only"}):

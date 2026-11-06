@@ -1,35 +1,38 @@
 {
-  "verified_on": "2026-10-05",
-  "source_commit": "1c3d040",
+  "verified_on": "2026-11-05",
+  "source_commit": "b57f903cf890bca58cfc9fa64e1ac2a0d0aed0ef",
   "sources": [
-    "https://findhotstuff.com/automation/feed/stats.json",
-    "https://findhotstuff.com/products.json",
+    "automation/feed/stats.json",
+    "automation/feed/index.json",
+    "products.json",
     "CLAUDE.md",
     "meeting-room/BOARD.md",
+    "automation/index.html",
     ".github/workflows/refresh-products.yml",
+    ".github/workflows/",
     "smoke_test.py"
   ],
   "feed": {
-    "total": 59,
+    "total": 91,
     "since": "2026-08-07",
-    "last": "2026-10-04",
+    "last": "2026-11-05",
     "posts_per_day": 1,
     "website_history_since": "2026-08-07",
-    "website_history_days": 59,
+    "website_history_days": 91,
     "full_streak_confirmed": true,
-    "note": "Claude's decision 2026-10-05: the public count is 59 days since August 7, the first day the website feed listed a card. August 4-6 cards were repo output only and are not counted. Say 'my own store's feed has published a new post every day since August 7', never 'my page', and link findhotstuff.com/automation."
+    "note": "91 dated cards from August 7 through November 5, supported by historical website-feed indexes listed below. This is the own store website feed, never a Facebook page or client result. Repository archive evidence does not independently measure live uptime or posting time."
   },
   "channels": {
     "site_feed": "active",
     "x": "off",
-    "facebook": "pending",
+    "facebook": "active",
     "instagram": "pending",
     "tiktok": "drafts_only",
     "pinterest": "packs_only"
   },
   "counts": {
-    "products": 199,
-    "scheduled_jobs": 10,
+    "products": 200,
+    "scheduled_jobs": 15,
     "health_checks": 15,
     "paying_clients": 0
   },
@@ -37,12 +40,123 @@
   "offer": {
     "currency": "CAD",
     "monthly_prices": [
-      79,
-      129
+      79
     ],
-    "setup_total": 250
+    "setup_total": 0,
+    "note": "Current automation/index.html offers a $79 one-month Facebook pilot for the first two businesses, with free setup. The monthly_prices field is retained for the legacy money rule; this is not an agreed ongoing renewal price. The old $129 tier is absent. A separate legacy noindex setup/index.html still shows $250; it is not approved as the current Facebook-pilot setup fee."
   },
   "approved_statistics": [],
   "approved_testimonials": [],
-  "note": "Public facts snapshot only. Offline helper: no network, no posts, no auto-approval. Refresh and review the facts before use on another date. Missing evidence means review, not an accusation that a claim is false."
+  "note": "Public repository facts reviewed at source_commit on November 5, 2026 in America/Moncton, with owner-reported sales status explicitly identified. Offline helper only: no network, posts or auto-approval. Refresh for any later review date. Missing evidence means review, not an accusation that a claim is false. Schedules and archive dates are not guarantees of successful live social posting.",
+  "verification_timezone": "America/Moncton",
+  "feed_archive_evidence": [
+    {
+      "commit": "3a0b57dc37208ab840a767a6500baa3ae871dc58",
+      "path": "automation/feed/index.json",
+      "from": "2026-10-29",
+      "through": "2026-11-05"
+    },
+    {
+      "commit": "455033b22b2817636f992d2e8d82fac61bd1d445",
+      "path": "automation/feed/index.json",
+      "from": "2026-10-21",
+      "through": "2026-10-28"
+    },
+    {
+      "commit": "2298d6e9b374135676a3ad3d695663ac7090c63e",
+      "path": "automation/feed/index.json",
+      "from": "2026-10-13",
+      "through": "2026-10-20"
+    },
+    {
+      "commit": "d3878e80b0b9328adaff77f6dab5a05e5f35f62e",
+      "path": "automation/feed/index.json",
+      "from": "2026-10-05",
+      "through": "2026-10-12"
+    },
+    {
+      "commit": "3f673614e574c08d2e99bacd71dc7ac387969eff",
+      "path": "automation/feed/index.json",
+      "from": "2026-09-27",
+      "through": "2026-10-04"
+    },
+    {
+      "commit": "4960c56f1cb4440da8a169eb234934eeebf573de",
+      "path": "automation/feed/index.json",
+      "from": "2026-09-19",
+      "through": "2026-09-26"
+    },
+    {
+      "commit": "d2c4f459d4921ddd7e4052248d95aaf5f13f87b9",
+      "path": "automation/feed/index.json",
+      "from": "2026-09-11",
+      "through": "2026-09-18"
+    },
+    {
+      "commit": "816070e9edc23bf2f72cbb8354935eb3026f1b2b",
+      "path": "automation/feed/index.json",
+      "from": "2026-09-03",
+      "through": "2026-09-10"
+    },
+    {
+      "commit": "2f4153de0d70c35a3ef18fc47cc9d79c1dfeb233",
+      "path": "automation/feed/index.json",
+      "from": "2026-08-26",
+      "through": "2026-09-02"
+    },
+    {
+      "commit": "aa5fb851902b024f822217e35e1c4a4675392c1b",
+      "path": "automation/feed/index.json",
+      "from": "2026-08-18",
+      "through": "2026-08-25"
+    },
+    {
+      "commit": "66c3fc076fa687570427a7afb1a81fd9918a6435",
+      "path": "automation/feed/index.json",
+      "from": "2026-08-10",
+      "through": "2026-08-17"
+    },
+    {
+      "commit": "40a717a33964b7cf4b24d82341b84227eb0bf42c",
+      "path": "automation/feed/index.json",
+      "from": "2026-08-07",
+      "through": "2026-08-09"
+    },
+    {
+      "commit": "113d2af0ab663833de58c837889d6a782ce2114b",
+      "path": "automation/feed/index.json",
+      "from": "2026-08-07",
+      "through": "2026-08-07"
+    }
+  ],
+  "channel_notes": {
+    "facebook": "One public ECS Facebook card confirmed Nov5 in public CLAUDE.md. Existence only; no measured daily series or hourly rate. Permit no daily frequency claim yet; current board says wait ~7 observed public days. Configured cron is not posting evidence.",
+    "others": "Public CLAUDE.md remains the status source; code schedules alone do not prove posting."
+  },
+  "posting_frequencies": {},
+  "posting_frequency_note": "Only feed.posts_per_day supports the site_feed daily rate. No recurring social-channel rate has been reviewed. An active channel, one public card, or a configured schedule is not frequency evidence. To add a social rate, record posts (positive integer), per (hour/day/week), verified_on and a nonempty reviewed public source under that channel. Evidence must be current for the review date.",
+  "count_notes": {
+    "products": "Length of current products.json list.",
+    "scheduled_jobs": "15 workflow files declaring a schedule; 28 individual cron lines include backups. Not actual successful execution count.",
+    "health_checks": "15 entries in smoke_test.py CHECKS; inspections only, not live health checks run.",
+    "paying_clients": "Zero is the latest owner-reported status supplied on November 5, not an independent audit of payment accounts. Public CLAUDE.md separately records zero as of October 5. Reconfirm before claiming a current client count on another date."
+  },
+  "scheduled_workflows": [
+    ".github/workflows/daily-tiktok.yml",
+    ".github/workflows/daily-tweet.yml",
+    ".github/workflows/ecs-daily-post.yml",
+    ".github/workflows/refresh-products.yml",
+    ".github/workflows/site-smoke.yml",
+    ".github/workflows/stock-bot.yml",
+    ".github/workflows/stock-hot.yml",
+    ".github/workflows/stock-momentum.yml",
+    ".github/workflows/stock-moonshot-crypto.yml",
+    ".github/workflows/stock-moonshot.yml",
+    ".github/workflows/stock-quality.yml",
+    ".github/workflows/stock-volatility.yml",
+    ".github/workflows/tiktok-draft.yml",
+    ".github/workflows/traffic-report.yml",
+    ".github/workflows/watch-changes.yml"
+  ],
+  "catalog_note": "Configured */3 calendar-day cron with backup fires; month boundary may yield a shorter interval. It is a schedule, not guaranteed observed refresh."
 }

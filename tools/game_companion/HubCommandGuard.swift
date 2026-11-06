@@ -42,6 +42,7 @@ struct CoreGuardView: View {
   if guardHub.locked { return ("LOCKDOWN","Her hands, screen view and posts are off.",CoreStyle.amber,"lock.fill") }
   if guardHub.results.isEmpty { return ("NOT CHECKED","Press Run checks.",CoreStyle.dim,"shield") }
   if c.warn > 0 { return ("\(c.warn) TO LOOK AT","\(c.ok) of \(guardHub.results.count) checks ok · \(when)",CoreStyle.amber,"exclamationmark.shield.fill") }
+  if c.unknown > 0 { return ("\(c.ok) OK · \(c.unknown) UNREAD","\(c.unknown) check\(c.unknown == 1 ? "" : "s") couldn't be read · \(when)",CoreStyle.teal,"shield.lefthalf.filled") }
   return ("ALL CHECKS OK","\(c.ok) of \(guardHub.results.count) checks ok · \(when)",CoreStyle.emerald,"checkmark.shield.fill")
  }
 
@@ -178,7 +179,7 @@ extension CompanionInterfaceView {
  var commandCoreGuard: some View {
   let g = GuardHub.shared
   let c = CoreFacts.summarize(g.results)
-  let sub = g.locked ? "Lockdown is on" : (g.results.isEmpty ? "Not checked yet" : (c.warn > 0 ? "\(c.warn) check\(c.warn == 1 ? "" : "s") need a look" : "All of Guard's checks are ok") + (g.lastChecked.map { " · checked \(coreAgo($0))" } ?? ""))
+  let sub = g.locked ? "Lockdown is on" : (g.results.isEmpty ? "Not checked yet" : (c.warn > 0 ? "\(c.warn) check\(c.warn == 1 ? "" : "s") need a look" : (c.unknown > 0 ? "\(c.ok) ok · \(c.unknown) couldn't be read" : "All of Guard's checks are ok")) + (g.lastChecked.map { " · checked \(coreAgo($0))" } ?? ""))
   return coreFrame("Guard",sub,tone:c.warn > 0 || g.locked ? 2 : 0,observations:coreObservations(),
                    content:AnyView(CoreGuardView(guardHub:g,classic:AnyView(hubGuard))))
  }

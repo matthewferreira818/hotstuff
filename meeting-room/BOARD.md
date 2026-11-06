@@ -1,8 +1,9 @@
 # Meeting Room board
 
-_Last updated: 2026-11-05 10:55 PM by Local Claude_
+_Last updated: 2026-11-05 11:10 PM by Local Claude_
 
 ## On the table
+- [Matthew] Pick a store makeover: A Boutique, B Shop fast or C This week's drop (mockups only, Helm-Private matthew/design/hotstuff-makeover/). Live site untouched until he picks. Status: waiting
 - [Claude] Phone touch-ups live (c9d5977 + cache-bust 2f0855b, sw v26): store header in one row with an Automation pill, app bubble only after the first products, chip rows fade right; ECS "Email me" button EN+FR. Status: done
 - [Claude] Board cleanup done 11-05 (Local Claude): 26 done/dead/superseded items moved to notes/board-archive-2026-10-24.md (Roxy items confirmed by Matthew). Status: done
 - [Claude] Get Online in a Day samples: 5 filled from public Facebook pages (sources logged, Helm-Private). Prep only, nothing sent. Craft shop's FB says temporarily closed. Status: done

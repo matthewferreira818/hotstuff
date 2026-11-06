@@ -6,7 +6,7 @@ import AppKit
 // the left rail is still one click away. The dock only shows what the live session already knows; it starts nothing by itself.
 extension CompanionInterfaceView {
  static let deckPrimary: [HubSection] = [.home,.friday,.stocks,.store,.ecs]
- static let deckHack: [HubSection] = [.hacking,.systems,.shield,.lab,.realFake,.crewStation,.memory]
+ static let deckHack: [HubSection] = [.hacking,.systems,.shield,.lab,.realFake,.crewStation]
  static let deckMore: [HubSection] = [.launchpad,.game,.accounts,.meeting,.stream,.helper,.council]
 
  var deckInHack: Bool { Self.deckHack.contains(hub.section) }

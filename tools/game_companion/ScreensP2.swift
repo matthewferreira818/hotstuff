@@ -280,8 +280,7 @@ struct MemoryPageView: View {
   VStack(alignment:.leading,spacing:10) {
    HStack(alignment:.firstTextBaseline) {
     VStack(alignment:.leading,spacing:2) {
-     Text("Friday's memory").font(.system(size:20,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
-     Text("\(m.entries.count) notes · only on this Mac · keep, edit or forget any of them").font(.system(size:12)).foregroundStyle(HubTheme.subtext)
+     Text("\(m.entries.count) notes · only on this Mac · keep, edit or forget any of them").font(.system(size:13)).foregroundStyle(HubTheme.subtext)
     }
     Spacer()
     Button { m.load() } label: { Label("Reload",systemImage:"arrow.clockwise").font(.system(size:13,weight:.medium)).foregroundStyle(HubTheme.text).padding(.horizontal,12).frame(height:34).overlay(RoundedRectangle(cornerRadius:9).stroke(HubTheme.controlOutline,lineWidth:1)) }.buttonStyle(.plain)

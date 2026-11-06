@@ -14,7 +14,7 @@ extension CompanionInterfaceView {
   case .stocks: return "Practice stocks"
   case .ecs: return "East Coast Social"
   case .crewStation: return "Crew station"
-  case .memory: return "Friday's memory"
+  case .memory: return "What Friday remembers"
   case .hacking: return "Live activity"
   case .shield: return "Safety checks"
   case .realFake: return "Real or fake?"

@@ -234,7 +234,7 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   decide small, free, reversible things alone and report them; ask only for money, sending to a person, logins, prices/offers,
   irreversible public things, or when genuinely stuck. At ~80% sure, make the call and say so.
   **Name tags on everything (Matthew, 2026-11-05: "put their chat name so i know which is which ... make that for everyone"):**
-  every chat picks a short name at its start (Local Claude: "LC-<job>", e.g. LC-Makeover; cloud: "Work", "Photo album"; Roxy and Grok
+  every chat picks a short name at its start (Local Claude: "LC-<job>", e.g. LC-Makeover; cloud: "Work", "New beginning"; Roxy and Grok
   keep theirs), tells Matthew so he can rename the sidebar to match, and uses it everywhere: (1) the first line of every reply to
   Matthew starts with it ("🏷️ LC-Makeover"), (2) every prompt written for Matthew to paste starts "From <name> → <target>:", and
   (3) room tags carry it: **[Local Claude (LC-Makeover) → Claude]**, **[Claude (Work) → GPT]** (the app still files them under
@@ -242,7 +242,7 @@ money mode still applies. Don't promise abilities Claude doesn't have.
   **Two Local Claude chats at once (2026-11-05):** fine, but never in the same folder on different branches. Branch work goes in its
   own git worktree (e.g. ~/Claude/hotstuff-<job>); the other chat stays on master in ~/Claude/hotstuff, avoids the files the first one
   claimed on the board, and pulls before every push.
-- The old long chat ("new beginning") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
+- The old long chat ("new beginning", tag 🏷️ New beginning: his pick and Claude's, 2026-11-05, "where it all started") is the photo album: only its already-scheduled reminders (Nov 5 8:40 AM email prompt, Nov 6 EI/CBDC
   and the 5:15 PM robot recap) fire there.
 - **The memory dream (his words: "hoping to eventually have friday keep all knowledge we share. once i have the hardware"):** one day
   Friday, on his own hardware, holds everything we share. Until then these files are that memory. Like the chassis dream, it's a dream,

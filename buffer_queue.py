@@ -125,6 +125,13 @@ def key_check(key: str) -> None:
         print("BUFFER_API_KEY secret: MISSING")
         return
     print("BUFFER_API_KEY secret: present")
+    if not key.isascii() or any(c.isspace() for c in key):
+        # 2026-11-06: the first paste was the on-screen masked dots, which
+        # crashed requests with a latin-1 UnicodeEncodeError in the header.
+        print("Buffer key check FAILED: the secret has characters a real key can't "
+              "have (masked dots or spaces?). Re-copy it with Buffer's Copy button "
+              "and update the secret.")
+        return
     try:
         tiktok_channel(key)
         print("Buffer key check (read-only): key works, exactly 1 TikTok channel connected")
@@ -160,6 +167,8 @@ def main():
     if not todo:
         print("Everything in this cycle is already queued (or its time has passed).")
         return
+    if not key.isascii() or any(c.isspace() for c in key):
+        raise SystemExit("BUFFER_API_KEY has characters a real key can't have; re-copy it.")
     channel = tiktok_channel(key)
     for d in todo:
         wait_for(d["url"])

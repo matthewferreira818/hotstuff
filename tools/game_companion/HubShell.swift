@@ -276,11 +276,11 @@ extension CompanionInterfaceView {
   case .stream: hubStream
   case .helper: hubHelper
   case .shield: commandCoreGuard
-  case .realFake: hubRealOrFake
+  case .realFake: commandCoreVerify
   case .lab: commandCoreLab
   case .council: hubCouncil
   case .hacking: commandCoreRoom
-  case .crewStation: deckCrewStation
+  case .crewStation: commandCoreCrew
   }
  }
 }

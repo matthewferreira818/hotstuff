@@ -45,7 +45,7 @@ enum SwitchboardRules {
  static let repo = "matthewferreira818/hotstuff"
  static let roomIssue = 15
  static let hotline = 35
- static let watched: Set<Int> = [roomIssue,hotline]   // lock 1: only these two threads count
+ static let watched: Set<Int> = [hotline]   // lock 1: jobs come ONLY from the Hotline (PR 35); issue 15 is mirrors only, never a trigger
  static let tagStart = "**[Claude"
  static let tagTarget = "→ Local Claude"
 
@@ -96,7 +96,7 @@ enum SwitchboardRules {
  static func verdict(_ c: SwitchboardComment,seen: Set<Int64>,armedAt: Date,now: Date,starts: [Date],running: Int,
                      calendar: Calendar = .current) -> SwitchboardVerdict {
   if seen.contains(c.id) { return .ignore("already handled (each comment runs at most once)") }
-  if !watched.contains(c.thread) { return .ignore("not issue 15 or the Hotline") }
+  if !watched.contains(c.thread) { return .ignore("not the Hotline (jobs only start from PR 35)") }
   if c.login != ownerLogin { return .ignore("not posted by the owner account") }
   if !isTrigger(c.body) { return .ignore("not tagged **[Claude … → Local Claude]**") }
   if c.createdAt < armedAt { return .refuse("posted before the switch was turned on",mirror:false) }

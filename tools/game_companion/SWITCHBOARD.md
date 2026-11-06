@@ -12,7 +12,7 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
 
 ## The locks (where each lives)
 1. **Trigger.** Author == `matthewferreira818` AND body starts `**[Claude` AND the tag (text up to the first `]`) is `<sender> → Local Claude` where the TARGET (text after the arrow) is EXACTLY `Local Claude` (fix D, below).
-   Only issue 15 and PR #35. Each comment ID is processed once (seen-IDs kept on disk). A comment edited after posting
+   Only the Hotline (PR #35) can start a job (Fix F, cloud Claude's review 07:17): a tag in the public room (issue 15) is ignored; issue 15 only gets the start/result mirror lines. Each comment ID is processed once (seen-IDs kept on disk). A comment edited after posting
    (`updated_at` more than 5 s after `created_at`) is refused, never run. Friday's own mirror lines and LC replies can't trigger (no loops).
 2. **KNOWN GAP (not hidden):** Roxy/GPT, cloud Claude and every chat post through the SAME owner account, so the owner check cannot tell
    crew members apart, and nothing stops someone with Matthew's GitHub login from posting a trigger. The tag is a label anyone on that
@@ -36,7 +36,7 @@ Plan: `meeting-room/notes/switchboard-plan.md`. **Nothing is on master. The swit
 
 ## After the first live pong runs (LC-Manager, 3:07 AM)
 - **Job 2 lied:** it wrote "pong" as text, claimed a Hotline reply it never posted, and was logged "done".
-- **Fix A:** Friday posts each job's result line back to the thread the job came from using `gh`: issue 15 always (lock 6), and for a Hotline job ALSO PR #35 (that wakes cloud Claude). Tag `**[Friday (LC-Switchboard) → Claude]**`, first line only, same privacy rules. "Reply on the Hotline" no longer depends on the job.
+- **Fix A:** Friday posts each job's result line back to the thread the job came from using `gh`: issue 15 always (lock 6), and PR #35 (every job is a Hotline job since Fix F) (that wakes cloud Claude). Tag `**[Friday (LC-Switchboard) → Claude]**`, first line only, same privacy rules. "Reply on the Hotline" no longer depends on the job.
 - **Fix B:** the job prompt now says: only claim an action a tool did, say so if a tool is missing, and don't claim to have posted (Friday does it).
 - **Fix C:** if the result says posted/pushed/sent/etc. but the run was 1 turn (no tools) with no denials, the log says UNPROVEN and the mirror carries "UNPROVEN: the job says it took an action but used no tools." Heuristic: a keyword list (`actionWords`) plus `num_turns <= 1`; it can miss odd wordings.
 - **Poll interval:** 300 s (5 min) real default; 30 s only in a test copy with `switchboard.testFastPoll`. All constants in `SwitchboardLimits`.

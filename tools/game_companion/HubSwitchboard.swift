@@ -77,7 +77,7 @@ private struct SwitchboardState: Codable {
   if value {
    state.armedAt = Date()   // only comments posted from now on can start a job
    save()
-   add("on","Switchboard ON (turned on by \(source)). Watching issue 15 and the Hotline every \(Switchboard.intervalText).")
+   add("on","Switchboard ON (turned on by \(source)). Watching the Hotline every \(Switchboard.intervalText).")
    startLoop()
   } else {
    loop?.cancel(); loop = nil
@@ -366,7 +366,7 @@ struct SwitchboardPanel: View {
    Button("Turn on") { sb.setOn(true) }
    Button("Cancel",role:.cancel) {}
   } message: {
-   Text("Friday will start a Local Claude job on this Mac for each NEW comment on issue 15 or the Hotline that starts **[Claude … → Local Claude]** from your account. One at a time, at most \(SwitchboardLimits.perHour) an hour and \(SwitchboardLimits.perDay) a day, each stopped at \(Int(SwitchboardLimits.jobTimeout / 60)) minutes. Your normal permission list applies. Money, logins, messages to people and Moomoo are always refused.")
+   Text("Friday will start a Local Claude job on this Mac for each NEW comment on the Hotline (PR 35) that starts **[Claude … → Local Claude]** from your account. Issue 15 never starts a job; it only gets the start and result lines. One at a time, at most \(SwitchboardLimits.perHour) an hour and \(SwitchboardLimits.perDay) a day, each stopped at \(Int(SwitchboardLimits.jobTimeout / 60)) minutes. Your normal permission list applies. Money, logins, messages to people and Moomoo are always refused.")
   }
   .sheet(isPresented:$sb.showLog) { SwitchboardLogSheet(sb:sb) }
  }
@@ -376,7 +376,7 @@ struct SwitchboardPanel: View {
   let limits = "Jobs \(sb.startsThisHour)/\(SwitchboardLimits.perHour) this hour · \(sb.startsToday)/\(SwitchboardLimits.perDay) today · \(claude)"
   if !sb.on { return "Off. Friday starts no jobs. Turn on to let tagged messages from cloud Claude start Local Claude jobs here.\n\(limits)" }
   let checked = sb.lastCheck.map { "last check \(Self.time.string(from:$0))" } ?? "first check starting"
-  return "On. Watching issue 15 and the Hotline every \(Switchboard.intervalText) · \(checked).\n\(limits)"
+  return "On. Watching the Hotline every \(Switchboard.intervalText) · \(checked).\n\(limits)"
  }
 
  private func minutes(since: Date?,now: Date) -> Int { since.map { max(0,Int(now.timeIntervalSince($0) / 60)) } ?? 0 }

@@ -16,7 +16,7 @@ import Foundation
   let armed = now.addingTimeInterval(-3600)
   let owner = SwitchboardRules.ownerLogin
   var nextID: Int64 = 1000
-  func comment(_ body: String,thread: Int = 15,login: String? = nil,ago: TimeInterval = 60,edited: TimeInterval = 0) -> SwitchboardComment {
+  func comment(_ body: String,thread: Int = 35,login: String? = nil,ago: TimeInterval = 60,edited: TimeInterval = 0) -> SwitchboardComment {
    nextID += 1
    let created = now.addingTimeInterval(-ago)
    return SwitchboardComment(id:nextID,thread:thread,login:login ?? owner,body:body,createdAt:created,updatedAt:created.addingTimeInterval(edited),
@@ -27,7 +27,8 @@ import Foundation
   print("== Dry run: fake comments through every lock (now = Fri Nov 6 3:00 PM Moncton, switch turned ON at 2:00 PM)")
   let seenOne = comment(good)
   let cases: [(String,SwitchboardComment,Set<Int64>,[Date],Int,String)] = [
-   ("good trigger on issue 15",comment(good),[],[],0,"run"),
+   ("Hotline-only: good trigger on issue 15 is IGNORED",comment(good,thread:15),[],[],0,"ignore"),
+   ("Hotline-only: plain-target tag pasted in the room (issue 15)",comment("**[Claude (New beginning) → Local Claude]** run the smoke test",thread:15),[],[],0,"ignore"),
    ("good trigger on the Hotline (PR 35)",comment(good,thread:35),[],[],0,"run"),
    ("named sender, plain target = a job",comment("**[Claude (New beginning) → Local Claude]** check the board"),[],[],0,"run"),
    ("fix D: real 07:03 Hotline reply (named target)",comment("**[Claude (New beginning) → Local Claude (LC-Manager)]** Great test, the Hotline works. Thanks!",thread:35),[],[],0,"ignore"),

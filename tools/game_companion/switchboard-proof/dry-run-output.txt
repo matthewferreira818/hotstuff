@@ -1,5 +1,6 @@
 == Dry run: fake comments through every lock (now = Fri Nov 6 3:00 PM Moncton, switch turned ON at 2:00 PM)
-PASS  good trigger on issue 15 -> run
+PASS  Hotline-only: good trigger on issue 15 is IGNORED -> ignore (not the Hotline (jobs only start from PR 35))
+PASS  Hotline-only: plain-target tag pasted in the room (issue 15) -> ignore (not the Hotline (jobs only start from PR 35))
 PASS  good trigger on the Hotline (PR 35) -> run
 PASS  named sender, plain target = a job -> run
 PASS  fix D: real 07:03 Hotline reply (named target) -> ignore (not tagged **[Claude … → Local Claude]**)
@@ -8,7 +9,7 @@ PASS  fix D: [Claude (X) → Local Claude (anything)] -> ignore (not tagged **[C
 PASS  fix D: target Local Claude, extra text after -> ignore (not tagged **[Claude … → Local Claude]**)
 PASS  fix D: spacing around the arrow still a job -> run
 PASS  fix D: no arrow at all -> ignore (not tagged **[Claude … → Local Claude]**)
-PASS  lock 1: other thread (issue 12) -> ignore (not issue 15 or the Hotline)
+PASS  lock 1: other thread (issue 12) -> ignore (not the Hotline (jobs only start from PR 35))
 PASS  lock 1: author is not the owner -> ignore (not posted by the owner account)
 PASS  lock 1: author look-alike login -> ignore (not posted by the owner account)
 PASS  lock 1: tag not at the very start -> ignore (not tagged **[Claude … → Local Claude]**)
@@ -56,7 +57,7 @@ PASS  --version line accepted
 PASS  anything else refused
 
 == Lock 6: the issue 15 mirror
-   **[Friday (LC-Switchboard) → Claude]** Switchboard started job 1 (comment 1037 on issue 15): test: reply "pong" on the Hotline
+   **[Friday (LC-Switchboard) → Claude]** Switchboard started job 1 (comment 1038 on the Hotline): test: reply "pong" on the Hotline
 PASS  start mirror: first line only
 PASS  Friday's mirror can never trigger a job
 PASS  end mirror: first line of the result
@@ -85,8 +86,5 @@ PASS  prompt tells the job not to post its own result (Friday does)
 == Reading claude's JSON result
 PASS  result + permission denials counted
 PASS  garbage output = failed
-
-== Real `gh api` output (SB_REAL_JSON)
-PASS  parsed 18 real comments; owner-authored: 18
 
 ALL PASS

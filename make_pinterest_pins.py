@@ -177,7 +177,7 @@ def main():
         print(f"pin-{i}.png — {name} (${p['price']})")
     (OUT / "pins.md").write_text(
         "# Pinterest upload pack\n\n_Upload each pin with its title, description, "
-        "and link below. Board suggestion: \"Trending Finds\"._\n\n" + "\n".join(entries),
+        "and link below. Board suggestion: \"Everyday Finds\"._\n\n" + "\n".join(entries),
         encoding="utf-8")
     print(f"{len(entries)} pins -> {OUT}")
 

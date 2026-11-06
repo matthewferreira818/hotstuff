@@ -424,7 +424,7 @@ const CATEGORY_COLORS = {
   "Outdoor": "#34d399",
   "Auto": "#94a3b8",
   "Bags": "#e879f9",
-  "Trending Finds": "#f59e0b",
+  "Everyday Finds": "#f59e0b",
 };
 const CATEGORY_FALLBACK = ["#fb5d7d", "#fb923c", "#a78bfa", "#2dd4bf", "#38bdf8", "#4ade80", "#e879f9", "#94a3b8"];
 

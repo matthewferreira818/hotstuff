@@ -120,7 +120,7 @@ NAME_KEYWORD_CATEGORIES = [
     #   - Pet before everything, so "dog car seat belt" stays Pet.
     #   - Jewelry, Footwear and Bags before Fashion, because suppliers stuff
     #     the word "fashion" into necklace and sneaker titles constantly.
-    # Anything that matches nothing lands in Trending Finds, which is a real
+    # Anything that matches nothing lands in Everyday Finds, which is a real
     # bucket, not a failure -- but a big one means this table has a gap.
     (("pet", "dog", "cat", "puppy", "kitten", "aquarium", "fish tank",
       "fish bowl"), "Pet", "🐾"),
@@ -313,7 +313,7 @@ def classify_name(name: str) -> tuple[str, str]:
     for keywords, category, emoji in NAME_KEYWORD_CATEGORIES:
         if any(keyword_hit(name_lower, words, k) for k in keywords):
             return category, emoji
-    return "Trending Finds", "🛍️"
+    return "Everyday Finds", "🛍️"
 
 
 def parse_price(price_str) -> float:
@@ -789,9 +789,9 @@ KEYWORD_DESCRIPTIONS = [
       "Simple, pretty, and easy to layer with anything.",
       "A little extra shine for an everyday outfit."]),
     (("leggings", "yoga", "fitness", "trainer", "workout", "grip", " abs", "muscle", "seamless"),
-     ["Gear up — a trending fitness pick for everyday workouts.",
+     ["Gear up — a fitness pick for everyday workouts.",
       "The kind of workout upgrade that actually gets used.",
-      "Move better, feel better — a trending fitness pick.",
+      "Move more — a simple fitness pick.",
       "Built for the gym, comfy enough for the couch after.",
       "An easy way to make workouts feel more solid."]),
     (("dog", "cat", "pet", "puppy", "kitten"),
@@ -869,7 +869,7 @@ KEYWORD_DESCRIPTIONS = [
     (("crystal", "stone", "healing", "moon", "tree of life"),
      ["A calming little talisman with serious shelf appeal.",
       "Good-vibes decor that doubles as a thoughtful gift.",
-      "Natural, pretty, and quietly trending.",
+      "Simple, pretty, and easy to use.",
       "A pretty little pick-me-up for a shelf or desk.",
       "Simple, natural style that's easy to love."]),
     (("shoe", "sneaker", "sandal", "slipper"),
@@ -905,7 +905,7 @@ KEYWORD_DESCRIPTIONS = [
 ]
 
 CATEGORY_DESCRIPTIONS = {
-    "Fashion": ["A trending wardrobe pick that's easy to style.",
+    "Fashion": ["A wardrobe pick that's easy to style.",
                 "An easy style upgrade for right now.",
                 "A simple way to freshen up your everyday look.",
                 "Wardrobe-ready and easy to style multiple ways."],
@@ -930,19 +930,19 @@ CATEGORY_DESCRIPTIONS = {
             "An easy win for pets and their people.",
             "Simple pet gear that gets used daily."],
     "Baby": ["A practical little pick for the baby-gear pile.",
-             "A trending baby pick this week.",
+             "A baby pick from this week's lineup.",
              "Simple, everyday baby kit.",
              "An easy add for the nursery or the diaper bag."],
-    "Wellness": ["A trending pick from the comfort-and-recovery shelf.",
-                 "Simple everyday support that's having a moment.",
-                 "A trending comfort pick this week.",
+    "Wellness": ["A pick from the comfort-and-recovery shelf.",
+                 "Simple everyday support.",
+                 "A comfort pick from this week's lineup.",
                  "An easy, low-fuss addition to the daily routine."],
-    "Fitness": ["A trending fitness pick that actually gets used.",
-                "Level up the routine with a trending workout pick.",
+    "Fitness": ["A practical fitness pick for everyday use.",
+                "Level up the routine with a simple workout pick.",
                 "Simple gear that makes workouts a little easier.",
                 "An easy add to any fitness routine."],
     "Toys": ["Fun for the kids and an easy gift-time win.",
-             "Playtime, sorted — and it's trending for a reason.",
+             "Playtime, sorted.",
              "An easy pick for keeping little hands busy.",
              "Simple fun that holds attention."],
     "Jewelry": ["Everyday sparkle that gives beautifully, too.",
@@ -953,7 +953,7 @@ CATEGORY_DESCRIPTIONS = {
                           "Small add-on, surprisingly big daily payoff.",
                           "An easy fix for one of your most-used gadgets.",
                           "Practical gear for the phone you use nonstop."],
-    "Sports": ["Trending gear for getting after it outdoors.",
+    "Sports": ["Gear for getting after it outdoors.",
                "The kind of kit that makes an active day better.",
                "Simple gear built for actually getting used.",
                "An easy add for active days."],
@@ -961,7 +961,7 @@ CATEGORY_DESCRIPTIONS = {
              "Practical kit your car will thank you for.",
              "An easy fix for a small daily driving annoyance.",
              "Simple gear that makes commuting a little smoother."],
-    "Outdoor": ["Trending gear for wherever the trail takes you.",
+    "Outdoor": ["Gear for wherever the trail takes you.",
                 "Simple kit that makes time outside easier.",
                 "An easy upgrade for camping, hiking, or the yard.",
                 "Built for outside, easy enough for everyday use."],
@@ -977,22 +977,22 @@ CATEGORY_DESCRIPTIONS = {
               "Makes a fiddly job noticeably faster.",
               "Practical gear that earns a spot in the garage.",
               "Simple, sturdy, and genuinely useful."],
-    "Trending Finds": ["A trending find that's having a real moment.",
-                        "Simple, useful, and easy to see why it's trending.",
-                        "An easy pick from this week's trending list.",
-                        "Practical, well-priced, and quietly trending.",
+    "Everyday Finds": ["A find from this week's lineup.",
+                        "Simple and useful.",
+                        "An easy pick from this week's lineup.",
+                        "Practical and easy to use.",
                         "A useful find at an easy price.",
                         "A small daily upgrade worth trying.",
                         "Handy, simple, and easy to love.",
-                        "One of this week's trending finds."],
+                        "One of this week's finds."],
 }
 
 DEFAULT_DESCRIPTIONS = [
-    "One of this week's trending finds.",
-    "A trending find that's having a real moment.",
-    "Trending hard right now — and easy to see why.",
-    "Simple, useful, and easy to see why it's trending.",
-    "An easy pick from this week's trending list.",
+    "One of this week's finds.",
+    "A find from this week's lineup.",
+    "New in this week's lineup.",
+    "Simple and useful.",
+    "An easy pick from this week's lineup.",
 ]
 
 
@@ -1005,7 +1005,7 @@ DEFAULT_DESCRIPTIONS = [
 # is scoped out falls through to the category's own line, which is always safe
 # because that line only describes the category.
 KEYWORD_SCOPE = {
-    "fetal": ("Jewelry", "Toys", "Electronics", "Trending Finds"),
+    "fetal": ("Jewelry", "Toys", "Electronics", "Everyday Finds"),
     "necklace": ("Jewelry",),
     "leggings": ("Fitness", "Wellness", "Fashion", "Sports"),
     "dog": ("Pet",),

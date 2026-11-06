@@ -383,7 +383,7 @@ def _write_captions(picks):
         if c not in cats:
             cats.append(c)
     # " finds" reads as a noun for a bare category ("jewelry finds"), but
-    # the catch-all category is literally "Trending Finds" — appending it
+    # the catch-all category is literally "Everyday Finds" — appending it
     # there produced "trending finds finds" in a public caption.
     solo = len(cats) == 1 and not cats[0].endswith("finds")
     tag_items = " + ".join(cats) + (" finds" if solo else "")

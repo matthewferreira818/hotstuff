@@ -53,7 +53,8 @@ def fold(evs):
             continue
         if kind == "assigned":
             jobs[jid] = {"id": jid, "to": e.get("to", ""), "by": e.get("by", ""), "title": e.get("title", ""), "assigned": e.get("at"),
-                         "ack": None, "started": None, "done": None, "failed": None, "proof": None, "why": None, "resends": 0}
+                         "ack": None, "started": None, "done": None, "failed": None, "proof": None, "why": None, "resends": 0,
+                         "ack_implied": False, "started_implied": False}
             continue
         j = jobs.get(jid)
         if not j:
@@ -63,11 +64,12 @@ def fold(evs):
             j["resent"] = e.get("at")
         elif kind in ("ack", "started", "done", "failed") and not j.get(kind):
             j[kind] = e.get("at")
-            # A later stage proves the earlier ones happened (started means it got the job); fill them with the same time.
+            # A later stage proves the earlier ones happened (started means it got the job), but their TIME was never recorded:
+            # mark them implied, with no time, rather than borrowing this event's time (rule 1, NB2's gate).
             if kind in ("started", "done") and not j["ack"]:
-                j["ack"] = e.get("at")
+                j["ack_implied"] = True
             if kind == "done" and not j["started"]:
-                j["started"] = e.get("at")
+                j["started_implied"] = True
             if kind == "done":
                 j["proof"] = e.get("proof")
             if kind == "failed":
@@ -80,9 +82,9 @@ def stage(j):
         return "failed"
     if j["done"]:
         return "done"
-    if j["started"]:
+    if j["started"] or j["started_implied"]:
         return "started"
-    if j["ack"]:
+    if j["ack"] or j["ack_implied"]:
         return "ack"
     return "assigned"
 
@@ -146,6 +148,12 @@ def main(argv):
         if st in ("done", "failed"):
             fail(f"{jid} is already {st}")
         kind = {"start": "started", "fail": "failed"}.get(a.cmd, a.cmd)
+        who, owner, boss = a.by.strip().lower(), j["to"].strip().lower(), j["by"].strip().lower()
+        # Only the crew member it was given to moves its job. Whoever assigned it may also fail it or resend it.
+        if kind in ("ack", "started", "done") and who != owner:
+            fail(f"{jid} belongs to {j['to']}; only {j['to']} can mark it {kind}")
+        if kind in ("failed", "resend") and who not in (owner, boss):
+            fail(f"only {j['to']} or {j['by']} can {a.cmd} {jid}")
         e = {"id": jid, "event": kind, "at": now_iso(), "by": one_line(a.by, 40)}
         if kind == "resend":
             if st != "assigned":

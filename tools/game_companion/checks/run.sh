@@ -45,4 +45,7 @@ J="$T/jobs-tool"; JP="$D/../crew/job.py"
 JID=$(CREW_JOBS_DIR="$J" python3 "$JP" new LC-Test "check" --by Friday)
 CREW_JOBS_DIR="$J" python3 "$JP" done "$JID" --by LC-Test 2>/dev/null && echo "FAIL job.py let 'done' through without proof" || echo "PASS job.py refuses 'done' without proof"
 CREW_JOBS_DIR="$J" python3 "$JP" done "$JID" --by LC-Test --proof "x" >/dev/null && CREW_JOBS_DIR="$J" python3 "$JP" start "$JID" --by LC-Test 2>/dev/null && echo "FAIL job.py changed a finished job" || echo "PASS job.py won't touch a finished job"
+JID2=$(CREW_JOBS_DIR="$J" python3 "$JP" new LC-Owner "owner check" --by Friday)
+CREW_JOBS_DIR="$J" python3 "$JP" done "$JID2" --by LC-Other --proof x 2>/dev/null && echo "FAIL job.py let another chat finish someone else's job" || echo "PASS only the assigned chat can finish its job"
+CREW_JOBS_DIR="$J" python3 "$JP" fail "$JID2" --by Friday --why "test" >/dev/null && echo "PASS whoever assigned it may fail it" || echo "FAIL the assigner couldn't fail its own job"
 [ "$(stat -f %Lp "$J")" = "700" ] && echo "PASS jobs folder is private (700)" || echo "FAIL jobs folder is not 700"

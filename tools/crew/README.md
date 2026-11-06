@@ -21,7 +21,9 @@ If a job gets no "got it", Friday can resend it.
 
 ## The commands
 
-Run these from any crew chat on this Mac. `--by` is your own chat name (for example `LC-Pixels`).
+Run these from any crew chat on this Mac, always from the main checkout: `~/Claude/hotstuff/tools/crew/job.py` (not an old worktree copy).
+`--by` is your own chat name (for example `LC-Pixels`). Only the chat a job was given to can mark it got it / started / done;
+whoever assigned it may also fail it or resend it. A step you skip still shows as done, but with "no time recorded", never a borrowed time.
 
 ```
 python3 tools/crew/job.py ack   <id> --by <you>
@@ -52,6 +54,11 @@ Job ids look like `J-1106-145401` (month, day, time).
 `~/Claude/crew-jobs/jobs.jsonl` on this Mac only. One event per line; the folder is private to Matthew's user (700). It is **never in git**: don't commit it, don't copy it into a repo, don't paste it into the room.
 
 The Helm reads this same file for the Jobs card. Nothing else writes it.
+
+## Messages about a job
+
+When you message a crew chat about a job, send the id and the commands; the title lives in the card. LC-to-LC messages are mirrored to the
+public room, so a message should say "job J-… assigned to X", never anything private.
 
 ## The rule on titles
 

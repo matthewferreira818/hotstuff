@@ -20,9 +20,11 @@ struct CrewJob: Identifiable, Equatable {
  var why: String?
  var resends = 0
  var lastResend: Date?
+ var ackImplied = false       // a later step proves it happened, but no time was recorded for it
+ var startedImplied = false
 
  enum Stage: Int { case assigned, ack, started, done, failed }
- var stage: Stage { failed != nil ? .failed : (done != nil ? .done : (started != nil ? .started : (ack != nil ? .ack : .assigned))) }
+ var stage: Stage { failed != nil ? .failed : (done != nil ? .done : ((started != nil || startedImplied) ? .started : ((ack != nil || ackImplied) ? .ack : .assigned))) }
  var open: Bool { stage != .done && stage != .failed }
 }
 
@@ -30,7 +32,8 @@ enum JobRules {
  static let noAnswerAfter: TimeInterval = 10 * 60
  static var fileURL: URL { FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Claude/crew-jobs/jobs.jsonl") }
 
- // Same folding rules as tools/crew/job.py (a later stage fills the earlier ones with its own time).
+ // Same folding rules as tools/crew/job.py: a later stage proves the earlier ones happened, but never lends them its time
+ // (they show as done with "no time recorded").
  static func fold(_ data: Data) -> [CrewJob] {
   let iso = ISO8601DateFormatter()
   var jobs: [String:CrewJob] = [:]
@@ -47,8 +50,8 @@ enum JobRules {
    switch kind {
    case "resend": job.resends += 1; job.lastResend = at
    case "ack": if job.ack == nil { job.ack = at }
-   case "started": if job.started == nil { job.started = at; if job.ack == nil { job.ack = at } }
-   case "done": if job.done == nil { job.done = at; job.proof = j["proof"] as? String; if job.ack == nil { job.ack = at }; if job.started == nil { job.started = at } }
+   case "started": if job.started == nil { job.started = at; if job.ack == nil { job.ackImplied = true } }
+   case "done": if job.done == nil { job.done = at; job.proof = j["proof"] as? String; if job.ack == nil { job.ackImplied = true }; if job.started == nil { job.startedImplied = true } }
    case "failed": if job.failed == nil { job.failed = at; job.why = j["why"] as? String }
    default: break
    }
@@ -93,10 +96,11 @@ struct CoreJobsCard: View {
  @ObservedObject var model = CrewJobsModel.shared
  private static let time: DateFormatter = { let f = DateFormatter(); f.dateFormat = "h:mm a"; return f }()
 
- private func chip(_ label: String,_ at: Date?,_ color: Color) -> some View {
-  HStack(spacing:4) {
-   Circle().fill(at == nil ? Color.clear : color).overlay(Circle().stroke(at == nil ? CoreStyle.dim : color,lineWidth:1)).frame(width:7,height:7)
-   Text(label + (at.map { " " + Self.time.string(from:$0) } ?? "")).font(.system(size:10.5,design:.rounded)).foregroundStyle(at == nil ? CoreStyle.dim : CoreStyle.ink.opacity(0.85)).lineLimit(1).fixedSize()
+ private func chip(_ label: String,_ at: Date?,_ color: Color,implied: Bool = false) -> some View {
+  let on = at != nil || implied
+  return HStack(spacing:4) {
+   Circle().fill(on ? color : Color.clear).overlay(Circle().stroke(on ? color : CoreStyle.dim,lineWidth:1)).frame(width:7,height:7)
+   Text(label + (at.map { " " + Self.time.string(from:$0) } ?? (implied ? " · no time recorded" : ""))).font(.system(size:10.5,design:.rounded)).foregroundStyle(on ? CoreStyle.ink.opacity(0.85) : CoreStyle.dim).lineLimit(1).fixedSize()
   }
  }
 
@@ -124,7 +128,7 @@ struct CoreJobsCard: View {
       Text("No answer yet: nothing came back for \(Int(now.timeIntervalSince(j.lastResend ?? j.assigned) / 60)) min" + (j.resends > 0 ? " (resent \(j.resends)×)" : ""))
        .font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.amber)
      }
-     if let p = j.proof { Text("Proof: " + p).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.7)).lineLimit(2) }
+     if let p = j.proof { Text("Proof given: " + p).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.ink.opacity(0.7)).lineLimit(2) }
      if let w = j.why { Text("Why it failed: " + w).font(.system(size:11,design:.rounded)).foregroundStyle(CoreStyle.crimson).lineLimit(2) }
     }
     .padding(.vertical,4)
@@ -139,8 +143,8 @@ struct CoreJobsCard: View {
 
  @ViewBuilder func stageChips(_ j: CrewJob) -> some View {
   chip("assigned",j.assigned,CoreStyle.teal)
-  chip("got it",j.ack,CoreStyle.teal)
-  chip("started",j.started,CoreStyle.emerald)
+  chip("got it",j.ack,CoreStyle.teal,implied:j.ackImplied)
+  chip("started",j.started,CoreStyle.emerald,implied:j.startedImplied)
   if j.failed != nil { chip("failed",j.failed,CoreStyle.crimson) } else { chip("done",j.done,CoreStyle.emerald) }
  }
 }

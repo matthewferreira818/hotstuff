@@ -15,7 +15,7 @@ let jobs = JobRules.fold(Data(lines.utf8))
 check(jobs.count == 2,"two jobs; a broken line and an event for an unknown job are skipped")
 let j1 = jobs.first { $0.id == "J-1" }!
 check(j1.stage == .done && j1.proof == "commit abc","done with its proof")
-check(j1.ack != nil && j1.ack == j1.started,"'started' fills in 'got it' with its own time")
+check(j1.ack == nil && j1.ackImplied && j1.started != nil,"'started' proves 'got it' happened but never lends it a time")
 check(j1.resends == 1,"the resend is counted")
 let j2 = jobs.first { $0.id == "J-2" }!
 let iso = ISO8601DateFormatter()
@@ -23,4 +23,9 @@ check(!JobRules.noAnswer(j2,now:iso.date(from:"2026-11-06T18:25:00Z")!),"5 minut
 check(JobRules.noAnswer(j2,now:iso.date(from:"2026-11-06T18:31:00Z")!),"11 minutes without a 'got it' says 'no answer yet'")
 check(!JobRules.noAnswer(j1,now:iso.date(from:"2026-11-06T20:00:00Z")!),"a finished job is never 'no answer'")
 check(JobRules.shown(jobs).first?.id == "J-2","open jobs are listed before finished ones")
+let straight = JobRules.fold(Data("""
+{"id":"J-9","event":"assigned","at":"2026-11-06T18:00:00Z","to":"A","by":"Friday","title":"x"}
+{"id":"J-9","event":"done","at":"2026-11-06T18:05:00Z","by":"A","proof":"p"}
+""".utf8))[0]
+check(straight.stage == .done && straight.ack == nil && straight.started == nil && straight.ackImplied && straight.startedImplied,"straight to done: got it + started shown with no time recorded")
 print(fails == 0 ? "ALL PASS (job cards)" : "\(fails) FAILED (job cards)")

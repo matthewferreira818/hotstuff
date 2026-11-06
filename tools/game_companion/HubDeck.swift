@@ -17,7 +17,7 @@ extension CompanionInterfaceView {
  var deckShell: some View {
   GeometryReader { geo in
    VStack(spacing:0) {
-    deckTopBar
+    if hub.simple { simpleTopBar } else { deckTopBar }
     HStack(spacing:0) {
      VStack(spacing:0) {
       if deckInHack { deckHackNav }
@@ -27,9 +27,10 @@ extension CompanionInterfaceView {
        .id(hub.section)
        .transition(.opacity)
      }
-     if deckShowsDock { deckDock.transition(.opacity) }
+     if deckShowsDock && !hub.simple { deckDock.transition(.opacity) }
     }
    }
+   .overlay { if hub.tourStep >= 0 && hub.simple { simpleTour } }
    .onAppear { hub.compact = geo.size.width < 900; hub.width = geo.size.width }
    .onChange(of:geo.size.width) { _,width in hub.compact = width < 900; hub.width = width }
    .sheet(isPresented:$hub.jumpPresented) { hubJumpSheet }
@@ -154,6 +155,8 @@ extension CompanionInterfaceView {
    ForEach(Self.deckMore) { section in
     Button { hubSelect(section) } label: { Label("\(section.title)  ·  \(deckMoreBlurb(section))",systemImage:section.icon) }
    }
+   Divider()
+   Button { hub.simple = true; hubSelect(.home) } label: { Label("Simple mode: fewer buttons, plain words",systemImage:"switch.2") }
   } label: {
    HStack(spacing:4) {
     Text("More").font(.system(size:13,weight:deckInMore ? .semibold : .medium))
@@ -183,8 +186,8 @@ extension CompanionInterfaceView {
 
  var deckPageHeader: some View {
   HStack(alignment:.firstTextBaseline,spacing:10) {
-   Text(hub.section.title).font(.system(size:24,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
-   Text(hub.section.blurb).font(.system(size:12.5)).foregroundStyle(HubTheme.subtext).lineLimit(1)
+   Text(hub.simple ? simpleName(hub.section) : hub.section.title).font(.system(size:26,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+   Text(hub.simple ? simpleBlurb(hub.section) : hub.section.blurb).font(.system(size:12.5)).foregroundStyle(HubTheme.subtext).lineLimit(1)
    if hub.section == .stocks {
     Text("PAPER TRADING · NO REAL MONEY").font(DeckMono.font(10.5,.bold)).foregroundStyle(HubTheme.amber)
      .padding(.horizontal,8).padding(.vertical,3).background(HubTheme.amber.opacity(0.14),in:RoundedRectangle(cornerRadius:4))

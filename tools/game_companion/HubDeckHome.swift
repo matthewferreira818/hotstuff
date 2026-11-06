@@ -22,7 +22,13 @@ extension CompanionInterfaceView {
   return meeting.messages.filter { message in
    guard let date = message.date, date > cutoff, date > lastMine else { return false }
    let text = message.text.trimmingCharacters(in:.whitespaces).uppercased()
-   return text.hasPrefix("CONFIRM:") || text.hasPrefix("URGENT:")
+   guard text.hasPrefix("CONFIRM:") || text.hasPrefix("URGENT:"), !hub.dismissed.contains(message.id) else { return false }
+   // Old pings that only tested the alert, and ones that say there is nothing to approve, are not real requests.
+   let flat = text.lowercased()
+   let body = flat.drop { $0 != ":" }.dropFirst().trimmingCharacters(in:.whitespaces)
+   if flat.contains("nothing to approve") || flat.contains("nothing happened") || flat.contains("this only checks") { return false }
+   if body.hasPrefix("test") || body.hasPrefix("second test") || body.hasPrefix("third test") { return false }
+   return true
   }.sorted { ($0.date ?? .distantPast) > ($1.date ?? .distantPast) }
  }
 

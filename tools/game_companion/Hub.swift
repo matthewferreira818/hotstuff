@@ -116,6 +116,13 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var jumpPresented = false
  // True when the window is narrow (under 720 points): a slimmer rail and top bar, so the window can be shrunk a lot.
  @Published var compact = false
+ // Simple mode (2026-11-06, Matthew: "its more so like overwhelming"): the default. Advanced brings back the full Signal Deck.
+ @Published var simple = UserDefaults.standard.object(forKey:"hub.simple") as? Bool ?? true { didSet { UserDefaults.standard.set(simple,forKey:"hub.simple") } }
+ // The first-run tour: -1 means closed, otherwise the card showing.
+ @Published var tourStep = -1
+ @Published var helpOpen = ""
+ // Needs-you cards he tapped "Not now" on (until the app is closed).
+ @Published var dismissed: Set<Int> = []
  // The window's width, so the top bar can drop its small badges before it would squeeze the tabs.
  @Published var width: CGFloat = 1200
  // Which card or button the pointer is over, so it can lift a little. Empty means none.

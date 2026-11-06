@@ -7,7 +7,9 @@ extension CompanionInterfaceView {
  var hubGreeting: String {
   var calendar = Calendar.current
   calendar.timeZone = TimeZone(identifier:"America/Moncton") ?? calendar.timeZone
-  let hour = calendar.component(.hour,from:Date())
+  // `hub.testHour` is only ever set by hand on a test copy (defaults write), to check the day greeting at night.
+  let hour = UserDefaults.standard.object(forKey:"hub.testHour") as? Int ?? calendar.component(.hour,from:Date())
+  if hour < 5 { return "Up late, Matthew?" }
   if hour < 12 { return "Good morning, Matthew" }
   if hour < 18 { return "Good afternoon, Matthew" }
   return "Good evening, Matthew"

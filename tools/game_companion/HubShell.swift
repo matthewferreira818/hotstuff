@@ -263,7 +263,7 @@ extension CompanionInterfaceView {
 
  @ViewBuilder var hubContent: some View {
   switch hub.section {
-  case .home: deckHome
+  case .home: if hub.simple { simpleHome } else { deckHome }
   case .friday: deckFriday
   case .stocks: hubStocks
   case .store: hubStore

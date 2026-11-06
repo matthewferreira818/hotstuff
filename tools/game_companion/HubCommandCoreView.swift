@@ -177,7 +177,7 @@ extension CompanionInterfaceView {
   if !failing.isEmpty { opsBig = "\(failing.count) failing"; opsTone = 3 }
   else if let job = sb.runningJob { opsBig = "Job #\(job) running"; opsTone = 1 }
   else if ventures.runs == nil { opsBig = "Not read"; opsTone = 0 }
-  else { opsBig = "All running"; opsTone = 1 }
+  else { opsBig = "None failing"; opsTone = 1 }   // nothing measures "all running"; this is what we know
   cards.append(CoreCardData(id:"ops",title:"OPERATIONS",big:opsBig,bigTone:opsTone,
    sub:"\(runs.count) automations · Switchboard \(sb.on ? "on" : "off")",
    foot:stocks.failed ? "robot snapshots unavailable" : "\(loadedBots) of \(robots.count) practice robots loaded"))

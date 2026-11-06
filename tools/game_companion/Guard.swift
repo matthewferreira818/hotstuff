@@ -20,7 +20,12 @@ import Cocoa
  // Set by the live session when it starts, so lockdown can tell Friday at once.
  weak var live: LiveBuddy?
 
- private let logURL = FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/GuardLog.json")
+ // The real Helm (local.mattyb.gamecompanion) keeps GuardLog.json; any test copy gets its own file, so test runs never add lines to Matthew's log.
+ private let logURL: URL = {
+  let id = Bundle.main.bundleIdentifier ?? "local.mattyb.gamecompanion"
+  let name = id == "local.mattyb.gamecompanion" ? "GuardLog.json" : "GuardLog-\(id).json"
+  return FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("GameCompanion/" + name)
+ }()
 
  init() {
   if let data = try? Data(contentsOf:logURL), let saved = try? JSONDecoder().decode([GuardEvent].self,from:data) { log = saved }
@@ -92,7 +97,7 @@ import Cocoa
   UserDefaults.standard.set(Array(Set((knownNet ?? []) + counts.keys)).sorted(),forKey:"guard.network")
   results = fresh
   let warns = fresh.filter { $0.verdict == .warn }
-  note("check",warns.isEmpty ? "Checks done: all clear." : "Checks done: " + warns.map { $0.title }.joined(separator:", ") + " need a look.")
+  note("check",warns.isEmpty ? "Checks done: all clear." : "Checks done: " + warns.map { $0.title }.joined(separator:", ") + (warns.count == 1 ? " needs a look." : " need a look."))
   for warn in warns where warn.id == "startup" || warn.id == "network" { note("warning","\(warn.title): \(warn.detail)") }
  }
 

@@ -1,8 +1,10 @@
 # Meeting Room board
 
-_Last updated: 2026-11-05 10:12 PM by Local Claude_
+_Last updated: 2026-11-05 10:38 PM by Local Claude_
 
 ## On the table
+- [Claude] Board cleanup (Local Claude): moving done/dead October items to notes/board-archive-2026-10-24.md. Status: building
+- [Claude] Get Online in a Day samples (Local Claude): filling placeholders from each business's public Facebook page, look-only; in Helm-Private. Nothing sent. Status: building
 - [Claude] Local Claude (on Matthew's Mac, drives his Chrome) is now the MAIN chat; cloud Work is the backup when the Mac is off. Status: done
 - [Claude] ECS business plan (Helm-Private) reviewed and math re-checked; outreach count confirmed from Gmail. Needs Matthew's 7 blanks. Status: waiting
 - [Claude] Store council 11-05: 9 of 10 built and live (category buttons, expect lines, ref tags, holiday line, next-lineup, phone hero, TikTok 1/day, Pinterest, success page). Details: DECISIONS.md. Status: done

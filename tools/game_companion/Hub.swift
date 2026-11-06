@@ -121,6 +121,8 @@ enum HubSection: Int, CaseIterable, Identifiable {
  // The first-run tour: -1 means closed, otherwise the card showing.
  @Published var tourStep = -1
  @Published var helpOpen = ""
+ // Friday page (Simple mode): the voice, hands and clip controls stay behind ONE Voice button until he opens them.
+ @Published var voiceOpen = false
  // Needs-you cards he tapped "Not now" on (until the app is closed).
  @Published var dismissed: Set<Int> = []
  // The window's width, so the top bar can drop its small badges before it would squeeze the tabs.

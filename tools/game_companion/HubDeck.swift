@@ -315,7 +315,7 @@ extension CompanionInterfaceView {
   var lines: [String] = []
   let status = c.tab == 0 ? live.status : c.status
   if c.tab == 0 && !live.running {
-   lines.append("Asleep. Tap Talk to Friday to wake her.")
+   lines.append(hub.simple ? "Resting. Type above, or open Voice to talk." : "Asleep. Tap Talk to Friday to wake her.")
   } else if !status.isEmpty { lines.append(status) }
   if hands.enabled && hands.hasAccess && !hands.status.isEmpty { lines.append("Hands: \(hands.status)") }
   if !clips.status.isEmpty { lines.append(clips.status) }

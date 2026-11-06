@@ -356,3 +356,48 @@ extension CompanionInterfaceView {
   }
  }
 }
+
+
+// Friday's page in Simple mode: the orb, then the chat box (typing is the main door), then ONE Voice button. Voice, hands and clip
+// controls (and the "Google Live" pill) appear only after he opens Voice, or while voice is actually on.
+extension CompanionInterfaceView {
+ var simpleFriday: some View {
+  GeometryReader { geo in
+   let small = geo.size.height < 700
+   ScrollView {
+    VStack(spacing:14) {
+     orbSection(small ? 110 : 150).padding(.top,6)
+     if live.running { captions }
+     FridayChatBox(compact:small).frame(maxWidth:640).padding(.horizontal,22)
+     VStack(spacing:10) {
+      Button { withAnimation(.easeOut(duration:0.2)) { hub.voiceOpen.toggle() } } label: {
+       HStack(spacing:8) {
+        Image(systemName:"waveform")
+        Text(live.running ? "Voice is on" : "Voice").font(.system(size:15,weight:.medium))
+        Image(systemName:hub.voiceOpen || live.running ? "chevron.up" : "chevron.down").font(.system(size:10,weight:.bold))
+       }
+       .foregroundStyle(HubTheme.text).padding(.horizontal,18).frame(height:42)
+       .overlay(RoundedRectangle(cornerRadius:12).stroke(live.running ? HubTheme.green : HubTheme.controlOutline,lineWidth:1))
+      }
+      .buttonStyle(.plain).accessibilityLabel("Voice, hands and clip controls").accessibilityValue(hub.voiceOpen || live.running ? "open" : "closed")
+      if hub.voiceOpen || live.running {
+       if live.running { modePill }
+       controlBar(compact:true)
+       seesRow
+       Text("Voice shares your microphone and screens with Google while it is on.").font(.system(size:12)).foregroundStyle(HubTheme.subtext)
+      }
+     }
+     HStack(alignment:.top,spacing:12) {
+      deckDoingCard
+      deckMemoryCard
+      if !hub.compact { deckMusicCard }
+     }
+     .padding(.horizontal,22)
+     SwitchboardPanel(compact:true).padding(.horizontal,22).padding(.bottom,14)
+    }
+    .frame(maxWidth:.infinity)
+   }
+   .scrollIndicators(.hidden)
+  }
+ }
+}

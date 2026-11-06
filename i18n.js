@@ -127,7 +127,7 @@
     terms: "Conditions",
     tileCount: "{n} articles", seeAll: "Voir les {n} →", searchAll: "Chercher parmi les {n} →",
     rowTrending: "Tendance en ce moment", rowGifts15: "Cadeaux à moins de 15 $", rowPet: "Pour les amis des animaux",
-    rowHome: "Maison douillette", rowJewelry: "Sélection bijoux", rowKitchen: "Pratique en cuisine",
+    rowHome: "Trouvailles maison", rowJewelry: "Sélection bijoux", rowKitchen: "Pratique en cuisine",
     searchLabel: "Chercher un produit",
   };
 

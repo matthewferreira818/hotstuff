@@ -103,12 +103,13 @@ function renderTileCounts() {
 }
 
 const DROP_ROWS = [
-  { key: "rowTrending", en: "Trending right now", items: () => byTrend(allProducts), link: null },
   { key: "rowGifts15", en: "Gifts under $15", items: () => giftItems(15), link: "gifts/?ref=row" },
   { key: "rowPet", en: "For pet people", items: () => inCategory("Pet"), link: "c/pet/?ref=row" },
-  { key: "rowHome", en: "Cozy home", items: () => inCategory("Home"), link: "c/home/?ref=row" },
+  { key: "rowHome", en: "Home finds", items: () => inCategory("Home"), link: "c/home/?ref=row" },
   { key: "rowJewelry", en: "Jewelry picks", items: () => inCategory("Jewelry"), link: "c/jewelry/?ref=row" },
   { key: "rowKitchen", en: "Kitchen helpers", items: () => inCategory("Kitchen"), link: "c/kitchen/?ref=row" },
+  // true trend order, whole catalogue, nothing filtered out
+  { key: "rowTrending", en: "Trending right now", items: () => byTrend(allProducts), link: null },
 ];
 const ROW_MAX = 12;
 function buildDropCard(p) {

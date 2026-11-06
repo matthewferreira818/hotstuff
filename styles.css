@@ -1574,3 +1574,15 @@ h1, h2, .section-head h2 { font-family: var(--serif); font-weight: 600; letter-s
   /* phones: the search icon takes the "Shop trending" slot (the rows are right below) */
   .nav-inner > .btn-primary { display: none; }
 }
+
+/* Mid-size desktops (≈ 641–1180px): the search icon made the header crowded,
+   so tighten the spacing and keep every label on one line (11-05). */
+@media (min-width: 641px) and (max-width: 1180px) {
+  .nav-inner { gap: 16px; }
+  .nav-links { gap: 14px; }
+  .nav-links a, .nav-inner > .btn-primary { white-space: nowrap; }
+  .nav-links a[href="#shipping"], .nav-links a[href="#faq"] { display: none; }
+}
+@media (min-width: 641px) and (max-width: 900px) {
+  .nav-links a:not(.nav-automation) { display: none; }
+}

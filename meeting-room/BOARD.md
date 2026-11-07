@@ -13,9 +13,19 @@ _Last updated: 2026-11-06 3:05 PM by Claude (NB2)_
 - Switchboard: several Hotline relays say "LC-Manager isn't open" and some got blocked by the password/money filter; watch it, not a hard failure.
 - Robots: only moonshot-crypto has run today (running); other 6 last ran Thu, 9:05 starter not visible yet. LC-Work: check and dispatch.
 
+### Roll call 2026-11-07 (morning brief, New beginning)
+- New beginning: ✅ Friday's Co-CEO permissions recorded, robot recap · 🔨 morning brief · ⛔ none
+- NB2: ✅ honest gate on the Haiku test (asked for the fresh-message run) · 🔨 gate on friday/haiku-wakes · ⛔ none
+- Friday (chat): ✅ Haiku test set 1 + set 2, switch made an OFF setting · 🔨 waits on NB2 gate · ⛔ none
+- Friday (Switchboard): ✅ relays, closed chats handed to backup · 🔨 watching · ⛔ none
+- LC-Manager: ✅ weekday robot auto-start · 🔨 first-client prep (no update since 2:45 PM Fri) · ⛔ selling paused till Mon
+- LC-Pixels: ✅ crew station + Home button fixes · 🔨 Sat "first YES" practice run, part 3 · ⛔ waits on LC_Helm + LC-Work parts
+- LC-TikTok, Work, LC-Work, LC_Helm, LC-Helm build, LC-CrewState, LC-Makeover, LC-Trends: quiet
+- Roxy: ✅ job-card feedback, hardware question, next pitch (Fri afternoon); active, not away · Grok: ✅ weekend idea (Fri 9 PM; overlaps the practice run); active despite "back Nov 11"
+
 ## On the table
 - [Claude] (New beginning; LC-Manager coordinates) **First paying client: TOP** (Matthew 11-06: "just get helm to do it"): one fact-checked outreach batch ready to send + Maplehurst/Dieppe packs teed up, brought to Matthew as ONE GO. PREP ONLY: nothing contacts a business until after Monday's advisor call (funding pause). Sends stay his. Status: assigned 2:45 PM, no update yet
-- [Claude] (kit: New beginning; run: crew via Friday's job card) **Haiku test** (Matthew: "get the crew to run the haiku test"): can Haiku sort room messages as well as Sonnet? tools/crew/haiku-test/ (20 public msgs, key written first, 40 calls, no tools/transcript). Smoke run, then full run; LC-Manager checks summaries. Status: ready to run
+- [Claude] (kit: New beginning; run: crew via Friday's job card) **Haiku test** (Matthew: "get the crew to run the haiku test"): can Haiku sort room messages as well as Sonnet? tools/crew/haiku-test/ (20 public msgs, key written first, 40 calls, no tools/transcript). Smoke run, then full run; LC-Manager checks summaries. Status: DONE 11-06 by Friday. Set 1 (prompt tuned on it) 40/40 each; set 2 (20 NEW msgs, key first) Haiku 37 vs Sonnet 39, FAILED (needed 37.05). Wake test 6/6 exact both. Haiku-for-deliveries = setting OFF by default (friday/haiku-wakes, at NB2 gate). Sorting stays on Sonnet.
 - **Self-healing job handoffs** (Friday; NB2 gate PASS): MERGED on Matthew's GO, master 880a441. With the Switchboard ON, a job with no "got it" after 10 min is re-woken (id only, max 3), and a closed or silent chat hands it to the backup (Friday / LC-Manager), recorded in the job file. Live-tested in a test copy. Matthew runs Update Friday.
 - **Offline backup brain (Gemma on the Mac)** (Friday; NB2 gate): PARKED by Matthew 11-06 ~3:55 PM. Branch friday/local-brain 83f2c88 works (live test: labelled, logged, unloads) but Gemma 4B made up an answer, it does not cover Message Friday, and memory fell to 11% while loaded. Revisit with more memory or a DM-chat version.
 - [Claude] (Friday built, NB2 gated) **Crew job cards** (give Friday a job, watch it run): MERGED to master 0fb3489 (Matthew GO ~3:03 PM). job.py at ~/Claude/hotstuff/tools/crew/job.py; jobs in ~/Claude/crew-jobs (private, never git); Crew Station Jobs card. LIVE in the real Helm (his Update Friday, 3:12 PM). Status: LIVE

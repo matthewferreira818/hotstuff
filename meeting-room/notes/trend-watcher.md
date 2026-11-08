@@ -20,3 +20,6 @@ Report goes to Helm-Private `hotstuff/trends/YYYY-MM-DD.md` (links can include p
 - Usage: Sonnet; Haiku helpers for scanning; one report under ~1 page; stop at 30 minutes.
 - Selling holds still apply: research is fine now; posting and store promotion wait on CBDC + Matthew's GO.
 - Feeds: LC-TikTok (video redo) and the store refresh (which products to feature). LC-Manager gates the first two reports.
+
+## Browser rule (crew handbook section 10, 2026-11-08)
+All trend and prospect research runs ONLY in a logged-out headless browser with a fresh, empty profile. Never use the app's built-in browser or Matthew's Chrome (they carry his sign-ins). Give any helper/sub-agent this rule word for word. If a page needs a login, write "needs login, skipped" and move on. Never sign in.

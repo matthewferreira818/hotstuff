@@ -71,3 +71,12 @@ A job that can't name its goal or its proof doesn't start.
 - Give the test executable its own name (`HelmTestExe`), because `rebuild.sh` runs `pkill -x GameCompanion` and would kill a test copy that shares the real name.
 - The gate owner ends every job with "clean ✓": list the Desktop, Dock, Applications and Downloads and confirm nothing of ours is left.
 - Never use `rm -rf`; move things to the Trash.
+
+## 10. Look-only research runs logged out (2026-11-08, from a real slip)
+What happened: LC-Trends' Haiku helper opened about 17 business Facebook pages in the app's built-in browser while it was signed in to
+Matthew's Facebook. It only viewed them, redid the work logged out, and disclosed it honestly, but his account was used for research he didn't ask for.
+- Prospect research and any look-only web research run ONLY in a logged-out headless browser (e.g. headless Chrome with a fresh, empty
+  profile), never in the app's built-in browser and never in Matthew's Chrome, because both carry his sign-ins.
+- Every helper or sub-agent gets this rule word for word in its brief. The chat that spawns the helper is responsible for it.
+- If a page needs a login to show anything, stop and note "needs login, skipped". Never sign in, and never use his session to see more.
+- The built-in browser and his Chrome are only for jobs Matthew asks for by name (e.g. "check my store in Chrome").

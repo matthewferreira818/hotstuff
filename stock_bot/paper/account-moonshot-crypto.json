@@ -31,41 +31,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-07T06:13:02+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-07T07:14:48+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-07T08:09:56+00:00",
-   "kind": "sell",
-   "text": "Sold PEPE24478-USD at 4.925e-06 (-0.2%): stopped climbing"
-  },
-  {
-   "time": "2026-11-07T08:16:40+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-07T09:18:27+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-07T09:54:54+00:00",
-   "kind": "start",
-   "text": "Checking 19 every 10 seconds."
-  },
-  {
-   "time": "2026-11-07T09:54:54+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-07T10:56:40+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
@@ -227,6 +192,41 @@
   },
   {
    "time": "2026-11-08T14:05:19+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-08T14:41:28+00:00",
+   "kind": "start",
+   "text": "Checking 19 every 10 seconds."
+  },
+  {
+   "time": "2026-11-08T14:41:28+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-08T15:43:43+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-08T16:45:59+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-08T17:48:16+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-08T18:50:33+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-08T19:52:48+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
   }

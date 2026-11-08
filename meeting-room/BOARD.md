@@ -13,6 +13,11 @@ _Last updated: 2026-11-06 3:05 PM by Claude (NB2)_
 - Switchboard: several Hotline relays say "LC-Manager isn't open" and some got blocked by the password/money filter; watch it, not a hard failure.
 - Robots: only moonshot-crypto has run today (running); other 6 last ran Thu, 9:05 starter not visible yet. LC-Work: check and dispatch.
 
+### Roll call 2026-11-08 (Sunday brief, New beginning)
+- New beginning: ✅ Sat + Sun briefs, today's card dispatched · 🔨 CBDC Monday reminders · ⛔ none
+- Everyone else (NB2, Friday, LC-Manager, LC-TikTok, LC-Pixels, on-call LCs, Work, Roxy, Grok): quiet since Fri night (no room, Hotline or commit activity Sat-Sun; Mac likely off).
+- LC-Pixels' Saturday "first YES" practice run did NOT happen (no practice-run.md). Re-plan it in Monday's standup.
+
 ### Roll call 2026-11-07 (morning brief, New beginning)
 - New beginning: ✅ Friday's Co-CEO permissions recorded, robot recap · 🔨 morning brief · ⛔ none
 - NB2: ✅ honest gate on the Haiku test (asked for the fresh-message run) · 🔨 gate on friday/haiku-wakes · ⛔ none

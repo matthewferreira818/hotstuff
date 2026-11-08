@@ -232,7 +232,7 @@ import AppKit
   guard let exe = found.exe, found.version != nil else { return "failed" }
   let settings = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".claude/settings.json")
   if SwitchboardRules.settingsProblem(try? Data(contentsOf:settings)) != nil { return "failed" }
-  let args = PingRules.wakeArguments(name:job.chat,message:job.text)
+  let args = PingRules.wakeArguments(name:job.chat,message:job.text,light:Switchboard.haikuLight)
   guard PingRules.wakeArgumentsAreSafe(args) else { return "failed" }
   let began = Date()
   let out = await runProcess(exe,args)

@@ -341,13 +341,29 @@ enum SwitchboardRules {
 
  // stream-json (+ --verbose) is how the tool calls and their results come back, so "delivered" can be PROVEN from SendMessage's own reply.
  // --tools limits the built-in tools to these three; --strict-mcp-config drops every MCP connector. dontAsk + no prompts, as for jobs.
- static func relayArguments(prompt: String) -> [String] {
-  ["-p",prompt,"--output-format","stream-json","--verbose","--permission-mode","dontAsk","--permission-prompts","none",
+ // Haiku setting (Matthew, 2026-11-06 ~5:51 PM via NB2: "create it as a setting, so i can turn it on later"). OFF by default = today's
+ // behaviour, unchanged (no --model, so Matthew's default model). ON = relays and wakes add --model haiku. Proof so far:
+ // tools/crew/haiku-test/results/ — sorting: 2026-11-06-1742 PASS (40/40 = Sonnet, LC-Manager facts read PASS), 2026-11-06-1809-set2 FAIL
+ // (37 vs Sonnet's 39 of 40; named the wrong chat twice). Deliveries: Friday's live wake test (3/3 word for word, a missing chat correctly
+ // NOT DELIVERED) and 2026-11-06-wake-timing (6/6 exact; median 10.6 s Haiku vs 9.5 s Sonnet, so not faster). parseRelay below still proves every delivery (target + exact text) either way, so a Haiku slip
+ // shows as NOT DELIVERED / UNPROVEN and goes to the backup. Full Switchboard jobs and Friday's brain never use this setting.
+ static let lightModel = "haiku"
+ static let lightKey = "switchboard.haikuLight"   // UserDefaults, per app ID: absent = OFF
+ // The honest line under the switch: measured results only. Update it after every new run.
+ static let lightNote = "Wakes and relays only. Sorting tests on Nov 6: one pass (40 of 40, same as Sonnet), one fail (37 vs Sonnet's 39 of 40; it named the wrong chat twice). Test deliveries: 3 of 3 word for word, and every delivery is checked in code. Not faster."
+
+ static func relayArguments(prompt: String,light: Bool = false) -> [String] {
+  ["-p",prompt] + (light ? ["--model",lightModel] : []) +
+  ["--output-format","stream-json","--verbose","--permission-mode","dontAsk","--permission-prompts","none",
    "--tools",relayTools,"--strict-mcp-config",noTranscript]
  }
 
  static func relayArgumentsAreSafe(_ args: [String]) -> Bool {
   guard argumentsAreSafe(args), let i = args.firstIndex(of:"--tools"), i + 1 < args.count, i != 1 else { return false }
+  // No --model (the default), or exactly one, and then only Haiku.
+  let models = args.indices.filter { $0 != 1 && args[$0] == "--model" }
+  if models.count > 1 { return false }
+  if let m = models.first, !(m + 1 < args.count && args[m + 1] == lightModel) { return false }
   return args[i + 1] == relayTools
  }
 

@@ -76,6 +76,9 @@ import Foundation
   expect(args.contains("--tools") && args[args.firstIndex(of:"--tools")! + 1] == "ToolSearch,ListAgents,SendMessage","a wake has only ToolSearch, ListAgents, SendMessage")
   expect(!PingRules.wakeArgumentsAreSafe(Array(args.prefix(args.count - 2))),"a wake without the hooks-off setting is refused")
   expect(!PingRules.wakeArgumentsAreSafe(args + ["--dangerously-skip-permissions"]),"a wake with a bypass flag is refused")
+  expect(!args.contains("--model"),"Haiku setting OFF: wakes carry no --model")
+  let hw = PingRules.wakeArguments(name:"LC-Manager",message:w,light:true)
+  expect(PingRules.wakeArgumentsAreSafe(hw) && hw[hw.firstIndex(of:"--model")! + 1] == "haiku" && !PingRules.wakeArgumentsAreSafe(hw.map { $0 == "haiku" ? "sonnet" : $0 }),"Haiku setting ON: wakes run on Haiku; any other model is refused")
   expect(args.contains(SwitchboardRules.noTranscript) && !PingRules.wakeArgumentsAreSafe(args.filter { $0 != SwitchboardRules.noTranscript }),"a wake carries --no-session-persistence and is refused without it")
 
   print("\n== Delivery proof for a wake (same parser as a Hotline relay)")

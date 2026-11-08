@@ -7,6 +7,13 @@ updated when he makes the final call. Precedent here feeds future sessions.
 Format per entry:
 
 ```
+## 2026-11-08 — Reorganize The Helm's Simple-mode navigation (15-item flat "More" list)?
+- Seats: Operator GO-IF(4) · Marketer GO-IF(4) · Treasurer GO-IF(4) · Skeptic GO-IF(3) · Customer GO-IF(4). Friday (main in-app chat) consulted too.
+- Clash: what earns a top slot. Treasurer/Marketer want ECS+Store first and the paused stock bot out of the money tab; Operator/Customer question whether "Crew"/"Command Core" deserves a top tab at all. All five: every page gets ONE home (today Guard, Systems, Cyber Lab, Verification, Crew Station live in both More and Command Core).
+- Right Hand's call: GO-IF — Home (with a "Needs you" card, Friday's idea) · Friday (chat, Voice, visible "What Friday remembers" button, Helper) · Business (ECS first, then Store) · Messages · Crew (last; Jobs first, Crew Station, Daily jobs, Practice robots). More in 3 labelled groups: Safety (Safety checks, Real or fake?, Accounts, Learn to stay safe) · Tools (Shortcuts, Council, Practice stocks) · Fun (Game, Stream). Plain names ("Command Core" leaves Simple mode), one home per page, a one-time "moved" hint, red dot on Crew when a job fails, Cmd-1..5 kept, Advanced mode untouched. One small job, AFTER Monday's call; LC-Manager gate with before/after screenshots and a written rollback.
+- Matthew's decision: pending
+- Next moves: Matthew picks; LC-Pixels builds on a branch after Monday; 10-second find test (Guard, ECS, Memory) on a test copy; gate; GO.
+
 ## YYYY-MM-DD — <framed decision>
 - Seats: Operator GO(4) · Marketer GO-IF(3) · Treasurer NO-GO(4) · Skeptic GO-IF(2) · Customer GO(5)
 - Clash: <one line>

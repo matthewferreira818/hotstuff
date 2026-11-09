@@ -1,7 +1,7 @@
 {
  "started": "2026-11-04T16:58:34+00:00",
  "start_cash": 1000.0,
- "cash": 497.01,
+ "cash": 0.0,
  "spy_at_start": 768.43,
  "positions": {
   "AVAX-USD": {
@@ -10,6 +10,10 @@
    "fill": 8.7567,
    "peak": 8.967,
    "bought": "2026-11-09T13:29:37+00:00"
+  },
+  "PEPE24478-USD": {
+   "qty": 94101127.4439846,
+   "avg_entry_price": 5.28166e-06
   }
  },
  "orders": [
@@ -40,6 +44,16 @@
    "status": "filled",
    "qty": 56.473585,
    "price": 8.7567,
+   "dollars": 497.01,
+   "fee": 2.49
+  },
+  {
+   "time": "2026-11-09T15:19:58+00:00",
+   "symbol": "PEPE24478-USD",
+   "side": "buy",
+   "status": "filled",
+   "qty": 94101127.443985,
+   "price": 5.25525e-06,
    "dollars": 497.01,
    "fee": 2.49
   }

@@ -1,9 +1,15 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 699.15,
+ "cash": 349.58,
  "spy_at_start": 777.22,
- "positions": {},
+ "positions": {
+  "GOGO": {
+   "qty": 93.0918947004738,
+   "avg_entry_price": 3.7551,
+   "fill": 3.7337
+  }
+ },
  "orders": [
   {
    "time": "2026-10-08T15:10:24+00:00",
@@ -1143,6 +1149,16 @@
    "qty": 16.561642,
    "price": 21.3187,
    "dollars": 351.08,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-09T14:45:03+00:00",
+   "symbol": "GOGO",
+   "side": "buy",
+   "status": "filled",
+   "qty": 93.091895,
+   "price": 3.7337,
+   "dollars": 349.57,
    "fee": 1.99
   }
  ],

@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 361.23,
+ "cash": 9.79,
  "spy_at_start": 777.22,
  "positions": {
   "GOGO": {
    "qty": 93.0918947004738,
    "avg_entry_price": 3.7551,
    "fill": 3.7337
+  },
+  "IBRX": {
+   "qty": 52.89407562134836,
+   "avg_entry_price": 6.6442,
+   "fill": 6.6066
   }
  },
  "orders": [
@@ -1179,6 +1184,16 @@
    "qty": 53.570269,
    "price": 6.7582,
    "dollars": 360.05,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-09T15:37:34+00:00",
+   "symbol": "IBRX",
+   "side": "buy",
+   "status": "filled",
+   "qty": 52.894076,
+   "price": 6.6066,
+   "dollars": 351.44,
    "fee": 1.99
   }
  ],

@@ -1,9 +1,14 @@
 {
  "started": "2026-11-04T16:58:34+00:00",
  "start_cash": 1000.0,
- "cash": 994.02,
+ "cash": 497.01,
  "spy_at_start": 768.43,
- "positions": {},
+ "positions": {
+  "AVAX-USD": {
+   "qty": 56.47358471432547,
+   "avg_entry_price": 8.8008
+  }
+ },
  "orders": [
   {
    "time": "2026-11-05T08:06:30+00:00",
@@ -24,47 +29,22 @@
    "price": 4.92507e-06,
    "dollars": 494.02,
    "fee": 2.48
+  },
+  {
+   "time": "2026-11-09T13:29:35+00:00",
+   "symbol": "AVAX-USD",
+   "side": "buy",
+   "status": "filled",
+   "qty": 56.473585,
+   "price": 8.7567,
+   "dollars": 497.01,
+   "fee": 2.49
   }
  ],
  "deposited": 1000.0,
  "spy_units": 1.3013547102533738,
  "deposits": [],
  "events": [
-  {
-   "time": "2026-11-07T22:26:30+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-07T23:27:24+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-08T00:28:15+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-08T01:28:59+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-08T02:29:44+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-08T03:10:51+00:00",
-   "kind": "start",
-   "text": "Checking 19 every 10 seconds."
-  },
-  {
-   "time": "2026-11-08T03:10:51+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
   {
    "time": "2026-11-08T04:12:29+00:00",
    "kind": "quiet",
@@ -227,6 +207,41 @@
   },
   {
    "time": "2026-11-09T07:17:41+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-09T07:57:28+00:00",
+   "kind": "start",
+   "text": "Checking 19 every 10 seconds."
+  },
+  {
+   "time": "2026-11-09T07:57:28+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-09T08:59:05+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-09T10:00:45+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-09T11:02:29+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-09T12:04:10+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-09T13:06:05+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
   }

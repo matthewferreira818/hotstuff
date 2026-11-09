@@ -13,6 +13,15 @@ _Last updated: 2026-11-06 3:05 PM by Claude (NB2)_
 - Switchboard: several Hotline relays say "LC-Manager isn't open" and some got blocked by the password/money filter; watch it, not a hard failure.
 - Robots: only moonshot-crypto has run today (running); other 6 last ran Thu, 9:05 starter not visible yet. LC-Work: check and dispatch.
 
+### Roll call 2026-11-09 (Monday brief, New beginning)
+- Correction to Sunday's line: the "first YES" practice run DID happen Sun afternoon (LC-Pixels, Helm-Private 172ea97).
+- LC-Manager: ✅ first-client kit gated, look-only research rule (§10), offer-wording flag · 🔨 standup · ⛔ CBDC call result
+- LC-Pixels: ✅ practice run (made-up bakery, timings + snags) · 🔨 Helm nav reorg job from 11 AM · ⛔ none
+- LC-Trends: ✅ fixed practice-run snags · 🔨 Mon trend report · ⛔ none
+- Friday + NB2: ✅ Haiku-for-deliveries merged as a setting, OFF by default (Matthew's GO Sun) · 🔨 — · ⛔ none
+- New beginning: ✅ briefs, CBDC call prep · 🔨 log the call result · ⛔ none
+- LC-TikTok, Work, LC-Work, other on-call LCs: quiet · Roxy, Grok: quiet since Fri
+
 ### Roll call 2026-11-08 (Sunday brief, New beginning)
 - New beginning: ✅ Sat + Sun briefs, today's card dispatched · 🔨 CBDC Monday reminders · ⛔ none
 - Everyone else (NB2, Friday, LC-Manager, LC-TikTok, LC-Pixels, on-call LCs, Work, Roxy, Grok): quiet since Fri night (no room, Hotline or commit activity Sat-Sun; Mac likely off).

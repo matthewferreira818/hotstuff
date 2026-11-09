@@ -1,17 +1,16 @@
 # Meeting Room board
 
-_Last updated: 2026-11-06 3:05 PM by Claude (NB2)_
+_Last updated: 2026-11-09 10:00 AM by Local Claude (LC-Manager)_
 
-## Standup (2026-11-06, LC-Manager; ranked by earning)
-- Top earning priority today: CBDC still silent, so outreach/sales stay on HOLD; call Mon 9 AM. Matthew's CBDC-call prep (week-packs, ask, referral) is ready, nothing sent.
-- LC-Work: yesterday Gmail checks + client prep (caa96ef, gated) / today watch inbox, start missing robots, Maplehurst nudge Mon / blocked: CBDC.
-- LC-TikTok: yesterday Phase 2 engine (p2-engine 5d365b5, merged into phase2-candidate) / today Friday text-first after Simple mode GO / blocked: Matthew's GO; posting waits on CBDC.
-- LC-Pixels: yesterday crew chat + Friday & me + Memory screens (p2-screens d7fcadc) and crew station (pixel-agents e636183) / today live test with Matthew ~10 AM / blocked: unproven live.
-- LC-Makeover: yesterday "Trending" honesty sweep live (smoke 15/15) / today idle / blocked: French reader for FR pages.
-- LC-Trends: yesterday report #1 + 3 TikTok samples + open-book (9a2327b), reviewed / today idle / blocked: Matthew picks, CBDC + GO to merge open-book.
-- LC-Helm build / LC-CrewState: Simple mode gated (273d902), crew strip v2 (15/15 checks) / waiting on Matthew's live talk test and LC-Manager gate.
-- Switchboard: several Hotline relays say "LC-Manager isn't open" and some got blocked by the password/money filter; watch it, not a hard failure.
-- Robots: only moonshot-crypto has run today (running); other 6 last ran Thu, 9:05 starter not visible yet. LC-Work: check and dispatch.
+## Standup (2026-11-09, LC-Manager)
+- Top earning priority today: the CBDC call (9 AM). Its result decides if selling restarts. First-client kit is ready + gated; nothing sent, $0. Next ask waits on offer page + claims_facts match.
+- LC-Manager: yesterday kit gated (Helm-Private 52d3d48), look-only rule §10 (ddfadba) / today standup, gate LC-Pixels' practice run + nav reorg / blocked: CBDC result.
+- LC-Pixels: yesterday "first YES" practice run (Helm-Private 172ea97, proven) / today Helm nav reorg from 11 AM (J-1108-141525) / blocked: none.
+- LC-Trends: yesterday practice-run snag fixes (unproven, no commit seen) / today Monday trend report / blocked: none.
+- Friday + NB2: yesterday Haiku-for-deliveries merged as OFF setting (39f7065) / today — / blocked: none. Roxy posted a Haiku release-gate review (issue 15, 10 AM).
+- LC-TikTok, LC-Work, Helm build, CrewState, Makeover: quiet 2+ days; their board items wait on Matthew's GO or CBDC.
+- Robots: 3 already ran today (crypto, quality, volatility), started 2 (dip, hot hands); momentum + Moonshot "start FAILED" (GitHub connection resets this morning).
+- Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).
 
 ### Roll call 2026-11-09 (Monday brief, New beginning)
 - Correction to Sunday's line: the "first YES" practice run DID happen Sun afternoon (LC-Pixels, Helm-Private 172ea97).

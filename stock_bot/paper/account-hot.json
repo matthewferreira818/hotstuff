@@ -1,9 +1,15 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 693.35,
+ "cash": 346.67,
  "spy_at_start": 777.22,
- "positions": {},
+ "positions": {
+  "HIMS": {
+   "qty": 14.743980061899137,
+   "avg_entry_price": 23.5133,
+   "fill": 23.3784
+  }
+ },
  "orders": [
   {
    "time": "2026-10-08T15:10:24+00:00",
@@ -1203,6 +1209,16 @@
    "qty": 93.091895,
    "price": 3.5315,
    "dollars": 326.76,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-09T17:45:33+00:00",
+   "symbol": "HIMS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 14.74398,
+   "price": 23.3784,
+   "dollars": 346.68,
    "fee": 1.99
   }
  ],

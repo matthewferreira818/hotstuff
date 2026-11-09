@@ -49,11 +49,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-08T04:12:29+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-08T05:14:10+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
@@ -247,6 +242,11 @@
    "time": "2026-11-09T13:06:05+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-09T13:29:38+00:00",
+   "kind": "buy",
+   "text": "Bought AVAX-USD $497.01 at 8.757: up 5.8% in 10 days, the hottest on the list"
   }
  ],
  "bench_units": 0.01243555274788409

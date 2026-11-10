@@ -102,6 +102,8 @@ For real money, the US pattern day trader rule (more than 3 day trades in
 
 ## Research
 
+**Research bot (since 2026-11-10, practice only):** `stock_bot/research_bot/` writes forecasts down before the fact, grades them with plain code against coin-flip / base-rate / tomorrow-equals-today baselines and paper P&L after fees, stocks and crypto separately. Spec, caps and the evidence bar: `meeting-room/notes/research-bot.md`.
+
 `python stock_bot/backtest.py --why` explains, trade by trade, why the
 rules beat or trail just holding. `--walk-forward` tunes the rules on 6
 months and tests them on the next 3 they never saw. Reports go to

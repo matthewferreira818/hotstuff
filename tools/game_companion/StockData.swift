@@ -11,6 +11,18 @@ struct StockHolding: Identifiable {
  var symbol: String
  var value: Double
  var changePct: Double?
+ // Revamp (2026-11-10): what the snapshot says about the position, when it says it.
+ var price: Double? = nil
+ var entry: Double? = nil
+ var peak: Double? = nil
+ var stop: Double? = nil
+}
+
+struct StockNote: Identifiable {
+ var id: String { "\(time?.timeIntervalSince1970 ?? 0)-\(text)" }
+ var time: Date?
+ var kind: String
+ var text: String
 }
 
 struct StockTrade: Identifiable {
@@ -37,6 +49,9 @@ struct StockRobot {
  var holdings: [StockHolding] = []
  var recentTrades: [StockTrade] = []
  var events: [String] = []
+ var notes: [StockNote] = []                 // every note in the snapshot, newest first, with its time
+ var rules: [(key: String,value: Any)] = []  // the robot's own rules, as the snapshot lists them
+ var benchmark = ""                          // "SPY" / "Bitcoin" (label from the snapshot, when given)
  // Positive means the robot is ahead of simply holding the index with the same money.
  var vsHolding: Double { value - spyValue }
  var sinceStart: Double { value - startCash }
@@ -73,14 +88,19 @@ enum StockData {
   robot.trades = Int(number(account["trades"]))
   robot.nextDeposit = (account["next_deposit"] as? String) ?? ""
   robot.paused = ((json["settings"] as? [String:Any])?["paused"] as? Bool) ?? false
+  robot.benchmark = (json["benchmark"] as? String) ?? ""
+  if let r = json["rules"] as? [String:Any] { robot.rules = r.keys.sorted().map { ($0,r[$0]!) } }
+  func opt(_ v: Any?) -> Double? { v == nil || v is NSNull ? nil : number(v) }
 
   if let positions = json["positions"] as? [[String:Any]] {
    for p in positions {
-    robot.holdings.append(StockHolding(symbol:(p["symbol"] as? String) ?? "?",value:number(p["value"]),changePct:p["change_pct"] == nil ? nil : number(p["change_pct"])))
+    robot.holdings.append(StockHolding(symbol:(p["symbol"] as? String) ?? "?",value:number(p["value"]),changePct:p["change_pct"] == nil ? nil : number(p["change_pct"]),
+     price:opt(p["price"]),entry:opt(p["entry"] ?? p["avg_entry_price"]),peak:opt(p["peak"]),stop:opt(p["stop"])))
    }
   } else if let stocks = json["stocks"] as? [[String:Any]] {
    for s in stocks where (s["held"] as? Bool) == true {
-    robot.holdings.append(StockHolding(symbol:(s["symbol"] as? String) ?? "?",value:number(s["value"]),changePct:s["change_pct"] == nil ? nil : number(s["change_pct"])))
+    robot.holdings.append(StockHolding(symbol:(s["symbol"] as? String) ?? "?",value:number(s["value"]),changePct:s["change_pct"] == nil ? nil : number(s["change_pct"]),
+     price:opt(s["price"]),entry:opt(s["entry"]),peak:opt(s["high20"]),stop:nil))
    }
   }
 
@@ -90,6 +110,8 @@ enum StockData {
   }
   if let events = (json["bot"] as? [String:Any])?["events"] as? [[String:Any]] {
    robot.events = Array(events.compactMap { $0["text"] as? String }.suffix(4).reversed())
+   robot.notes = events.compactMap { e in (e["text"] as? String).map { StockNote(time:date(e["time"]),kind:(e["kind"] as? String) ?? "",text:$0) } }
+    .sorted { ($0.time ?? .distantPast) > ($1.time ?? .distantPast) }
   }
   return robot
  }

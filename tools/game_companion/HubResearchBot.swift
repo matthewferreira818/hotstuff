@@ -95,7 +95,8 @@ struct ResearchBotPanel: View {
  private func status(_ s: ResearchSnapshot) -> some View {
   let (title,why,tint): (String,String,Color) = {
    switch s.state {
-   case .paused(let why): return ("PAUSED","\(why) Nothing runs. A person deletes the file to let it run again.",HubTheme.amber)
+   // Roxy's point: the file being on GitHub isn't proof the runner has seen it yet.
+   case .paused(let why): return ("PAUSE FILE ON GITHUB","\(why) The bot stops at its next pull; it doesn't report back yet when it has seen it. A person deletes the file to let it run again.",HubTheme.amber)
    case .autoPaused(let why): return ("AUTO-PAUSED","It paused itself: \(why). No new practice buys; it can still close trades that are due. A person reads why and deletes AUTO_PAUSE.",HubTheme.crimson)
    case .unknown(let why): return ("CAN'T TELL",why,HubTheme.subtext)
    case .on: return ("NOT PAUSED","It works only when someone runs it on this Mac. Nothing runs on a schedule yet.",HubTheme.green)

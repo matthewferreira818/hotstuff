@@ -61,3 +61,7 @@ xcrun swiftc -target arm64-apple-macos14.0 "$T/jhstub.swift" "$T/jh.swift" "$T/m
 cp "$D/checks/research_check.swift" "$T/main.swift"
 xcrun swiftc -target arm64-apple-macos14.0 "$D/ResearchBotData.swift" "$T/main.swift" -o "$T/rb" 2>&1 | grep error
 "$T/rb" "$D/../.."
+# Stock history (Stock bot page): real paper-account replay, realized P&L, Yahoo query/parse, rebuilt value line, dips, plain words (offline)
+cp "$D/checks/stockhistory_check.swift" "$T/main.swift"
+xcrun swiftc -target arm64-apple-macos14.0 "$D/StockHistoryData.swift" "$T/main.swift" -o "$T/sh" 2>&1 | grep error
+"$T/sh" "$D/../.."

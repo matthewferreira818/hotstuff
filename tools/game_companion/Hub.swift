@@ -359,6 +359,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
  @Published var loading = false
  @Published var failed = false
  @Published var robot = 0
+ var all: [StockRobot?] { [dip,momentum,hot,moon,moonCrypto,quality,volatility] }
  var current: StockRobot? { [dip,momentum,hot,moon,moonCrypto,quality,volatility][min(max(robot,0),6)] }
 
  func refresh() async {

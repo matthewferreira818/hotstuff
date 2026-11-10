@@ -22,7 +22,7 @@ extension CompanionInterfaceView {
      VStack(spacing:0) {
       if hub.simple { simplePageTop }
       else if deckInHack { deckHackNav }
-      else if ![.home,.friday].contains(hub.section) { deckPageHeader }
+      else if ![.home,.friday,.stocks].contains(hub.section) { deckPageHeader }
       hubContent
        .frame(maxWidth:.infinity,maxHeight:.infinity)
        .id(hub.section)
@@ -268,6 +268,10 @@ extension CompanionInterfaceView {
    .buttonStyle(.plain).disabled(DesignPreview.enabled)
    .accessibilityLabel(live.running ? "Stop Friday" : "Talk to Friday")
    .help(c.tab == 0 ? (live.running ? "Stop the live session" : "Start the live session: shares your mic and screen with Google while it runs") : "Talk")
+   if hub.section == .stocks {
+    // Stock bot page: Friday's column carries the fleet ranking and the research notes (Roxy's concept).
+    ScrollView { StockSideCards(stocks:stocks) }.scrollIndicators(.hidden)
+   } else {
    deckDockSection("DOING NOW") {
     ForEach(Array(deckDoingLines.enumerated()),id:\.offset) { _,line in
      Text(line).font(.system(size:12.5)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
@@ -282,6 +286,7 @@ extension CompanionInterfaceView {
     } else {
      Text("Spotify isn't installed on this Mac.").font(.system(size:12.5)).foregroundStyle(HubTheme.subtext)
     }
+   }
    }
    Spacer(minLength:0)
    HStack(spacing:8) {

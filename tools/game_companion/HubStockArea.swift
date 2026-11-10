@@ -196,9 +196,12 @@ struct StockArea: View {
      }
     }
     Spacer(minLength:2)
-    if let s = snap {
-     Text(StockHistory.signed(s.vsHolding)).font(.system(size:11,weight:.medium,design:.rounded)).monospacedDigit()
-      .foregroundStyle(s.vsHolding >= 0 ? HubTheme.green : HubTheme.crimson)
+    if let s = snap {   // NB2's honesty fix: say what the number is, so -$342 isn't read as "lost $342"
+     VStack(alignment:.trailing,spacing:1) {
+      Text(StockHistory.signed(s.vsHolding)).font(.system(size:11,weight:.medium,design:.rounded)).monospacedDigit()
+       .foregroundStyle(s.vsHolding >= 0 ? HubTheme.green : HubTheme.crimson)
+      Text("vs holding").font(.system(size:9.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+     }
     }
    }
    .padding(.horizontal,8).frame(maxWidth:.infinity,minHeight:52,alignment:.leading)

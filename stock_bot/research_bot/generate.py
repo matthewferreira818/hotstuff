@@ -124,8 +124,9 @@ def generate(now=None, bars_fn=None, path=ledger.LEDGER, forward=None, rules=Non
         interval = v.get("interval") or idea_lib.IDEAS[name].get("interval") or (
             "1h" if market == "crypto" else "1d")
         text = f"replay idea {name} h={hz} {json.dumps(params, sort_keys=True)}"
-        if dry_run:
-            iid = "I-dry-run"
+        if dry_run:  # look the idea up without writing anything
+            iid = next((l["id"] for l in lines if l.get("kind") == "idea"
+                        and l.get("text") == text and l.get("market") == market), "I-dry-run")
         else:
             iid, new = idea_id_for(lines, market, text, path, now)
             if new:
@@ -157,6 +158,10 @@ def generate(now=None, bars_fn=None, path=ledger.LEDGER, forward=None, rules=Non
                       "probability": prob, "opens_at": opens, "resolves_at": resolves,
                       "expected_downside_pct": round(down, 2), "act": direction == "up",
                       "author": AUTHOR,
+                      "plain_reason": idea_lib.explain(
+                          name, h, params, direction, asset,
+                          f"{hz} {'hours' if interval == '1h' else ('trading days' if market == 'stock' else 'days')}",
+                          v.get("replay")),
                       "reason": f"{name} {json.dumps(params, sort_keys=True)}, horizon {hz} "
                                 f"{'hours' if interval == '1h' else 'days'}: "
                                 f"{idea_lib.IDEAS[name]['text']}"}

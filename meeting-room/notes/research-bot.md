@@ -181,7 +181,7 @@ LC-Pixels' "Research bot" tab in The Helm reads these. Any change gets a line he
 | File | Shape |
 |---|---|
 | `scorecard.json` | `generated`, `append_only_ok`, `append_only_problems`, `markets.{stock,crypto}` with `ideas_tried`, `forecasts`, `graded`, `open`, `late_not_counted`, `no_trade_days`, `hits`, `hit_rate`, `luck_p_value`, `brier.{forecaster,coin_flip,base_rate,tomorrow_equals_today}`, `paper_trades`, `trade_size`, `paper_pnl`, `median_trade`, `worst_trade`, `pnl_without_best`, `cash_pnl`, `hold_pnl`, `hold_window`, `benchmark`, `span_days`, `down_market_seen`, `max_drawdown_pct`, `evidence_bar` ({line: true/false}), and `rows` (one per forecast: `id`, `idea`, `market`, `asset`, `status`, ...) |
-| `forecasts.jsonl` | lines with `kind` = `idea` / `forecast` / `no_trade` (fields in "A forecast" above) |
+| `forecasts.jsonl` | lines with `kind` = `idea` / `forecast` / `no_trade` (fields in "A forecast" above). Forecasts from generate.py since 2026-11-10 (after the first 12) also carry **`plain_reason`**: one short plain-English sentence built by code from the same prices the idea used, its set confidence, and its real replay result. `reason` stays the technical, audit version. Older lines have no `plain_reason`: show "Technical reason only". |
 | `orders.jsonl` | `id` (`<forecast>:buy` / `:sell` / `:stop`), `side`, `asset`, `market`, `forecast_id`, `dollars` (buys), `stop_pct` (buys), `status` (`intent` / `filled` / `failed`), `time`, `practice: true`, `profit` (sells) |
 | `equity.jsonl` | `time`, `market`, `value` |
 | `PAUSE`, `AUTO_PAUSE`, `RUN_LOCK` | present = paused / auto-paused (text says why) / a run is going |

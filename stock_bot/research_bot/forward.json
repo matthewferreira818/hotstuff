@@ -1,0 +1,24 @@
+{
+  "_read_me": "Which idea variants forecast FORWARD (generate.py), on which assets. Research config, reviewed like code. Chosen 2026-11-10 by LC-Research from the first replay (replay-report.md, run 2026-11-10T13:32:56Z): 0 of 16 idea/horizon combinations PASSED, so NONE of these can meet line (a) of the evidence bar yet. They forecast forward because their Brier score was the closest to (or just past) the baselines on unseen windows, so the forward run tests whether that small direction signal is real. All of them lost money after costs in the replay. Settings are the ones the walk-forward picked in its last window.",
+  "chosen_from_replay": "2026-11-10T13:32:56Z",
+  "variants": [
+    {
+      "market": "crypto", "idea": "reversal", "horizon": 4,
+      "params": {"drop_pct": 8, "lookback": 5, "prob": 0.56},
+      "assets": ["BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", "DOGE-USD", "ADA-USD", "AVAX-USD", "LINK-USD", "LTC-USD", "DOT-USD", "BCH-USD", "SUI20947-USD", "SHIB-USD", "PEPE24478-USD", "FLOKI-USD", "WIF-USD", "PENGU34466-USD", "TRUMP35336-USD", "FARTCOIN-USD"],
+      "replay": {"verdict": "DEAD", "calls": 20321, "brier": 0.2485, "coin_flip": 0.25, "base_rate": 0.2512, "tomorrow_equals_today": 0.2660, "hit_rate": 0.549, "trades": 10807, "pnl_after_costs": -12040.20, "per_trade": -1.11, "holding_same_money": -150.01, "windows_won": "2/21", "why_kept": "best Brier of all 16; beats all three baselines; loses after costs"}
+    },
+    {
+      "market": "crypto", "idea": "reversal", "horizon": 24,
+      "params": {"drop_pct": 8, "lookback": 5, "prob": 0.56},
+      "assets": ["BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", "DOGE-USD", "ADA-USD", "AVAX-USD", "LINK-USD", "LTC-USD", "DOT-USD", "BCH-USD", "SUI20947-USD", "SHIB-USD", "PEPE24478-USD", "FLOKI-USD", "WIF-USD", "PENGU34466-USD", "TRUMP35336-USD", "FARTCOIN-USD"],
+      "replay": {"verdict": "DEAD", "calls": 16409, "brier": 0.2494, "coin_flip": 0.25, "base_rate": 0.2533, "tomorrow_equals_today": 0.2666, "hit_rate": 0.534, "trades": 7831, "pnl_after_costs": -3745.57, "per_trade": -0.48, "holding_same_money": 561.58, "windows_won": "6/21", "why_kept": "beats all three Brier baselines; closest to breaking even after costs"}
+    },
+    {
+      "market": "stock", "idea": "momentum", "horizon": 1,
+      "params": {"lookback": 20, "prob": 0.52},
+      "assets": ["SPY", "QQQ", "ASTS", "CRWD", "HOOD", "NVDA", "ABNB", "RIOT", "ARM", "MU", "ONDS", "PFE"],
+      "replay": {"verdict": "DEAD", "calls": 10125, "brier": 0.2499, "coin_flip": 0.25, "base_rate": 0.2503, "tomorrow_equals_today": 0.2618, "hit_rate": 0.512, "trades": 5757, "pnl_after_costs": -22328.49, "per_trade": -3.88, "holding_same_money": 481.81, "windows_won": "0/14", "why_kept": "the only stock variant whose Brier edged past all three baselines (by 0.0001: a tie with a coin flip in practice); kept so stocks get forward data too"}
+    }
+  ]
+}

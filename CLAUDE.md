@@ -109,6 +109,13 @@ than discovering something was papered over.
    Meta and TikTok need their app reviews); where a channel has neither
    a hookup nor a C.C. session, Claude preps and he posts. GPT posts or pushes live only with Claude's go-ahead. OS
    file dialogs are his.
+   **Selling automation (Matthew, 2026-11-09 ~9 PM, after selling restarted):** (A) email batches go out through the Helm-Private
+   workflow "Send approved batch" (tools/send_batch.py, SMTP2GO from contact@, one a minute), only when the batch file has all four
+   approvals (Roxy OK, Claude OK, LC-Manager PASS, Matthew GO) and today's send date; it skips HOLD rows, ecs/do-not-contact.txt and
+   anyone already emailed; the mailing-address footer comes only from the ECS_FOOTER secret. (B) A reply watcher (scheduled, 11:46 AM
+   and 4:46 PM) reads the business inbox read-only, adds every no/stop/bounce to do-not-contact at once, logs replies in
+   ecs/replies-log.csv, and pings him (CONFIRM:) only for a YES or a question. (C) Roxy (GPT) is the Sales Desk lead
+   (meeting-room/notes/roxy-start-prompt.md); tools/pipeline_count.py counts the funnel. There is no LC-Work (retired 11-09).
    **Job applications (his decision, 2026-11-04 ~5:30 AM: "can we have it so she just sends it?"):** RC/C.C may press Submit on job
    applications from the list Claude prepared (helm-private matthew/jobs/), using only the facts he gave; any question not covered, any
    sign-in, code, payment or new account stops for him; file pickers (OS dialogs) stay his unless a saved resume can be chosen.

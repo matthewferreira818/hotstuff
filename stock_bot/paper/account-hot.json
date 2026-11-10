@@ -1,14 +1,9 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 7.44,
+ "cash": 343.43,
  "spy_at_start": 777.22,
  "positions": {
-  "EQPT": {
-   "qty": 25.66901101982058,
-   "avg_entry_price": 13.0605,
-   "fill": 12.983
-  },
   "QBTS": {
    "qty": 31.241315075901547,
    "avg_entry_price": 10.7143,
@@ -1274,6 +1269,16 @@
    "qty": 31.241315,
    "price": 10.6506,
    "dollars": 334.73,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-10T20:39:31+00:00",
+   "symbol": "EQPT",
+   "side": "sell",
+   "status": "filled",
+   "qty": 25.669011,
+   "price": 13.1668,
+   "dollars": 335.99,
    "fee": 1.99
   }
  ],

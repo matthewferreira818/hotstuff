@@ -43,13 +43,13 @@
       79
     ],
     "setup_total": 0,
-    "note": "Current automation/index.html offers a $79 one-month Facebook pilot for the first two businesses, with free setup. The monthly_prices field is retained for the legacy money rule; this is not an agreed ongoing renewal price. The old $129 tier is absent. A separate legacy noindex setup/index.html still shows $250; it is not approved as the current Facebook-pilot setup fee.",
+    "note": "Current automation/index.html (EN + FR, 2026-11-09, Matthew's wording of 2026-11-08): 7 free sample posts, then a $79 CAD first pilot month, then $79 a month if the client keeps going, no contract (STOP any time). Free setup, first two businesses. The old $129 tier is absent. A separate legacy noindex setup/index.html still shows $250; it is not approved as the current Facebook-pilot setup fee.",
     "posting_frequency": {
       "channel": "facebook",
       "posts": 1,
       "per": "day",
       "verified_on": "2026-11-05",
-      "source": "automation/index.html: current one-month Facebook pilot, owner approves every post"
+      "source": "automation/index.html: $79 first pilot month then $79 a month, no contract; owner approves every post"
     }
   },
   "approved_statistics": [],

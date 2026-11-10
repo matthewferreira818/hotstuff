@@ -282,6 +282,7 @@ extension CompanionInterfaceView {
   case .hacking: commandCoreRoom
   case .crewStation: commandCoreCrew
   case .memory: fridayMemoryPage
+  case .jobs: crewJobsPage
   }
  }
 }

@@ -64,6 +64,11 @@ enum JobRules {
   return order.compactMap { jobs[$0] }
  }
 
+ // Simple mode's red dot on Crew: some job failed in the last 24 hours.
+ static func failedRecently(_ jobs: [CrewJob],now: Date) -> Bool {
+  jobs.contains { j in j.failed.map { now.timeIntervalSince($0) < 24 * 3600 } ?? false }
+ }
+
  static func noAnswer(_ job: CrewJob,now: Date) -> Bool {
   if let a = job.after, now < a { return false }
   return job.stage == .assigned && now.timeIntervalSince(max(job.lastResend ?? job.assigned,job.after ?? .distantPast)) > noAnswerAfter
@@ -99,6 +104,7 @@ enum JobRules {
 
 struct CoreJobsCard: View {
  @ObservedObject var model = CrewJobsModel.shared
+ var limit = 6
  private static let time: DateFormatter = { let f = DateFormatter(); f.dateFormat = "h:mm a"; return f }()
  private static let day: DateFormatter = { let f = DateFormatter(); f.dateFormat = "EEE h:mm a"; return f }()
 
@@ -112,7 +118,7 @@ struct CoreJobsCard: View {
 
  var body: some View {
   let now = Date()
-  let list = JobRules.shown(model.jobs)
+  let list = JobRules.shown(model.jobs,limit:limit)
   return CoreCard(title:"Jobs · handed off by Friday",icon:"checklist") {
    if model.missing || list.isEmpty {
     Text(model.missing ? "No jobs recorded on this Mac yet. When Friday hands a crew member a job, it shows here with each step's real time." : "No jobs yet.")

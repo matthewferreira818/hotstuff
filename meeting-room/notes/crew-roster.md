@@ -25,12 +25,12 @@ The morning brief does a roll call from this list every day. Add a line when a c
 | LC-Pixels | Local Claude (Mac) | the pixel crew station in The Helm (own characters, real states, click for details; started 11-06) | Sonnet (this chat opened on Opus) |
 | LC-Makeover | Local Claude (Mac) | store look and store copy (today: the "trending" honesty sweep) | Sonnet |
 | LC-Trends | Local Claude (Mac) | trend watcher, Mon + Thu, look-only | Sonnet |
-| LC-Work | Local Claude (Mac) | Gmail checks, outreach count, follow-ups | Sonnet |
+| ~~LC-Work~~ | RETIRED (Matthew 11-09: "there is no LC-work"; the chat no longer exists) | sending moved to C.C; inbox checks: cloud morning brief | — |
 | Friday (chat) | Local Claude chat "Friday" (Mac, since 11-06 ~6:45 AM) | Matthew's own AI: her character + memory (Helm-Private friday/), LC tools and rules; next: The Helm's chat box talks to this chat | Sonnet |
 | Friday | The Helm on the Mac | the Switchboard (wakes LC jobs, relays to open chats); next: typed chat on a Claude brain | — |
 | Roxy (GPT) | ChatGPT Project (new main work chat, 11-09) | Sales desk lead: prospect ledger, sourcing, openers, second honesty check, reply drafts, follow-ups. Start-up prompt: notes/roxy-start-prompt.md | — |
 | Grok | xAI | practice trading robots + research. Back ~Nov 11 | — |
-| C.C | Claude in Chrome | browser jobs from pasted prompts (mostly replaced by Local Claude) | — |
+| C.C | Claude in Chrome | SENDER (since 11-09): email batches, Facebook page messages, group posts, look-only checks, from prompts Matthew pastes | — |
 
 ## Roll call format (one line each, in the morning brief)
 `<Name>: ✅ did · 🔨 doing · ⛔ blocked` from the board standup, issue 15, the Hotline and git branches. "quiet" if nothing in 24 h.

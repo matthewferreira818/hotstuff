@@ -8,7 +8,7 @@ crew stalled), so fewer, always-open chats beat many half-open ones, and cost le
 - **LC-TikTok:** the engine (Switchboard, Friday's brain/DM plumbing, pings, TikTok robot).
 - **LC-Pixels:** everything he SEES in The Helm (screens, crew station, Phase 2 screens; takes over LC-Helm build's screen work).
 On call (closed, reopened only for a job): LC-Helm build, LC_Helm, LC-CrewState, LC-Makeover, LC-Trends (Mon/Thu reports), LC-Work.
-Cloud: New beginning (Co-CEO desk, Hotline, reminders), Work (inbox watch). Away: Roxy (~Nov 9), Grok (~Nov 11).
+Cloud: New beginning (Co-CEO desk, Hotline, reminders), Work (inbox watch). Roxy: back, sales desk (11-09). Grok: active in the room despite "back ~Nov 11".
 
 ## Full list
 The morning brief does a roll call from this list every day. Add a line when a chat joins, mark it when one retires.
@@ -28,7 +28,7 @@ The morning brief does a roll call from this list every day. Add a line when a c
 | LC-Work | Local Claude (Mac) | Gmail checks, outreach count, follow-ups | Sonnet |
 | Friday (chat) | Local Claude chat "Friday" (Mac, since 11-06 ~6:45 AM) | Matthew's own AI: her character + memory (Helm-Private friday/), LC tools and rules; next: The Helm's chat box talks to this chat | Sonnet |
 | Friday | The Helm on the Mac | the Switchboard (wakes LC jobs, relays to open chats); next: typed chat on a Claude brain | — |
-| Roxy (GPT) | ChatGPT Project | Claude's right hand: drafts, research, second honesty check. Back ~Nov 9 | — |
+| Roxy (GPT) | ChatGPT Project (new main work chat, 11-09) | Sales desk lead: prospect ledger, sourcing, openers, second honesty check, reply drafts, follow-ups. Start-up prompt: notes/roxy-start-prompt.md | — |
 | Grok | xAI | practice trading robots + research. Back ~Nov 11 | — |
 | C.C | Claude in Chrome | browser jobs from pasted prompts (mostly replaced by Local Claude) | — |
 

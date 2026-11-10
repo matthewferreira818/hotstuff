@@ -219,6 +219,7 @@ struct ResearchBotPanel: View {
         if page.details.contains(f.id) { Text("Technical reason only (the bot's own words): \(f.reason)").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true).textSelection(.enabled) }
        }
       }
+      if let dead = s.deadLabel(idea:f.idea) { deadTag(dead) }
       Text([when(f.opens).map { "Window \($0)" },when(f.resolves).map { "to \($0)" },f.act ? "asks for a practice trade" : "guess only, no trade",f.author.isEmpty ? nil : "by \(f.author)"].compactMap { $0 }.joined(separator:" · "))
        .font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
      }
@@ -249,6 +250,7 @@ struct ResearchBotPanel: View {
        if o.side == "sell", let p = o.profit { Text(ResearchBotData.signed(p)).font(.system(size:13,design:.rounded)).foregroundStyle(p >= 0 ? HubTheme.green : HubTheme.crimson) }
        else if let d = o.dollars { Text(ResearchBotData.money(d)).font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.text) }
       }
+      if let dead = s.deadLabel(order:o) { deadTag(dead) }
       Text([o.status == "half-done" ? "HALF-DONE: that market is stopped until a person checks the account" : o.status,when(o.time)].compactMap { $0 }.joined(separator:" · "))
        .font(.system(size:11.5,design:.rounded)).foregroundStyle(o.status == "filled" ? HubTheme.subtext : HubTheme.amber).fixedSize(horizontal:false,vertical:true)
      }
@@ -260,6 +262,10 @@ struct ResearchBotPanel: View {
  }
 
  // MARK: helpers
+ private func deadTag(_ text: String) -> some View {
+  Label(text.prefix(1).uppercased() + text.dropFirst(),systemImage:"exclamationmark.triangle.fill")
+   .font(.system(size:11.5,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.amber).fixedSize(horizontal:false,vertical:true)
+ }
  private func footnote(_ s: ResearchSnapshot) -> String {
   var parts = ["Read from the bot's files on GitHub"]
   if let g = s.generated { parts.append("scorecard made \(g.formatted(date:.abbreviated,time:.shortened))") }

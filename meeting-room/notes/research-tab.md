@@ -34,6 +34,19 @@
 - **Test hooks** (test copies only, behind the `SwitchboardTestHooks.active` guard): `stocks.testRobot`, `stocks.testTab`,
   `stocks.testRange`, `hub.testWindowSize`.
 - **Shots:** Helm-Private real-app/stockbot-revamp/shots/v2-*.jpg (background test copy, own app ID).
+- **v3 (NB2 + Roxy feedback, Nov 10 ~10 AM):**
+  - The fleet column says "vs holding".
+  - Research reads no longer turn a SwiftUI task cancellation into "no connection". A cancelled load is thrown away, and both panels
+    read one model (tests added).
+  - Copy: the bot runs hourly (:25) and pulls master each run.
+  - Reasons: LC-Research's `plain_reason` first. Older lines get our reading, labelled "our plain reading of its rule". The raw text
+    sits under "Technical details · technical reason only".
+  - Rules show the exact value + unit with a meaning checked against the robot's code. Anything else says "Meaning not verified".
+  - Dips: a lighter tint, with each dip's depth printed on it.
+  - A sources line under the overview.
+  - Pause wording: "PAUSE REQUESTED (not confirmed)".
+- **Not shot:** the offline price state. It's code-path only, because the test copy can't be taken offline without touching the Mac's
+  network.
 - **Rollback:** `git revert` the merge. The old single-page dashboard comes back, and nothing saved changes (the price cache is
   disposable).
 

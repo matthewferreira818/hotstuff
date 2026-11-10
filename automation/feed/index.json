@@ -1,5 +1,11 @@
 [
  {
+  "date": "2026-11-10",
+  "image": "2026-11-10.png",
+  "message": "Show the people behind the counter.",
+  "caption": "Free tip: a \"meet the team\" post, one person and one fun fact, gets people feeling like they already know you before they walk in. ➜ findhotstuff.com/automation/?ref=ecs"
+ },
+ {
   "date": "2026-11-09",
   "image": "2026-11-09.png",
   "message": "You tell us about your business. We write the posts.",
@@ -40,11 +46,5 @@
   "image": "2026-11-03.png",
   "message": "Most local pages die because nobody has time. Yours doesn't have to.",
   "caption": "You run the business. The engine runs the feed. You approve the style once and never touch it again. ➜ findhotstuff.com/automation/?ref=ecs"
- },
- {
-  "date": "2026-11-02",
-  "image": "2026-11-02.png",
-  "message": "Your day off shouldn't mean your page's day off.",
-  "caption": "The engine keeps posting when you're closed, on vacation, or slammed — daily branded posts, approved by you once. ➜ findhotstuff.com/automation/?ref=ecs"
  }
 ]

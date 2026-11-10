@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-10T14:25:19Z",
+ "generated": "2026-11-10T15:25:23Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -59,7 +59,9 @@
      "benchmark": "SPY",
      "span_days": 0,
      "text": "replay idea momentum h=1 {\"lookback\": 20, \"prob\": 0.52}",
-     "replay_pass": false
+     "replay_pass": false,
+     "replay_status": "DEAD",
+     "label": "from an idea that failed the replay: data only, not a signal"
     }
    },
    "hold_pnl": null,
@@ -82,7 +84,7 @@
    "graded": 0,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 3,
+   "no_trade_days": 4,
    "hits": 0,
    "hit_rate": null,
    "luck_p_value": 1.0,

@@ -1,0 +1,27 @@
+{
+ "started": "2026-11-10T15:25:22Z",
+ "start_cash": 1000.0,
+ "cash": 900.0,
+ "spy_at_start": null,
+ "positions": {
+  "ABNB": {
+   "qty": 0.5220168295664585,
+   "avg_entry_price": 191.5647
+  }
+ },
+ "orders": [
+  {
+   "time": "2026-11-10T15:25:23+00:00",
+   "symbol": "ABNB",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.522017,
+   "price": 187.7526,
+   "dollars": 100.0,
+   "fee": 1.99
+  }
+ ],
+ "deposited": 1000.0,
+ "spy_units": 0.0,
+ "deposits": []
+}

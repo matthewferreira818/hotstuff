@@ -62,6 +62,7 @@ extension CompanionInterfaceView {
    .padding(.horizontal,hub.compact ? 16 : 32).padding(.top,4).padding(.bottom,24)
   }
   .scrollIndicators(.hidden).background(HubTheme.background)
+  .onAppear { if SwitchboardTestHooks.active && UserDefaults.standard.bool(forKey:"stocks.testResearch") { stocks.robot = Self.researchTab } }
  }
 
  // The research bot's own big tab (index 7, after the seven snapshot robots). Its panel lives in HubResearchBot.swift.

@@ -9,16 +9,23 @@ import SwiftUI
  @Published var loading = false
  @Published var pausing = false
  @Published var pauseMessage = ""
- // Overridable for test copies only (an empty default means Matthew's real folder).
+ // Test copies only (SwitchboardTestHooks.active, never the real Helm's app ID):
+ //   research.repoPath (path)  Pause pushes from this folder (a throwaway clone) instead of ~/Claude/hotstuff
+ //   research.testDir  (path)  read the bot's files from this folder (laid out like stock_bot/) instead of GitHub
+ //   stocks.testResearch (bool) open the Stock bot page on the Research bot tab
  var repo: URL {
-  if let p = UserDefaults.standard.string(forKey:"research.repoPath"), !p.isEmpty { return URL(fileURLWithPath:p) }
+  if SwitchboardTestHooks.active, let p = UserDefaults.standard.string(forKey:"research.repoPath"), !p.isEmpty { return URL(fileURLWithPath:p) }
   return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Claude/hotstuff",isDirectory:true)
  }
 
  func refresh() async {
   guard !loading else { return }
   loading = true; defer { loading = false }
-  snap = await ResearchBotData.load(ResearchBotData.fetchGitHub)
+  if SwitchboardTestHooks.active, let dir = UserDefaults.standard.string(forKey:"research.testDir") {
+   snap = await ResearchBotData.load { p in (try? Data(contentsOf:URL(fileURLWithPath:dir).appendingPathComponent(p))).map { .ok($0) } ?? .missing }
+  } else {
+   snap = await ResearchBotData.load(ResearchBotData.fetchGitHub)
+  }
  }
 
  func pause() async {

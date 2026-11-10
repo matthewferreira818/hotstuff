@@ -44,6 +44,12 @@ jobs:
             git config user.email "robot-desk@users.noreply.github.com"
             git add stock_bot/PAUSE
             git commit -m "Robot Desk: PAUSE all practice robots (STOP rule; reason inside the file)"
-            git pull --rebase origin master || { git rebase --abort; echo "PAUSE already changed on master; leaving it"; exit 0; }
-            git push origin HEAD:master
+            if ! git pull --rebase origin master; then
+              git rebase --abort || true
+              if git cat-file -e origin/master:stock_bot/PAUSE 2>/dev/null; then
+                echo "PAUSE is already on master (someone paused first); leaving it as it is."; exit 0
+              fi
+              echo "::error::Robot Desk could NOT save PAUSE (rebase failed). The robots are NOT paused yet; the next run tries again."; exit 1
+            fi
+            git push origin HEAD:master || { echo "::error::Robot Desk could NOT push PAUSE. The robots are NOT paused yet; the next run tries again."; exit 1; }
           fi

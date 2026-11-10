@@ -156,7 +156,7 @@ def health(robot, now, runs, snapshot, account, paused):
     late = (not robot["crypto"]) and trading_day and now >= opens + dt.timedelta(minutes=30)
 
     if paused:
-        state, why = "paused", "stock_bot/PAUSE is on: every robot stands still"
+        state, why = "paused", "stock_bot/PAUSE is on: all 7 robots and the research bot stand still"
     elif last_failed:
         state, why = "failed", f"last {streak} finished run(s) failed"
     elif stale:
@@ -248,7 +248,7 @@ def create_pause(path, reasons, now):
     text = ("Paused by the Robot Desk (practice money), "
             f"{now.astimezone(MONCTON).strftime('%a %b %d %Y %I:%M %p')} Moncton.\n"
             "Why:\n" + "".join(f"- {r}\n" for r in reasons) +
-            "Every robot stands still while this file exists. The Desk never removes it:\n"
+            "All 7 practice robots AND the research bot stand still while this file exists.\nThe Desk never removes it: "
             "Matthew deletes it after reading why.\n")
     try:
         with open(path, "x") as f:  # "x" = create only; fails if it appeared meanwhile
@@ -281,6 +281,7 @@ def build(now, runs_by_robot, snapshots, accounts, prev_desk, paused):
         "as_of": now.astimezone(dt.timezone.utc).isoformat(timespec="seconds"),
         "as_of_moncton": now.astimezone(MONCTON).strftime("%a %b %d %I:%M %p"),
         "paused": paused,
+        "pause_covers": "stock_bot/PAUSE stops all 7 robots and the research bot",
         "robots": rows,
         "desk": {
             "robots": len(rows), "ran_today": ran,

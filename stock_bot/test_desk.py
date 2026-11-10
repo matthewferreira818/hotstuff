@@ -134,6 +134,7 @@ class Health(unittest.TestCase):
     def test_paused_wins(self):
         h = desk.health(BOT["hot"], OPEN, [run("2026-11-10T15:00:00Z", conclusion="failure")], None, None, True)
         self.assertEqual(h["state"], "paused")
+        self.assertIn("research bot", h["why"])
 
 
 class Scoreboard(unittest.TestCase):
@@ -234,6 +235,7 @@ class PauseSwitch(unittest.TestCase):
         text = read(self.pause)
         self.assertIn("42 practice trades today", text)
         self.assertIn("Matthew deletes it", text)
+        self.assertIn("research bot", text)
 
     def test_never_overwrites_existing_pause(self):
         with open(self.pause, "w") as f:

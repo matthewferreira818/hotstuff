@@ -1,0 +1,33 @@
+{
+  "_read_me": "LIVE RULES for the research bot (practice money only). The AI may NOT edit this file: it proposes changes with `python3 -m stock_bot.research_bot.forecasts propose-rule`. A change needs the NB2 gate + Matthew's GO, then a human updates rules.lock (python3 -m stock_bot.research_bot.checker --lock). If this file and rules.lock disagree, the checker refuses every order.",
+  "version": 1,
+  "practice_only": true,
+  "start_cash": 1000.0,
+  "markets": {
+    "stock": {
+      "account_file": "account-research-stocks.json",
+      "benchmark": "SPY",
+      "costs": {"fee_min": 1.99, "fee_per_share": 0.0099, "slippage_pct": 0.1},
+      "max_price_age_seconds": 300,
+      "max_jump_pct": 5.0,
+      "down_market_drop_pct": 5.0
+    },
+    "crypto": {
+      "account_file": "account-research-crypto.json",
+      "benchmark": "BTC-USD",
+      "costs": {"fee_min": 0, "fee_per_share": 0, "fee_pct": 0.5, "slippage_pct": 0.1},
+      "max_price_age_seconds": 300,
+      "max_jump_pct": 8.0,
+      "down_market_drop_pct": 10.0
+    }
+  },
+  "max_position_pct": 10.0,
+  "min_order_dollars": 50.0,
+  "max_open_positions": 3,
+  "max_new_orders_per_day": 2,
+  "daily_loss_cap_pct": 3.0,
+  "weekly_drawdown_cap_pct": 6.0,
+  "jump_lookback_minutes": 15,
+  "min_lead_minutes": 15,
+  "long_only": true
+}

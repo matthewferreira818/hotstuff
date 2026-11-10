@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 343.43,
+ "cash": 10.98,
  "spy_at_start": 777.22,
  "positions": {
   "QBTS": {
    "qty": 31.241315075901547,
    "avg_entry_price": 10.7143,
    "fill": 10.6506
+  },
+  "SECZ": {
+   "qty": 39.60766288300781,
+   "avg_entry_price": 8.3936,
+   "fill": 8.3433
   }
  },
  "orders": [
@@ -1279,6 +1284,16 @@
    "qty": 25.669011,
    "price": 13.1668,
    "dollars": 335.99,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-10T20:39:38+00:00",
+   "symbol": "SECZ",
+   "side": "buy",
+   "status": "filled",
+   "qty": 39.607663,
+   "price": 8.3433,
+   "dollars": 332.45,
    "fee": 1.99
   }
  ],

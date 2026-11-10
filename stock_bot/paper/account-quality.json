@@ -1,7 +1,7 @@
 {
  "started": "2026-11-05T18:06:16+00:00",
  "start_cash": 1000.0,
- "cash": 0.0,
+ "cash": 230.77,
  "spy_at_start": 735.08,
  "positions": {
   "GOOGL": {
@@ -15,10 +15,6 @@
   "NVDA": {
    "qty": 1.0854487917701263,
    "avg_entry_price": 184.2556
-  },
-  "AMD": {
-   "qty": 0.44905918918477156,
-   "avg_entry_price": 449.2058
   },
   "AVGO": {
    "qty": 0.6606381069448535,
@@ -74,6 +70,16 @@
    "qty": 0.660638,
    "price": 297.1218,
    "dollars": 198.28,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-10T14:44:36+00:00",
+   "symbol": "AMD",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.449059,
+   "price": 518.3212,
+   "dollars": 230.77,
    "fee": 1.99
   }
  ],

@@ -13,7 +13,7 @@ Spec: .claude/council/DECISIONS.md, 2026-11-08 (Matthew: "Yes, that layout"). Br
 - **Deep links and Friday's jumps:** no page was removed or renamed in code, so every `hubSelect(...)` still lands on the same page. In Simple mode it now also shows that page's family strip.
 
 ## Calls made (flagged for the gate)
-1. **Practice stocks / Practice robots:** the spec lists "Practice robots" under Crew and "Practice stocks" under Tools, but they're the same page. To keep one home, it lives under Crew as "Practice robots". It's a one-line move (`simpleFamilies` / `simpleMoreGroups` in HubSimple.swift) if the gate prefers Tools.
+1. **Deliberate deviation from the spec (NB2 agreed Nov 9): Practice stocks / Practice robots.** The council's point was keeping it out of Business, and this keeps it out. the spec lists "Practice robots" under Crew and "Practice stocks" under Tools, but they're the same page. To keep one home, it lives under Crew as "Practice robots". It's a one-line move (`simpleFamilies` / `simpleMoreGroups` in HubSimple.swift) if the gate prefers Tools.
 2. **Jobs first:** a new `jobs` page (added at the END of the HubSection enum, so saved numbers keep their meaning). It's the first chip under Crew and reuses CoreJobsCard (up to 20 jobs).
 
 ## Files
@@ -35,4 +35,5 @@ HubSimple.swift (tabs, families, More groups, strip, Jobs page, red dot, moved n
   | Memory | More → "What Friday remembers" (item 4 of 15) | **Friday** tab → "What Friday remembers" chip |
 
 ## Rollback
+Deliberate deviation from the spec: "Practice stocks" isn't under Tools. Its one home is Crew → Practice robots (see Calls made, 1).
 Not merged. If it is merged and needs undoing, `git revert <merge commit>` brings back the 4 tabs and the flat 15-item More list. Saved settings are safe: the new `jobs` case is last in the enum, so a page number saved by the new build (`hub.testStart`) just falls back to Home in the old build. The `hub.navMoved1Seen` flag is harmless if left behind.

@@ -490,6 +490,7 @@ struct SimpleCrewDot: View {
   Group {
    if JobRules.failedRecently(model.jobs,now:Date()) {
     Circle().fill(Noir.crimsonLight).frame(width:8,height:8).accessibilityLabel("A crew job failed")
+     .help("A crew job failed in the last 24 hours. Open Crew, then Jobs, to see which one and why.")
    }
   }
   .onAppear { model.start() }

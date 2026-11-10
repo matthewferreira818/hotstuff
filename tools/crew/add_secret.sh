@@ -16,9 +16,10 @@ if [[ "$REPO" != matthewferreira818/* ]]; then echo "Refused: only Matthew's own
 GH=$(command -v gh || true)
 for c in "$HOME/Claude/bin/gh" /opt/homebrew/bin/gh /usr/local/bin/gh; do [ -z "$GH" ] && [ -x "$c" ] && GH="$c"; done
 if [ -z "$GH" ]; then echo "gh (GitHub CLI) not found. Nothing read from the clipboard, nothing set."; exit 1; fi
+# From here on, the clipboard is wiped on EVERY exit (success, failure or interrupt), not only on success.
+trap 'pbcopy </dev/null' EXIT INT TERM
 LEN=$(pbpaste | wc -c | tr -d ' ')
 if [ "$LEN" -lt 4 ]; then echo "Clipboard is empty or too short. Matthew: copy the value first, then ask again."; exit 1; fi
-if [ "$LEN" -gt 4000 ]; then echo "Clipboard looks too long for a key ($LEN chars). Nothing set."; exit 1; fi
+if [ "$LEN" -gt 4000 ]; then echo "Clipboard looks too long for a key. Nothing set."; exit 1; fi
 pbpaste | "$GH" secret set "$NAME" --repo "$REPO" >/dev/null
-pbcopy </dev/null
-echo "Done: $NAME is set on $REPO ($LEN characters; value not shown). Clipboard cleared."
+echo "Done: $NAME is set on $REPO (value not shown). Clipboard cleared."

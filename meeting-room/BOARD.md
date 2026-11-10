@@ -12,6 +12,16 @@ _Last updated: 2026-11-09 10:00 AM by Local Claude (LC-Manager)_
 - Robots: 3 already ran today (crypto, quality, volatility), started 2 (dip, hot hands); momentum + Moonshot "start FAILED" (GitHub connection resets this morning).
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).
 
+### Roll call 2026-11-10 (morning brief, New beginning)
+- Roxy: ✅ Sales Desk live, Tue batch review (23/25 openers), council votes · 🔨 price-line OK on the rebuilt batch · ⛔ none
+- New beginning: ✅ selling restart, price line live EN+FR, sender + reply watcher built, Tue batch rebuilt + fact pass · 🔨 brief · ⛔ Matthew's 2 secrets
+- NB2: ✅ nav reorg + research bot phase 1 gated/merged, money council · 🔨 council synthesis · ⛔ none
+- Friday: ✅ offer-line follow-ups merged, 13 FB drafts on line A · 🔨 backup manager · ⛔ none
+- LC-Manager: ✅ robot auto-start v2 · 🔨 gate on Tue batch · ⛔ none
+- LC-Pixels: ✅ nav reorg (Simple-mode tabs) · 🔨 made-for-you samples next · ⛔ waits on Roxy's 5 picks
+- LC-Research (new): ✅ research bot phase 1 (practice only) · 🔨 phase 1b · ⛔ none
+- LC-Trends, LC_Helm, LC-CrewState: quiet · Grok: back ~Nov 11 (research job from NB2)
+
 ### Roll call 2026-11-09 (Monday brief, New beginning)
 - Correction to Sunday's line: the "first YES" practice run DID happen Sun afternoon (LC-Pixels, Helm-Private 172ea97).
 - LC-Manager: ✅ first-client kit gated, look-only research rule (§10), offer-wording flag · 🔨 standup · ⛔ CBDC call result

@@ -36,6 +36,7 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.dirname(HERE))
 
 import checker  # noqa: E402
+import scorer  # noqa: E402
 import forecasts as ledger  # noqa: E402
 from paper_broker import PaperBroker, new_account  # noqa: E402
 
@@ -205,6 +206,8 @@ def _run(now, quote_fn, dry_run, lines, first_seen, rules, rules_ok, manual_paus
             return ["forecast file was edited, not appended: nothing done"] + problems
         lines = ledger.read_lines()
     by_id = {l["id"]: l for l in lines if l.get("kind") == "forecast"}
+    idea_text = {l["id"]: l.get("text", "") for l in lines if l.get("kind") == "idea"}
+    replay = scorer.replay_log()
     orders = read_jsonl(orders_path)
     seen = {o["id"] for o in orders}
     unfinished = {o["id"] for o in orders if o["status"] == "intent"} - {
@@ -306,6 +309,11 @@ def _run(now, quote_fn, dry_run, lines, first_seen, rules, rules_ok, manual_paus
                 log.append(f"[{market}] would {o['side']} {o['asset']} (dry run)")
                 continue
             base = dict(o, time=ledger.iso(now), practice=True)
+            if f:  # say plainly where the idea stands, so nobody reads a practice trade as a signal
+                status = scorer.replay_status(market, idea_text.get(f.get("idea"), ""), replay)
+                base["replay_status"] = status
+                if status == "DEAD":
+                    base["label"] = scorer.FAILED_LABEL
             append_jsonl(orders_path, dict(base, status="intent"))
             seen.add(o["id"])
             try:
@@ -317,7 +325,8 @@ def _run(now, quote_fn, dry_run, lines, first_seen, rules, rules_ok, manual_paus
                     res = broker.sell_all(o["asset"])
                 append_jsonl(orders_path, dict(base, status="filled",
                                                profit=res.get("profit")))
-                log.append(f"[{market}] practice {o['side']} {o['asset']} filled")
+                log.append(f"[{market}] practice {o['side']} {o['asset']} filled"
+                           + (" (idea FAILED the replay: data only)" if base.get("label") else ""))
             except Exception as e:
                 append_jsonl(orders_path, dict(base, status="failed",
                                                error=type(e).__name__))

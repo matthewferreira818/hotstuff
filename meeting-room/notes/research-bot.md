@@ -190,6 +190,9 @@ LC-Pixels' "Research bot" tab in The Helm reads these. Any change gets a line he
 Changes since phase 1 merged (6fb2f0b), all in 1b: `evidence_bar` keys are now the fast-track lines plus
 `"one idea meets ALL of the above"` (the old keys are gone, because the bar changed); added `by_idea` (same fields per idea, plus
 `text` and `replay_pass`), `ideas_in_ledger`, `ideas_in_replay`; `rows[].idea`; orders gain `stop_pct` and `:stop` ids.
+Later the same day (NB2's ask): orders gain `replay_status` (`PASS` / `DEAD` / `untested`) and, for DEAD, `label` =
+"from an idea that failed the replay: data only, not a signal"; `by_idea` entries gain the same `replay_status` and `label`.
+Show the label next to any practice trade or forecast from a failed idea.
 
 ## How to run it (from the repo root)
 

@@ -260,6 +260,9 @@ def _market_card(market, lines, rows, rules, now, nested=False):
                                rules, now, nested=True)
             sub["text"] = texts.get(iid, "")
             sub["replay_pass"] = replay_passed(market, sub["text"])
+            sub["replay_status"] = replay_status(market, sub["text"])
+            if sub["replay_status"] == "DEAD":
+                sub["label"] = FAILED_LABEL
             card["by_idea"][iid] = sub
     return card
 
@@ -270,6 +273,22 @@ def replay_log(path=None):
         return ledger.read_lines(path)
     except (OSError, ledger.LedgerError):
         return []
+
+
+FAILED_LABEL = "from an idea that failed the replay: data only, not a signal"
+
+
+def replay_status(market, idea_text, log=None):
+    """PASS, DEAD (failed the replay) or untested, from the newest replay."""
+    if replay_passed(market, idea_text, log):
+        return "PASS"
+    parts = idea_text.split()
+    if len(parts) >= 4 and parts[:2] == ["replay", "idea"] and parts[3].startswith("h="):
+        name, hz = parts[2], int(parts[3][2:])
+        if any(r.get("market") == market and r.get("idea") == name and r.get("horizon") == hz
+               for r in (log if log is not None else replay_log())):
+            return "DEAD"
+    return "untested"
 
 
 def replay_passed(market, idea_text, log=None):
@@ -372,6 +391,11 @@ def render(card):
             out.append(f"| {label} | {_fmt(b[k])} |")
         out += ["", f"Hit rate {_fmt(mc['hit_rate'], 2)} ({mc['hits']} of {mc['graded']}); "
                 f"chance a coin does at least this well: {_fmt(mc['luck_p_value'], 2)}.", ""]
+        failed = [sub for sub in (mc.get("by_idea") or {}).values()
+                  if sub.get("replay_status") == "DEAD" and sub["forecasts"]]
+        if failed:
+            out += [f"**Note: {sum(s['forecasts'] for s in failed)} of these forecasts (and any paper trades from "
+                    f"them) come from ideas that FAILED the replay. They are data only, not a signal.**", ""]
         out += [f"Paper trades {mc['paper_trades']} at ${mc['trade_size']:.0f} each, after fees + slippage: "
                 f"**${mc['paper_pnl']:+.2f}** · cash $+0.00 · "
                 f"{mc['benchmark']} with the whole ${1000:.0f}: "
@@ -394,7 +418,7 @@ def render(card):
                 out.append(f"| {sub['text'][12:60] or iid} | {sub['graded']} | {_fmt(bb['forecaster'])} | "
                            f"{_fmt(bb['coin_flip'])} | {_fmt(bb['base_rate'])} | "
                            f"{_fmt(bb['tomorrow_equals_today'])} | ${sub['paper_pnl']:+.2f} | "
-                           f"{'PASS' if sub['replay_pass'] else 'dead/untested'} |")
+                           f"{ {'PASS': 'PASS', 'DEAD': '**FAILED** (data only, not a signal)'}.get(sub.get('replay_status'), 'untested')} |")
             out.append("")
     out += ["Later, before any real money (not part of the re-vote; real money is not in phase 1): "
             + "; ".join(LATER) + ".", "",

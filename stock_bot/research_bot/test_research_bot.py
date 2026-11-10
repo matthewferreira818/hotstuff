@@ -360,6 +360,29 @@ class ExecutorTests(unittest.TestCase):
         self.assertGreater(a["cash"], 1000.0)
         self.assertEqual([o["side"] for o in a["orders"]], ["buy", "sell"])
 
+    def test_orders_from_failed_ideas_are_labelled(self):
+        idea = {"kind": "idea", "id": "I1", "market": "crypto",
+                "text": 'replay idea reversal h=4 {"drop_pct": 8, "lookback": 5, "prob": 0.56}'}
+        self.f["idea"] = "I1"
+        real = scorer.replay_log
+        scorer.replay_log = lambda path=None: [{"market": "crypto", "idea": "reversal", "horizon": 4,
+                                                "verdict": "DEAD", "run": "1"}]
+        try:
+            log = executor.run(
+                now=t(1), quote_fn=self.quote(t(1)), lines=[idea, self.f], first_seen={"F1": 0.0},
+                rules=RULES, rules_ok=True, manual_pause=False, paper_dir=self.d,
+                orders_path=os.path.join(self.d, "orders.jsonl"),
+                equity_path=os.path.join(self.d, "equity.jsonl"),
+                auto_pause_path=os.path.join(self.d, "AUTO_PAUSE"),
+                range_fn=lambda a: 3.0, lock_path=os.path.join(self.d, "RUN_LOCK"))
+        finally:
+            scorer.replay_log = real
+        self.assertIn("FAILED the replay", " ".join(log))
+        filled = [o for o in ledger.read_lines(os.path.join(self.d, "orders.jsonl"))
+                  if o["status"] == "filled"]
+        self.assertEqual(filled[0]["replay_status"], "DEAD")
+        self.assertIn("not a signal", filled[0]["label"])
+
     def test_stop_sells_before_window_ends(self):
         self.go(t(1))
         orders = ledger.read_lines(os.path.join(self.d, "orders.jsonl"))
@@ -686,6 +709,13 @@ class GenerateTests(unittest.TestCase):
             self.assertIn(v["params"], idea_lib.IDEAS[v["idea"]]["grid"])
             self.assertIn(v["market"], ledger.MARKETS)
             self.assertTrue(v["assets"])
+
+    def test_replay_status_labels(self):
+        log = [{"market": "crypto", "idea": "momentum", "horizon": 4, "verdict": "DEAD", "run": "1"}]
+        t1 = 'replay idea momentum h=4 {"lookback": 5, "prob": 0.52}'
+        self.assertEqual(scorer.replay_status("crypto", t1, log), "DEAD")
+        self.assertEqual(scorer.replay_status("crypto", "replay idea trend h=4 {}", log), "untested")
+        self.assertEqual(scorer.replay_status("crypto", "hand-written idea", log), "untested")
 
     def test_replay_pass_lookup(self):
         log = [{"market": "crypto", "idea": "momentum", "horizon": 4, "verdict": "DEAD", "run": "1"},

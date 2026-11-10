@@ -1,19 +1,19 @@
 # Daily TikTok posts (auto-generated)
 
-_Generated 2026-11-06 · post PRODUCT in the daytime, AGENT in the evening._
+_Generated 2026-11-10 · post PRODUCT in the daytime, AGENT in the evening._
 
 
 ## 🔥 Product post (product/) — caption
 
 ```
-today's heat check 🔥 toys + home and more — all under one link #tiktokmademebuyit #trending #dailyfinds
+today's heat check 🔥 home + toys and more — all under one link #tiktokmademebuyit #trending #dailyfinds
 ```
 
 
 ## 🗼 Agent post (agent/) — caption
 
 ```
-day in the life of a store with zero employees ⚙️ everything you just saw happened automatically. building this for local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick
+most local business pages went quiet months ago 💤 my own store's feed hasn't missed a day since August 7 — because nobody has to remember. building it for local businesses now #smallbusiness #localbusiness #socialmediamarketing #automation #newbrunswick
 ```
 
 > 🎵 Add a trending sound to each in-app. Product post: upbeat. Agent post: something calm/lofi reads as 'systems humming'.

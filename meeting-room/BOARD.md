@@ -1,16 +1,28 @@
 # Meeting Room board
 
-_Last updated: 2026-11-09 10:00 AM by Local Claude (LC-Manager)_
+_Last updated: 2026-11-10 9:45 AM by Local Claude (LC-Manager)_
 
-## Standup (2026-11-09, LC-Manager)
-- Top earning priority today: the CBDC call (9 AM). Its result decides if selling restarts. First-client kit is ready + gated; nothing sent, $0. Next ask waits on offer page + claims_facts match.
-- LC-Manager: yesterday kit gated (Helm-Private 52d3d48), look-only rule §10 (ddfadba) / today standup, gate LC-Pixels' practice run + nav reorg / blocked: CBDC result.
-- LC-Pixels: yesterday "first YES" practice run (Helm-Private 172ea97, proven) / today Helm nav reorg from 11 AM (J-1108-141525) / blocked: none.
-- LC-Trends: yesterday practice-run snag fixes (unproven, no commit seen) / today Monday trend report / blocked: none.
-- Friday + NB2: yesterday Haiku-for-deliveries merged as OFF setting (39f7065) / today — / blocked: none. Roxy posted a Haiku release-gate review (issue 15, 10 AM).
-- LC-TikTok, LC-Work, Helm build, CrewState, Makeover: quiet 2+ days; their board items wait on Matthew's GO or CBDC.
-- Robots: 3 already ran today (crypto, quality, volatility), started 2 (dip, hot hands); momentum + Moonshot "start FAILED" (GitHub connection resets this morning).
-- Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).
+## Standup (2026-11-10, LC-Manager)
+- Top earning priority today: send Tuesday's batch (18 SEND / 7 HOLD, Helm-Private 0fecda2). It still needs Roxy's OK on the price line and LC-Manager's PASS before anything goes out.
+- LC-Manager: yesterday robot auto-start v2 fix (Hotline), money council answers (Helm-Private 04dde08, 18fd181) / today gate Tue batch / blocked: none.
+- New beginning: yesterday selling restart, price line live EN+FR (20d5f91), batch rebuilt + fact pass (0fecda2) / today get the batch out / blocked: Matthew's 2 secrets for the sender (C.C is the fallback).
+- Roxy: yesterday FB 13 fixed (9e28f), batch review, Wed 5/25 sourced (9550569), council vote (72c15fe) / today price recheck on v4, Stock bot design / blocked: none.
+- NB2: yesterday offer-line follow-ups merged (53cbd5e), nav reorg merged (4734215) + rebuild checked (4d03f41) / today council synthesis, gates / blocked: none.
+- Friday: yesterday backup manager, research-bot lanes (f55b2d8) + 10 ideas (0049362) / today lane upkeep / blocked: none.
+- LC-Pixels: Research/Stock bot tab on pixels/research-tab (95797c0, first shot be3150b) / today design review with Roxy, then NB2 gate / blocked: none.
+- LC-Research: 1b on claude/research-bot-1b (4f681d3; first replay 0 of 16 passed) / today forecasts + schedule proposal / blocked: none. LC-Trends: connections check done (e8295f3); Monday trend report missed.
+- Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed.
+- Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm). An old rebuild-watcher shell loop is still polling; harmless, but it can be closed.
+
+### Roll call 2026-11-10 (morning brief, New beginning)
+- Roxy: ✅ Sales Desk live, Tue batch review (23/25 openers), council votes · 🔨 price-line OK on the rebuilt batch · ⛔ none
+- New beginning: ✅ selling restart, price line live EN+FR, sender + reply watcher built, Tue batch rebuilt + fact pass · 🔨 brief · ⛔ Matthew's 2 secrets
+- NB2: ✅ nav reorg + research bot phase 1 gated/merged, money council · 🔨 council synthesis · ⛔ none
+- Friday: ✅ offer-line follow-ups merged, 13 FB drafts on line A · 🔨 backup manager · ⛔ none
+- LC-Manager: ✅ robot auto-start v2 · 🔨 gate on Tue batch · ⛔ none
+- LC-Pixels: ✅ nav reorg (Simple-mode tabs) · 🔨 made-for-you samples next · ⛔ waits on Roxy's 5 picks
+- LC-Research (new): ✅ research bot phase 1 (practice only) · 🔨 phase 1b · ⛔ none
+- LC-Trends, LC_Helm, LC-CrewState: quiet · Grok: back ~Nov 11 (research job from NB2)
 
 ### Roll call 2026-11-09 (Monday brief, New beginning)
 - Correction to Sunday's line: the "first YES" practice run DID happen Sun afternoon (LC-Pixels, Helm-Private 172ea97).
@@ -37,7 +49,7 @@ _Last updated: 2026-11-09 10:00 AM by Local Claude (LC-Manager)_
 - Roxy: ✅ job-card feedback, hardware question, next pitch (Fri afternoon); active, not away · Grok: ✅ weekend idea (Fri 9 PM; overlaps the practice run); active despite "back Nov 11"
 
 ## On the table
-- [Local Claude] (LC-Research; NB2 gates; Grok owns from Nov 11) **Research bot phase 1** (Matthew GO Nov 10, practice only): forecast ledger + plain-code scorer + capped paper executor, branch claude/research-bot-1e7bb9, 27 offline tests pass, no real-money path. Spec: notes/research-bot.md (on the branch). Status: built, waiting for NB2 gate
+- [Local Claude] (LC-Research; NB2 gates; Grok owns from Nov 11) **Research bot**: phase 1 MERGED (6fb2f0b, Matthew GO). 1b in progress on claude/research-bot-1b: history replay + walk-forward, daily guess-maker, per-bet stop, run lock (built, 44 tests pass); Mac schedule proposal next. Bar: council re-vote ~Dec 1. Practice only. Status: 1b in progress
 - [GPT] **Sales pipeline** (Roxy, counted Nov 9): Nov 4–5 logs: 34 businesses emailed, 2 replied; 2 sample packs prepared (delivery unconfirmed); 0 paid asks/YES/paid recorded. Tue 25 reviewed (7 HOLD); FB 13 corrected; Wed 5/25 new sourced. Next: morning price recheck, resolve holds, source remaining 20. Private ledger updated; check room each session.
 - [Matthew] (LC-Manager tracks) **Offer wording, BEFORE any ask is sent**: Matthew chose (Sun Nov 8 2:54 PM) "$79 for a first pilot month. If you like it, it's $79 a month after that, no contract." The 2 drafted asks + the intake now say this (Helm-Private). The live /automation page and tools/claims_facts.json only know the one-month pilot, so claims_check blocks the new line (PRICE_OR_MONEY_PROOF) until both are updated. That is a public change: after CBDC OK + his GO. Nobody sends an ask before the page + facts file match. Status: waiting
 - [Claude] (New beginning; LC-Manager coordinates) **First paying client: TOP** (Matthew 11-06: "just get helm to do it"): one fact-checked outreach batch ready to send + Maplehurst/Dieppe packs teed up, brought to Matthew as ONE GO. PREP ONLY: nothing contacts a business until after Monday's advisor call (funding pause). Sends stay his. Status: kit DONE + gated Sun 2 PM (LC-Manager; Helm-Private 52d3d48, 172ea97, 7ef51ec). Nothing sent, $0. Waits on Matthew: offer line ('pilot month' vs '/month'), invoice pay-to/address/HST, then Monday's call.
@@ -52,7 +64,10 @@ _Last updated: 2026-11-09 10:00 AM by Local Claude (LC-Manager)_
 - **Pixel crew station** (owner: LC-Pixels): DONE, merged in Command Core (master b9e945b). Now a ship deck in our own art, wired to the chats actually open on the Mac (busy = typing + RUN timer, closed = no desk). Status: done
 - **"First YES" practice run** (owner: LC-Pixels, inside LC-Manager's delivery-kit job; Matthew GO 11-06 4:55 PM): DONE Sun Nov 8. SAMPLE bakery walked from yes to the first approved week, nothing sent. Helm-Private 172ea97 ecs/delivery-kit/practice-run.md: about 1.5-2 h of Matthew's time (estimate), 15 snags with fixes. Job J-1106-164755xxx done. Waiting on LC-Manager's gate.
 - **Research bot, practice money only** (owner: LC-Research, then Grok from Nov 11; money council + Matthew GO Nov 10): one bot that studies past prices, logs timestamped guesses, a plain script grades them vs coin flip / hold after fees. Real money OFF. Council re-votes ~Dec 1. Status: 🔨 building on its own branch
+- **Research bot lanes** (owner: Friday, Nov 10, Matthew: "get everyone on this"): one owner per lane/file, see meeting-room/notes/research-bot-lanes.md. New: LC-Trends = market connections check (look-only, Helm-Private research-bot/connections.md); Roxy = 10-idea list (research-bot/ideas-roxy.md, no ledger writes). Status: 🆕 assigned
+- **Research bot: market connections check** [DONE Tue ~9:25 AM, Helm-Private e8295f3, job done; gaps listed in the file] [LC-Trends, J-1110-091901] look-only: free price feeds (Yahoo, CoinGecko free tier) + crypto platforms legal in NB with trade-only API keys. Owns only Helm-Private research-bot/connections.md. (Note: Monday's trend report did NOT happen; this chat had no turn Mon. Snag fixes are proven: Helm-Private 7ef51ec, bbbb430.)
 - **Helm Simple-mode navigation reorg** (owner: LC-Pixels; council + Matthew YES Nov 8; job J-1108-141525 done): branch pixels/nav-reorg 1006417, NB2 gate PASS Nov 9 night (own build, checks, shots in Helm-Private real-app/nav-reorg-nb2/, naming fix). Notes + rollback: meeting-room/notes/nav-reorg.md (on the branch). Matthew GO Nov 10 7:57 AM; NB2 merged to master 4734215 (checks pass except the old Roxy date test, typecheck OK). Status: ✅ merged and rebuilt (verified 8:04 AM Nov 10)
+- **Helm: Research bot tab** (owner: LC-Pixels; job from NB2 for Matthew, Nov 10): big Research bot tab on the Stock bot page, PRACTICE MONEY ONLY: scorecard (stocks/crypto separate), guesses + reasons, practice orders, status; Pause only (no orders, keys or live switch). Branch pixels/research-tab, 177 checks pass; notes: meeting-room/notes/research-tab.md. Status: 🔨 test-copy shots, then NB2 gate
 - **Command Core** (Friday + LC-Pixels, gated by NB2): MERGED on Matthew's GO, master b9e945b (6 tabs, Crew Station, usage card, Friday & me long messages + pictures, privacy flag). Matthew runs Update Friday. Next: reliable job handoffs (job card: assigned → started → done with proof). Offline brain on friday/local-brain waits for a live test.
 - [Claude] (LC-CrewState) Helm crew strip honest "working": counts Hotline + commits (30 min). Branch friday-phase1-crewstate 294f27d; files CrewData.swift, CrewSignals.swift (new), rebuild.sh. Status: at LC-Manager gate
 - [Claude] (LC-Trends built, LC-Manager gated) **3 TikTok sample videos**: done (tiktok-samples d0ae546, mp4s in Helm-Private). **Matthew picked "Stocking stuffers"** (hook "Stocking stuffers that aren't socks", 3 small gifts, reveal per item). Nothing posts until CBDC + GO. Next: make it the TikTok style (rebuilt from each day's catalogue); fix store name of the frog earrings if used. Status: picked

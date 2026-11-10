@@ -507,6 +507,14 @@ class ReplayTests(unittest.TestCase):
         self.assertEqual(res["verdict"], "DEAD")
         self.assertLess(res["pnl"], 0)
 
+    def test_report_keeps_every_variant_ever_tried(self):
+        log = [{"market": "crypto", "idea": "drift", "horizon": 1, "interval": "1h", "run": "1", "verdict": "DEAD"},
+               {"market": "crypto", "idea": "drift", "horizon": 1, "interval": "1h", "run": "2", "verdict": "PASS"},
+               {"market": "stock", "idea": "trend", "horizon": 5, "interval": "1d", "run": "1", "verdict": "DEAD"}]
+        out = replay.latest(log)
+        self.assertEqual(len(out), 2)
+        self.assertEqual([r["verdict"] for r in out if r["idea"] == "drift"], ["PASS"])
+
     def test_run_market_and_report(self):
         cfg = dict(self.CFG, interval="1h", days=60, horizons=[1], assets=["X-USD"],
                    benchmark="BTC-USD")
@@ -515,6 +523,67 @@ class ReplayTests(unittest.TestCase):
         self.assertEqual([r["verdict"] for r in res], ["PASS", "DEAD"])
         text = replay.render(res, "now")
         self.assertIn("2 idea/horizon combinations tried, 1 passed", text)
+
+
+class IdeaTests(unittest.TestCase):
+    def call(self, name, closes, **p):
+        return idea_lib.call(name, idea_lib.History(closes, len(closes) - 1),
+                             dict(p, prob=0.56))
+
+    def test_every_idea_runs_on_every_setting(self):
+        import random
+        rnd = random.Random(7)
+        closes = [100.0]
+        for _ in range(700):
+            closes.append(closes[-1] * (1 + rnd.gauss(0, 0.02)))
+        for name, idea in idea_lib.IDEAS.items():
+            for p in idea["grid"]:
+                for i in range(0, len(closes), 7):
+                    c = idea_lib.call(name, idea_lib.History(closes, i), p)
+                    self.assertTrue(c is None or (c[0] in ("up", "down") and 0.5 < c[1] < 1),
+                                    (name, p, c))
+
+    def test_new_ideas_fire_when_they_should(self):
+        up = [100 + i for i in range(300)]
+        self.assertEqual(self.call("long_trend", up, sma=200), ("up", 0.56))
+        self.assertIsNone(self.call("long_trend", up[::-1], sma=200))
+        calm = [100 * (1.01 if i % 2 else 0.99) for i in range(30)]
+        self.assertEqual(self.call("big_drop", calm + [85.0], k=2.5)[0], "up")
+        self.assertIsNone(self.call("big_drop", calm + [calm[-1] * 0.98], k=2.5))
+        self.assertEqual(self.call("losing_streak", [10, 11, 10, 9, 8], k=3)[0], "up")
+        self.assertIsNone(self.call("losing_streak", [10, 11, 10, 9, 9.5], k=3))
+        self.assertEqual(self.call("near_high", up, x_pct=3)[0], "up")
+        self.assertEqual(self.call("two_clocks", up, long=60, short=10)[0], "up")
+        # Squeeze: wide swings, then 10 dead-flat days, then a break above them.
+        wide = [100 + (10 if i % 2 else -10) for i in range(100)]
+        sq = wide + [100.0] * 10
+        self.assertEqual(self.call("squeeze", sq + [101.0], n=10, m=90)[0], "up")
+        self.assertIsNone(self.call("squeeze", sq + [99.0], n=10, m=90))
+
+    def test_zero_price_means_no_call(self):
+        self.assertIsNone(self.call("big_drop", [1.0] * 25 + [0.0, 1.0], k=2.5))
+
+    def test_cross_fires_only_on_the_cross_day(self):
+        closes = [100.0] * 60 + [100.0 + 2 * i for i in range(1, 30)]
+        fired = [i for i in range(len(closes))
+                 if idea_lib.call("cross", idea_lib.History(closes, i),
+                                  {"fast": 10, "slow": 50, "prob": 0.56})]
+        self.assertEqual(len(fired), 1)
+
+    def test_calm_momentum_sits_out_wild_stretches(self):
+        calm = [100 * (1.001 if i % 2 else 0.9995) for i in range(260)]
+        wild = calm + [calm[-1] * (1.2 if i % 2 else 0.85) for i in range(20)]
+        self.assertIsNotNone(self.call("calm_momentum", calm + calm[-20:], ratio=2.0))
+        self.assertIsNone(self.call("calm_momentum", wild, ratio=2.0))
+
+    def test_idea_config(self):
+        base = replay.settings()
+        c = replay.config_for("crypto", base["crypto"], idea_lib.IDEAS["big_drop"])
+        self.assertEqual((c["interval"], c["horizons"]), ("1d", [3, 5]))
+        c = replay.config_for("stock", base["stock"], idea_lib.IDEAS["losing_streak"])
+        self.assertEqual(c["assets"], ["SPY"])
+        c = replay.config_for("crypto", base["crypto"], idea_lib.IDEAS["reversal"])
+        self.assertEqual(c["interval"], "1h")
 
 
 class GenerateTests(unittest.TestCase):
@@ -542,6 +611,14 @@ class GenerateTests(unittest.TestCase):
         o, r = generate.stock_window(fri, 1, 20)
         self.assertEqual((o.weekday(), r.weekday()), (0, 1))  # Mon open -> Tue open
 
+    def test_crypto_daily_window(self):
+        o, r = generate.crypto_day_window(self.now, 3, 20)
+        self.assertEqual((o, r), (dt.datetime(2026, 11, 11, tzinfo=UTC),
+                                  dt.datetime(2026, 11, 14, tzinfo=UTC)))
+        today = int(dt.datetime(2026, 11, 10, tzinfo=UTC).timestamp())
+        bars = [(today - 86400, 1, 1), (today, 2, 2)]
+        self.assertEqual(generate.finished(bars, "1d", self.now, "crypto"), bars[:1])
+
     def test_in_progress_bar_dropped(self):
         bars = [(int(self.now.timestamp()) - 3600, 1, 1), (int(self.now.timestamp()) - 600, 2, 2)]
         self.assertEqual(len(generate.finished(bars, "1h", self.now)), 1)
@@ -558,9 +635,11 @@ class GenerateTests(unittest.TestCase):
         self.assertEqual(len(fc), 2, log)
         self.assertEqual(sum(l["kind"] == "idea" for l in lines), 1)
         self.assertTrue(all(f["direction"] == "up" and f["act"] for f in fc))
-        self.gen(self.now + dt.timedelta(minutes=30))  # still open: no pile-up
+        log = self.gen(self.now + dt.timedelta(minutes=30))  # still open: no pile-up
         self.assertEqual(len([l for l in ledger.read_lines(self.path)
                               if l["kind"] == "forecast"]), 2)
+        self.assertNotIn("no_trade", [l["kind"] for l in ledger.read_lines(self.path)])
+        self.assertIn("still open", " ".join(log))
 
     def test_no_calls_logs_no_trade(self):
         self.bars = self.bars[:20]  # too short for any call

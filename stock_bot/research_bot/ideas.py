@@ -10,9 +10,14 @@ asking for a later price raises an error) and its settings, and returns
 None (no call) or ("up" | "down", probability the direction is right).
 
 Add a new idea: write the function, add it to IDEAS with a short plain-English
-description and a small grid of settings. Every (idea, settings, horizon)
+description and a small grid of settings. Optional keys: "interval" ("1h" or
+"1d"; default = the market's own), "markets" (default both), "horizons" (in
+bars; default = the market's), "assets" (default = the market's list). Every (idea, settings, horizon)
 the replay tries is logged and counted.
 """
+
+
+from itertools import accumulate
 
 
 class LookAheadError(IndexError):
@@ -100,6 +105,101 @@ def drift(h, p):
     return ("up", p["prob"])
 
 
+def _sma(h, n):
+    return sum(h.window(n)) / n
+
+
+# ---- Friday's list (Helm-Private research-bot/ideas-list.md, 2026-11-10), ideas 1-8.
+# 9 (turn of the month: needs dates) and 10 (Bitcoin leads ETH: needs two assets)
+# are parked: ideas here only see one asset's closes.
+
+def long_trend(h, p):
+    """1. Up while above the long (100/200-bar) average; otherwise no call."""
+    n = p["sma"]
+    if len(h) < n:
+        return None
+    return ("up", p["prob"]) if h[-1] > _sma(h, n) else None
+
+
+def squeeze(h, p):
+    """2. The last N closes before today span the narrowest N-bar range of the
+    last M bars, and today closes above that range -> up."""
+    n, m = p["n"], p["m"]
+    if len(h) < m + n + 1:
+        return None
+    w = h.window(m + n + 1)  # oldest .. today
+    today, past = w[-1], w[:-1]
+    last = past[-n:]
+    width = max(last) - min(last)
+    narrowest = min(max(past[k:k + n]) - min(past[k:k + n]) for k in range(len(past) - n + 1))
+    return ("up", p["prob"]) if width <= narrowest and today > max(last) else None
+
+
+def big_drop(h, p):
+    """3. A 1-bar drop bigger than K x the typical 1-bar move -> bounce (up)."""
+    if len(h) < 23:
+        return None
+    w = h.window(22)
+    moves = [abs(w[k] / w[k - 1] - 1) for k in range(1, 21)]  # the 20 moves before today
+    typical = sum(moves) / 20
+    drop = 1 - w[-1] / w[-2]
+    return ("up", p["prob"]) if typical > 0 and drop > p["k"] * typical else None
+
+
+def near_high(h, p):
+    """4. Within X% of the highest close of the last 252 bars -> up."""
+    if len(h) < 252:
+        return None
+    return ("up", p["prob"]) if h[-1] >= max(h.window(252)) * (1 - p["x_pct"] / 100) else None
+
+
+def two_clocks(h, p):
+    """5. Up only if both the long and the short returns are positive."""
+    long_, short = p["long"], p["short"]
+    if len(h) <= long_:
+        return None
+    return ("up", p["prob"]) if h[-1] > h[-1 - long_] and h[-1] > h[-1 - short] else None
+
+
+def calm_momentum(h, p):
+    """6. 20-bar momentum, but no call when the 20-bar volatility (average size
+    of a 1-bar move) is above `ratio` x its median over the last 250 bars."""
+    if len(h) < 271:
+        return None
+    w = h.window(271)
+    a = [abs(w[k] / w[k - 1] - 1) for k in range(1, 271)]  # 270 one-bar moves
+    sums = list(accumulate(a))
+    vols = [(sums[k] - (sums[k - 20] if k >= 20 else 0)) / 20 for k in range(19, 270)]
+    now = vols[-1]
+    med = sorted(vols[-250:])[125]
+    if now > p["ratio"] * med:
+        return None
+    return ("up" if h[-1] > h[-21] else "down", p["prob"])
+
+
+def losing_streak(h, p):
+    """7. After K down closes in a row -> up."""
+    k = p["k"]
+    if len(h) < k + 2:
+        return None
+    w = h.window(k + 1)
+    return ("up", p["prob"]) if all(w[i] < w[i - 1] for i in range(1, k + 1)) else None
+
+
+def cross(h, p):
+    """8. Up only on the bar where the fast average crosses above the slow one."""
+    f, s = p["fast"], p["slow"]
+    if len(h) < s + 1:
+        return None
+    now = _sma(h, f) > _sma(h, s)
+    w = h.window(s + 1)[:-1]
+    before = sum(w[-f:]) / f > sum(w) / s
+    return ("up", p["prob"]) if now and not before else None
+
+
+PROBS = (0.52, 0.56)
+BOTH = ("stock", "crypto")
+
 IDEAS = {
     "momentum": {"fn": momentum, "text": "Up if higher than N bars ago, else down",
                  "grid": [{"lookback": L, "prob": pr} for L in (5, 20) for pr in (0.52, 0.56)]},
@@ -110,8 +210,39 @@ IDEAS = {
               "grid": [{"sma": n, "prob": pr} for n in (20, 50) for pr in (0.52, 0.56)]},
     "drift": {"fn": drift, "text": "Always up (hold in pieces, paying costs each time)",
               "grid": [{"prob": pr} for pr in (0.52, 0.56)]},
+    # Friday's ideas: daily bars in both markets, their own horizons (in bars).
+    "long_trend": {"fn": long_trend, "text": "Up while above its 100/200-bar average, else no call",
+                   "interval": "1d", "markets": BOTH, "horizons": [10, 20],
+                   "grid": [{"sma": n, "prob": pr} for n in (100, 200) for pr in PROBS]},
+    "squeeze": {"fn": squeeze, "text": "Narrowest range in 90 bars, then a close above it -> up",
+                "interval": "1d", "markets": ("crypto",), "horizons": [3, 5],
+                "grid": [{"n": n, "m": 90, "prob": pr} for n in (10, 20) for pr in PROBS]},
+    "big_drop": {"fn": big_drop, "text": "A 1-bar drop over K x the typical move -> bounce",
+                 "interval": "1d", "markets": ("crypto",), "horizons": [3, 5],
+                 "grid": [{"k": k, "prob": pr} for k in (2.5, 3.5) for pr in PROBS]},
+    "near_high": {"fn": near_high, "text": "Within X% of the 1-year high -> up",
+                  "interval": "1d", "markets": ("stock",), "horizons": [20],
+                  "grid": [{"x_pct": x, "prob": pr} for x in (3, 5) for pr in PROBS]},
+    "two_clocks": {"fn": two_clocks, "text": "Up only if long AND short returns are both up",
+                   "interval": "1d", "markets": BOTH, "horizons": [10],
+                   "grid": [{"long": a, "short": b, "prob": pr}
+                            for a, b in ((60, 10), (90, 20)) for pr in PROBS]},
+    "calm_momentum": {"fn": calm_momentum, "text": "20-bar momentum, sitting out wild stretches",
+                      "interval": "1d", "markets": BOTH, "horizons": [10],
+                      "grid": [{"ratio": r, "prob": pr} for r in (1.5, 2.0) for pr in PROBS]},
+    "losing_streak": {"fn": losing_streak, "text": "After K down closes in a row -> up (SPY)",
+                      "interval": "1d", "markets": ("stock",), "horizons": [5], "assets": ["SPY"],
+                      "grid": [{"k": k, "prob": pr} for k in (3, 4) for pr in PROBS]},
+    "cross": {"fn": cross, "text": "Up only on the day the fast average crosses above the slow",
+              "interval": "1d", "markets": BOTH, "horizons": [20],
+              "grid": [{"fast": f, "slow": s, "prob": pr}
+                       for f, s in ((10, 50), (20, 100)) for pr in PROBS]},
 }
 
 
 def call(name, h, params):
-    return IDEAS[name]["fn"](h, params)
+    """A bad price in the data (a zero close) means no call, never a crash."""
+    try:
+        return IDEAS[name]["fn"](h, params)
+    except ZeroDivisionError:
+        return None

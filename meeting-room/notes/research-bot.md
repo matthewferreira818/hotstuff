@@ -107,8 +107,19 @@ the week): **0 passed.** Every one lost money after fees on the unseen windows, 
 - **Stocks:** nothing better than a coin. The best (20-day momentum, 1 day ahead) tied a coin flip (0.2499 vs 0.25) and lost
   about $3.88 per $100 trade: the ~$4 round-trip fee on a $100 order eats everything.
 - What that means: with today's fees, small bets on these simple patterns lose. "No edge found" is the honest answer so far.
-- Next: Friday's 10-idea list (Helm-Private research-bot/ideas-list.md) goes through the replay next. Forward forecasting runs anyway on the
-  three closest variants (`forward.json`, all labelled DEAD) to test whether the crypto direction signal is real.
+- **Second batch, same day: Friday's ideas 1-8** (long trend filter, squeeze breakout, big-drop bounce, near the 1-year high,
+  two clocks agree, calm-only momentum, losing streak, average crossover), daily bars, both markets where they fit: 16 more
+  combinations, **0 passed. Running total: 32 tried, 0 passed.**
+  - Some made money after costs but less than simply holding: e.g. the long trend filter on crypto made $+8,939 over 6,931
+    trades of $100 while holding the same money made $+15,013.
+  - Three made a little more than holding, all on small samples, and all failed other gate checks: crypto squeeze 5 days
+    ($+249 vs $+180, 151 trades), crypto crossover ($+827 vs $+528, 207 trades), stock crossover ($+103 vs $+59, 62 trades).
+    Each failed the typical-trade check, the blow-through check and the most-windows check.
+  - Ideas 9 (turn of the month) and 10 (Bitcoin leads ETH) stay parked: ideas only see one asset's closes, without dates.
+  - Honest note on gate check 4 ("no loss over 2x its expected move"): with hundreds of trades, one bad gap almost always
+    breaks it. It's the stock-council's own rule, kept as written.
+- Forward forecasting runs anyway on the three closest variants (`forward.json`, all labelled DEAD) to test whether the crypto
+  direction signal is real.
 - The first 12 forward forecasts (stocks, 1 day) were logged and pushed 2026-11-10 at 13:35 UTC, before their 14:30 UTC windows
   opened. Until a schedule is approved, forecasts only come in when someone runs `generate --commit` by hand.
 

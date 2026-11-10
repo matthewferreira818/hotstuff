@@ -79,6 +79,26 @@ def settings():
     }
 
 
+def daily_crypto(cfg):
+    """Daily crypto bars (for ideas that ask for "1d"): ~5 years, any day."""
+    return dict(cfg, interval="1d", days=5 * 365, horizons=[1, 5],
+                train_days=365, test_days=91, warmup=120)
+
+
+def config_for(market, cfg, idea):
+    """The market's settings, adjusted to what this idea asks for."""
+    want = idea.get("interval") or cfg["interval"]
+    c = cfg if want == cfg["interval"] else (daily_crypto(cfg) if market == "crypto" else None)
+    if c is None:
+        raise ValueError(f"no {want} bars set up for {market}")
+    c = dict(c)
+    if idea.get("horizons"):
+        c["horizons"] = idea["horizons"]
+    if idea.get("assets"):
+        c["assets"] = [a for a in idea["assets"]]
+    return c
+
+
 # ------------------------------------------------------------------- data
 
 def load_bars(asset, interval, days, now=None, cache=CACHE):
@@ -270,24 +290,50 @@ def walk_forward(name, horizon, data, bench, cfg, fees):
 
 def run_market(market, cfg, rules, idea_names, loader=load_bars):
     fees = scorer.fee_model(rules["markets"][market]["costs"])
-    data = {}
-    print(f"[{market}] loading {len(cfg['assets'])} assets", file=sys.stderr, flush=True)
-    for a in cfg["assets"]:
-        bars = loader(a, cfg["interval"], cfg["days"])
-        if len(bars) > cfg["warmup"] + 50:
-            data[a] = bars
-    bench = data.get(cfg["benchmark"]) or loader(cfg["benchmark"], cfg["interval"], cfg["days"])
-    results = []
+    cache, results = {}, []
+
+    def load(c):
+        key = (c["interval"], c["days"], tuple(c["assets"]))
+        if key not in cache:
+            print(f"[{market}] loading {len(c['assets'])} assets ({c['interval']})",
+                  file=sys.stderr, flush=True)
+            data = {}
+            for a in c["assets"]:
+                bars = loader(a, c["interval"], c["days"])
+                if len(bars) > c["warmup"] + 50:
+                    data[a] = bars
+            bench = data.get(c["benchmark"]) or loader(c["benchmark"], c["interval"], c["days"])
+            cache[key] = (data, bench)
+        return cache[key]
+
     for name in idea_names:
-        for hz in cfg["horizons"]:
+        idea = idea_lib.IDEAS[name]
+        if market not in idea.get("markets", ("stock", "crypto")):
+            continue
+        icfg = config_for(market, cfg, idea)
+        data, bench = load(icfg)
+        for hz in icfg["horizons"]:
             print(f"  replaying {market} {name} h={hz} ...", file=sys.stderr, flush=True)
-            res, chosen, span = walk_forward(name, hz, data, bench, cfg, fees)
-            res.update(market=market, idea=name, horizon=hz, interval=cfg["interval"],
+            res, chosen, span = walk_forward(name, hz, data, bench, icfg, fees)
+            res.update(market=market, idea=name, horizon=hz, interval=icfg["interval"],
                        settings_tried=len(idea_lib.IDEAS[name]["grid"]),
                        assets=len(data), span=span,
                        chosen=chosen[-1] if chosen else None)
             results.append(res)
     return results
+
+
+def latest(log):
+    """The newest result of every (market, idea, horizon, bar size) ever
+    replayed, so the report covers everything tried, not just the last run."""
+    best = {}
+    for r in log:
+        key = (r["market"], r["idea"], r["horizon"], r.get("interval"))
+        if key not in best or r.get("run", "") >= best[key].get("run", ""):
+            best[key] = r
+    order = list(idea_lib.IDEAS)
+    return sorted(best.values(), key=lambda r: (
+        order.index(r["idea"]) if r["idea"] in order else 99, r["market"], r["horizon"]))
 
 
 def render(results, generated):
@@ -300,18 +346,18 @@ def render(results, generated):
         rs = [r for r in results if r["market"] == market]
         if not rs:
             continue
-        unit = "trading days" if rs[0]["interval"] == "1d" else "hours"
-        out += [f"## {market.title()} ({rs[0]['assets']} assets, "
-                f"{rs[0]['span'][0] if rs[0]['span'] else '-'} to "
-                f"{rs[0]['span'][1] if rs[0]['span'] else '-'})", "",
-                f"| Idea | Horizon ({unit}) | Calls | Brier (coin 0.25) | Base rate | Tomorrow=today "
+        out += [f"## {market.title()}", "",
+                "Horizon: h = hours, d = daily bars (trading days for stocks, calendar days for crypto).", "",
+                "| Idea | Horizon | Assets | Data | Calls | Brier (coin 0.25) | Base rate | Tomorrow=today "
                 "| Trades | P&L after costs | Holding same money | Windows won | Verdict |",
-                "|---|---|---|---|---|---|---|---|---|---|---|"]
+                "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
         for r in rs:
             b = r.get("brier") or {}
             f3 = lambda x: "-" if x is None else f"{x:.4f}"
             out.append(
-                f"| {r['idea']} | {r['horizon']} | {r['calls']} | {f3(b.get('forecaster'))} | "
+                f"| {r['idea']} | {r['horizon']}{'h' if r['interval'] == '1h' else 'd'} | {r['assets']} | "
+                f"{(r['span'][0][:7] + '..' + r['span'][1][:7]) if r.get('span') else '-'} | "
+                f"{r['calls']} | {f3(b.get('forecaster'))} | "
                 f"{f3(b.get('base_rate'))} | {f3(b.get('tomorrow_equals_today'))} | "
                 f"{r.get('trades', 0)} | ${r.get('pnl', 0):+,.2f} | "
                 f"${r.get('hold_same_money', 0):+,.2f} | {r['windows_won']}/{r['windows']} | "
@@ -345,7 +391,7 @@ def main(argv=None):
     with open(LOG, "a") as f:
         for r in results:
             f.write(json.dumps(dict(r, run=now), sort_keys=True, default=str) + "\n")
-    text = render(results, now)
+    text = render(latest(ledger.read_lines(LOG)), now)
     with open(REPORT, "w") as f:
         f.write(text)
     print(text)

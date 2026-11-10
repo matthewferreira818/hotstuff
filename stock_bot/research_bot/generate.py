@@ -67,6 +67,15 @@ def crypto_window(now, horizon_hours, lead_min):
     return t, t + dt.timedelta(hours=horizon_hours)
 
 
+def crypto_day_window(now, horizon_days, lead_min):
+    """Daily crypto bars start at 00:00 UTC: the next midnight at least
+    lead_min away, to the midnight horizon_days later."""
+    t = (now + dt.timedelta(minutes=lead_min)).replace(hour=0, minute=0, second=0, microsecond=0)
+    if t < now + dt.timedelta(minutes=lead_min):
+        t += dt.timedelta(days=1)
+    return t, t + dt.timedelta(days=horizon_days)
+
+
 def _next_weekday_open(day):
     while day.weekday() >= 5:
         day += dt.timedelta(days=1)
@@ -86,10 +95,11 @@ def stock_window(now, horizon_days, lead_min):
     return t, _next_weekday_open(end)
 
 
-def finished(bars, interval, now):
+def finished(bars, interval, now, market="stock"):
     """Drop a bar that hasn't finished yet. A daily stock bar is stamped at the
-    9:30 open and finishes at the 4:00 close (6.5 h later; 7 h for margin)."""
-    length = 3600 if interval == "1h" else 7 * 3600
+    9:30 open and finishes at the 4:00 close (6.5 h later; 7 h for margin);
+    a daily crypto bar runs a full 24 hours."""
+    length = 3600 if interval == "1h" else (86400 if market == "crypto" else 7 * 3600)
     return [b for b in bars if b[0] + length <= now.timestamp()] if bars else []
 
 
@@ -108,10 +118,11 @@ def generate(now=None, bars_fn=None, path=ledger.LEDGER, forward=None, rules=Non
     rules = rules or ledger.load_rules()
     lead = rules.get("min_lead_minutes", 15) + 5
     lines = ledger.read_lines(path)
-    log, called = [], {m: 0 for m in ledger.MARKETS}
+    log, called, waiting = [], {m: 0 for m in ledger.MARKETS}, {m: 0 for m in ledger.MARKETS}
     for v in forward["variants"]:
         market, name, hz, params = v["market"], v["idea"], v["horizon"], v["params"]
-        interval = "1h" if market == "crypto" else "1d"
+        interval = v.get("interval") or idea_lib.IDEAS[name].get("interval") or (
+            "1h" if market == "crypto" else "1d")
         text = f"replay idea {name} h={hz} {json.dumps(params, sort_keys=True)}"
         if dry_run:
             iid = "I-dry-run"
@@ -119,14 +130,19 @@ def generate(now=None, bars_fn=None, path=ledger.LEDGER, forward=None, rules=Non
             iid, new = idea_id_for(lines, market, text, path, now)
             if new:
                 lines = ledger.read_lines(path)
-        opens, resolves = (crypto_window(now, hz, lead) if market == "crypto"
-                           else stock_window(now, hz, lead))
+        if market == "stock":
+            opens, resolves = stock_window(now, hz, lead)
+        elif interval == "1d":
+            opens, resolves = crypto_day_window(now, hz, lead)
+        else:
+            opens, resolves = crypto_window(now, hz, lead)
         busy = {l["asset"] for l in lines if l.get("kind") == "forecast"
                 and l.get("idea") == iid and ledger.parse_time(l["resolves_at"]) > now}
         for asset in v["assets"]:
             if asset in busy:
+                waiting[market] += 1
                 continue
-            bars = finished(bars_fn(asset, interval), interval, now)
+            bars = finished(bars_fn(asset, interval), interval, now, market)
             closes = [b[2] for b in bars]
             if len(closes) < 30:
                 log.append(f"[{market}] {asset}: not enough recent bars, skipped")
@@ -142,7 +158,7 @@ def generate(now=None, bars_fn=None, path=ledger.LEDGER, forward=None, rules=Non
                       "expected_downside_pct": round(down, 2), "act": direction == "up",
                       "author": AUTHOR,
                       "reason": f"{name} {json.dumps(params, sort_keys=True)}, horizon {hz} "
-                                f"{'hours' if market == 'crypto' else 'trading days'}: "
+                                f"{'hours' if interval == '1h' else 'days'}: "
                                 f"{idea_lib.IDEAS[name]['text']}"}
             called[market] += 1
             if dry_run:
@@ -154,15 +170,20 @@ def generate(now=None, bars_fn=None, path=ledger.LEDGER, forward=None, rules=Non
             except ledger.LedgerError as e:
                 log.append(f"[{market}] {asset}: refused ({e})")
     for market in {v["market"] for v in forward["variants"]}:
-        if not called[market] and not dry_run:
-            ledger.add_no_trade(market, "generate.py: no idea made a call", AUTHOR, path, now=now)
-            log.append(f"[{market}] no calls: logged a no-trade line")
+        if called[market] or dry_run:
+            continue
+        if waiting[market]:
+            # Not a quiet day: its forecasts are still open. No no-trade line.
+            log.append(f"[{market}] {waiting[market]} forecast(s) still open: nothing new")
+            continue
+        ledger.add_no_trade(market, "generate.py: no idea made a call", AUTHOR, path, now=now)
+        log.append(f"[{market}] no calls: logged a no-trade line")
     return log
 
 
 def live_bars(asset, interval):
     now = ledger.utcnow()
-    days = 40 if interval == "1h" else 400
+    days = 40 if interval == "1h" else 500
     return scorer._yahoo(asset, now - dt.timedelta(days=days), now, interval)
 
 

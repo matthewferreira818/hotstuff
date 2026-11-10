@@ -215,14 +215,15 @@ def _git(repo, *args):
 
 def history(path=LEDGER):
     """[(commit, unix_time, text)] oldest first for every commit that touched
-    the file. Uses the committer time."""
+    the file. Uses the AUTHOR time, which survives a rebase. A squash merge
+    would still erase the history: merge this file with a merge commit."""
     path = os.path.realpath(path)
     repo = os.path.dirname(path)
     top = _git(repo, "rev-parse", "--show-toplevel").stdout.strip()
     if not top:
         return []
     rel = os.path.relpath(path, os.path.realpath(top))
-    log = _git(top, "log", "--reverse", "--format=%H %ct", "--", rel).stdout.split()
+    log = _git(top, "log", "--reverse", "--format=%H %at", "--", rel).stdout.split()
     out = []
     for sha, ts in zip(log[0::2], log[1::2]):
         shown = _git(top, "show", f"{sha}:{rel}")

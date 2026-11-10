@@ -20,6 +20,9 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.dirname(HERE))
 
 import checker  # noqa: E402
+import generate  # noqa: E402
+import ideas as idea_lib  # noqa: E402
+import replay  # noqa: E402
 import executor  # noqa: E402
 import forecasts as ledger  # noqa: E402
 import scorer  # noqa: E402
@@ -190,9 +193,9 @@ class ScorerTests(unittest.TestCase):
         self.assertTrue(mc["down_market_seen"])  # 20% drop >= 10%
         self.assertIsNotNone(mc["hold_pnl"])
         bar = scorer.evidence_bar(mc)
-        self.assertFalse(all(bar.values()))
-        self.assertFalse(bar["client #1 has paid - human check"])
+        self.assertFalse(bar["one idea meets ALL of the above"])
         self.assertIn("NOT MET", scorer.render(card))
+        self.assertIn("client #1 has paid", scorer.render(card))
 
     def test_luck_p_value(self):
         self.assertAlmostEqual(scorer.binomial_p_value(6, 10), 386 / 1024)
@@ -372,6 +375,149 @@ class ExecutorTests(unittest.TestCase):
         self.assertIn("PAUSE", executor.run(manual_pause=True, rules_ok=True, **common)[0])
         self.assertIn("rules.lock", executor.run(manual_pause=False, rules_ok=False,
                                                  **common)[0])
+
+
+def zigzag_bars(n, start_ts=1_700_000_000, step=3600):
+    """Price alternates 100, 110, 100, 110 ... and each bar opens at the
+    previous close, so 'buy after a drop' wins every time."""
+    closes = [100.0 if i % 2 == 0 else 110.0 for i in range(n)]
+    return [(start_ts + i * step, closes[i - 1] if i else closes[0], closes[i])
+            for i in range(n)]
+
+
+def bounce(h, p):
+    return ("up", p["prob"]) if h[-1] < h[-2] else ("down", p["prob"])
+
+
+class ReplayTests(unittest.TestCase):
+    CFG = {"train_days": 10, "test_days": 5, "warmup": 50}
+
+    def setUp(self):
+        idea_lib.IDEAS["_bounce"] = {"fn": bounce, "text": "test", "grid": [{"prob": 0.56}]}
+        self.fees = scorer.fee_model(RULES["markets"]["crypto"]["costs"])
+        self.data = {"X-USD": zigzag_bars(24 * 60)}
+        self.flat = [(ts, 100.0, 100.0) for ts, _, _ in self.data["X-USD"]]
+
+    def tearDown(self):
+        del idea_lib.IDEAS["_bounce"]
+
+    def test_history_cannot_look_ahead(self):
+        h = idea_lib.History([1, 2, 3, 4, 5], 2)
+        self.assertEqual((h[-1], h[0], len(h), h.window(2)), (3, 1, 3, [2, 3]))
+        with self.assertRaises(idea_lib.LookAheadError):
+            h[3]
+        with self.assertRaises(TypeError):
+            h[0:5]
+
+    def test_entry_is_next_open_and_idea_sees_only_past(self):
+        seen = []
+
+        def spy(h, p):
+            seen.append(len(h))
+            return ("up", 0.6)
+        idea_lib.IDEAS["_spy"] = {"fn": spy, "text": "t", "grid": [{}]}
+        try:
+            bars = zigzag_bars(80)
+            rows = replay.make_rows("_spy", {}, 1, {"X-USD": bars}, bars, 50)
+        finally:
+            del idea_lib.IDEAS["_spy"]
+        self.assertEqual(seen[0], 51)  # decision at bar 50 sees bars 0..50
+        first = rows[0]
+        self.assertEqual(first[0], bars[51][0])          # opens at the next bar
+        self.assertEqual((first[4], first[5]), (bars[51][1], bars[52][1]))
+
+    def test_windows_do_not_overlap(self):
+        w = replay.windows(0, 86400 * 40, 10, 5)
+        self.assertEqual(len(w), 6)
+        self.assertTrue(all(w[i][2] <= w[i + 1][2] - 86400 * 5 + 1 for i in range(len(w) - 1)))
+        self.assertTrue(all(b - a == 86400 * 10 and c - b == 86400 * 5 for a, b, c in w))
+
+    def test_training_never_sees_test_outcomes(self):
+        rows = [(0, 50, 0.6, True, 1, 2, None, None, 0.0),
+                (40, 120, 0.6, True, 1, 2, None, None, 0.0)]
+        self.assertEqual(len(replay.in_range(rows, 0, 100)), 1)
+
+    def test_real_edge_passes(self):
+        res, chosen, _ = replay.walk_forward("_bounce", 1, self.data, self.flat,
+                                             self.CFG, self.fees)
+        self.assertEqual(res["verdict"], "PASS", res.get("why"))
+        self.assertLess(res["brier"]["forecaster"], res["brier"]["coin_flip"])
+        self.assertGreater(res["pnl"], 0)
+
+    def test_no_edge_dies(self):
+        res, _, _ = replay.walk_forward("drift", 1, self.data, self.flat, self.CFG, self.fees)
+        self.assertEqual(res["verdict"], "DEAD")
+        self.assertIn("Brier beats all three baselines", res["why"])
+
+    def test_fees_can_kill_a_right_idea(self):
+        tiny = {"X-USD": [(ts, 100 + (o - 100) / 1000, 100 + (c - 100) / 1000)
+                          for ts, o, c in self.data["X-USD"]]}  # 0.01% swings
+        res, _, _ = replay.walk_forward("_bounce", 1, tiny, self.flat, self.CFG, self.fees)
+        self.assertEqual(res["verdict"], "DEAD")
+        self.assertLess(res["pnl"], 0)
+
+    def test_run_market_and_report(self):
+        cfg = dict(self.CFG, interval="1h", days=60, horizons=[1], assets=["X-USD"],
+                   benchmark="BTC-USD")
+        loader = lambda a, i, d: self.data["X-USD"] if a == "X-USD" else self.flat
+        res = replay.run_market("crypto", cfg, RULES, ["_bounce", "drift"], loader)
+        self.assertEqual([r["verdict"] for r in res], ["PASS", "DEAD"])
+        text = replay.render(res, "now")
+        self.assertIn("2 idea/horizon combinations tried, 1 passed", text)
+
+
+class GenerateTests(unittest.TestCase):
+    def setUp(self):
+        self.d = tempfile.mkdtemp()
+        self.path = os.path.join(self.d, "forecasts.jsonl")
+        self.fwd = {"variants": [{"market": "crypto", "idea": "momentum", "horizon": 4,
+                                  "params": {"lookback": 5, "prob": 0.52},
+                                  "assets": ["BTC-USD", "ETH-USD"]}]}
+        self.now = dt.datetime(2026, 11, 10, 13, 50, tzinfo=UTC)
+        start = int(self.now.timestamp()) - 200 * 3600
+        self.bars = [(start + i * 3600, 100 + i, 100 + i) for i in range(201)]
+
+    def gen(self, now=None):
+        return generate.generate(now=now or self.now, bars_fn=lambda a, i: self.bars,
+                                 path=self.path, forward=self.fwd, rules=RULES)
+
+    def test_windows(self):
+        o, r = generate.crypto_window(self.now, 4, 20)
+        self.assertEqual((o, r), (t(3), t(7)))  # 13:50 + 20 min -> 15:00
+        o, r = generate.stock_window(self.now, 1, 20)  # Tue 13:50 UTC = 8:50 NY
+        self.assertEqual((o, r), (dt.datetime(2026, 11, 10, 14, 30, tzinfo=UTC),
+                                  dt.datetime(2026, 11, 11, 14, 30, tzinfo=UTC)))
+        fri = dt.datetime(2026, 11, 13, 22, 0, tzinfo=UTC)
+        o, r = generate.stock_window(fri, 1, 20)
+        self.assertEqual((o.weekday(), r.weekday()), (0, 1))  # Mon open -> Tue open
+
+    def test_in_progress_bar_dropped(self):
+        bars = [(int(self.now.timestamp()) - 3600, 1, 1), (int(self.now.timestamp()) - 600, 2, 2)]
+        self.assertEqual(len(generate.finished(bars, "1h", self.now)), 1)
+
+    def test_writes_valid_forecasts_once(self):
+        log = self.gen()
+        lines = ledger.read_lines(self.path)
+        fc = [l for l in lines if l["kind"] == "forecast"]
+        self.assertEqual(len(fc), 2, log)
+        self.assertEqual(sum(l["kind"] == "idea" for l in lines), 1)
+        self.assertTrue(all(f["direction"] == "up" and f["act"] for f in fc))
+        self.gen(self.now + dt.timedelta(minutes=30))  # still open: no pile-up
+        self.assertEqual(len([l for l in ledger.read_lines(self.path)
+                              if l["kind"] == "forecast"]), 2)
+
+    def test_no_calls_logs_no_trade(self):
+        self.bars = self.bars[:20]  # too short for any call
+        self.gen()
+        self.assertEqual(ledger.read_lines(self.path)[-1]["kind"], "no_trade")
+
+    def test_replay_pass_lookup(self):
+        log = [{"market": "crypto", "idea": "momentum", "horizon": 4, "verdict": "DEAD", "run": "1"},
+               {"market": "crypto", "idea": "momentum", "horizon": 4, "verdict": "PASS", "run": "2"}]
+        text = 'replay idea momentum h=4 {"lookback": 5, "prob": 0.52}'
+        self.assertTrue(scorer.replay_passed("crypto", text, log))
+        self.assertFalse(scorer.replay_passed("stock", text, log))
+        self.assertFalse(scorer.replay_passed("crypto", text, log[:1]))
 
 
 class NoRealMoneyPath(unittest.TestCase):

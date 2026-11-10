@@ -1,3 +1,4 @@
 .env
 __pycache__/
 *.pyc
+stock_bot/research_bot/.cache/

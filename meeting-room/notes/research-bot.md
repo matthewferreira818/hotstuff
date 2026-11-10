@@ -11,6 +11,9 @@ It exists to answer one question honestly: **does anything we try have an edge a
 today" are normal, good answers. No deadline, no profit target.
 
 Money council 2026-11-10 (12 seats): GO on this $0 research + paper version, real money NO-GO. Matthew: "Yes, start it."
+**Fast track (Matthew's GO via NB2, same day, "streamline this"):** test ideas on years of past prices FIRST so weak ones die in
+days; short horizons (hours to a day) on several assets so 100+ forward forecasts can be graded in 1-2 weeks; crypto 7 days a week.
+Priority: history replay → forecast logger + scorer → short-horizon paper runs. The council re-votes at about 3 weeks (~Tue Dec 1).
 
 ## What phase 1 does NOT have
 
@@ -31,7 +34,10 @@ Money council 2026-11-10 (12 seats): GO on this $0 research + paper version, rea
 | `rules.json` + `rules.lock` | The live caps, and their fingerprint. If they don't match, every order is refused. |
 | `checker.py` | Plain-code yes/no on every paper order. |
 | `executor.py` | Turns committed forecasts into practice trades through `paper_broker.py`, only if the checker says yes. |
-| `scorer.py` | Plain-code grading; writes `scorecard.md` + `scorecard.json`. |
+| `scorer.py` | Plain-code grading; writes `scorecard.md` + `scorecard.json`, per market and per idea. |
+| `ideas.py` | The plain-code ideas (momentum, reversal, trend, drift to start). The SAME functions run in the replay and live. |
+| `replay.py` | History replay + walk-forward over years of past prices; writes `replay-report.md`, appends `replay-log.jsonl`. |
+| `generate.py` | The live forecaster: runs the chosen idea variants (`forward.json`) on the latest finished bars and logs forecasts. |
 | `orders.jsonl`, `equity.jsonl`, `AUTO_PAUSE` | Created by the executor: order log (idempotency), account value snapshots, auto-pause flag. |
 | Practice accounts | `stock_bot/paper/account-research-stocks.json` and `account-research-crypto.json` ($1,000 practice each). |
 
@@ -87,24 +93,51 @@ trade could really have got; for stocks outside market hours that's the next ope
 anyone who can push could also re-lock, so the real lock is review (NB2 gate before merge). The phase 1 build created the
 first `rules.lock` (v1 above) as part of the branch NB2 is gating.
 
-## The evidence bar (before anyone may even PROPOSE a tiny live pilot)
+## History replay first (replay.py)
 
-The scorecard shows each line per market and says NOT MET until all are true:
+Each idea × setting × horizon walks through past prices bar by bar. At each bar the idea sees ONLY prices up to that bar
+(`ideas.History` raises an error if code asks for a later one); a call enters at the NEXT bar's open and exits at the open
+`horizon` bars later. Walk-forward: pick the setting with the best Brier on a training window, score it on the next window it never
+saw, slide, repeat; a training window never uses an outcome that lands in its test window. Only unseen windows count.
+- **Crypto:** hourly bars, every day of the week, ~2 years (Yahoo's free hourly limit), horizons 4 and 24 hours, train 60 days /
+  test 30. Assets: the Moonshot crypto list (19 coins).
+- **Stocks:** daily bars, ~5 years, horizons 1 and 5 trading days, train 365 days / test 91. Assets: SPY, QQQ and the dip robot's list.
+- **Verdict PASS** = Brier beats all three baselines on the unseen windows AND the history part of the six-condition gate:
+  (1) 20+ trades, (2) beats holding the benchmark with the same money after costs, (3) the median trade beats holding,
+  (4) no trade lost more than 2× its expected move (the idea's typical move over that horizon, measured from past bars only),
+  (5) wins most unseen windows. Condition 6 (practice desk ahead of SPY) can only be checked forward. Everything else is DEAD.
+- Every idea/horizon tried is appended to `replay-log.jsonl` and counted in the scorecard's "ideas tried".
+- Honest limits: today's stock list (survivorship bias flatters every idea), $100 per trade with no position cap in the replay,
+  hourly history only ~2 years, Yahoo's free data.
 
-1. 100+ graded forecasts, over 60+ days of forward forecasting, including a down market (benchmark fell 5%+ for stocks /
-   10%+ for crypto from a high during the period).
-2. Brier beats **all three** baselines, and the hit rate is unlikely to be luck (p < 0.05).
-3. Paper P&L after costs beats cash **and** buying the benchmark; the median trade wins; still ahead without the best trade.
-4. The six-condition gate in `.claude/skills/stock-council/SKILL.md` (human check).
-5. Client #1 has paid (human check).
-6. The Service Canada / EI answer about trading is in (human check). A tax check (Bear) before any real money too.
+## Forward forecasts (generate.py)
 
-Then, and only then, Matthew picks a tiny cap and flips any switch himself. Meeting the bar is a reason to discuss, never an
-automatic go. Practice results that look great after a lucky week are not proof: say so out loud when it happens.
+`forward.json` lists which idea variants forecast live, on which assets. Each run: finished bars only; one forecast per variant per
+asset unless that variant already has an open forecast on it; crypto windows open at the next whole hour (≥20 minutes away),
+stocks at the next New York 9:30 open and close at the open N trading days later. `--commit` commits and pushes straight away.
+A variant that is DEAD in the replay may still forecast forward while the data comes in, but it can't pass the bar (line (a)).
+**Merging:** merge the branch with a MERGE COMMIT, never squash: a squash erases the git history that proves each forecast came
+first. The proof uses git's author time (it survives a rebase). One writer at a time: forecasts are only added on one branch.
+
+## The evidence bar (fast track, set 2026-11-10; the council re-votes ~Dec 1)
+
+Judged **per idea variant**, stocks and crypto **separately**. To pass, one idea must meet ALL of:
+
+- **(a)** its walk-forward on past prices passes the six-condition gate (replay verdict PASS above), and
+- **(b)** 100+ graded FORWARD forecasts that beat all three baselines (Brier), with paper P&L after costs beating cash AND buying
+  the benchmark.
+
+Shown for information, not gates: days covered, whether a down market happened, the chance a coin does as well.
+Real money is not part of phase 1 or of this bar. Before any real money, later and separately: six-condition #6 (the practice desk
+not behind SPY), client #1 paid, the Service Canada / EI answer, a Canadian tax check, and Matthew picking a tiny cap and flipping
+any switch himself. Practice results that look great after a lucky week are not proof: say so out loud when it happens.
 
 ## How to run it (from the repo root)
 
 ```
+python3 -m stock_bot.research_bot.replay                 # history first: which ideas die?
+python3 -m stock_bot.research_bot.generate --dry-run     # what the live forecaster would log now
+python3 -m stock_bot.research_bot.generate --commit      # log + commit + push forward forecasts
 python3 -m stock_bot.research_bot.forecasts idea --market crypto --text "..." --author Grok
 python3 -m stock_bot.research_bot.forecasts add --idea I-... --asset BTC-USD --direction up \
     --probability 0.55 --opens 2026-11-12T14:00:00Z --resolves 2026-11-13T14:00:00Z \
@@ -127,11 +160,13 @@ python3 -m unittest stock_bot/research_bot/test_research_bot.py -v
 
 ## For Grok (taking over Nov 11)
 
-- Phase 1 is plumbing: the ledger is empty on purpose. The first job is a written list of ideas to test (log each with
-  `idea`), then a small, regular rhythm of forecasts (say a few a day across both markets), each committed before its window.
+- New ideas go in `ideas.py` (function + plain description + small grid), then `replay.py`. Only replay PASSes can meet the bar.
+  Keep grids small: every setting tried is another chance to fool ourselves.
+- `generate.py --commit` needs a regular rhythm (crypto several times a day) to reach 100 forward forecasts in 1-2 weeks. A
+  schedule needs NB2's OK; it must run on the Mac (never GitHub Actions) and use no Claude usage (it's plain Python).
 - Don't recycle the old dip rules as "new ideas": they won 1 of 9 unseen walk-forward windows (`stock_bot/research/walk-forward.md`),
   and hot hands lost ~$757 of $1,000 in 60 days after fees (EXP-0004).
-- Next pieces worth building (each needs NB2's OK): a once-a-day run (not all day; it must not eat Matthew's plan), the Helm
+- Next pieces worth building (each needs NB2's OK): the generate/executor/scorer schedule on the Mac, the Helm
   screen (phase 2, Friday: PAUSE/STOP only), a permutation test in the scorer, and a correlated-group cap (one position per
   group, Goalie's ask).
 - Not tested in phase 1: a real multi-day forward run, the scorer on real resolved forecasts, Yahoo outages mid-run (the code

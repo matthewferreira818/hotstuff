@@ -26,6 +26,7 @@ Nothing schedules this yet (NB2's OK needed before any schedule).
 
 import datetime as dt
 import json
+import math
 import os
 import sys
 import urllib.parse
@@ -273,17 +274,20 @@ def _run(now, quote_fn, dry_run, lines, first_seen, rules, rules_ok, manual_paus
             elif f and now >= ledger.parse_time(f["resolves_at"]):
                 planned.append({"id": f"{fid}:sell", "side": "sell", "asset": asset,
                                 "market": market, "forecast_id": fid})
-        size = round(value * rules["max_position_pct"] / 100, 2)
         ranges = {}
         for f in sorted(due_buys, key=lambda f: f["opens_at"]):
             rng = ranges.setdefault(f["asset"], range_fn(f["asset"]))
             stop = round(rules["stop_daily_ranges"] * rng, 2) if rng else None
             planned.append({"id": f"{f['id']}:buy", "side": "buy", "asset": f["asset"],
-                            "market": market, "dollars": size, "forecast_id": f["id"],
+                            "market": market, "forecast_id": f["id"],
                             "stop_pct": stop})
 
         for o in planned:
             f = by_id.get(o["forecast_id"])
+            if o["side"] == "buy":
+                # Size each buy from the account as it is NOW: an earlier fill this
+                # run shrank it by fee + slippage. Round down so it never tops the cap.
+                o["dollars"] = math.floor(broker.value() * rules["max_position_pct"]) / 100
             seen_at = first_seen.get(o["forecast_id"])
             ctx = {"rules": rules, "rules_ok": rules_ok, "manual_pause": manual_pause,
                    "auto_pause": auto_pause, "now": now, "forecast": f,

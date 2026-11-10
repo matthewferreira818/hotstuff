@@ -53,6 +53,9 @@ enum ChartRange: String, CaseIterable, Identifiable {
  var id: String { rawValue }
  // How far down from the recent high counts as a dip worth shading, per range.
  var dipPct: Double { switch self { case .day: return 1.5; case .week: return 3; case .month: return 5; case .year, .all: return 10 } }
+ // "Recent high" = the highest point in this look-back, so a long slide isn't one endless dip.
+ var dipWindow: TimeInterval { switch self { case .day: return 2 * 3600; case .week: return 86400; case .month: return 5 * 86400; case .year, .all: return 30 * 86400 } }
+ var windowWords: String { switch self { case .day: return "2 hours"; case .week: return "day"; case .month: return "5 days"; case .year, .all: return "30 days" } }
  var ttl: TimeInterval { switch self { case .day: return 300; case .week: return 900; case .month: return 1800; case .year, .all: return 6 * 3600 } }
 }
 
@@ -218,11 +221,15 @@ enum StockHistory {
  }
 
  // Stretches where the line sat more than `pct`% below its running high inside the window ("dips").
- static func dips(_ series: [PricePoint],pct: Double) -> [(from: Date,to: Date,depth: Double)] {
+ static func dips(_ series: [PricePoint],pct: Double,window: TimeInterval? = nil) -> [(from: Date,to: Date,depth: Double)] {
   var out: [(Date,Date,Double)] = []
   var peak = -Double.infinity, inDip: Date? = nil, deepest = 0.0
+  var lo = 0
   for (i,p) in series.enumerated() {
-   if p.v >= peak { peak = p.v }
+   if let w = window {   // highest point within the look-back
+    while lo < i && series[lo].t < p.t.addingTimeInterval(-w) { lo += 1 }
+    peak = series[lo...i].map(\.v).max() ?? p.v
+   } else if p.v >= peak { peak = p.v }
    let down = peak > 0 ? (peak - p.v) / peak * 100 : 0
    if down >= pct {
     if inDip == nil { inDip = series[max(i - 1,0)].t; deepest = 0 }
@@ -243,6 +250,7 @@ enum StockHistory {
  }
  static func signed(_ v: Double?) -> String { guard let v else { return "-" }; return (v > 0.004 ? "+" : v < -0.004 ? "−" : "") + money(abs(v)) }
  static func pct(_ v: Double?) -> String { guard let v else { return "-" }; return (v > 0.004 ? "+" : v < -0.004 ? "−" : "") + String(format:"%.2f%%",abs(v)) }
+ static func clean(_ v: Double) -> String { v == v.rounded() ? String(Int(v)) : String(format:"%.1f",v) }
  static func price(_ v: Double) -> String {
   if v >= 1000 { return money(v) }
   if v >= 1 { return String(format:"$%.2f",v) }

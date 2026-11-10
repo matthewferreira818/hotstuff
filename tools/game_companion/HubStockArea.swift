@@ -26,15 +26,22 @@ struct ChartSeries {
  @Published var loading: Set<String> = []
  private var accountAt: [Int:Date] = [:]
 
+ private var accountTasks: [Int:Task<Void,Never>] = [:]
+ // One load at a time per robot; a second caller waits for the same load (the cards and the chart ask at once).
  func account(_ r: StockRobotInfo) async {
-  if let at = accountAt[r.id], Date().timeIntervalSince(at) < 600 { return }
-  accountAt[r.id] = Date()
-  async let a = Self.get(StockHistory.raw + "paper/" + r.account)
-  async let w = Self.get(StockHistory.raw + r.watchlist)
-  let (ad,wd) = await (a,w)
-  if let ad, let acct = StockHistory.parseAccount(ad) { accounts[r.id] = acct; accountProblem[r.id] = nil }
-  else if accounts[r.id] == nil { accountProblem[r.id] = "Couldn't load this robot's order history from GitHub." ; accountAt[r.id] = nil }
-  bench[r.id] = StockHistory.benchSymbol(watchlist:wd) ?? (r.crypto ? "BTC-USD" : "SPY")
+  if let t = accountTasks[r.id] { await t.value; return }
+  if let at = accountAt[r.id], Date().timeIntervalSince(at) < 600, accounts[r.id] != nil { return }
+  let task = Task { @MainActor in
+   async let a = Self.get(StockHistory.raw + "paper/" + r.account)
+   async let w = Self.get(StockHistory.raw + r.watchlist)
+   let (ad,wd) = await (a,w)
+   if let ad, let acct = StockHistory.parseAccount(ad) { self.accounts[r.id] = acct; self.accountProblem[r.id] = nil; self.accountAt[r.id] = Date() }
+   else if self.accounts[r.id] == nil { self.accountProblem[r.id] = "Couldn't load this robot's order history from GitHub. Refresh tries again." }
+   self.bench[r.id] = StockHistory.benchSymbol(watchlist:wd) ?? (r.crypto ? "BTC-USD" : "SPY")
+  }
+  accountTasks[r.id] = task
+  await task.value
+  accountTasks[r.id] = nil
  }
 
  static func get(_ url: String) async -> Data? {
@@ -78,9 +85,9 @@ struct ChartSeries {
   c.lines = [(rebuilt.value,HubTheme.green,false,"Robot's account"),(rebuilt.hold,HubTheme.subtext,true,"Just holding \(benchSym == "BTC-USD" ? "Bitcoin" : benchSym)")]
   let from = rebuilt.value.first!.t
   c.marks = acct.orders.filter { $0.t >= from }
-  c.dips = StockHistory.dips(rebuilt.value,pct:range.dipPct)
+  c.dips = StockHistory.dips(rebuilt.value,pct:range.dipPct,window:range.dipWindow)
   c.offline = offline; c.fetched = b.fetched
-  var note = "Rebuilt from the robot's recorded orders and public prices (no value history is recorded yet). Shaded: more than \(StockHistory.pct(range.dipPct).dropFirst()) below its recent high."
+  var note = "Rebuilt from the robot's recorded orders and public prices (no value history is recorded yet). Shaded: more than \(StockHistory.clean(range.dipPct))% below its high of the past \(range.windowWords)."
   if !rebuilt.unpriced.isEmpty { note += " No public price for \(rebuilt.unpriced.joined(separator:", ")): valued at its last trade." }
   c.note = note
   charts[key] = c
@@ -99,12 +106,12 @@ struct ChartSeries {
   var c = ChartSeries()
   c.lines = [(res.points,HubTheme.teal,false,h.symbol)]
   c.marks = (accounts[r.id]?.orders ?? []).filter { $0.symbol == h.symbol && $0.t >= from }
-  c.dips = StockHistory.dips(res.points,pct:range.dipPct)
+  c.dips = StockHistory.dips(res.points,pct:range.dipPct,window:range.dipWindow)
   if let e = h.entry { c.levels.append((e,"Bought at \(StockHistory.price(e))",HubTheme.subtext)) }
   if let s = h.stop { c.levels.append((s,"Stop \(StockHistory.price(s))",HubTheme.crimson)) }
   if let p = h.peak { c.levels.append((p,"Peak \(StockHistory.price(p))",HubTheme.amber)) }
   c.offline = res.offline; c.fetched = res.fetched
-  c.note = "Public prices. Shaded: more than \(StockHistory.pct(range.dipPct).dropFirst()) below its recent high."
+  c.note = "Public prices. Shaded: more than \(StockHistory.clean(range.dipPct))% below its high of the past \(range.windowWords)."
   charts[key] = c
  }
 }
@@ -146,6 +153,12 @@ struct StockArea: View {
   }
   .background(HubTheme.background)
   .onChange(of:stocks.robot) { _,_ in page.tab = "Overview"; page.allOrders = false; page.allNotes = false }
+  .task {   // test copies only: open on a given sub-tab / range for shots (after the robot switch settles)
+   guard SwitchboardTestHooks.active else { return }
+   try? await Task.sleep(nanoseconds:1_500_000_000)
+   if let t = UserDefaults.standard.string(forKey:"stocks.testTab") { page.tab = t }
+   if let r = UserDefaults.standard.string(forKey:"stocks.testRange"), let rg = ChartRange(rawValue:r) { page.range = rg }
+  }
  }
 
  // MARK: fleet column
@@ -175,7 +188,7 @@ struct StockArea: View {
      .frame(width:34,height:34).background(HubTheme.control,in:RoundedRectangle(cornerRadius:9))
      .overlay(RoundedRectangle(cornerRadius:9).stroke(HubTheme.line,lineWidth:1))
     VStack(alignment:.leading,spacing:2) {
-     Text(r.short).font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+     Text(r.short).font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text).lineLimit(1).minimumScaleFactor(0.8)
      HStack(spacing:5) {
       FreshDot(level:snap == nil ? 2 : StockHistory.freshness(snap?.updated))
       Text(snap.map { StockHistory.age($0.updated) } ?? (stocks.loading ? "loading…" : "no snapshot"))
@@ -285,10 +298,10 @@ struct StockArea: View {
   let acct = model.accounts[r.id]
   let base = acct.map { $0.startCash + $0.deposits.reduce(0) { $0 + $1.usd } } ?? (s.startCash > 0 ? s.startCash : 1000)
   let net = s.value - base
-  let cols = compact ? [GridItem(.flexible()),GridItem(.flexible())] : Array(repeating:GridItem(.flexible(),spacing:12),count:4)
+  let cols = compact ? [GridItem(.flexible(),spacing:12),GridItem(.flexible(),spacing:12)] : [GridItem(.adaptive(minimum:190),spacing:12)]
   return LazyVGrid(columns:cols,spacing:12) {
    stat("Portfolio",StockHistory.money(s.value),"briefcase",HubTheme.text,"practice value now")
-   stat("Net return","\(StockHistory.signed(net)) / \(StockHistory.pct(base > 0 ? net / base * 100 : nil))",net >= 0 ? "arrow.up.right" : "arrow.down.right",net >= 0 ? HubTheme.green : HubTheme.crimson,"vs \(StockHistory.money(base)) put in")
+   stat("Net return",StockHistory.signed(net),net >= 0 ? "arrow.up.right" : "arrow.down.right",net >= 0 ? HubTheme.green : HubTheme.crimson,"\(StockHistory.pct(base > 0 ? net / base * 100 : nil)) vs \(StockHistory.money(base)) put in")
    stat("Ahead of holding",StockHistory.signed(s.vsHolding),"chart.line.uptrend.xyaxis",s.vsHolding >= 0 ? HubTheme.green : HubTheme.crimson,"holding \(s.benchmark.isEmpty ? "SPY" : s.benchmark): \(StockHistory.money(s.spyValue))")
    stat("Cash",StockHistory.money(s.cash),"banknote",HubTheme.text,"not invested")
   }
@@ -605,28 +618,28 @@ struct StockLineChart: View {
    let lo0 = vals.min() ?? 0, hi0 = vals.max() ?? 1
    let pad = max((hi0 - lo0) * 0.08,abs(hi0) * 0.002)
    let lo = lo0 - pad, hi = hi0 + pad
-   let left: CGFloat = 64, w = max(geo.size.width - left - 8,10), h = max(geo.size.height - 20,10)
+   let left: CGFloat = 64, top: CGFloat = 8, w = max(geo.size.width - left - 8,10), h = max(geo.size.height - 20 - top,10)
    let span = max(t1.timeIntervalSince(t0),1)
    let X: (Date) -> CGFloat = { left + CGFloat($0.timeIntervalSince(t0) / span) * w }
-   let Y: (Double) -> CGFloat = { CGFloat((hi - $0) / max(hi - lo,1e-12)) * h }
+   let Y: (Double) -> CGFloat = { top + CGFloat((hi - $0) / max(hi - lo,1e-12)) * h }
    ZStack(alignment:.topLeading) {
     // grid + axis labels
     ForEach(0..<4) { i in
      let v = hi - (hi - lo) * Double(i) / 3
      Path { p in p.move(to:CGPoint(x:left,y:Y(v))); p.addLine(to:CGPoint(x:left + w,y:Y(v))) }.stroke(HubTheme.line.opacity(0.6),lineWidth:0.5)
      Text(StockHistory.price(v)).font(.system(size:9.5,design:.rounded)).monospacedDigit().foregroundStyle(HubTheme.subtext)
-      .frame(width:left - 6,alignment:.trailing).position(x:(left - 6) / 2,y:Y(v))
+      .lineLimit(1).minimumScaleFactor(0.6).frame(width:left - 6,alignment:.trailing).position(x:(left - 6) / 2,y:Y(v))
     }
     // dips
     ForEach(Array(series.dips.enumerated()),id:\.offset) { _,d in
-     Rectangle().fill(HubTheme.crimson.opacity(0.13)).frame(width:max(X(d.to) - X(d.from),2),height:h).offset(x:X(d.from))
+     Rectangle().fill(HubTheme.crimson.opacity(0.13)).frame(width:max(X(d.to) - X(d.from),2),height:h).offset(x:X(d.from),y:top)
     }
     // reference levels
-    ForEach(Array(series.levels.enumerated()),id:\.offset) { _,l in
+    ForEach(Array(series.levels.enumerated()),id:\.offset) { i,l in
      Path { p in p.move(to:CGPoint(x:left,y:Y(l.value))); p.addLine(to:CGPoint(x:left + w,y:Y(l.value))) }
       .stroke(l.color.opacity(0.8),style:StrokeStyle(lineWidth:1,dash:[4,4]))
      Text(l.label).font(.system(size:9.5,weight:.medium,design:.rounded)).foregroundStyle(l.color).padding(.horizontal,4)
-      .background(HubTheme.card.opacity(0.85)).position(x:left + w - 50,y:Y(l.value) - 8)
+      .background(HubTheme.card.opacity(0.85)).position(x:left + w - 60 - CGFloat(i) * min(150,w / 4),y:Y(l.value) - 8)
     }
     // lines
     ForEach(Array(series.lines.enumerated()).reversed(),id:\.offset) { _,l in
@@ -646,12 +659,12 @@ struct StockLineChart: View {
      }
     }
     // x labels
-    Text(t0.formatted(date:.abbreviated,time:span < 3 * 86400 ? .shortened : .omitted)).font(.system(size:9.5,design:.rounded)).foregroundStyle(HubTheme.subtext).position(x:left + 40,y:h + 12)
-    Text(t1.formatted(date:.abbreviated,time:span < 3 * 86400 ? .shortened : .omitted)).font(.system(size:9.5,design:.rounded)).foregroundStyle(HubTheme.subtext).position(x:left + w - 40,y:h + 12)
+    Text(t0.formatted(date:.abbreviated,time:span < 3 * 86400 ? .shortened : .omitted)).font(.system(size:9.5,design:.rounded)).foregroundStyle(HubTheme.subtext).position(x:left + 40,y:top + h + 12)
+    Text(t1.formatted(date:.abbreviated,time:span < 3 * 86400 ? .shortened : .omitted)).font(.system(size:9.5,design:.rounded)).foregroundStyle(HubTheme.subtext).position(x:left + w - 40,y:top + h + 12)
     // hover readout
     if let hx = hover.x, hx >= left, hx <= left + w {
      let t = t0.addingTimeInterval(Double((hx - left) / w) * span)
-     Path { p in p.move(to:CGPoint(x:hx,y:0)); p.addLine(to:CGPoint(x:hx,y:h)) }.stroke(HubTheme.subtext.opacity(0.5),lineWidth:0.7)
+     Path { p in p.move(to:CGPoint(x:hx,y:top)); p.addLine(to:CGPoint(x:hx,y:top + h)) }.stroke(HubTheme.subtext.opacity(0.5),lineWidth:0.7)
      VStack(alignment:.leading,spacing:2) {
       Text(t.formatted(date:.abbreviated,time:.shortened)).foregroundStyle(HubTheme.subtext)
       ForEach(Array(series.lines.enumerated()),id:\.offset) { _,l in

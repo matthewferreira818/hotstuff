@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 extension CompanionInterfaceView {
  // Revamp 2026-11-10 (Roxy's "Robot fleet" concept, Matthew's pick): fleet column, robot page, research bot tab. See HubStockArea.swift.
  var hubStocks: some View {
-  StockArea(stocks:stocks,compact:hub.compact,showSideCards:!(deckShowsDock && !hub.simple))
+  StockArea(stocks:stocks,compact:hub.compact || hub.width < (deckShowsDock && !hub.simple ? 1180 : 920),showSideCards:!(deckShowsDock && !hub.simple))
    .onAppear { if SwitchboardTestHooks.active && UserDefaults.standard.bool(forKey:"stocks.testResearch") { stocks.robot = StockArea.researchTab }
     else if SwitchboardTestHooks.active, UserDefaults.standard.object(forKey:"stocks.testRobot") != nil { stocks.robot = UserDefaults.standard.integer(forKey:"stocks.testRobot") } }
  }

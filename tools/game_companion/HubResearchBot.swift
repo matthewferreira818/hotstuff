@@ -129,7 +129,7 @@ struct ResearchBotPanel: View {
   card {
    VStack(alignment:.leading,spacing:6) {
     Label("How to pause",systemImage:"pause.circle").font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
-    Text("1. Ask any crew chat: \"pause the research bot\".\n2. It adds a file named PAUSE in stock_bot/research_bot/ (or stock_bot/PAUSE to stop every robot) and pushes it.\n3. While that file is there, the bot does nothing at all. This tab shows PAUSED once it's on GitHub.\n4. To let it run again, a person deletes the file.")
+    Text("1. Ask any crew chat: \"pause the research bot\".\n2. It adds a file named PAUSE in stock_bot/research_bot/ (or stock_bot/PAUSE to stop every robot) and pushes it.\n3. While that file is there, the bot does nothing at all. This tab shows PAUSE FILE ON GITHUB once it's there; the bot stops at its next pull.\n4. To let it run again, a person deletes the file.")
      .font(.system(size:12.5,design:.rounded)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
    }
   }

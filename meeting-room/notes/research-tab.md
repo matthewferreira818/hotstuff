@@ -1,4 +1,43 @@
-# Helm: Research bot tab (LC-Pixels, Tue Nov 10 2026; job from NB2 for Matthew)
+# Helm: Stock bot area revamp + Research bot tab (LC-Pixels, Tue Nov 10 2026; job from NB2 for Matthew; Roxy = design partner)
+
+## Stock bot area revamp (added later the same day, Matthew's pick of Roxy's "Robot fleet" concept)
+- **Layout:**
+  - Left column: ROBOT FLEET (7 robots, each with a freshness dot, snapshot age and $ vs holding), then RESEARCH (the research bot, amber,
+    its own entry).
+  - Robot page: "Stocks / Hot hands" with PAPER ONLY and the snapshot time; 4 cards (Portfolio, Net return $ with % vs money put in,
+    Ahead of holding, Cash).
+  - Sub-tabs: **Overview** (Portfolio trajectory with 1D/1W/1M/1Y/ALL, the strip with positions / trades / fees, the Trade journal, and
+    "Why it acted or waited" from the robot's own notes), **Holdings** (a price chart per position with Bought at / Peak / Stop lines and
+    its buys and sells), **Trade journal** (every order, result after fees on sells), **Rules & risk** (the snapshot's rules + stop distances).
+  - Friday's column on this page: **Fleet comparison** (7 ranked vs holding) and **Research notes** (the research bot's latest guesses).
+    In a compact window or Simple mode, both sit under the page and the fleet becomes chips.
+- **Where the numbers come from:**
+  - The cards and the fleet come from each robot's live snapshot.
+  - The trajectory is **rebuilt** from the robot's paper account file on master (every filled order) plus public Yahoo prices, and the
+    caption says so. Snapshots are replaced every run, so no recorded value history exists.
+  - Replaying the orders lands within a few cents of the recorded cash on all 7 accounts (checks/stockhistory_check.swift).
+  - The last point is the live snapshot itself.
+- **Dips:** shaded where the line is more than 1.5% / 3% / 5% / 10% (1D / 1W / 1M / 1Y-ALL) below its high of the past 2 hours / day /
+  5 days / 30 days. A rolling high, so one long slide isn't shaded end to end.
+- **Prices:** cached in memory and on disk (the app's Caches folder). Offline shows the last saved prices, marked in amber. With none
+  saved, it says nothing is drawn rather than guess.
+- **Honesty:** no buy or sell control, no money switch. Every empty state says what's missing.
+- **Not done (backend, flagged to Roxy):**
+  - Recorded value history.
+  - Next review time.
+  - Per-decision reasons beyond the notes.
+  - Unseen-data test results per robot.
+  - Markets/watchlist.
+- **Files:** StockHistoryData.swift (data, replay, dips, cache), HubStockArea.swift (the area), HubStocks.swift (now just the entry
+  point), StockData.swift (position price/entry/peak/stop, rules, timed notes), Hub.swift (`StockHub.all`), HubDeck.swift (no page
+  header on this page; Friday's column shows the two cards here).
+- **Test hooks** (test copies only, behind the `SwitchboardTestHooks.active` guard): `stocks.testRobot`, `stocks.testTab`,
+  `stocks.testRange`, `hub.testWindowSize`.
+- **Shots:** Helm-Private real-app/stockbot-revamp/shots/v2-*.jpg (background test copy, own app ID).
+- **Rollback:** `git revert` the merge. The old single-page dashboard comes back, and nothing saved changes (the price cache is
+  disposable).
+
+# Research bot tab
 Branch `pixels/research-tab`. PRACTICE MONEY ONLY. Spec of the bot itself: `meeting-room/notes/research-bot.md` (phase 2 "Helm screen").
 Nothing under `stock_bot/` was changed.
 
@@ -39,7 +78,12 @@ It reads defensively, because phase 1b is still adding fields:
 - A new market gets its own card.
 - Broken lines in a .jsonl file are skipped.
 
-## The one control: Pause (call made, flagged for the gate)
+## Pause: READ-ONLY now (NB2's call, Nov 10)
+The write path described below was **removed**. The tab shows a disabled Pause spot ("coming when the bot runs on a schedule") and a
+How to pause box. Status says "PAUSE FILE ON GITHUB" (not "paused") until the runner can report that it saw it (Roxy's point).
+The text below is kept as history of the first design.
+
+## (Superseded) The one control: Pause
 The Stock bot page had **no** PAUSE control to reuse. It only shows "robot marked paused" from each snapshot. So the tab has one
 Pause button:
 1. It asks first: "Pause the research bot?"

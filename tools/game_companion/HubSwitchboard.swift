@@ -606,6 +606,10 @@ enum SwitchboardTestHooks {
    d.removeObject(forKey:"dm.testSend")
    Task { try? await Task.sleep(nanoseconds:3_000_000_000); FridayDM.shared.send(text) }
   }
+  //   hub.testWindowSize ("1500x940")  resize the window at launch, so shots can be taken at a real desktop size
+  if let size = d.string(forKey:"hub.testWindowSize"), let w = Double(size.split(separator:"x").first ?? ""), let h = Double(size.split(separator:"x").last ?? "") {
+   Task { try? await Task.sleep(nanoseconds:1_500_000_000); NSApp.windows.first { $0.isVisible && $0.frame.width > 300 }?.setContentSize(NSSize(width:w,height:h)) }
+  }
   if d.bool(forKey:"switchboard.testShowLog") {
    Task { try? await Task.sleep(nanoseconds:5_000_000_000); sb.showLog = true }
   }

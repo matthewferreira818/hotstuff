@@ -67,6 +67,10 @@ than discovering something was papered over.
    here). Workflows must never echo payloads containing lead PII (public
    repo logs). One exception: URL-verification signature files are public
    tokens and may be copied in full.
+   **Friday adds keys from the clipboard (Matthew, 2026-11-10: "lets make it so friday can add these keys when prompted"):**
+   Matthew copies the value himself, then asks Friday; she runs `tools/crew/add_secret.sh NAME [owner/repo]`, which pipes his
+   clipboard straight into `gh secret set`, never prints or saves it, and wipes the clipboard. She never reads, types, repeats or
+   screenshots a value, and only on his ask, for his own repos.
 3. **Claude may post, publish and act for Matthew without asking each
    time** (his decision, 2026-10-05, in his words: "you can post and do
    things without me"): daily posts, site changes, workflows.

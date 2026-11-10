@@ -19,7 +19,7 @@ posted within the last month, do not send.
 >
 > I run East Coast Social. My own store's feed has published a new post every day since August 7, and you can see it at
 > findhotstuff.com/automation. I'd do the same for your page: you approve the look once, and I take care of the daily posts, the way I do on my own store's feed.
-> Free setup, free first week, then $79/month, no contract.
+> 7 free sample posts first, then $79 for a first pilot month, then $79 a month, no contract.
 >
 > Want me to put together a sample week for [Business] first? It's free.
 >
@@ -30,7 +30,7 @@ posted within the last month, do not send.
 >
 > J'offre East Coast Social. Le fil de mon propre magasin publie une nouvelle publication chaque jour depuis le 7 août
 > (findhotstuff.com/automation). Je ferais la même chose pour votre page : vous approuvez le style une fois, et je m'occupe des
-> publications de chaque jour, comme sur le fil de mon propre magasin. Installation gratuite, première semaine gratuite, puis 79 $/mois, sans contrat.
+> publications de chaque jour, comme sur le fil de mon propre magasin. 7 exemples gratuits d'abord, puis un premier mois pilote à 79 $, ensuite 79 $ par mois, sans contrat.
 >
 > Voulez-vous que je prépare d'abord une semaine d'exemple pour [Business]? C'est gratuit.
 >
@@ -40,7 +40,7 @@ posted within the last month, do not send.
 > Hi again! Matthew here. I messaged a while back about [Business]'s page. Since then I built a sample week so you can see what I
 > mean instead of imagining it: [sample link]
 >
-> Free setup, free first week, then $79/month, no contract. If it's not for you, no worries at all. I won't keep messaging.
+> 7 free sample posts first, then $79 for a first pilot month, then $79 a month, no contract. If it's not for you, no worries at all. I won't keep messaging.
 >
 > {FOOTER}
 

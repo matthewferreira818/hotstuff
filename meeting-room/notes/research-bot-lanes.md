@@ -19,6 +19,7 @@ _Spec: meeting-room/notes/research-bot.md. Real money stays OFF (council NO-GO; 
 ## Ground rules for every lane
 - Only `forecasts.py` writes the ledger, and only LC-Research (tests) or Grok (real forecasts) run it. Nobody hand-edits `forecasts.jsonl`.
 - **Ideas count only after LC-Research's history replay**, and EVERY idea tried goes into the "ideas tried" count, winners and losers alike (the council's multiple-testing rule). Nothing goes live in `forward.json` without NB2's gate.
+- **Hand-offs:** Roxy's ideas → LC-Research turns each into a plain past-prices-only function in `stock_bot/research_bot/ideas.py` and replays it. LC-Trends' feed findings → LC-Research decides whether to wire in a backup feed (its code).
 - Nobody edits `rules.json` / `rules.lock`. Rule changes go in as proposals: NB2 gates them and Matthew says GO.
 - No exchange or broker accounts, no keys, no live switches. Matthew alone does those, and only after the evidence bar in the spec.
 - Anything private (accounts, balances, EI/tax) goes to Helm-Private `research-bot/` only, never this public repo.

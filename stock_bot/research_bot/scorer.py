@@ -112,6 +112,9 @@ def binomial_p_value(hits, n):
     Small n -> big p: luck explains it."""
     if n == 0:
         return 1.0
+    if n > 1000:  # exact sums get very slow; the normal approximation is tight here
+        z = (hits - 0.5 - n / 2) / math.sqrt(n / 4)
+        return 0.5 * math.erfc(z / math.sqrt(2))
     return sum(math.comb(n, k) for k in range(hits, n + 1)) / 2 ** n
 
 
@@ -401,7 +404,10 @@ def render(card):
 
 
 def main(argv=None):
-    argv = argv or sys.argv[1:]
+    import argparse
+    ap = argparse.ArgumentParser(description="Plain-code scorecard (practice money only).")
+    ap.add_argument("--print", action="store_true", help="also print the scorecard")
+    argv = ["--print"] if ap.parse_args(argv).print else []
     rules = ledger.load_rules()
     ok, problems, first_seen = ledger.verify()
     lines = ledger.read_lines()

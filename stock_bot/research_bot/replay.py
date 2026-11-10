@@ -110,16 +110,30 @@ def load_bars(asset, interval, days, now=None, cache=CACHE):
 
 # ------------------------------------------------------------------- calls
 
-def make_rows(name, params, horizon, data, bench, warmup):
+def downsides(closes, horizon, samples=20):
+    """typical_move_pct for every bar at once (same numbers, computed once
+    per asset and horizon instead of once per idea setting)."""
+    n = len(closes)
+    moves = [0.0] * n
+    for j in range(horizon, n):
+        moves[j] = abs(closes[j] / closes[j - horizon] - 1) if closes[j - horizon] else 0.0
+    out = [None] * n
+    for i in range(samples * horizon, n):
+        out[i] = sum(moves[i - k * horizon] for k in range(samples)) / samples * 100
+    return out
+
+
+def make_rows(name, params, horizon, data, bench, warmup, downs=None):
     """Every call one setting makes over all the assets.
     Row: (t_open, t_resolve, p_up, act, entry, exit, prev_up, downside_pct,
           bench_return)."""
     rows = []
     bmap = {t: o for t, o, _ in bench}
-    for bars in data.values():
+    for asset, bars in data.items():
         ts = [b[0] for b in bars]
         opens = [b[1] for b in bars]
         closes = [b[2] for b in bars]
+        dn = (downs or {}).get(asset) or downsides(closes, horizon)
         for i in range(warmup, len(bars) - horizon - 1):
             h = idea_lib.History(closes, i)
             c = idea_lib.call(name, h, params)
@@ -134,7 +148,7 @@ def make_rows(name, params, horizon, data, bench, warmup):
             b0, b1 = bmap.get(ts[j]), bmap.get(ts[k])
             rows.append((ts[j], ts[k], prob if direction == "up" else 1 - prob,
                          direction == "up", entry, exit_, prev_up,
-                         idea_lib.typical_move_pct(h, horizon),
+                         dn[i],
                          (b1 / b0 - 1) if b0 and b1 else None))
     rows.sort()
     return rows
@@ -224,7 +238,8 @@ def walk_forward(name, horizon, data, bench, cfg, fees):
     """Pick the best setting on each training window, score it on the next
     unseen window. Returns (graded test result, chosen settings, range)."""
     grid = idea_lib.IDEAS[name]["grid"]
-    all_rows = [make_rows(name, p, horizon, data, bench, cfg["warmup"]) for p in grid]
+    downs = {a: downsides([b[2] for b in bars], horizon) for a, bars in data.items()}
+    all_rows = [make_rows(name, p, horizon, data, bench, cfg["warmup"], downs) for p in grid]
     firsts = [r[0][0] for r in all_rows if r]
     if not firsts:
         return grade_rows([], fees), [], None
@@ -256,6 +271,7 @@ def walk_forward(name, horizon, data, bench, cfg, fees):
 def run_market(market, cfg, rules, idea_names, loader=load_bars):
     fees = scorer.fee_model(rules["markets"][market]["costs"])
     data = {}
+    print(f"[{market}] loading {len(cfg['assets'])} assets", file=sys.stderr, flush=True)
     for a in cfg["assets"]:
         bars = loader(a, cfg["interval"], cfg["days"])
         if len(bars) > cfg["warmup"] + 50:
@@ -264,6 +280,7 @@ def run_market(market, cfg, rules, idea_names, loader=load_bars):
     results = []
     for name in idea_names:
         for hz in cfg["horizons"]:
+            print(f"  replaying {market} {name} h={hz} ...", file=sys.stderr, flush=True)
             res, chosen, span = walk_forward(name, hz, data, bench, cfg, fees)
             res.update(market=market, idea=name, horizon=hz, interval=cfg["interval"],
                        settings_tried=len(idea_lib.IDEAS[name]["grid"]),

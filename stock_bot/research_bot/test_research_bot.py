@@ -467,6 +467,16 @@ class ReplayTests(unittest.TestCase):
         self.assertEqual(first[0], bars[51][0])          # opens at the next bar
         self.assertEqual((first[4], first[5]), (bars[51][1], bars[52][1]))
 
+    def test_fast_downsides_match_slow(self):
+        closes = [100 + (i * 7919 % 37) for i in range(300)]
+        fast = replay.downsides(closes, 4)
+        for i in range(len(closes)):
+            slow = idea_lib.typical_move_pct(idea_lib.History(closes, i), 4)
+            if slow is None:
+                self.assertIsNone(fast[i])
+            else:
+                self.assertAlmostEqual(fast[i], slow)
+
     def test_windows_do_not_overlap(self):
         w = replay.windows(0, 86400 * 40, 10, 5)
         self.assertEqual(len(w), 6)
@@ -535,6 +545,11 @@ class GenerateTests(unittest.TestCase):
     def test_in_progress_bar_dropped(self):
         bars = [(int(self.now.timestamp()) - 3600, 1, 1), (int(self.now.timestamp()) - 600, 2, 2)]
         self.assertEqual(len(generate.finished(bars, "1h", self.now)), 1)
+        # Yesterday's daily stock bar (stamped 14:30 UTC) is finished by 13:50 today;
+        # today's isn't (the market hasn't closed).
+        y = int(dt.datetime(2026, 11, 9, 14, 30, tzinfo=UTC).timestamp())
+        daily = [(y, 1, 1), (y + 86400, 2, 2)]
+        self.assertEqual(generate.finished(daily, "1d", self.now), daily[:1])
 
     def test_writes_valid_forecasts_once(self):
         log = self.gen()
@@ -551,6 +566,26 @@ class GenerateTests(unittest.TestCase):
         self.bars = self.bars[:20]  # too short for any call
         self.gen()
         self.assertEqual(ledger.read_lines(self.path)[-1]["kind"], "no_trade")
+
+    def test_missing_forward_and_help_guard(self):
+        with self.assertRaises(generate.ForwardMissing):
+            generate.load_forward(os.path.join(self.d, "nope.json"))
+        for args in (["--help"], ["--bogus"]):
+            with self.assertRaises(SystemExit), open(os.devnull, "w") as dn:
+                stderr, sys.stderr = sys.stderr, dn
+                stdout, sys.stdout = sys.stdout, dn
+                try:
+                    generate.main(args)
+                finally:
+                    sys.stderr, sys.stdout = stderr, stdout
+
+    def test_repo_forward_json_is_valid(self):
+        fwd = generate.load_forward()
+        for v in fwd["variants"]:
+            self.assertIn(v["idea"], idea_lib.IDEAS)
+            self.assertIn(v["params"], idea_lib.IDEAS[v["idea"]]["grid"])
+            self.assertIn(v["market"], ledger.MARKETS)
+            self.assertTrue(v["assets"])
 
     def test_replay_pass_lookup(self):
         log = [{"market": "crypto", "idea": "momentum", "horizon": 4, "verdict": "DEAD", "run": "1"},

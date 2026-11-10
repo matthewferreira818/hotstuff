@@ -44,9 +44,19 @@ except Exception:  # pragma: no cover
     NY = None
 
 
+class ForwardMissing(RuntimeError):
+    pass
+
+
 def load_forward(path=FORWARD):
+    if not os.path.exists(path):
+        raise ForwardMissing(f"{os.path.basename(path)} is missing: no idea variants to forecast. "
+                             "Run replay.py and commit forward.json (see the spec).")
     with open(path) as f:
-        return json.load(f)
+        fwd = json.load(f)
+    if not fwd.get("variants"):
+        raise ForwardMissing("forward.json has no variants: nothing to forecast")
+    return fwd
 
 
 def crypto_window(now, horizon_hours, lead_min):
@@ -77,8 +87,9 @@ def stock_window(now, horizon_days, lead_min):
 
 
 def finished(bars, interval, now):
-    """Drop a bar that hasn't finished yet."""
-    length = 3600 if interval == "1h" else 86400
+    """Drop a bar that hasn't finished yet. A daily stock bar is stamped at the
+    9:30 open and finishes at the 4:00 close (6.5 h later; 7 h for margin)."""
+    length = 3600 if interval == "1h" else 7 * 3600
     return [b for b in bars if b[0] + length <= now.timestamp()] if bars else []
 
 
@@ -173,13 +184,23 @@ def commit_and_push(path=ledger.LEDGER):
 
 
 def main(argv=None):
-    argv = argv or sys.argv[1:]
+    import argparse
+    ap = argparse.ArgumentParser(description="Log forward forecasts from the ideas in forward.json "
+                                             "(practice / research only).")
+    ap.add_argument("--dry-run", action="store_true", help="show what it would log; write nothing")
+    ap.add_argument("--commit", action="store_true", help="commit + push the ledger right away")
+    args = ap.parse_args(argv)  # --help prints and exits; unknown args exit with an error
     if os.environ.get("GITHUB_ACTIONS"):
         print("refused: not on GitHub Actions")
         return 1
-    for line in generate(bars_fn=live_bars, dry_run="--dry-run" in argv):
+    try:
+        lines = generate(bars_fn=live_bars, dry_run=args.dry_run)
+    except ForwardMissing as e:
+        print(f"refused: {e}")
+        return 2
+    for line in lines:
         print(line)
-    if "--commit" in argv and "--dry-run" not in argv:
+    if args.commit and not args.dry_run:
         print(commit_and_push())
     return 0
 

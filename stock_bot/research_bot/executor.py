@@ -326,8 +326,11 @@ def _run(now, quote_fn, dry_run, lines, first_seen, rules, rules_ok, manual_paus
 
 
 def main(argv=None):
-    argv = argv or sys.argv[1:]
-    for line in run(dry_run="--dry-run" in argv):
+    import argparse
+    ap = argparse.ArgumentParser(description="Paper executor (practice money only).")
+    ap.add_argument("--dry-run", action="store_true", help="decide, place nothing")
+    args = ap.parse_args(argv)
+    for line in run(dry_run=args.dry_run):
         print(line)
     return 0
 

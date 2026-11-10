@@ -2,21 +2,15 @@ import SwiftUI
 
 // The research bot's own big tab on the Stock bot page. PRACTICE MONEY ONLY.
 // Shows the plain-code scorecard (stocks and crypto separate), the latest guesses with their reasons, the practice orders and the status.
-// The only control is Pause (adds the bot's PAUSE file on GitHub). No order button, no keys, no real-money switch, no resume.
+// READ-ONLY: no order button, no keys, no real-money switch, no pause/resume. The Pause spot is kept, disabled, with a "How to pause" box
+// (NB2, 2026-11-10: a button comes once the bot runs on a schedule and writes the file where that runner looks).
 @MainActor final class ResearchBotModel: ObservableObject {
  static let shared = ResearchBotModel()
  @Published var snap: ResearchSnapshot?
  @Published var loading = false
- @Published var pausing = false
- @Published var pauseMessage = ""
  // Test copies only (SwitchboardTestHooks.active, never the real Helm's app ID):
- //   research.repoPath (path)  Pause pushes from this folder (a throwaway clone) instead of ~/Claude/hotstuff
  //   research.testDir  (path)  read the bot's files from this folder (laid out like stock_bot/) instead of GitHub
  //   stocks.testResearch (bool) open the Stock bot page on the Research bot tab
- var repo: URL {
-  if SwitchboardTestHooks.active, let p = UserDefaults.standard.string(forKey:"research.repoPath"), !p.isEmpty { return URL(fileURLWithPath:p) }
-  return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Claude/hotstuff",isDirectory:true)
- }
 
  func refresh() async {
   guard !loading else { return }
@@ -28,22 +22,10 @@ import SwiftUI
   }
  }
 
- func pause() async {
-  guard !pausing else { return }
-  pausing = true; pauseMessage = "Pausing…"
-  let repo = repo
-  let problem = await Task.detached { ResearchBotData.pushPause(git:ResearchBotData.runGit(repo:repo)) }.value
-  pausing = false
-  if let problem { pauseMessage = problem; return }
-  pauseMessage = "Paused on GitHub. A run on this Mac sees it once its folder pulls (every chat pulls when it starts)."
-  // raw.githubusercontent can lag a few minutes, so show it as paused now rather than wait for the cache.
-  if snap?.botPause == nil { snap?.botPause = "Paused from The Helm just now." }
- }
 }
 
 // Local UI state (StateObject: this Mac's command-line Swift has no @State macro plugin).
 @MainActor final class ResearchBotPageState: ObservableObject {
- @Published var confirmPause = false
  @Published var allForecasts = false
  @Published var allOrders = false
 }
@@ -57,6 +39,7 @@ struct ResearchBotPanel: View {
    header
    if let s = model.snap {
     status(s)
+    howToPause
     if s.nothingYet {
      card {
       VStack(alignment:.leading,spacing:6) {
@@ -84,12 +67,6 @@ struct ResearchBotPanel: View {
    }
   }
   .task { if model.snap == nil { await model.refresh() } }
-  .confirmationDialog("Pause the research bot?",isPresented:$page.confirmPause) {
-   Button("Pause it") { Task { await model.pause() } }
-   Button("Cancel",role:.cancel) {}
-  } message: {
-   Text("This adds the research bot's PAUSE file on GitHub. While it's there, the bot does nothing at all, not even closing practice trades. The Helm can't undo it: to let it run again, a person deletes the file. The other 7 practice robots aren't affected.")
-  }
  }
 
  // MARK: pieces
@@ -124,31 +101,35 @@ struct ResearchBotPanel: View {
    case .on: return ("NOT PAUSED","It works only when someone runs it on this Mac. Nothing runs on a schedule yet.",HubTheme.green)
    }
   }()
-  let paused: Bool = { if case .paused = s.state { return true }; return false }()
   return card {
    VStack(alignment:.leading,spacing:10) {
     HStack(spacing:8) {
      Circle().fill(tint).frame(width:10,height:10)
      Text(title).font(.system(size:15,weight:.bold,design:.rounded)).foregroundStyle(tint)
      Spacer(minLength:4)
-     Button { page.confirmPause = true } label: {
-      Label(paused ? "Paused" : (model.pausing ? "Pausing…" : "Pause"),systemImage:"pause.fill").font(.system(size:12.5,weight:.semibold,design:.rounded))
-       .foregroundStyle(paused ? HubTheme.subtext : HubTheme.text).padding(.horizontal,14).frame(minHeight:44)
-       .background(HubTheme.control,in:RoundedRectangle(cornerRadius:12))
-       .overlay(RoundedRectangle(cornerRadius:12).stroke(HubTheme.controlOutline,lineWidth:1))
-     }
-     .buttonStyle(.plain).disabled(paused || model.pausing)
-     .help("Stops the research bot completely. Only a person can undo it, by deleting the PAUSE file.")
-     .accessibilityLabel(paused ? "Research bot is paused" : "Pause the research bot")
+     Label("Pause",systemImage:"pause.fill").font(.system(size:12.5,weight:.semibold,design:.rounded))
+      .foregroundStyle(HubTheme.subtext.opacity(0.6)).padding(.horizontal,14).frame(minHeight:44)
+      .background(HubTheme.card,in:RoundedRectangle(cornerRadius:12))
+      .overlay(RoundedRectangle(cornerRadius:12).stroke(HubTheme.line,lineWidth:1))
+      .help("Coming when the bot runs on a schedule. For now, see How to pause below.")
+      .accessibilityLabel("Pause button, not available yet: coming when the bot runs on a schedule")
     }
     Text(why).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
     if s.practiceOnly == false {
      Text("Its rules file no longer says practice only, so its own checker refuses every order. A crew chat should look.")
       .font(.system(size:12.5,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.crimson).fixedSize(horizontal:false,vertical:true)
     }
-    if !model.pauseMessage.isEmpty {
-     Text(model.pauseMessage).font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
-    }
+    Text("Pause button: coming when the bot runs on a schedule.").font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+   }
+  }
+ }
+
+ private var howToPause: some View {
+  card {
+   VStack(alignment:.leading,spacing:6) {
+    Label("How to pause",systemImage:"pause.circle").font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+    Text("1. Ask any crew chat: \"pause the research bot\".\n2. It adds a file named PAUSE in stock_bot/research_bot/ (or stock_bot/PAUSE to stop every robot) and pushes it.\n3. While that file is there, the bot does nothing at all. This tab shows PAUSED once it's on GitHub.\n4. To let it run again, a person deletes the file.")
+     .font(.system(size:12.5,design:.rounded)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
    }
   }
  }

@@ -6,8 +6,8 @@ import FoundationNetworking
 // The research bot's tab on the Stock bot page (job from NB2, 2026-11-10). PRACTICE MONEY ONLY.
 // Reads the bot's own files on GitHub master (stock_bot/research_bot/, public repo) and shows them in plain words.
 // Read defensively: LC-Research is still adding fields (phase 1b), so every field may be missing, null or new.
-// The ONLY thing this file can change is adding the bot's PAUSE file. No order, no keys, no real-money switch:
-// there is no code here that can place an order, and nothing here removes a pause (a person does that).
+// READ-ONLY (NB2's call, 2026-11-10): nothing here writes anything. No order, no keys, no real-money switch, no pause/resume.
+// A Pause button comes once the bot runs on a schedule, writing the file exactly where that runner looks.
 
 struct ResearchBrier {
  var forecaster: Double?
@@ -114,7 +114,6 @@ enum ResearchFetch { case ok(Data), missing, failed(String) }
 
 enum ResearchBotData {
  static let base = "https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/stock_bot/"
- static let pausePath = "stock_bot/research_bot/PAUSE"
  static let barOrder = ["100+ graded forecasts","60+ days of forward forecasting","a down market happened during it",
   "Brier beats all three baselines","not likely luck (p < 0.05)","paper P&L after costs beats cash",
   "paper P&L after costs beats buy-and-hold","typical trade wins (median > 0)","still ahead without the best trade"]
@@ -287,55 +286,5 @@ enum ResearchBotData {
   s += pnl > (m.cashPnl ?? 0) ? "Ahead of doing nothing" : "Not ahead of doing nothing"
   if let h = m.holdPnl { s += pnl > h ? ", and ahead of just holding \(m.benchmark.isEmpty ? "the benchmark" : m.benchmark)." : ", and behind just holding \(m.benchmark.isEmpty ? "the benchmark" : m.benchmark)." } else { s += "." }
   return s
- }
-
- // MARK: PAUSE. Adds ONE file (stock_bot/research_bot/PAUSE) to GitHub master as its own commit, built with git's plumbing so
- // the shared ~/Claude/hotstuff folder (its files, branch and index) is never touched: other chats may be working in it.
- // Never force-pushes; if master moved meanwhile, it rebuilds on the new master once more. It cannot remove a pause.
- struct GitResult { var code: Int32; var out: String }
- typealias GitRunner = ([String],[String:String]) -> GitResult
-
- static func runGit(repo: URL) -> GitRunner {
-  { args,env in
-   let p = Process(); p.executableURL = URL(fileURLWithPath:"/usr/bin/git")
-   p.arguments = ["-C",repo.path] + args
-   var e = ProcessInfo.processInfo.environment; e["GIT_TERMINAL_PROMPT"] = "0"
-   for (k,v) in env { e[k] = v }
-   p.environment = e
-   let pipe = Pipe(); p.standardOutput = pipe; p.standardError = pipe
-   do { try p.run() } catch { return GitResult(code:-1,out:"git didn't start") }
-   let data = pipe.fileHandleForReading.readDataToEndOfFile(); p.waitUntilExit()
-   return GitResult(code:p.terminationStatus,out:String(decoding:data,as:UTF8.self).trimmingCharacters(in:.whitespacesAndNewlines))
-  }
- }
-
- static func pauseNote(_ now: Date) -> String {
-  "Paused from The Helm (Stock bot page, Research bot tab) at \(ISO8601DateFormatter().string(from:now)).\n" +
-  "Nothing runs while this file is here. To let the research bot run again, a person deletes this file (the Helm has no start button on purpose).\n"
- }
-
- // Returns nil on success, or a plain-words reason it didn't happen.
- static func pushPause(git: GitRunner,remote: String = "origin",branch: String = "master",now: Date = Date(),tmp: URL = FileManager.default.temporaryDirectory) -> String? {
-  let ref = "refs/helm/research-pause-base"
-  defer { _ = git(["update-ref","-d",ref],[:]) }
-  for attempt in 0..<2 {
-   guard git(["fetch","-q",remote,"+refs/heads/\(branch):\(ref)"],[:]).code == 0 else { return "Couldn't reach GitHub, so nothing was paused. Try again in a minute." }
-   if git(["cat-file","-e","\(ref):\(pausePath)"],[:]).code == 0 { return nil }     // already paused on GitHub
-   let note = tmp.appendingPathComponent("helm-research-pause-\(UUID().uuidString).txt")
-   let index = tmp.appendingPathComponent("helm-research-index-\(UUID().uuidString)")
-   defer { try? FileManager.default.removeItem(at:note); try? FileManager.default.removeItem(at:index) }
-   guard (try? pauseNote(now).write(to:note,atomically:true,encoding:.utf8)) != nil else { return "Couldn't write the note. Nothing was paused." }
-   let env = ["GIT_INDEX_FILE":index.path]
-   let blob = git(["hash-object","-w",note.path],[:])
-   guard blob.code == 0, git(["read-tree",ref],env).code == 0,
-         git(["update-index","--add","--cacheinfo","100644,\(blob.out),\(pausePath)"],env).code == 0 else { return "git couldn't build the pause. Nothing was paused." }
-   let tree = git(["write-tree"],env)
-   guard tree.code == 0 else { return "git couldn't build the pause. Nothing was paused." }
-   let commit = git(["commit-tree",tree.out,"-p",ref,"-m","Research bot: PAUSE from The Helm (Research bot tab)\n\nAdds stock_bot/research_bot/PAUSE only. Nothing runs while it is there; a person deletes it to resume."],[:])
-   guard commit.code == 0 else { return "git couldn't make the commit (\(commit.out.prefix(80))). Nothing was paused." }
-   if git(["push","-q",remote,"\(commit.out):refs/heads/\(branch)"],[:]).code == 0 { return nil }
-   if attempt == 1 { return "GitHub didn't take the pause (someone pushed at the same moment, or the login needs a look). Nothing was paused; try again." }
-  }
-  return "Nothing was paused."
  }
 }

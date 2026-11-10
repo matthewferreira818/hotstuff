@@ -59,38 +59,14 @@ check(auto.state == .autoPaused("crypto: daily loss 3.1% (2026-11-12T15:00:00Z)"
 let both = await ResearchBotData.load { p in p == "PAUSE" || p == "research_bot/AUTO_PAUSE" ? .ok(Data()) : (file(p).map { .ok($0) } ?? .missing) }
 if case .paused(let why) = both.state { check(why.contains("all-robots"),"stock_bot/PAUSE counts as paused (and beats auto-pause)") } else { check(false,"stock_bot/PAUSE counts as paused") }
 
-// 5. PAUSE push: only adds stock_bot/research_bot/PAUSE on the remote; the local folder (files, branch, index) is untouched
-let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("rbcheck-\(UUID().uuidString)")
-try! FileManager.default.createDirectory(at:tmp,withIntermediateDirectories:true)
-func sh(_ dir: URL,_ args: [String]) -> ResearchBotData.GitResult { ResearchBotData.runGit(repo:dir)(["-c","user.name=t","-c","user.email=t@t"] + args,[:]) }
-let bare = tmp.appendingPathComponent("r.git"), work = tmp.appendingPathComponent("work")
-_ = ResearchBotData.runGit(repo:tmp)(["init","-q","--bare","-b","master",bare.path],[:])
-_ = ResearchBotData.runGit(repo:tmp)(["clone","-q",bare.path,work.path],[:])
-try! "x\n".write(to:work.appendingPathComponent("f.txt"),atomically:true,encoding:.utf8)
-_ = sh(work,["add","f.txt"]); _ = sh(work,["commit","-qm","init"]); _ = sh(work,["push","-q","origin","HEAD:master"])
-try! "half-done local edit\n".write(to:work.appendingPathComponent("f.txt"),atomically:true,encoding:.utf8)   // another chat's uncommitted work
-let headBefore = sh(work,["rev-parse","HEAD"]).out
-let git: ResearchBotData.GitRunner = { a,e in ResearchBotData.runGit(repo:work)(["-c","user.name=t","-c","user.email=t@t"] + a,e) }
-check(ResearchBotData.pushPause(git:git) == nil,"pause push succeeds")
-let remoteFiles = ResearchBotData.runGit(repo:bare)(["ls-tree","-r","--name-only","master"],[:]).out.split(separator:"\n").map(String.init)
-check(remoteFiles.sorted() == ["f.txt","stock_bot/research_bot/PAUSE"],"remote master gained exactly the PAUSE file")
-let noteText = ResearchBotData.runGit(repo:bare)(["show","master:stock_bot/research_bot/PAUSE"],[:]).out
-check(noteText.contains("a person deletes this file"),"PAUSE note says how to undo it")
-check(sh(work,["rev-parse","HEAD"]).out == headBefore && sh(work,["status","--porcelain"]).out == "M f.txt","local folder untouched (HEAD, files, index)")
-check(!FileManager.default.fileExists(atPath:work.appendingPathComponent("stock_bot").path),"no PAUSE file written into the local folder (a later pull isn't blocked)")
-let countBefore = ResearchBotData.runGit(repo:bare)(["rev-list","--count","master"],[:]).out
-check(ResearchBotData.pushPause(git:git) == nil && ResearchBotData.runGit(repo:bare)(["rev-list","--count","master"],[:]).out == countBefore,"already paused -> no second commit")
-check(sh(work,["for-each-ref","refs/helm"]).out.isEmpty,"temporary ref cleaned up")
-let badGit: ResearchBotData.GitRunner = { a,e in ResearchBotData.runGit(repo:work)(a.first == "fetch" ? ["fetch","-q","/nonexistent/x.git","master"] : a,e) }
-check(ResearchBotData.pushPause(git:badGit)?.contains("nothing was paused") == true,"no GitHub -> says plainly nothing was paused")
-_ = try? FileManager.default.trashItem(at:tmp,resultingItemURL:nil)
-
 // 6. The tab has no order button, keys, live switch or resume
 let src = (try? String(contentsOf:root.appendingPathComponent("tools/game_companion/HubResearchBot.swift"),encoding:.utf8)) ?? ""
 let dataSrc = (try? String(contentsOf:root.appendingPathComponent("tools/game_companion/ResearchBotData.swift"),encoding:.utf8)) ?? ""
 let banned = ["Button(\"Buy","Button(\"Sell","Toggle(","SecureField","Keychain","moomoo","live_auto_trade","Resume","removeItem(at:URL(fileURLWithPath"]
 check(!src.isEmpty && banned.allSatisfy { !src.contains($0) },"tab has no buy/sell button, toggle, key field, Moomoo or resume")
 check(src.contains("PRACTICE MONEY ONLY") && src.contains("No guesses yet: no trade is a normal day"),"label + honest empty state present")
-check(!dataSrc.isEmpty && !dataSrc.contains("--force") && !dataSrc.contains("\"-f\"") && !dataSrc.contains("\"+\\(commit"),"pause push never force-pushes")
+let writes = ["Process(","/usr/bin/git",".write(to","write(toFile","createFile","removeItem","URLRequest(url:url,cachePolicy:.reloadIgnoringLocalCacheData,timeoutInterval:15)\n   req.httpMethod"]
+check(!dataSrc.isEmpty && writes.allSatisfy { !dataSrc.contains($0) && !src.contains($0) },"research tab is read-only: no git, no process, no file writes")
+check(src.contains("How to pause") && src.contains("coming when the bot runs on a schedule"),"How to pause box + disabled Pause spot")
 print(fails == 0 ? "ALL PASS (research bot tab)" : "\(fails) FAILED (research bot tab)")
 exit(fails == 0 ? 0 : 1)

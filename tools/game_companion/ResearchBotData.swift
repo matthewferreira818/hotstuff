@@ -115,9 +115,6 @@ enum ResearchFetch { case ok(Data), missing, failed(String), cancelled }
 
 enum ResearchBotData {
  static let base = "https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/stock_bot/"
- static let barOrder = ["100+ graded forecasts","60+ days of forward forecasting","a down market happened during it",
-  "Brier beats all three baselines","not likely luck (p < 0.05)","paper P&L after costs beats cash",
-  "paper P&L after costs beats buy-and-hold","typical trade wins (median > 0)","still ahead without the best trade"]
 
  // MARK: small readers (every one tolerates missing/null/wrong-type)
  static func num(_ v: Any?) -> Double? {
@@ -142,7 +139,19 @@ enum ResearchBotData {
  }
 
  // MARK: scorecard.json
+ // Where each evidence-bar key first appears after "<market>" … "evidence_bar" in the raw JSON text.
+ static func keyPositions(_ raw: String,market: String,keys: [String]) -> [String:Int] {
+  guard let m = raw.range(of:"\"\(market)\""), let eb = raw.range(of:"\"evidence_bar\"",range:m.upperBound..<raw.endIndex) else { return [:] }
+  var out: [String:Int] = [:]
+  for k in keys {
+   let enc = (try? JSONSerialization.data(withJSONObject:[k])).map { String(decoding:$0,as:UTF8.self) }.map { String($0.dropFirst().dropLast()) } ?? "\"\(k)\""
+   if let r = raw.range(of:enc,range:eb.upperBound..<raw.endIndex) { out[k] = raw.distance(from:raw.startIndex,to:r.lowerBound) }
+  }
+  return out
+ }
+
  static func parseScorecard(_ data: Data) -> (Date?,[ResearchMarket])? {
+  let raw = String(decoding:data,as:UTF8.self)
   guard let root = (try? JSONSerialization.jsonObject(with:data)) as? [String:Any] else { return nil }
   let mk = root["markets"] as? [String:Any] ?? [:]
   var out: [ResearchMarket] = []
@@ -161,8 +170,13 @@ enum ResearchBotData {
    r.median = num(m["median_trade"]); r.worst = num(m["worst_trade"]); r.withoutBest = num(m["pnl_without_best"])
    r.spanDays = num(m["span_days"])
    let bar = m["evidence_bar"] as? [String:Any] ?? [:]
-   let order = barOrder.filter { bar[$0] != nil } + bar.keys.filter { !barOrder.contains($0) }.sorted { a,b in
-    a.contains("human check") == b.contains("human check") ? a < b : !a.contains("human check") }
+   // The file's own order (JSONSerialization loses it, so find each key in the raw text), human checks last.
+   let pos = keyPositions(raw,market:key,keys:Array(bar.keys))
+   let order = bar.keys.sorted { a,b in
+    let ha = a.contains("human check"), hb = b.contains("human check")
+    if ha != hb { return !ha }
+    let pa = pos[a] ?? Int.max, pb = pos[b] ?? Int.max
+    return pa != pb ? pa < pb : a < b }
    r.bar = order.map { ($0,(bar[$0] as? Bool) ?? ((bar[$0] as? NSNumber)?.boolValue ?? false)) }
    out.append(r)
   }

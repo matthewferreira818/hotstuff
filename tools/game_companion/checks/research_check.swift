@@ -3,11 +3,15 @@ import Foundation
 var fails = 0
 func check(_ ok: Bool,_ what: String) { print(ok ? "PASS" : "FAIL",what); if !ok { fails += 1 } }
 let root = URL(fileURLWithPath:CommandLine.arguments[1])          // repo root
-func file(_ p: String) -> Data? { try? Data(contentsOf:root.appendingPathComponent("stock_bot/"+p)) }
+// Fixed fixtures (NB2, after ce1a7e4: live files change as the bot runs, so exact checks must not read them).
+//   v1  = the empty phase-1 files (12-item bar with human checks)   v1b = the 1b files of 2026-11-10 10:00 (12 guesses, 6-item bar)
+let fixtures = root.appendingPathComponent("tools/game_companion/checks/fixtures/research")
+func fixture(_ set: String) -> (String) async -> ResearchFetch { { p in (try? Data(contentsOf:fixtures.appendingPathComponent(set + "/" + p))).map { .ok($0) } ?? .missing } }
+func file(_ p: String) -> Data? { try? Data(contentsOf:fixtures.appendingPathComponent("v1/" + p)) }
 
-// 1. Today's real (empty) files from the repo
-let real = (await ResearchBotData.load { p in file(p).map { .ok($0) } ?? .missing })!
-check(real.markets.map(\.key) == ["stock","crypto"],"real scorecard: stocks and crypto, separate, stocks first")
+// 1. The empty phase-1 files (fixture v1)
+let real = (await ResearchBotData.load(fixture("v1")))!
+check(real.markets.map(\.key) == ["stock","crypto"],"v1 scorecard: stocks and crypto, separate, stocks first")
 check(real.nothingYet,"real files: honest empty state (no guesses yet)")
 check(real.state == .on,"real files: no PAUSE / AUTO_PAUSE -> not paused")
 check(real.practiceOnly == true && (real.caps ?? "").contains("10%"),"rules.json read: practice only + plain caps line")
@@ -25,7 +29,7 @@ let parsed = ResearchBotData.parseScorecard(Data(future.utf8))
 check(parsed?.1.map(\.key) == ["stock","crypto","fx"],"new market kept, after stocks and crypto")
 let c = parsed?.1[1]
 check(c?.forecasts == 4 && c?.brier.baseRate == nil && c?.holdPnl == 12.25,"string number, null and new fields tolerated")
-check(c?.bar.first?.name == "100+ graded forecasts" && c?.bar.count == 2,"known bar items first, new ones kept")
+check(c?.bar.map(\.name) == ["brand new check","100+ graded forecasts"],"bar items in the file's own order, new ones kept")
 check(ResearchBotData.moneyVerdict(c!).contains("behind just holding BTC-USD"),"money verdict is honest when behind holding")
 check(ResearchBotData.guessVerdict(c!).contains("too few to tell skill from luck"),"small samples are called luck-prone")
 check(ResearchBotData.parseScorecard(Data("not json".utf8)) == nil,"broken scorecard -> nil, not a crash")
@@ -93,6 +97,19 @@ check(pl.forecasts.first?.botPlain == "Plain words.","plain_reason is read from 
 check(ResearchBotData.plainReason(fc("SPY","up","Earnings next week look strong")) == nil,"free-text reason -> nil (shown as written)")
 check(src.contains("Technical details") && src.contains("Technical reason only"),"the raw reason stays one click away, labelled Technical reason only (Roxy)")
 check(src.contains("PAUSE REQUESTED") && src.contains("not confirmed"),"pause shown as requested, not confirmed (Roxy)")
+
+// 9. The 1b files (fixture v1b): guesses exist, the bar is 6 items in the file's own order
+let b = (await ResearchBotData.load(fixture("v1b")))!
+check(!b.nothingYet && b.forecasts.count == 12 && b.markets.first?.forecasts == 12 && b.markets.first?.graded == 0,"v1b: 12 guesses, 0 graded, not the empty state")
+check(b.markets.first?.bar.map(\.name) == ["(a) walk-forward on past prices passes the six-condition gate","(b) 100+ graded FORWARD forecasts","(b) Brier beats all three baselines","(b) paper P&L after costs beats cash","(b) paper P&L after costs beats buy-and-hold","one idea meets ALL of the above"],"v1b: evidence bar in the file's own order")
+check(ResearchBotData.guessVerdict(b.markets[0]).hasPrefix("12 guesses written, none graded yet"),"v1b verdict: written, none graded yet")
+let shuffled = #"{"markets":{"stock":{"evidence_bar":{"zeta - human check":false,"beta":true,"alpha":false}}}}"#
+check(ResearchBotData.parseScorecard(Data(shuffled.utf8))?.1.first?.bar.map(\.name) == ["beta","alpha","zeta - human check"],"bar keeps file order, human checks last")
+
+// 10. Live files: a smoke test only (they change hourly), no exact numbers
+if let live = await ResearchBotData.load({ p in (try? Data(contentsOf:root.appendingPathComponent("stock_bot/" + p))).map { .ok($0) } ?? .missing }) {
+ check(live.markets.first?.key == "stock" && live.practiceOnly == true,"live files: parse, stocks first, practice only")
+} else { check(false,"live files: parse, stocks first, practice only") }
 
 print(fails == 0 ? "ALL PASS (research bot tab)" : "\(fails) FAILED (research bot tab)")
 exit(fails == 0 ? 0 : 1)

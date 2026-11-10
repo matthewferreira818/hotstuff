@@ -1,0 +1,24 @@
+# Research bot: who does what (lanes), PRACTICE MONEY ONLY
+
+_Set 2026-11-10 ~9:30 AM by Friday (backup manager). Matthew: "make sure no one conflicts, lets get everyone on this so it gets done faster."_
+_Spec: meeting-room/notes/research-bot.md. Real money stays OFF (council NO-GO; re-vote ~Dec 1)._
+
+**One owner per lane, one owner per file.** If your work needs a file in someone else's lane, message that owner; don't edit it.
+
+| Who | Lane | Owns (only these) | Status |
+|---|---|---|---|
+| LC-Research | The bot engine, phase 1b (history replay, walk-forward, guess-maker, per-bet stop, run lock, Mac schedule proposal) | `stock_bot/research_bot/*` code + tests, branch `claude/research-bot-1b` | 🔨 building |
+| LC-Pixels | The Helm "Research bot" tab (scorecard, guesses, practice orders, status, Pause only) | `tools/game_companion/` research-tab files, branch `pixels/research-tab` | 🔨 test-copy shots |
+| NB2 | Gate + merge both branches; council synthesis | merges to master | 🔨 |
+| LC-Manager | Quality gate before each merge (tests, honesty, rollback written) | gate notes | when called |
+| **LC-Trends (new)** | **Market connections check, look-only:** which free price feeds we can rely on (Yahoo now, CoinGecko free tier as backup: limits, delays, terms), and which crypto exchanges legally serve New Brunswick with an official key that can be set to trade-only / no withdrawals (fees, rules). No sign-ups, no logins, no keys. | Helm-Private `research-bot/connections.md` | 🆕 assigned |
+| **Roxy (new)** | **Idea list:** 10 testable ideas for stocks and crypto, each with what would prove it wrong, the data it needs, and why it might survive fees. Draft only: she does NOT write to the ledger. | Helm-Private `research-bot/ideas-roxy.md` | 🆕 assigned |
+| Grok (from Nov 11) | Turns ideas into forecasts in the ledger (via `forecasts.py`, committed before the window opens) | `forecasts.jsonl` entries | Nov 11 |
+| Friday | Supervisor: keeps this lanes file true, checks each finished lane against the spec, reads the scorecard, PAUSE/STOP only, calls out "lucky week" pressure | this file | 🔨 |
+
+## Ground rules for every lane
+- Only `forecasts.py` writes the ledger, and only LC-Research (tests) or Grok (real forecasts) run it. Nobody hand-edits `forecasts.jsonl`.
+- Nobody edits `rules.json` / `rules.lock`. Rule changes go in as proposals: NB2 gates them and Matthew says GO.
+- No exchange or broker accounts, no keys, no live switches. Matthew alone does those, and only after the evidence bar in the spec.
+- Anything private (accounts, balances, EI/tax) goes to Helm-Private `research-bot/` only, never this public repo.
+- When you finish: commit + push, update your board line, and post one tagged line in issue 15.

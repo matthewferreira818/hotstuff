@@ -72,7 +72,7 @@ trade could really have got; for stocks outside market hours that's the next ope
   (SPY for stocks, Bitcoin for crypto) over the same period. Also: median trade, worst trade, total without the best trade.
 - **Stocks and crypto are separate.** If only one passes, only that one goes on.
 
-## The caps (rules.json v1)
+## The caps (rules.json v2; v1 gated 2026-11-10, v2 adds the stop, at NB2's gate on 1b)
 
 | Cap | Value |
 |---|---|
@@ -85,6 +85,8 @@ trade could really have got; for stocks outside market hours that's the next ope
 | Stale data | price older than 5 minutes → halt (stocks are naturally halted outside market hours) |
 | Big jump | moved more than 5% (stocks) / 8% (crypto) in 15 minutes → halt |
 | Double orders | every order has a fixed id (`<forecast>:buy` / `:sell`) logged BEFORE placing; a repeat is refused; a half-done order stops that market until a human looks |
+| Per-bet stop | the stop sits 2× the asset's typical daily high-low range (median of 20 days) below the entry; if that's more than $15 per $100 (15%), the bet is skipped. Checked every executor run (no exchange stop: a gap can blow through it). Order id `<forecast>:stop` |
+| One run at a time | `RUN_LOCK` is made atomically; a second run does nothing; a lock older than 30 minutes (crashed run) is taken over and logged |
 | Manual stop | `stock_bot/PAUSE` (all robots) or `stock_bot/research_bot/PAUSE` (this one): nothing at all happens |
 | Auto-pause | `AUTO_PAUSE` file: no new buys; closing due positions still allowed. **A human deletes it** after reading why |
 
@@ -132,6 +134,35 @@ Real money is not part of phase 1 or of this bar. Before any real money, later a
 not behind SPY), client #1 paid, the Service Canada / EI answer, a Canadian tax check, and Matthew picking a tiny cap and flipping
 any switch himself. Practice results that look great after a lucky week are not proof: say so out loud when it happens.
 
+## Schedule (PROPOSAL, waiting for NB2's OK; nothing is installed)
+
+`stock_bot/research_bot/mac/install.sh` would run `mac/cycle.sh` on Matthew's Mac **every hour at :25** via launchd (the same way
+the Moomoo robot starts). Each cycle: pull master → `generate --commit` (forward forecasts, pushed before any window opens) →
+`executor` (stops, due closes, new buys under the caps) → `scorer` → commit + push the order log, equity, practice accounts and
+scorecard. Why :25: the next whole hour, when crypto windows open, is 35 minutes away. Plain Python: **no Claude usage**.
+- Runs in its own folder (`~/Claude/research-bot-runner`, a detached worktree of master), never in `~/Claude/hotstuff`.
+- Never on GitHub Actions (the code refuses). A Mac asleep at :25 runs it once on waking; a Mac that is off misses cycles (the
+  forecasts that do get made are still valid; the gap shows in the scorecard as fewer forecasts).
+- Off: `mac/uninstall.sh`. Pause trading only: add `stock_bot/research_bot/PAUSE` and push.
+- The replay is NOT scheduled: run it by hand when an idea is added (it takes several minutes of CPU).
+
+## Files other tools read (keep stable: add fields, never rename)
+
+LC-Pixels' "Research bot" tab in The Helm reads these. Any change gets a line here.
+
+| File | Shape |
+|---|---|
+| `scorecard.json` | `generated`, `append_only_ok`, `append_only_problems`, `markets.{stock,crypto}` with `ideas_tried`, `forecasts`, `graded`, `open`, `late_not_counted`, `no_trade_days`, `hits`, `hit_rate`, `luck_p_value`, `brier.{forecaster,coin_flip,base_rate,tomorrow_equals_today}`, `paper_trades`, `trade_size`, `paper_pnl`, `median_trade`, `worst_trade`, `pnl_without_best`, `cash_pnl`, `hold_pnl`, `hold_window`, `benchmark`, `span_days`, `down_market_seen`, `max_drawdown_pct`, `evidence_bar` ({line: true/false}), and `rows` (one per forecast: `id`, `idea`, `market`, `asset`, `status`, ...) |
+| `forecasts.jsonl` | lines with `kind` = `idea` / `forecast` / `no_trade` (fields in "A forecast" above) |
+| `orders.jsonl` | `id` (`<forecast>:buy` / `:sell` / `:stop`), `side`, `asset`, `market`, `forecast_id`, `dollars` (buys), `stop_pct` (buys), `status` (`intent` / `filled` / `failed`), `time`, `practice: true`, `profit` (sells) |
+| `equity.jsonl` | `time`, `market`, `value` |
+| `PAUSE`, `AUTO_PAUSE`, `RUN_LOCK` | present = paused / auto-paused (text says why) / a run is going |
+| `replay-log.jsonl`, `replay-report.md` | one line per idea/horizon replayed: `market`, `idea`, `horizon`, `verdict` (PASS/DEAD), `why`, `brier`, `pnl`, `windows`, `windows_won`, `run` |
+
+Changes since phase 1 merged (6fb2f0b), all in 1b: `evidence_bar` keys are now the fast-track lines plus
+`"one idea meets ALL of the above"` (the old keys are gone, because the bar changed); added `by_idea` (same fields per idea, plus
+`text` and `replay_pass`), `ideas_in_ledger`, `ideas_in_replay`; `rows[].idea`; orders gain `stop_pct` and `:stop` ids.
+
 ## How to run it (from the repo root)
 
 ```
@@ -170,4 +201,4 @@ python3 -m unittest stock_bot/research_bot/test_research_bot.py -v
   screen (phase 2, Friday: PAUSE/STOP only), a permutation test in the scorer, and a correlated-group cap (one position per
   group, Goalie's ask).
 - Not tested in phase 1: a real multi-day forward run, the scorer on real resolved forecasts, Yahoo outages mid-run (the code
-  fails closed, but it has only been tested offline), and two executors running at once (don't: no lock file yet).
+  fails closed, but it has only been tested offline).

@@ -2,3 +2,4 @@
 __pycache__/
 *.pyc
 stock_bot/research_bot/.cache/
+stock_bot/research_bot/RUN_LOCK*

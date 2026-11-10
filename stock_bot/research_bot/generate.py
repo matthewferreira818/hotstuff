@@ -163,9 +163,11 @@ def commit_and_push(path=ledger.LEDGER):
     if git("diff", "--cached", "--quiet").returncode == 0:
         return "nothing new to commit"
     git("commit", "-q", "-m", "Research bot: forward forecasts (generate.py)")
+    # The Mac runner is a detached checkout of master: no branch name there.
+    branch = git("branch", "--show-current").stdout.strip() or "master"
     for _ in range(3):
-        git("pull", "-q", "--rebase", "origin", git("branch", "--show-current").stdout.strip())
-        if git("push", "-q", "origin", "HEAD").returncode == 0:
+        git("pull", "-q", "--rebase", "origin", branch)
+        if git("push", "-q", "origin", f"HEAD:{branch}").returncode == 0:
             return "committed and pushed"
     return "committed, PUSH FAILED: push it before the windows open"
 

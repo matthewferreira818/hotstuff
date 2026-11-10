@@ -1,14 +1,26 @@
 # Crew roster (Matthew, 2026-11-06: "make note of everyone on the crew every morning")
 
-## Core crew of 4 (Matthew, Fri Nov 6 ~7:55 AM: "go with the crew of 4")
-Only 4 Local Claude chats stay OPEN on the Mac. A closed chat can't hear anything (LC-Manager was closed ~7-8 AM and the
-crew stalled), so fewer, always-open chats beat many half-open ones, and cost less usage.
-- **LC-Manager:** runs the crew (standup, gates, cleanup, merges handed to cloud Claude). Backup manager: Friday.
-- **Friday (chat):** Matthew's own AI; backup manager when LC-Manager is closed.
-- **LC-TikTok:** the engine (Switchboard, Friday's brain/DM plumbing, pings, TikTok robot).
-- **LC-Pixels:** everything he SEES in The Helm (screens, crew station, Phase 2 screens; takes over LC-Helm build's screen work).
-On call (closed, reopened only for a job): LC-Helm build, LC_Helm, LC-CrewState, LC-Makeover, LC-Trends (Mon/Thu reports), LC-Work.
-Cloud: New beginning (Co-CEO desk, Hotline, reminders), Work (inbox watch). Roxy: back, sales desk (11-09). Grok: active in the room despite "back ~Nov 11".
+## THE CREW OF 5 (Matthew, Tue Nov 10 ~10:45 AM: "go" — "we have to many bots doing to many things")
+Only these exist. **Never send work to anyone else.** A message for a parked chat goes to Friday instead.
+
+**💰 Team SELL** (top priority: client #1)
+- **Roxy (GPT, ChatGPT Project "Roxy - Sales Desk"):** finds businesses, writes outreach, honesty check, reply drafts, pipeline numbers.
+- **New beginning (cloud Claude, this repo's Co-CEO desk):** fact pass, the email sender, reply watcher, briefs, reminders, merges.
+- **Friday (Local Claude chat on the Mac):** Co-CEO and dispatcher, hands out jobs, backup for every message, drives Chrome.
+- *Tool, not a bot:* **C.C** (Claude in Chrome) sends from Matthew's Chrome when he pastes a prompt.
+
+**🔧 Team BUILD** (The Helm and tools, only when there is a job)
+- **NB2 (Local Claude):** builds AND gates everything (took over LC-Manager's gate). Backup when Friday is closed.
+- **LC-Pixels (Local Claude):** screens, plus clients' picture cards.
+
+**Separate:** Grok (xAI) keeps the practice robots + research when he's back (~Nov 11), on grok/* branches.
+
+**📦 PARKED / GONE as of 11-10 — do NOT message, assign or wait on them:**
+LC-Manager (gate → NB2), LC-Trends (trends → Roxy), LC-Research (research bot built; paused), LC_Helm, LC-Helm build,
+LC-CrewState, LC-Makeover, LC-TikTok (engine work → NB2), LC-Work (retired 11-09), Work (cloud, retired).
+Reopened only by Matthew, and then added back here first.
+
+**Email batches now need:** Roxy OK + Claude OK + Matthew GO (his standing GO of 11-10 counts; write "Matthew: GO (standing 11-10)").
 
 ## Full list
 The morning brief does a roll call from this list every day. Add a line when a chat joins, mark it when one retires.

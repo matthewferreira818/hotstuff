@@ -114,8 +114,8 @@ than discovering something was papered over.
    a hookup nor a C.C. session, Claude preps and he posts. GPT posts or pushes live only with Claude's go-ahead. OS
    file dialogs are his.
    **Selling automation (Matthew, 2026-11-09 ~9 PM, after selling restarted):** (A) email batches go out through the Helm-Private
-   workflow "Send approved batch" (tools/send_batch.py, SMTP2GO from contact@, one a minute), only when the batch file has all four
-   approvals (Roxy OK, Claude OK, LC-Manager PASS, Matthew GO) and today's send date; it skips HOLD rows, ecs/do-not-contact.txt and
+   workflow "Send approved batch" (tools/send_batch.py, SMTP2GO from contact@, one a minute), only when the batch file has the
+   approvals (Roxy OK, Claude OK, Matthew GO; LC-Manager parked 11-10) and today's send date; it skips HOLD rows, ecs/do-not-contact.txt and
    anyone already emailed; the mailing-address footer comes only from the ECS_FOOTER secret. (B) A reply watcher (scheduled, 11:46 AM
    and 4:46 PM) reads the business inbox read-only, adds every no/stop/bounce to do-not-contact at once, logs replies in
    ecs/replies-log.csv, and pings him (CONFIRM:) only for a YES or a question. (C) Roxy (GPT) is the Sales Desk lead
@@ -407,6 +407,15 @@ person. Claude never presents itself as a human or as a legal officer.
 - Legal setup is a ping item: when he's ready, Claude lists what's
   needed and what to ask an accountant or lawyer. Claude doesn't give
   legal or tax advice as if it were a professional.
+
+## THE CREW OF 5 (Matthew, 2026-11-10 ~10:45 AM: "go" ... "remember which are gone so the team isnt sending work to chats that are not there")
+
+ONLY these exist: **Team SELL** = Roxy (Sales Desk), New beginning (cloud Co-CEO desk), Friday (Mac, Co-CEO + dispatcher, backup for
+every message); **Team BUILD** = NB2 (builds AND gates; backup when Friday is closed), LC-Pixels (screens + client picture cards).
+Grok keeps the practice robots when back. C.C is a tool. **PARKED/GONE, never message, assign or wait on them:** LC-Manager, LC-Trends,
+LC-Research, LC_Helm, LC-Helm build, LC-CrewState, LC-Makeover, LC-TikTok, LC-Work, Work. Their jobs: gate → NB2, trends → Roxy,
+engine → NB2, standup/scorecard → New beginning. Email batches need Roxy OK + Claude OK + Matthew's GO (standing GO of 11-10).
+The live list is meeting-room/notes/crew-roster.md; older sections of this file that name parked chats are history.
 
 ## The crew (as of 2026-10-05)
 

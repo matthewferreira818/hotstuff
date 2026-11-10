@@ -55,7 +55,8 @@ extension CompanionInterfaceView {
   ScrollView {
    VStack(alignment:.leading,spacing:16) {
     VStack(alignment:.leading,spacing:6) {
-     Text("East Coast Social").font(.system(size:20,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+     // Simple mode's page header already says East Coast Social, so the card doesn't repeat it (Advanced unchanged).
+     if !hub.simple { Text("East Coast Social").font(.system(size:20,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text) }
      Text("Daily cards published to the site's automation/feed")
       .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext)
     }

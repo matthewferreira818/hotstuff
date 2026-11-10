@@ -9,6 +9,7 @@ Spec: .claude/council/DECISIONS.md, 2026-11-08 (Matthew: "Yes, that layout"). Br
 - **More, in 3 labelled groups:** Safety (Safety checks, Real or fake?, Accounts, Learn to stay safe) · Tools (Shortcuts, Council) · Fun (Game, Streaming). The tour, Settings and Advanced mode stay at the bottom.
 - **One home per page:** every page is in exactly one tab family or More group. Command Core has no home in Simple mode; it lives in Advanced mode. Safety checks, Real or fake? and Learn to stay safe no longer show the Command Core tab bar in Simple mode.
 - **One-time "things moved" note** across the top, with a Got it button. It never comes back after that (UserDefaults `hub.navMoved1Seen`).
+- **Page headers say where you are** (NB2's gate fix): in Simple mode, Command Core-framed pages are titled by their home and menu name, "Crew / Jobs", "Crew / Daily jobs", "Safety / Safety checks", not "Command Core / Guard". The Overview keeps its Command Core name (Advanced only). On Business, "East Coast Social" shows once (the card title is hidden in Simple mode).
 - **The Home "Needs you" card** was already there. It's unchanged.
 - **Deep links and Friday's jumps:** no page was removed or renamed in code, so every `hubSelect(...)` still lands on the same page. In Simple mode it now also shows that page's family strip.
 

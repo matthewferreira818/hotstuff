@@ -158,7 +158,7 @@ def grade(lines, rules, price_at, first_seen, now=None):
         opens = ledger.parse_time(f["opens_at"])
         resolves = ledger.parse_time(f["resolves_at"])
         seen = first_seen.get(f["id"])
-        row = {"id": f["id"], "market": f["market"], "asset": f["asset"],
+        row = {"id": f["id"], "idea": f.get("idea"), "market": f["market"], "asset": f["asset"],
                "opens": opens, "resolves": resolves, "act": f.get("act", False),
                "p_up": p_up_of(f), "status": "open"}
         if seen is None:
@@ -185,7 +185,7 @@ def grade(lines, rules, price_at, first_seen, now=None):
     return card
 
 
-def _market_card(market, lines, rows, rules, now):
+def _market_card(market, lines, rows, rules, now, nested=False):
     m = rules["markets"][market]
     graded = sorted([r for r in rows if r["status"] == "graded"],
                     key=lambda r: r["resolves"])
@@ -221,8 +221,12 @@ def _market_card(market, lines, rows, rules, now):
     created = [ledger.parse_time(l["created"]) for l in lines
                if l.get("market") == market and l.get("created")]
     span = (now - min(created)).days if created else 0
-    return {
-        "ideas_tried": len(ideas),
+    replay_tried = {(r.get("idea"), r.get("horizon")) for r in replay_log()
+                    if r.get("market") == market}
+    card = {
+        "ideas_tried": len(ideas) + len(replay_tried),
+        "ideas_in_ledger": len(ideas),
+        "ideas_in_replay": len(replay_tried),
         "forecasts": len(rows),
         "graded": n,
         "open": sum(r["status"] in ("open", "uncommitted", "waiting for prices")
@@ -245,6 +249,36 @@ def _market_card(market, lines, rows, rules, now):
         "benchmark": m["benchmark"],
         "span_days": span,
     }
+    if not nested:
+        texts = {l["id"]: l.get("text", "") for l in lines if l.get("kind") == "idea"}
+        card["by_idea"] = {}
+        for iid in sorted({r["idea"] for r in rows if r.get("idea")}):
+            sub = _market_card(market, [], [r for r in rows if r.get("idea") == iid],
+                               rules, now, nested=True)
+            sub["text"] = texts.get(iid, "")
+            sub["replay_pass"] = replay_passed(market, sub["text"])
+            card["by_idea"][iid] = sub
+    return card
+
+
+def replay_log(path=None):
+    path = path or os.path.join(HERE, "replay-log.jsonl")
+    try:
+        return ledger.read_lines(path)
+    except (OSError, ledger.LedgerError):
+        return []
+
+
+def replay_passed(market, idea_text, log=None):
+    """True if the LATEST replay of this idea variant ("replay idea NAME h=H
+    {...}") on this market said PASS."""
+    parts = idea_text.split()
+    if len(parts) < 4 or parts[:2] != ["replay", "idea"] or not parts[3].startswith("h="):
+        return False
+    name, hz = parts[2], int(parts[3][2:])
+    runs = [r for r in (log if log is not None else replay_log())
+            if r.get("market") == market and r.get("idea") == name and r.get("horizon") == hz]
+    return bool(runs) and max(runs, key=lambda r: r.get("run", ""))["verdict"] == "PASS"
 
 
 def add_benchmark(card, rules, price_at, daily_closes):
@@ -258,9 +292,16 @@ def add_benchmark(card, rules, price_at, daily_closes):
             continue
         s, e = mc["hold_window"]["start"], mc["hold_window"]["end"]
         a, b = price_at(m["benchmark"], s), price_at(m["benchmark"], e)
+        fees = fee_model(m["costs"])
         if a and b:
-            fees = fee_model(m["costs"])
             mc["hold_pnl"] = round(paper_trade(a, b, rules["start_cash"], fees), 2)
+        for sub in (mc.get("by_idea") or {}).values():
+            sub["hold_pnl"] = None
+            if sub["hold_window"]:
+                sa = price_at(m["benchmark"], sub["hold_window"]["start"])
+                sb = price_at(m["benchmark"], sub["hold_window"]["end"])
+                if sa and sb:
+                    sub["hold_pnl"] = round(paper_trade(sa, sb, rules["start_cash"], fees), 2)
         closes = daily_closes(m["benchmark"], ledger.parse_time(s),
                               ledger.parse_time(e))
         if closes:
@@ -269,29 +310,39 @@ def add_benchmark(card, rules, price_at, daily_closes):
     return card
 
 
-def evidence_bar(mc):
-    """Every line must be True before anyone may even PROPOSE a tiny live
-    pilot. The last three can't be checked by code and stay False here."""
+def idea_bar(mc):
+    """Fast-track bar (Matthew's GO via NB2, 2026-11-10; council re-votes ~Dec 1).
+    Judged per idea variant, per market. All must be True."""
     b = mc["brier"]
     beats = (b["forecaster"] is not None and all(
         b[k] is not None and b["forecaster"] < b[k]
         for k in ("coin_flip", "base_rate", "tomorrow_equals_today")))
     hold = mc.get("hold_pnl")
     return {
-        f"{BAR_MIN_FORECASTS}+ graded forecasts": mc["graded"] >= BAR_MIN_FORECASTS,
-        f"{BAR_MIN_DAYS}+ days of forward forecasting": mc["span_days"] >= BAR_MIN_DAYS,
-        "a down market happened during it": bool(mc.get("down_market_seen")),
-        "Brier beats all three baselines": beats,
-        "not likely luck (p < 0.05)": mc["luck_p_value"] < 0.05,
-        "paper P&L after costs beats cash": mc["paper_trades"] > 0 and mc["paper_pnl"] > 0,
-        "paper P&L after costs beats buy-and-hold": (
+        "(a) walk-forward on past prices passes the six-condition gate": bool(mc.get("replay_pass")),
+        f"(b) {BAR_MIN_FORECASTS}+ graded FORWARD forecasts": mc["graded"] >= BAR_MIN_FORECASTS,
+        "(b) Brier beats all three baselines": beats,
+        "(b) paper P&L after costs beats cash": mc["paper_trades"] > 0 and mc["paper_pnl"] > 0,
+        "(b) paper P&L after costs beats buy-and-hold": (
             hold is not None and mc["paper_trades"] > 0 and mc["paper_pnl"] > hold),
-        "typical trade wins (median > 0)": (mc["median_trade"] or 0) > 0,
-        "still ahead without the best trade": (mc["pnl_without_best"] or 0) > 0,
-        "six-condition gate (stock-council SKILL.md) - human check": False,
-        "client #1 has paid - human check": False,
-        "Service Canada / EI answer on trading - human check": False,
     }
+
+
+def evidence_bar(mc):
+    """Market level: MET only if at least one idea meets every line of the
+    fast-track bar. Returns {line: True if some idea meets it... } plus the
+    overall answer under 'any idea meets all of it'."""
+    ideas = mc.get("by_idea") or {}
+    bars = {iid: idea_bar(sub) for iid, sub in ideas.items()}
+    lines = list(idea_bar(dict(mc, replay_pass=False)).keys())
+    out = {k: any(bar[k] for bar in bars.values()) for k in lines}
+    out["one idea meets ALL of the above"] = any(all(bar.values()) for bar in bars.values())
+    return out
+
+
+LATER = ["six-condition #6: the practice desk is not behind SPY (forward)",
+         "client #1 has paid", "Service Canada / EI answer on trading", "a Canadian tax check",
+         "Matthew picks a tiny cap and flips any switch himself"]
 
 
 # ----------------------------------------------------------------- report
@@ -325,11 +376,26 @@ def render(card):
                 + f" · median trade {_fmt(mc['median_trade'], 2)} · worst {_fmt(mc['worst_trade'], 2)}"
                 f" · without the best {_fmt(mc['pnl_without_best'], 2)}", ""]
         bar = evidence_bar(mc)
-        out += [f"**Evidence bar for even proposing a live pilot: "
-                f"{'MET' if all(bar.values()) else 'NOT MET'}**", ""]
+        met = bar["one idea meets ALL of the above"]
+        out += [f"**Fast-track bar for the ~Dec 1 council re-vote: {'MET' if met else 'NOT MET'}** "
+                "(judged per idea; a line says yes if any idea meets it)", ""]
         out += [f"- {'yes' if v else 'NO '} - {k}" for k, v in bar.items()]
-        out.append("")
-    out += ["Stocks and crypto are judged separately: if only one passes, only that one goes on.",
+        out += ["", f"Info, not gates: span {mc['span_days']} days, a down market during it: "
+                f"{'yes' if mc.get('down_market_seen') else 'not yet'}, "
+                f"chance a coin does this well: {_fmt(mc['luck_p_value'], 2)}.", ""]
+        if mc.get("by_idea"):
+            out += ["| Idea | Graded | Brier | Coin | Base rate | Tomorrow=today | Paper P&L | Replay |",
+                    "|---|---|---|---|---|---|---|---|"]
+            for iid, sub in mc["by_idea"].items():
+                bb = sub["brier"]
+                out.append(f"| {sub['text'][12:60] or iid} | {sub['graded']} | {_fmt(bb['forecaster'])} | "
+                           f"{_fmt(bb['coin_flip'])} | {_fmt(bb['base_rate'])} | "
+                           f"{_fmt(bb['tomorrow_equals_today'])} | ${sub['paper_pnl']:+.2f} | "
+                           f"{'PASS' if sub['replay_pass'] else 'dead/untested'} |")
+            out.append("")
+    out += ["Later, before any real money (not part of the re-vote; real money is not in phase 1): "
+            + "; ".join(LATER) + ".", "",
+            "Stocks and crypto are judged separately: if only one passes, only that one goes on.",
             "\"No trade\" and \"no edge found\" are normal, honest results."]
     return "\n".join(out) + "\n"
 

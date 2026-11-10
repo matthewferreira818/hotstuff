@@ -360,6 +360,22 @@ class ExecutorTests(unittest.TestCase):
         self.assertGreater(a["cash"], 1000.0)
         self.assertEqual([o["side"] for o in a["orders"]], ["buy", "sell"])
 
+    def test_two_buys_in_one_run(self):
+        # 11:25 Nov 10 bug: the 2nd buy was sized from the starting value and
+        # came out a few cents over the 10% cap after the 1st buy's fee.
+        f2 = dict(self.f, id="F2", asset="ETH-USD")
+        log = " ".join(executor.run(
+            now=t(1), quote_fn=self.quote(t(1)), lines=[self.f, f2],
+            first_seen={"F1": 0.0, "F2": 0.0}, rules=RULES, rules_ok=True,
+            manual_pause=False, paper_dir=self.d,
+            orders_path=os.path.join(self.d, "orders.jsonl"),
+            equity_path=os.path.join(self.d, "equity.jsonl"),
+            auto_pause_path=os.path.join(self.d, "AUTO_PAUSE"),
+            range_fn=lambda a: 3.0, lock_path=os.path.join(self.d, "RUN_LOCK")))
+        self.assertNotIn("over 10%", log)
+        self.assertEqual(log.count("filled"), 2)
+        self.assertEqual(sorted(self.acct()["positions"]), ["BTC-USD", "ETH-USD"])
+
     def test_orders_from_failed_ideas_are_labelled(self):
         idea = {"kind": "idea", "id": "I1", "market": "crypto",
                 "text": 'replay idea reversal h=4 {"drop_pct": 8, "lookback": 5, "prob": 0.56}'}

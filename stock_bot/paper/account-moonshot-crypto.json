@@ -69,11 +69,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-09T07:17:41+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-09T07:57:28+00:00",
    "kind": "start",
    "text": "Checking 19 every 10 seconds."
@@ -267,6 +262,11 @@
    "time": "2026-11-10T12:44:25+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-10T13:29:52+00:00",
+   "kind": "sell",
+   "text": "Sold AVAX-USD at 8.345 (-4.7%): stopped climbing"
   }
  ],
  "bench_units": 0.01243555274788409

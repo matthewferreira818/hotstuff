@@ -635,9 +635,11 @@ class GenerateTests(unittest.TestCase):
         self.assertEqual(len(fc), 2, log)
         self.assertEqual(sum(l["kind"] == "idea" for l in lines), 1)
         self.assertTrue(all(f["direction"] == "up" and f["act"] for f in fc))
-        self.gen(self.now + dt.timedelta(minutes=30))  # still open: no pile-up
+        log = self.gen(self.now + dt.timedelta(minutes=30))  # still open: no pile-up
         self.assertEqual(len([l for l in ledger.read_lines(self.path)
                               if l["kind"] == "forecast"]), 2)
+        self.assertNotIn("no_trade", [l["kind"] for l in ledger.read_lines(self.path)])
+        self.assertIn("still open", " ".join(log))
 
     def test_no_calls_logs_no_trade(self):
         self.bars = self.bars[:20]  # too short for any call

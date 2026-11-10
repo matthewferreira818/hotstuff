@@ -118,7 +118,7 @@ def generate(now=None, bars_fn=None, path=ledger.LEDGER, forward=None, rules=Non
     rules = rules or ledger.load_rules()
     lead = rules.get("min_lead_minutes", 15) + 5
     lines = ledger.read_lines(path)
-    log, called = [], {m: 0 for m in ledger.MARKETS}
+    log, called, waiting = [], {m: 0 for m in ledger.MARKETS}, {m: 0 for m in ledger.MARKETS}
     for v in forward["variants"]:
         market, name, hz, params = v["market"], v["idea"], v["horizon"], v["params"]
         interval = v.get("interval") or idea_lib.IDEAS[name].get("interval") or (
@@ -140,6 +140,7 @@ def generate(now=None, bars_fn=None, path=ledger.LEDGER, forward=None, rules=Non
                 and l.get("idea") == iid and ledger.parse_time(l["resolves_at"]) > now}
         for asset in v["assets"]:
             if asset in busy:
+                waiting[market] += 1
                 continue
             bars = finished(bars_fn(asset, interval), interval, now, market)
             closes = [b[2] for b in bars]
@@ -169,9 +170,14 @@ def generate(now=None, bars_fn=None, path=ledger.LEDGER, forward=None, rules=Non
             except ledger.LedgerError as e:
                 log.append(f"[{market}] {asset}: refused ({e})")
     for market in {v["market"] for v in forward["variants"]}:
-        if not called[market] and not dry_run:
-            ledger.add_no_trade(market, "generate.py: no idea made a call", AUTHOR, path, now=now)
-            log.append(f"[{market}] no calls: logged a no-trade line")
+        if called[market] or dry_run:
+            continue
+        if waiting[market]:
+            # Not a quiet day: its forecasts are still open. No no-trade line.
+            log.append(f"[{market}] {waiting[market]} forecast(s) still open: nothing new")
+            continue
+        ledger.add_no_trade(market, "generate.py: no idea made a call", AUTHOR, path, now=now)
+        log.append(f"[{market}] no calls: logged a no-trade line")
     return log
 
 

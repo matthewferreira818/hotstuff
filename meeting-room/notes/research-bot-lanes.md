@@ -12,12 +12,13 @@ _Spec: meeting-room/notes/research-bot.md. Real money stays OFF (council NO-GO; 
 | NB2 | Gate + merge both branches; council synthesis | merges to master | 🔨 |
 | LC-Manager | Quality gate before each merge (tests, honesty, rollback written) | gate notes | when called |
 | **LC-Trends (new)** | **Market connections check, look-only:** which free price feeds we can rely on (Yahoo now, CoinGecko free tier as backup: limits, delays, terms), and which crypto exchanges legally serve New Brunswick with an official key that can be set to trade-only / no withdrawals (fees, rules). No sign-ups, no logins, no keys. | Helm-Private `research-bot/connections.md` | 🆕 assigned |
-| **Roxy (new)** | **Idea list:** 10 testable ideas for stocks and crypto, each with what would prove it wrong, the data it needs, and why it might survive fees. Draft only: she does NOT write to the ledger. | Helm-Private `research-bot/ideas-roxy.md` | 🆕 assigned |
+| **Roxy (new)** | **Idea list:** 10 testable ideas for stocks and crypto, each with what would prove it wrong, the data it needs, and why it might survive fees. Draft only: she does NOT write to the ledger. Loose deadline: she is also LC-Pixels' design partner on the Stock bot revamp. | Helm-Private `research-bot/ideas-roxy.md` | 🆕 assigned |
 | Grok (from Nov 11) | Turns ideas into forecasts in the ledger (via `forecasts.py`, committed before the window opens) | `forecasts.jsonl` entries | Nov 11 |
 | Friday | Supervisor: keeps this lanes file true, checks each finished lane against the spec, reads the scorecard, PAUSE/STOP only, calls out "lucky week" pressure | this file | 🔨 |
 
 ## Ground rules for every lane
 - Only `forecasts.py` writes the ledger, and only LC-Research (tests) or Grok (real forecasts) run it. Nobody hand-edits `forecasts.jsonl`.
+- **Ideas count only after LC-Research's history replay**, and EVERY idea tried goes into the "ideas tried" count, winners and losers alike (the council's multiple-testing rule). Nothing goes live in `forward.json` without NB2's gate.
 - Nobody edits `rules.json` / `rules.lock`. Rule changes go in as proposals: NB2 gates them and Matthew says GO.
 - No exchange or broker accounts, no keys, no live switches. Matthew alone does those, and only after the evidence bar in the spec.
 - Anything private (accounts, balances, EI/tax) goes to Helm-Private `research-bot/` only, never this public repo.

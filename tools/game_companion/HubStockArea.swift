@@ -557,6 +557,9 @@ struct StockSideCards: View {
     ForEach(Array(s.forecasts.prefix(3))) { f in
      VStack(alignment:.leading,spacing:1) {
       Text("\(f.asset) \(f.direction.lowercased() == "down" ? "down" : "up")\(f.probability.map { " · \(Int(($0 * 100).rounded()))% sure" } ?? "")").font(.system(size:12.5,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
+      if let dead = s.deadLabel(idea:f.idea) {
+       Label(dead.prefix(1).uppercased() + dead.dropFirst(),systemImage:"exclamationmark.triangle.fill").font(.system(size:10.5,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.amber).lineLimit(2)
+      }
       if !f.reason.isEmpty { Text(ResearchBotData.why(f)?.text ?? f.reason).font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext).lineLimit(3) }
      }
     }

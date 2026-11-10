@@ -106,6 +106,27 @@ check(ResearchBotData.guessVerdict(b.markets[0]).hasPrefix("12 guesses written, 
 let shuffled = #"{"markets":{"stock":{"evidence_bar":{"zeta - human check":false,"beta":true,"alpha":false}}}}"#
 check(ResearchBotData.parseScorecard(Data(shuffled.utf8))?.1.first?.bar.map(\.name) == ["beta","alpha","zeta - human check"],"bar keeps file order, human checks last")
 
+// 11. Failed-replay label (LC-Research 1b fields: by_idea.*.replay_status/label, orders replay_status/label)
+let dsc = #"{"markets":{"stock":{"forecasts":2,"by_idea":{"I-dead":{"replay_status":"DEAD","label":"from an idea that failed the replay: data only, not a signal"},"I-ok":{"replay_status":"PASS"},"I-null":{"replay_status":null}}}}}"#
+let dledger = """
+{"kind":"forecast","id":"F-dead","asset":"SPY","direction":"down","idea":"I-dead","reason":"x"}
+{"kind":"forecast","id":"F-ok","asset":"QQQ","direction":"up","idea":"I-ok","reason":"x"}
+"""
+let dorders = """
+{"id":"F-ok:buy","side":"buy","asset":"QQQ","status":"filled","time":"2026-11-10T15:00:00Z","replay_status":"DEAD"}
+{"id":"F-dead:buy","side":"buy","asset":"SPY","status":"filled","time":"2026-11-10T15:00:00Z"}
+{"id":"F-x:buy","side":"buy","asset":"IWM","status":"filled","time":"2026-11-10T15:00:00Z","replay_status":"PASS"}
+"""
+let ds = (await ResearchBotData.load { p in
+ switch p { case "research_bot/scorecard.json": return .ok(Data(dsc.utf8)); case "research_bot/forecasts.jsonl": return .ok(Data(dledger.utf8)); case "research_bot/orders.jsonl": return .ok(Data(dorders.utf8)); default: return .missing }
+})!
+check(ds.deadLabel(idea:"I-dead") == "from an idea that failed the replay: data only, not a signal" && ds.deadLabel(idea:"I-ok") == nil && ds.deadLabel(idea:"I-null") == nil,"DEAD idea -> label; PASS / null -> none")
+let byId = Dictionary(uniqueKeysWithValues:ds.orders.map { ($0.id,$0) })
+check(ds.deadLabel(order:byId["F-ok:buy"]!) == ResearchSnapshot.deadDefault,"order marked DEAD without a label -> default label")
+check(ds.deadLabel(order:byId["F-dead:buy"]!) != nil,"order from a DEAD idea's forecast -> label (via its forecast)")
+check(ds.deadLabel(order:byId["F-x:buy"]!) == nil,"PASS order -> no label")
+check(src.contains("deadLabel(idea:f.idea)") && src.contains("deadLabel(order:o)") && area.contains("deadLabel(idea:f.idea)"),"label shown on guesses, orders and Research notes")
+
 // 10. Live files: a smoke test only (they change hourly), no exact numbers
 if let live = await ResearchBotData.load({ p in (try? Data(contentsOf:root.appendingPathComponent("stock_bot/" + p))).map { .ok($0) } ?? .missing }) {
  check(live.markets.first?.key == "stock" && live.practiceOnly == true,"live files: parse, stocks first, practice only")

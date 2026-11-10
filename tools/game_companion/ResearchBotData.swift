@@ -41,6 +41,7 @@ struct ResearchMarket: Identifiable {
  var withoutBest: Double?
  var spanDays: Double?
  var bar: [(name: String,met: Bool)] = []
+ var ideaStatus: [String:(status: String,label: String?)] = [:]   // by_idea.<id>.replay_status / label (LC-Research 1b)
  var barMet: Int { bar.filter { $0.met }.count }
 }
 
@@ -57,6 +58,7 @@ struct ResearchForecast: Identifiable {
  var created: Date?
  var author: String
  var botPlain: String? = nil   // LC-Research's own `plain_reason` (from 1b on); older lines don't have it
+ var idea: String = ""
 }
 
 struct ResearchNoTrade: Identifiable {
@@ -76,6 +78,8 @@ struct ResearchOrder: Identifiable {
  var status: String           // "filled", "failed" or "half-done"
  var profit: Double?
  var error: String?
+ var replayStatus: String? = nil   // PASS / DEAD / untested (LC-Research 1b)
+ var label: String? = nil
 }
 
 enum ResearchState: Equatable {
@@ -106,6 +110,17 @@ struct ResearchSnapshot {
   if let a = autoPause { return .autoPaused(a.isEmpty ? "The bot paused itself (no reason written)." : a) }
   if pauseUnknown { return .unknown("Couldn't check the pause files on GitHub, so this can't say whether it's paused. Try Refresh.") }
   return .on
+ }
+ // NB2: anything from an idea that failed the replay carries a plain warning. nil = nothing to say.
+ static let deadDefault = "from an idea that failed the replay: data only, not a signal"
+ func deadLabel(idea: String) -> String? {
+  for m in markets { if let e = m.ideaStatus[idea], e.status.uppercased() == "DEAD" { return e.label ?? ResearchSnapshot.deadDefault } }
+  return nil
+ }
+ func deadLabel(order o: ResearchOrder) -> String? {
+  if o.replayStatus?.uppercased() == "DEAD" { return o.label ?? ResearchSnapshot.deadDefault }
+  let fid = o.id.split(separator:":").first.map(String.init) ?? ""
+  return forecasts.first { $0.id == fid }.flatMap { deadLabel(idea:$0.idea) }
  }
  // Honest empty state: nothing written yet in either market.
  var nothingYet: Bool { forecasts.isEmpty && noTrades.isEmpty && markets.allSatisfy { $0.forecasts == 0 && $0.noTradeDays == 0 } }
@@ -177,6 +192,10 @@ enum ResearchBotData {
     if ha != hb { return !ha }
     let pa = pos[a] ?? Int.max, pb = pos[b] ?? Int.max
     return pa != pb ? pa < pb : a < b }
+   for (id,v) in (m["by_idea"] as? [String:Any]) ?? [:] {
+    guard let e = v as? [String:Any], let st = e["replay_status"] as? String, !st.isEmpty else { continue }
+    r.ideaStatus[id] = (st,(e["label"] as? String).flatMap { $0.isEmpty ? nil : $0 })
+   }
    r.bar = order.map { ($0,(bar[$0] as? Bool) ?? ((bar[$0] as? NSNumber)?.boolValue ?? false)) }
    out.append(r)
   }
@@ -195,7 +214,7 @@ enum ResearchBotData {
     f.append(ResearchForecast(id:str(l["id"]).isEmpty ? "f\(i)" : str(l["id"]),asset:str(l["asset"]),market:str(l["market"]),
      direction:str(l["direction"]),probability:num(l["probability"]),opens:date(l["opens_at"]),resolves:date(l["resolves_at"]),
      reason:str(l["reason"]),act:(l["act"] as? Bool) ?? false,created:date(l["created"]),author:str(l["author"]),
-     botPlain:(l["plain_reason"] as? String).map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : String($0.prefix(400)) }))
+     botPlain:(l["plain_reason"] as? String).map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : String($0.prefix(400)) },idea:str(l["idea"])))
    default: break
    }
   }
@@ -212,6 +231,8 @@ enum ResearchBotData {
    var o = byId[id] ?? ResearchOrder(id:id,side:str(l["side"]),asset:str(l["asset"]),market:str(l["market"]),dollars:num(l["dollars"]),
     time:date(l["time"]),status:"half-done",profit:nil,error:nil)
    if first[id] == nil { first[id] = i }
+   if let st = l["replay_status"] as? String, !st.isEmpty { o.replayStatus = st }
+   if let lb = l["label"] as? String, !lb.isEmpty { o.label = lb }
    if status == "filled" || status == "failed" {
     o.status = status; o.profit = num(l["profit"]); o.error = l["error"] as? String
     if let t = date(l["time"]) { o.time = t }

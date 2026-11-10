@@ -2,8 +2,8 @@ import SwiftUI
 
 // The research bot's own big tab on the Stock bot page. PRACTICE MONEY ONLY.
 // Shows the plain-code scorecard (stocks and crypto separate), the latest guesses with their reasons, the practice orders and the status.
-// READ-ONLY: no order button, no keys, no real-money switch, no pause/resume. The Pause spot is kept, disabled, with a "How to pause" box
-// (NB2, 2026-11-10: a button comes once the bot runs on a schedule and writes the file where that runner looks).
+// READ-ONLY: no order button, no keys, no real-money switch, no pause/resume. The Pause spot is kept, off, with a "How to pause" box
+// (NB2, 2026-11-10). The bot runs hourly since 9:38 that day and pulls master each run, so a pushed PAUSE file stops it next run.
 @MainActor final class ResearchBotModel: ObservableObject {
  static let shared = ResearchBotModel()
  @Published var snap: ResearchSnapshot?
@@ -15,11 +15,14 @@ import SwiftUI
  func refresh() async {
   guard !loading else { return }
   loading = true; defer { loading = false }
-  if SwitchboardTestHooks.active, let dir = UserDefaults.standard.string(forKey:"research.testDir") {
-   snap = await ResearchBotData.load { p in (try? Data(contentsOf:URL(fileURLWithPath:dir).appendingPathComponent(p))).map { .ok($0) } ?? .missing }
-  } else {
-   snap = await ResearchBotData.load(ResearchBotData.fetchGitHub)
-  }
+  // An unstructured task: SwiftUI cancels a view's .task when the view is rebuilt, and a cancelled read must not
+  // become "no connection" on screen (NB2 caught this on v2). A cancelled load returns nil and the old snapshot stays.
+  let dir = SwitchboardTestHooks.active ? UserDefaults.standard.string(forKey:"research.testDir") : nil
+  let fresh = await Task {
+   if let dir { return await ResearchBotData.load { p in (try? Data(contentsOf:URL(fileURLWithPath:dir).appendingPathComponent(p))).map { .ok($0) } ?? .missing } }
+   return await ResearchBotData.load(ResearchBotData.fetchGitHub)
+  }.value
+  if let fresh { snap = fresh }
  }
 
 }
@@ -28,6 +31,7 @@ import SwiftUI
 @MainActor final class ResearchBotPageState: ObservableObject {
  @Published var allForecasts = false
  @Published var allOrders = false
+ @Published var details: Set<String> = []
 }
 
 struct ResearchBotPanel: View {
@@ -96,10 +100,10 @@ struct ResearchBotPanel: View {
   let (title,why,tint): (String,String,Color) = {
    switch s.state {
    // Roxy's point: the file being on GitHub isn't proof the runner has seen it yet.
-   case .paused(let why): return ("PAUSE FILE ON GITHUB","\(why) The bot stops at its next pull; it doesn't report back yet when it has seen it. A person deletes the file to let it run again.",HubTheme.amber)
+   case .paused(let why): return ("PAUSE REQUESTED","\(why) Requested, not confirmed: the bot stops at its next hourly run, but it doesn't report back yet when it has seen the file. A person deletes the file to let it run again.",HubTheme.amber)
    case .autoPaused(let why): return ("AUTO-PAUSED","It paused itself: \(why). No new practice buys; it can still close trades that are due. A person reads why and deletes AUTO_PAUSE.",HubTheme.crimson)
    case .unknown(let why): return ("CAN'T TELL",why,HubTheme.subtext)
-   case .on: return ("NOT PAUSED","It works only when someone runs it on this Mac. Nothing runs on a schedule yet.",HubTheme.green)
+   case .on: return ("NOT PAUSED","It runs by itself every hour on this Mac (at :25). Each run pulls GitHub first, so a PAUSE file stops it at the next run.",HubTheme.green)
    }
   }()
   return card {
@@ -112,15 +116,15 @@ struct ResearchBotPanel: View {
       .foregroundStyle(HubTheme.subtext.opacity(0.6)).padding(.horizontal,14).frame(minHeight:44)
       .background(HubTheme.card,in:RoundedRectangle(cornerRadius:12))
       .overlay(RoundedRectangle(cornerRadius:12).stroke(HubTheme.line,lineWidth:1))
-      .help("Coming when the bot runs on a schedule. For now, see How to pause below.")
-      .accessibilityLabel("Pause button, not available yet: coming when the bot runs on a schedule")
+      .help("Off for now. See How to pause below.")
+      .accessibilityLabel("Pause button, off for now. See How to pause below.")
     }
     Text(why).font(.system(size:12.5,design:.rounded)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
     if s.practiceOnly == false {
      Text("Its rules file no longer says practice only, so its own checker refuses every order. A crew chat should look.")
       .font(.system(size:12.5,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.crimson).fixedSize(horizontal:false,vertical:true)
     }
-    Text("Pause button: coming when the bot runs on a schedule.").font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
+    Text("The Pause button is off for now: use How to pause below.").font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
    }
   }
  }
@@ -129,7 +133,7 @@ struct ResearchBotPanel: View {
   card {
    VStack(alignment:.leading,spacing:6) {
     Label("How to pause",systemImage:"pause.circle").font(.system(size:14,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
-    Text("1. Ask any crew chat: \"pause the research bot\".\n2. It adds a file named PAUSE in stock_bot/research_bot/ (or stock_bot/PAUSE to stop every robot) and pushes it.\n3. While that file is there, the bot does nothing at all. This tab shows PAUSE FILE ON GITHUB once it's there; the bot stops at its next pull.\n4. To let it run again, a person deletes the file.")
+    Text("1. Ask any crew chat: \"pause the research bot\".\n2. It adds a file named PAUSE in stock_bot/research_bot/ (or stock_bot/PAUSE to stop every robot) and pushes it.\n3. While that file is there, the bot does nothing at all. This tab shows PAUSE REQUESTED once it's there (not confirmed: the bot doesn't report back yet). It stops at its next hourly run.\n4. To let it run again, a person deletes the file.")
      .font(.system(size:12.5,design:.rounded)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
    }
   }
@@ -205,7 +209,16 @@ struct ResearchBotPanel: View {
        Spacer(minLength:4)
        Text(window(f)).font(.system(size:11.5,weight:.medium,design:.rounded)).foregroundStyle(HubTheme.subtext)
       }
-      if !f.reason.isEmpty { Text("Why: \(f.reason)").font(.system(size:12.5,design:.rounded)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true) }
+      if !f.reason.isEmpty {
+       let plain = ResearchBotData.why(f)
+       Text(plain.map { $0.ours ? "Why (our plain reading of its rule): \($0.text)" : "Why: \($0.text)" } ?? "Why: \(f.reason)").font(.system(size:12.5,design:.rounded)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
+       if plain != nil {
+        Button { if page.details.contains(f.id) { page.details.remove(f.id) } else { page.details.insert(f.id) } } label: {
+         Text(page.details.contains(f.id) ? "Hide technical details" : "Technical details").font(.system(size:11,weight:.medium,design:.rounded)).foregroundStyle(HubTheme.subtext).underline()
+        }.buttonStyle(.plain).accessibilityLabel("Show the bot's own reason text")
+        if page.details.contains(f.id) { Text("Technical reason only (the bot's own words): \(f.reason)").font(.system(size:11,design:.monospaced)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true).textSelection(.enabled) }
+       }
+      }
       Text([when(f.opens).map { "Window \($0)" },when(f.resolves).map { "to \($0)" },f.act ? "asks for a practice trade" : "guess only, no trade",f.author.isEmpty ? nil : "by \(f.author)"].compactMap { $0 }.joined(separator:" · "))
        .font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
      }

@@ -56,6 +56,7 @@ struct ResearchForecast: Identifiable {
  var act: Bool
  var created: Date?
  var author: String
+ var botPlain: String? = nil   // LC-Research's own `plain_reason` (from 1b on); older lines don't have it
 }
 
 struct ResearchNoTrade: Identifiable {
@@ -110,7 +111,7 @@ struct ResearchSnapshot {
  var nothingYet: Bool { forecasts.isEmpty && noTrades.isEmpty && markets.allSatisfy { $0.forecasts == 0 && $0.noTradeDays == 0 } }
 }
 
-enum ResearchFetch { case ok(Data), missing, failed(String) }
+enum ResearchFetch { case ok(Data), missing, failed(String), cancelled }
 
 enum ResearchBotData {
  static let base = "https://raw.githubusercontent.com/matthewferreira818/hotstuff/master/stock_bot/"
@@ -179,7 +180,8 @@ enum ResearchBotData {
    case "forecast":
     f.append(ResearchForecast(id:str(l["id"]).isEmpty ? "f\(i)" : str(l["id"]),asset:str(l["asset"]),market:str(l["market"]),
      direction:str(l["direction"]),probability:num(l["probability"]),opens:date(l["opens_at"]),resolves:date(l["resolves_at"]),
-     reason:str(l["reason"]),act:(l["act"] as? Bool) ?? false,created:date(l["created"]),author:str(l["author"])))
+     reason:str(l["reason"]),act:(l["act"] as? Bool) ?? false,created:date(l["created"]),author:str(l["author"]),
+     botPlain:(l["plain_reason"] as? String).map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }.flatMap { $0.isEmpty ? nil : String($0.prefix(400)) }))
    default: break
    }
   }
@@ -219,13 +221,17 @@ enum ResearchBotData {
  }
 
  // MARK: one load of everything. `load` gets a path under stock_bot/ (tests pass fixtures).
- static func load(_ load: (String) async -> ResearchFetch) async -> ResearchSnapshot {
+ // nil = a read was cancelled (the view went away mid-load): keep what's on screen instead of storing a half-read snapshot.
+ static func load(_ fetch: (String) async -> ResearchFetch) async -> ResearchSnapshot? {
   var s = ResearchSnapshot(loaded:Date())
+  var cancelled = false
+  func load(_ p: String) async -> ResearchFetch { let r = await fetch(p); if case .cancelled = r { cancelled = true }; return r }
   func text(_ d: Data) -> String { String(decoding:d,as:UTF8.self).trimmingCharacters(in:.whitespacesAndNewlines) }
   switch await load("research_bot/scorecard.json") {
   case .ok(let d): if let (g,m) = parseScorecard(d) { s.generated = g; s.markets = m } else { s.problems.append("The scorecard file couldn't be read.") }
   case .missing: s.problems.append("No scorecard file yet.")
   case .failed(let why): s.problems.append("Couldn't load the scorecard (\(why)).")
+  case .cancelled: break
   }
   if case .ok(let d) = await load("research_bot/forecasts.jsonl") { (s.forecasts,s.noTrades,s.ideaCount) = parseLedger(d) }
   if case .ok(let d) = await load("research_bot/orders.jsonl") { s.orders = parseOrders(d) }
@@ -236,9 +242,10 @@ enum ResearchBotData {
    case .ok(let d): s[keyPath:keyPath] = String(text(d).prefix(300))
    case .missing: break
    case .failed(let why): s.problems.append("Couldn't check \(path) (\(why))."); s.pauseUnknown = true
+   case .cancelled: break
    }
   }
-  return s
+  return cancelled ? nil : s
  }
 
  static func fetchGitHub(_ path: String) async -> ResearchFetch {
@@ -251,7 +258,10 @@ enum ResearchBotData {
    if code == 200 { return .ok(data) }
    if code == 404 { return .missing }
    return .failed("GitHub said \(code)")
-  } catch { return .failed("no connection") }
+  } catch {
+   if Task.isCancelled || (error as? URLError)?.code == .cancelled || error is CancellationError { return .cancelled }
+   return .failed("no connection")
+  }
  }
 
  // MARK: plain words
@@ -266,6 +276,47 @@ enum ResearchBotData {
   return (v > 0 ? "+" : v < 0 ? "-" : "") + money(abs(v))
  }
  static func brier(_ v: Double?) -> String { v.map { String(format:"%.3f",$0) } ?? "-" }
+
+ // The research bot's reason, "momentum {"lookback": 20, "prob": 0.52}, horizon 1 trading days: Up if higher than N bars ago, else down",
+ // in plain words. nil when it doesn't match that shape (the raw text is shown instead). The raw text always stays behind "details".
+ // What to show as "why": the bot's own plain_reason first; else our reading of its rule (labelled as ours); else nil (raw shown).
+ static func why(_ f: ResearchForecast) -> (text: String,ours: Bool)? {
+  if let b = f.botPlain { return (b,false) }
+  return plainReason(f).map { ($0,true) }
+ }
+ static func plainReason(_ f: ResearchForecast) -> String? {
+  let r = f.reason
+  guard let brace = r.firstIndex(of:"{"), let close = r[brace...].firstIndex(of:"}") else { return nil }
+  let name = r[..<brace].trimmingCharacters(in:.whitespaces)
+  guard !name.isEmpty, !name.contains(" ") else { return nil }
+  let params = (try? JSONSerialization.jsonObject(with:Data(r[brace...close].utf8))) as? [String:Any] ?? [:]
+  let rest = r[r.index(after:close)...]
+  var n = 1, unit = "trading day", rule = ""
+  if let h = rest.range(of:"horizon ") {
+   let words = rest[h.upperBound...].split(separator:":",maxSplits:1)
+   let hw = words.first.map { $0.split(separator:" ") } ?? []
+   n = Int(hw.first ?? "") ?? 1
+   let u = hw.dropFirst().joined(separator:" ")
+   if !u.isEmpty { unit = u.hasSuffix("s") ? String(u.dropLast()) : u }
+   rule = words.count > 1 ? words[1].trimmingCharacters(in:.whitespaces) : ""
+  }
+  let units = { (k: Int) in k == 1 ? unit : unit + "s" }
+  let next = n == 1 ? "the next \(unit)" : "the next \(n) \(units(n))"
+  let up = f.direction.lowercased() != "down"
+  let L = num(params["lookback"]).map { Int($0) }
+  switch name {
+  case "momentum":
+   guard let L else { break }
+   return "Momentum (\(L)-\(unit.replacingOccurrences(of:"trading ",with:""))): \(f.asset) is \(up ? "higher" : "lower") than \(L) \(units(L)) ago, so it guesses \(up ? "up" : "down") for \(next)"
+  case "reversal":
+   guard let L, let d = num(params["drop_pct"]) else { break }
+   return "Bounce-back (\(clean(d))% over \(L) \(units(L))): \(f.asset) \(up ? "fell" : "rose") more than \(clean(d))%, so it guesses \(up ? "a bounce up" : "a pullback down") for \(next)"
+  default: break
+  }
+  let pretty = name.replacingOccurrences(of:"_",with:" ").prefix(1).uppercased() + name.replacingOccurrences(of:"_",with:" ").dropFirst()
+  let ruleText = L.map { rule.replacingOccurrences(of:"N bars",with:"\($0) \(units($0))") } ?? rule
+  return "\(pretty)\(ruleText.isEmpty ? "" : ": \(ruleText.prefix(1).lowercased() + ruleText.dropFirst())"). It guesses \(up ? "up" : "down") for \(next)"
+ }
 
  // One sentence on the guesses. Small samples are said out loud.
  static func guessVerdict(_ m: ResearchMarket) -> String {

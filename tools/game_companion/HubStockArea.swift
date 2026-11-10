@@ -53,7 +53,10 @@ struct ChartSeries {
  }
 
  // Account value vs just holding, rebuilt from the robot's own orders + public prices.
- func trajectory(_ r: StockRobotInfo,range: ChartRange,snap: StockRobot?) async {
+ // Charts load in an unstructured task too, so a view rebuild can't cancel a fetch into a stored "no prices" chart.
+ func trajectory(_ r: StockRobotInfo,range: ChartRange,snap: StockRobot?) async { await Task { await self.trajectoryNow(r,range:range,snap:snap) }.value }
+ func price(_ r: StockRobotInfo,holding h: StockHolding,range: ChartRange) async { await Task { await self.priceNow(r,holding:h,range:range) }.value }
+ private func trajectoryNow(_ r: StockRobotInfo,range: ChartRange,snap: StockRobot?) async {
   let key = "traj|\(r.id)|\(range.rawValue)"
   guard !loading.contains(key) else { return }
   loading.insert(key); defer { loading.remove(key) }
@@ -87,14 +90,14 @@ struct ChartSeries {
   c.marks = acct.orders.filter { $0.t >= from }
   c.dips = StockHistory.dips(rebuilt.value,pct:range.dipPct,window:range.dipWindow)
   c.offline = offline; c.fetched = b.fetched
-  var note = "Rebuilt from the robot's recorded orders and public prices (no value history is recorded yet). Shaded: more than \(StockHistory.clean(range.dipPct))% below its high of the past \(range.windowWords)."
+  var note = "Rebuilt from the robot's recorded orders (stock_bot/paper/\(r.account)) and public Yahoo prices; no value history is recorded yet. Both lines use the same time points. Shaded: more than \(StockHistory.clean(range.dipPct))% below its high of the past \(range.windowWords)."
   if !rebuilt.unpriced.isEmpty { note += " No public price for \(rebuilt.unpriced.joined(separator:", ")): valued at its last trade." }
   c.note = note
   charts[key] = c
  }
 
  // One position's price, with entry / peak / stop and the robot's buys and sells of it.
- func price(_ r: StockRobotInfo,holding h: StockHolding,range: ChartRange) async {
+ private func priceNow(_ r: StockRobotInfo,holding h: StockHolding,range: ChartRange) async {
   let key = "px|\(r.id)|\(h.symbol)|\(range.rawValue)"
   guard !loading.contains(key) else { return }
   loading.insert(key); defer { loading.remove(key) }
@@ -352,6 +355,8 @@ struct StockArea: View {
   }
   .task(id:key) { await model.trajectory(r,range:page.range,snap:s) }
   strip(r,s)
+  Text("Sources: the cards come from the robot's own snapshot (time above). Orders come from its paper account file on GitHub. Prices come from Yahoo's public charts. Practice money only.")
+   .font(.system(size:11,design:.rounded)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
   if compact {
    journal(r,s,limit:5); notes(s)
   } else {
@@ -475,7 +480,15 @@ struct StockArea: View {
      .font(.system(size:12,design:.rounded)).foregroundStyle(HubTheme.subtext).fixedSize(horizontal:false,vertical:true)
     if s.rules.isEmpty { Text("This robot's snapshot doesn't list its rules. They're in stock_bot/\(r.watchlist) and its code.").font(.system(size:12.5,design:.rounded)).foregroundStyle(HubTheme.subtext) }
     ForEach(Array(s.rules.enumerated()),id:\.offset) { _,rule in
-     Text("• " + StockHistory.ruleWords(rule.key,rule.value)).font(.system(size:13,design:.rounded)).foregroundStyle(HubTheme.text)
+     let r = StockHistory.rule(rule.key,rule.value)
+     HStack(alignment:.firstTextBaseline,spacing:10) {
+      Text(r.value).font(.system(size:13.5,weight:.bold,design:.rounded)).monospacedDigit().foregroundStyle(HubTheme.text).frame(minWidth:64,alignment:.trailing)
+      VStack(alignment:.leading,spacing:1) {
+       Text(r.meaning).font(.system(size:13,design:.rounded)).foregroundStyle(r.meaning.hasPrefix("Meaning not verified") ? HubTheme.amber : HubTheme.text).fixedSize(horizontal:false,vertical:true)
+       Text(rule.key).font(.system(size:10.5,design:.monospaced)).foregroundStyle(HubTheme.subtext)
+      }
+     }
+     .accessibilityElement(children:.combine)
     }
     let stops = s.holdings.filter { $0.stop != nil }
     if !stops.isEmpty {
@@ -544,7 +557,7 @@ struct StockSideCards: View {
     ForEach(Array(s.forecasts.prefix(3))) { f in
      VStack(alignment:.leading,spacing:1) {
       Text("\(f.asset) \(f.direction.lowercased() == "down" ? "down" : "up")\(f.probability.map { " · \(Int(($0 * 100).rounded()))% sure" } ?? "")").font(.system(size:12.5,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.text)
-      if !f.reason.isEmpty { Text(f.reason).font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext).lineLimit(3) }
+      if !f.reason.isEmpty { Text(ResearchBotData.why(f)?.text ?? f.reason).font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext).lineLimit(3) }
      }
     }
     Button { stocks.robot = StockArea.researchTab } label: { Text("Open the Research bot →").font(.system(size:12,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.amber) }.buttonStyle(.plain)
@@ -635,7 +648,14 @@ struct StockLineChart: View {
     }
     // dips
     ForEach(Array(series.dips.enumerated()),id:\.offset) { _,d in
-     Rectangle().fill(HubTheme.crimson.opacity(0.13)).frame(width:max(X(d.to) - X(d.from),2),height:h).offset(x:X(d.from),y:top)
+     Rectangle().fill(HubTheme.crimson.opacity(0.08)).frame(width:max(X(d.to) - X(d.from),2),height:h).offset(x:X(d.from),y:top)
+    }
+    // each dip's depth, where there's room for the label
+    ForEach(Array(series.dips.enumerated()),id:\.offset) { _,d in
+     if X(d.to) - X(d.from) > 34 {
+      Text("−\(StockHistory.clean((d.depth * 10).rounded() / 10))%").font(.system(size:9,weight:.semibold,design:.rounded)).foregroundStyle(HubTheme.crimson.opacity(0.9))
+       .position(x:(X(d.from) + X(d.to)) / 2,y:top + h - 8)
+     }
     }
     // reference levels
     ForEach(Array(series.levels.enumerated()),id:\.offset) { i,l in

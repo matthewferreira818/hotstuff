@@ -271,6 +271,33 @@ enum StockHistory {
   let h = now.timeIntervalSince(d) / 3600
   return h < 2 ? 0 : h < 26 ? 1 : 2
  }
+ // What each rule does, checked against the robot's own code on 2026-11-10 (momentum_bot.py, hot_bot.py, moonshot.py).
+ // Anything not in this list shows "Meaning not verified" (Roxy's rule: never guess a meaning).
+ static let ruleMeanings: [String:(unit: String,text: String)] = [
+  "momentum": ("%","Buys only stocks up at least this much over 60 days."),
+  "volume_x": ("×","Today's trading volume must be at least this many times its 20-day average."),
+  "atr_x": ("×","Sells when the price falls this many times the stock's typical daily range (ATR) below its best close since buying."),
+  "under_vwap_pct": ("%","Buys when a stock is at least this far below its average price for the day (VWAP)."),
+  "stop_pct": ("%","Sells if the price falls this far below what it paid."),
+  "trips_per_stock": ("","Buys the same stock at most this many times a day."),
+  "max_open": ("","Holds at most this many stocks at once."),
+  "wait_minutes": (" min","No buys in this many minutes after the market opens."),
+  "last_buy_minutes_before_close": (" min","No new buys this many minutes before the close."),
+  "flatten_minutes_before_close": (" min","Sells everything this many minutes before the close."),
+  "min_gain_pct": ("%","Takes profit when the price is back at its day average, but only if it's up at least this much from the buy."),
+  "lookback_days": (" days","Ranks everything by how much it rose over this many days."),
+  "trend_days": (" days","Only considers things above their average price over this many days (still climbing)."),
+  "max_positions": ("","Holds this many of the top-ranked at once, with the cash split evenly."),
+  "trail_pct": ("%","Sells if the price falls this far below its best since buying."),
+  "min_hold_hours": (" h","After this many hours it also sells once the thing stops climbing."),
+  "min_rise_pct": ("%","Only buys something that rose at least this much over the look-back."),
+ ]
+ // The exact value as the snapshot wrote it (never rounded) with its unit, and its meaning.
+ static func rule(_ key: String,_ value: Any) -> (value: String,meaning: String) {
+  let raw: String = { if let b = value as? Bool { return b ? "yes" : "no" }; if let n = value as? NSNumber { return n.stringValue }; return "\(value)" }()
+  guard let m = ruleMeanings[key] else { return (raw,"Meaning not verified.") }
+  return (raw + m.unit,m.text)
+ }
  // Robot rules from the snapshot ("trail_pct": 15) in plain words.
  static func ruleWords(_ key: String,_ value: Any) -> String {
   var name = key.replacingOccurrences(of:"_",with:" ")

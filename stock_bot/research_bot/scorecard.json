@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-10T13:35:57Z",
+ "generated": "2026-11-10T13:38:21Z",
  "markets": {
   "stock": {
    "ideas_tried": 9,
@@ -9,7 +9,7 @@
    "graded": 0,
    "open": 12,
    "late_not_counted": 0,
-   "no_trade_days": 0,
+   "no_trade_days": 1,
    "hits": 0,
    "hit_rate": null,
    "luck_p_value": 1.0,
@@ -82,7 +82,7 @@
    "graded": 0,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 1,
+   "no_trade_days": 2,
    "hits": 0,
    "hit_rate": null,
    "luck_p_value": 1.0,

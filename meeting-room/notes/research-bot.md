@@ -95,6 +95,23 @@ trade could really have got; for stocks outside market hours that's the next ope
 anyone who can push could also re-lock, so the real lock is review (NB2 gate before merge). The phase 1 build created the
 first `rules.lock` (v1 above) as part of the branch NB2 is gating.
 
+## First replay result, in plain words (2026-11-10)
+
+**No idea beat just holding after costs, in stocks or in crypto.** 16 idea/horizon combinations tried (momentum, reversal,
+trend, always-up; 1 and 5 trading days for 12 stocks over ~4.5 years; 4 and 24 hours for 19 coins over ~2 years, every day of
+the week): **0 passed.** Every one lost money after fees on the unseen windows, and none won most of its unseen windows.
+- **Crypto:** one real-looking but small signal. "Reversal" (after an 8%+ move in 5 hours, call the opposite) was right 55% of
+  the time at 4 hours and 53% at 24 hours, a Brier a little better than a coin flip. But after the 0.5%-a-side fee and slippage it
+  still lost about $1.11 (4 h) and $0.48 (24 h) per $100 trade, and won 2 and 6 of 21 unseen months. The hit rates look
+  "unlikely to be luck" on paper, but calls overlap in time and the coins move together, so that is overstated.
+- **Stocks:** nothing better than a coin. The best (20-day momentum, 1 day ahead) tied a coin flip (0.2499 vs 0.25) and lost
+  about $3.88 per $100 trade: the ~$4 round-trip fee on a $100 order eats everything.
+- What that means: with today's fees, small bets on these simple patterns lose. "No edge found" is the honest answer so far.
+- Next: Friday's 10-idea list (Helm-Private research-bot/ideas-list.md) goes through the replay next. Forward forecasting runs anyway on the
+  three closest variants (`forward.json`, all labelled DEAD) to test whether the crypto direction signal is real.
+- The first 12 forward forecasts (stocks, 1 day) were logged and pushed 2026-11-10 at 13:35 UTC, before their 14:30 UTC windows
+  opened. Until a schedule is approved, forecasts only come in when someone runs `generate --commit` by hand.
+
 ## History replay first (replay.py)
 
 Each idea × setting × horizon walks through past prices bar by bar. At each bar the idea sees ONLY prices up to that bar

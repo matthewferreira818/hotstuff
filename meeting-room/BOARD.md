@@ -87,7 +87,7 @@ _Last updated: 2026-11-09 10:00 AM by Local Claude (LC-Manager)_
 - (none open: the October questions went to the archive on 11-05)
 
 ## Decisions
-- 2026-11-09: CBDC call done (Matthew, evening): the funding route didn't work out. Selling stays PAUSED until Matthew picks the next step. Nothing sends until then.
+- 2026-11-09 ~8:20 PM: CBDC route closed (didn't qualify). Matthew: "lets get this going!" SELLING RESTARTS: PAUSE file removed (daily posts + TikTok packs resume). Crew #1 = selling-ready: (1) /automation + claims_facts match his price line (Sun 2:54 PM: $79 first pilot month, then $79 a month, no contract); (2) Tue outreach batch: re-date, re-run fact pass, send by LC from contact@ (his GO given, 'stop' cancels); (3) Maplehurst + Dieppe asks: he sends them himself once (1) is live. Before the first PAYMENT: Matthew calls Service Canada about EI reporting.
 - 2026-11-06 ~5:25 PM: Matthew: Friday gets cloud Claude's permissions ("she's earned it"): Co-CEO with Claude, may merge to master after the gate, post/publish under rule 3, direct the crew. Same 4 locks, money mode, selling pause. Disagreement: safer option holds till Matthew. CLAUDE.md.
 - 2026-11-06 ~5 PM: Matthew: robots AUTO-START on weekdays. LC-Manager's 9:35 standup runs ~/Claude/bin/robot-start.sh (practice robots only, no inputs, his gh login; starts only robots with no run that day). Tested by dry run.
 - 2026-11-06: Matthew (in LC-Manager's chat, ~6:40 AM): the LC standup runs AUTOMATICALLY on weekdays ~9:30 AM while the Mac is on (local scheduled task lc-manager-standup): board section + one room line; robots reported, never started (LC-Work starts them).

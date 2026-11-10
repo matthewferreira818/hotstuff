@@ -1,0 +1,49 @@
+name: Robot Desk (practice robots supervisor)
+
+# One supervisor for the 7 PRACTICE-money stock robots. Plan and hard lines:
+# meeting-room/notes/robot-desk.md. It only WATCHES: health, scoreboard vs
+# holding, shared limits. Its only writes: desk.json (to the stock-live-desk
+# branch) and, when a STOP rule trips, a NEW stock_bot/PAUSE file (never
+# deleted or changed by this workflow: only Matthew removes it). It never
+# starts a robot (the Mac starter does), never places orders, and uses no
+# secrets. Lateness is fine here: it only watches.
+
+on:
+  schedule:
+    - cron: "*/30 12-21 * * 1-5"   # weekdays, about 9 AM-5 PM Moncton (both summer and winter time)
+    - cron: "15 */2 * * *"         # every 2 hours, every day, for the crypto robot
+  workflow_dispatch:
+
+concurrency:
+  group: robot-desk
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # push desk.json to stock-live-desk; add stock_bot/PAUSE on a STOP rule
+  actions: read     # read the robots' run history
+
+jobs:
+  desk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Self-test
+        run: python -m unittest stock_bot/test_desk.py
+      - name: Run the desk
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python stock_bot/desk.py --publish
+      - name: Save a new PAUSE (only if the desk just created one)
+        run: |
+          if [ -f stock_bot/PAUSE ] && ! git ls-files --error-unmatch stock_bot/PAUSE >/dev/null 2>&1; then
+            git config user.name "robot-desk"
+            git config user.email "robot-desk@users.noreply.github.com"
+            git add stock_bot/PAUSE
+            git commit -m "Robot Desk: PAUSE all practice robots (STOP rule; reason inside the file)"
+            git pull --rebase origin master || { git rebase --abort; echo "PAUSE already changed on master; leaving it"; exit 0; }
+            git push origin HEAD:master
+          fi

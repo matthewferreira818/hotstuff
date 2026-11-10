@@ -560,6 +560,26 @@ class IdeaTests(unittest.TestCase):
         self.assertEqual(self.call("squeeze", sq + [101.0], n=10, m=90)[0], "up")
         self.assertIsNone(self.call("squeeze", sq + [99.0], n=10, m=90))
 
+    def test_plain_reason_is_built_from_the_real_prices(self):
+        closes = [100.0] * 20 + [110.0]
+        h = idea_lib.History(closes, len(closes) - 1)
+        p = {"lookback": 20, "prob": 0.52}
+        text = idea_lib.explain("momentum", h, p, "up", "SPY", "1 trading days",
+                                {"verdict": "DEAD", "pnl_after_costs": -5.0})
+        self.assertIn("10.0% higher than 20 trading days ago", text)
+        self.assertIn("rises over the next 1 trading days", text)
+        self.assertIn("lost money after fees", text)
+        self.assertLessEqual(len(text), ledger.MAX_REASON)
+        passed = idea_lib.explain("momentum", h, p, "up", "SPY", "1 trading days", {"verdict": "PASS"})
+        self.assertNotIn("lost money", passed)
+        self.assertIn("passed the past-price test", passed)
+        r = idea_lib.explain("reversal", h, {"lookback": 20, "drop_pct": 8, "prob": 0.56},
+                             "down", "BTC-USD", "4 hours")
+        self.assertIn("jumped 10.0% in 20 hours", r)
+        self.assertNotIn("past-price", r)  # no replay record -> no claim either way
+        for name, idea in idea_lib.IDEAS.items():  # every idea gets a sentence
+            self.assertTrue(idea_lib.explain(name, h, idea["grid"][0], "up", "X", "5 days"))
+
     def test_zero_price_means_no_call(self):
         self.assertIsNone(self.call("big_drop", [1.0] * 25 + [0.0, 1.0], k=2.5))
 
@@ -635,6 +655,7 @@ class GenerateTests(unittest.TestCase):
         self.assertEqual(len(fc), 2, log)
         self.assertEqual(sum(l["kind"] == "idea" for l in lines), 1)
         self.assertTrue(all(f["direction"] == "up" and f["act"] for f in fc))
+        self.assertTrue(all("higher than 5 hours ago" in f["plain_reason"] for f in fc))
         log = self.gen(self.now + dt.timedelta(minutes=30))  # still open: no pile-up
         self.assertEqual(len([l for l in ledger.read_lines(self.path)
                               if l["kind"] == "forecast"]), 2)

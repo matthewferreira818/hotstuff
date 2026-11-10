@@ -146,11 +146,14 @@ def validate_forecast(r, ideas, rules, now=None):
     reason = str(r["reason"]).strip()
     if len(reason) > MAX_REASON:
         raise LedgerError(f"reason is over {MAX_REASON} characters")
+    plain = str(r.get("plain_reason") or "").strip()
+    if len(plain) > MAX_REASON:
+        raise LedgerError(f"plain_reason is over {MAX_REASON} characters")
     return {"kind": "forecast", "idea": r["idea"], "asset": asset,
             "market": market, "direction": r["direction"],
             "probability": round(p, 4), "opens_at": iso(opens),
             "resolves_at": iso(resolves), "expected_downside_pct": round(down, 2),
-            "act": act, "reason": reason,
+            "act": act, "reason": reason, **({"plain_reason": plain} if plain else {}),
             "author": str(r.get("author") or "unknown")[:40],
             "created": iso(now)}
 

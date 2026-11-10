@@ -240,6 +240,45 @@ IDEAS = {
 }
 
 
+def _pct(a, b):
+    return (a / b - 1) * 100
+
+
+def explain(name, h, params, direction, asset, horizon_text, replay=None):
+    """A short, plain-English reason built from the SAME prices the idea just
+    used (never invented). The technical `reason` stays for auditing."""
+    p = params
+    unit = "hours" if "hour" in horizon_text else ("trading days" if "trading" in horizon_text else "days")
+    bet = f"so this rule bets it {'rises' if direction == 'up' else 'falls'} over the next {horizon_text}"
+    try:
+        if name == "momentum":
+            c = _pct(h[-1], h[-1 - p["lookback"]])
+            why = f"{asset} is {abs(c):.1f}% {'higher' if c > 0 else 'lower'} than {p['lookback']} {unit} ago, {bet}"
+        elif name == "reversal":
+            c = _pct(h[-1], h[-1 - p["lookback"]])
+            why = (f"{asset} {'jumped' if c > 0 else 'dropped'} {abs(c):.1f}% in {p['lookback']} {unit} "
+                   f"(more than {p['drop_pct']}%), {bet} as it snaps back")
+        elif name == "trend":
+            c = _pct(h[-1], sum(h.window(p["sma"])) / p["sma"])
+            why = f"{asset} is {abs(c):.1f}% {'above' if c > 0 else 'below'} its {p['sma']}-{unit.split()[-1][:-1]} average, {bet}"
+        elif name == "drift":
+            why = f"This rule always bets {asset} rises over the next {horizon_text}"
+        else:
+            why = f"{asset}: {IDEAS[name]['text'].rstrip('.')}, {bet}"
+    except (IndexError, ZeroDivisionError):
+        why = f"{asset}: {IDEAS[name]['text'].rstrip('.')}, {bet}"
+    replay = replay or {}
+    if replay.get("verdict") == "PASS":
+        tested = " It passed the past-price test."
+    elif replay.get("pnl_after_costs") is not None and replay["pnl_after_costs"] < 0:
+        tested = " In past-price tests it lost money after fees."
+    elif replay.get("verdict") == "DEAD":
+        tested = " It failed the past-price test."
+    else:
+        tested = ""
+    return (f"{why}. The rule's set confidence is {round(p['prob'] * 100)}%.{tested} Practice only.")
+
+
 def call(name, h, params):
     """A bad price in the data (a zero close) means no call, never a crash."""
     try:

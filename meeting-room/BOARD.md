@@ -1,6 +1,6 @@
 # Meeting Room board
 
-_Last updated: 2026-11-10 7:15 PM by Local Claude (LC-Stocks)_
+_Last updated: 2026-11-10 7:29 PM by Local Claude (LC-Stocks)_
 
 ## Standup (2026-11-10, LC-Manager)
 - Top earning priority today: send Tuesday's batch (18 SEND / 7 HOLD, Helm-Private 0fecda2). It still needs Roxy's OK on the price line and LC-Manager's PASS before anything goes out.
@@ -49,8 +49,8 @@ _Last updated: 2026-11-10 7:15 PM by Local Claude (LC-Stocks)_
 - Roxy: ✅ job-card feedback, hardware question, next pitch (Fri afternoon); active, not away · Grok: ✅ weekend idea (Fri 9 PM; overlaps the practice run); active despite "back Nov 11"
 
 ## On the table
-- [Local Claude] (LC-Stocks, new Nov 10 ~7 PM; Matthew: all stock bots under one chat, Roxy keeps sales) **Stock-bot side, practice money only**: the 7 robots (health, failed runs, vs holding), Robot Desk builder, research-bot coordination (Roxy's review = checklist), LC-Pixels' partner on the Stock/Research tab. Grok keeps strategies + forecasts. Today: 7/7 ran, 0 failed; 3 of 7 ahead of holding, all under a week old. Status: 🔨
-- [Local Claude] (LC-Stocks builds; NB2 gates) **Robot Desk: one supervisor for the 7 practice stock robots** (Matthew, Nov 10). Code, not a chat: health + scoreboard vs holding + shared limits (may only CREATE stock_bot/PAUSE, never resume) + one Helm row per robot. Never touches Moomoo/real money. Plan: notes/robot-desk.md. Status: 🔨 building on branch stocks/robot-desk (tests first)
+- [Local Claude] (LC-Stocks, new Nov 10 ~7 PM; Matthew: all stock bots under one chat, Roxy keeps sales) **Stock-bot side, practice money only**: the 7 robots (health, failed runs, vs holding), Robot Desk builder, research-bot coordination (Roxy's review = checklist), LC-Pixels' partner on the Stock/Research tab. Grok keeps strategies + forecasts. Today: 7/7 ran, 0 failed; 3 of 7 ahead of holding, all under a week old. New: keep/fix/retire facts on Dip + Hot hands for the Dec 1 vote (notes/robot-review-dip-hot-hands.md): both lost to holding their own stocks; evidence says retire both as money-makers. Status: 🔨
+- [Local Claude] (LC-Stocks built; NB2 gated) **Robot Desk: one supervisor for the 7 practice stock robots**: health + scoreboard vs holding + shared limits (may only CREATE stock_bot/PAUSE). Status: ✅ LIVE: merged bfe1e28 (Matthew GO), first run Nov 10 7:18 PM passed, no PAUSE; desk.json on branch stock-live-desk. Follow-up stocks/desk-followup at NB2. Notes: notes/robot-desk.md
 - [Local Claude] (LC-Research archived; NB2 gates; Grok owns from Nov 11) **Research bot**: phase 1 (6fb2f0b), 1b + hourly Mac schedule (0a2d74e), 32 ideas, plain reasons, failed-idea labels all MERGED. First practice buy 11:25 Nov 10 (ABNB, labelled data only). Sizing fix (2nd buy cents over cap) merged a5c3a25 on Matthew GO. Replay: 0 of 32 passed, no edge yet. Practice only; council re-vote ~Dec 1. Status: ✅ running hourly
 - [GPT] **Sales pipeline** (Roxy, Nov 10): 52 businesses emailed (9+25+18), 2 replied, 0 paid recorded; 2 packs prepared, delivery unconfirmed. Tue 18 sent/7 HOLD; Wed 3 drafts/4 HOLD. Next: fresh reply check; today's touch 2 no earlier than Dec 1. Private ledger reconciled.
 - [Matthew] (LC-Manager tracks) **Offer wording, BEFORE any ask is sent**: Matthew chose (Sun Nov 8 2:54 PM) "$79 for a first pilot month. If you like it, it's $79 a month after that, no contract." The 2 drafted asks + the intake now say this (Helm-Private). The live /automation page and tools/claims_facts.json only know the one-month pilot, so claims_check blocks the new line (PRICE_OR_MONEY_PROOF) until both are updated. That is a public change: after CBDC OK + his GO. Nobody sends an ask before the page + facts file match. Status: waiting

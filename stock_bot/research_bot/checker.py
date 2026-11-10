@@ -15,7 +15,11 @@ It refuses when:
     new-order cap is used, the size is over max_position_pct of the account,
     under min_order_dollars or over the cash, or the day's loss / week's
     drawdown cap is hit (which also turns the auto-pause on);
-  - for a SELL: there is no position, or its forecast's window hasn't closed.
+  - for a BUY without a safe stop: the asset's typical daily range is unknown,
+    the order's stop is tighter than stop_daily_ranges x that range, or a stop
+    that wide would risk more than max_loss_per_100 (then the bet is skipped);
+  - for a SELL: there is no position, or its forecast's window hasn't closed
+    and its stop wasn't hit.
     Closing a due position is allowed during an auto-pause (it lowers risk);
     a manual PAUSE stops sells too, same as the other robots.
 
@@ -120,6 +124,8 @@ def check_order(order, ctx):
     if order["side"] == "sell":
         if order["asset"] not in held:
             return no(f"no paper position in {order['asset']}")
+        if ctx.get("stop_hit"):
+            return True, ["stop hit: close the position"], None
         if not f or now < ledger.parse_time(f["resolves_at"]):
             return no("its forecast window has not closed yet")
         return True, ["close a due position"], None
@@ -152,6 +158,16 @@ def check_order(order, ctx):
         return no(f"${d:.2f} is under the ${rules['min_order_dollars']:.0f} minimum (fees eat it)")
     if d > acct["cash"] + 1e-9:
         return no("not enough practice cash")
+    rng = ctx.get("daily_range_pct")
+    if not rng or rng <= 0:
+        return no("no typical daily range for this asset: can't set a safe stop")
+    stop = order.get("stop_pct")
+    need = rules["stop_daily_ranges"] * rng
+    if stop is None or stop < need - 1e-9:
+        return no(f"stop must be at least {rules['stop_daily_ranges']:g}x the daily range ({need:.1f}%)")
+    if stop > rules["max_loss_per_100"]:
+        return no(f"skip: a safe stop needs {stop:.1f}%, over the "
+                  f"${rules['max_loss_per_100']:g} per $100 cap")
     reason = risk_pause_reason(ctx.get("equity", []), rules, now)
     if reason:
         return False, [reason], reason

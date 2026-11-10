@@ -213,12 +213,13 @@ class CheckerTests(unittest.TestCase):
              "quote": {"price": 100.0, "time": t(1) - dt.timedelta(seconds=30),
                        "price_ago": 99.5},
              "account": {"value": 1000.0, "cash": 1000.0, "positions": {}},
-             "equity": [(t(1), 1000.0)], "seen_ids": set(), "new_orders_today": 0}
+             "equity": [(t(1), 1000.0)], "seen_ids": set(), "new_orders_today": 0,
+             "daily_range_pct": 3.0}
         c.update(kw)
         return c
 
     BUY = {"id": "F1:buy", "side": "buy", "asset": "BTC-USD", "market": "crypto",
-           "dollars": 100.0, "forecast_id": "F1"}
+           "dollars": 100.0, "forecast_id": "F1", "stop_pct": 6.0}
 
     def check(self, order=None, **kw):
         return checker.check_order(order or dict(self.BUY), self.ctx(**kw))
@@ -251,6 +252,17 @@ class CheckerTests(unittest.TestCase):
                 ok, why, _ = self.check(**kw)
                 self.assertFalse(ok)
                 self.assertIn(word.lower(), " ".join(why).lower())
+
+    def test_stop_rules(self):
+        ok, why, _ = self.check(daily_range_pct=None)
+        self.assertFalse(ok)
+        self.assertIn("safe stop", why[0])
+        ok, why, _ = self.check(dict(self.BUY, stop_pct=4.0))  # under 2 x 3%
+        self.assertFalse(ok)
+        self.assertIn("at least 2x", why[0])
+        ok, why, _ = self.check(dict(self.BUY, stop_pct=16.0), daily_range_pct=8.0)
+        self.assertFalse(ok)
+        self.assertIn("$15 per $100", why[0])
 
     def test_size_limits(self):
         ok, why, _ = self.check(dict(self.BUY, dollars=150.0))
@@ -315,6 +327,7 @@ class ExecutorTests(unittest.TestCase):
                   "direction": "up", "probability": 0.6, "act": True,
                   "opens_at": ledger.iso(t(0)), "resolves_at": ledger.iso(t(24))}
         self.price = 100.0
+        self.rng = 3.0
 
     def quote(self, now):
         return lambda a: {"price": self.price, "time": now, "price_ago": self.price}
@@ -325,7 +338,8 @@ class ExecutorTests(unittest.TestCase):
             first_seen={"F1": seen}, rules=RULES, rules_ok=True, manual_pause=False,
             paper_dir=self.d, orders_path=os.path.join(self.d, "orders.jsonl"),
             equity_path=os.path.join(self.d, "equity.jsonl"),
-            auto_pause_path=os.path.join(self.d, "AUTO_PAUSE"))
+            auto_pause_path=os.path.join(self.d, "AUTO_PAUSE"),
+            range_fn=lambda a: self.rng, lock_path=os.path.join(self.d, "RUN_LOCK"))
 
     def acct(self):
         with open(os.path.join(self.d, "account-research-crypto.json")) as f:
@@ -345,6 +359,33 @@ class ExecutorTests(unittest.TestCase):
         self.assertEqual(a["positions"], {})
         self.assertGreater(a["cash"], 1000.0)
         self.assertEqual([o["side"] for o in a["orders"]], ["buy", "sell"])
+
+    def test_stop_sells_before_window_ends(self):
+        self.go(t(1))
+        orders = ledger.read_lines(os.path.join(self.d, "orders.jsonl"))
+        self.assertEqual(orders[-1]["stop_pct"], 6.0)
+        self.price = 95.0  # entry ~100.7 incl. fee+slip; 6% stop ~94.7: not yet
+        self.assertNotIn("sell", " ".join(self.go(t(2))))
+        self.price = 94.0
+        log = " ".join(self.go(t(3)))
+        self.assertIn("practice sell BTC-USD filled", log)
+        self.assertEqual(self.acct()["positions"], {})
+        self.assertIn("F1:stop", [o["id"] for o in ledger.read_lines(
+            os.path.join(self.d, "orders.jsonl"))])
+
+    def test_too_wild_is_skipped(self):
+        self.rng = 9.0  # 2 x 9% = 18% stop > $15 per $100
+        self.assertIn("skip", " ".join(self.go(t(1))))
+
+    def test_run_lock(self):
+        lock = os.path.join(self.d, "RUN_LOCK")
+        with open(lock, "w") as f:
+            f.write(f"123 {ledger.iso(t(1))}\n")
+        self.assertIn("in progress", self.go(t(1) + dt.timedelta(minutes=5))[0])
+        log = self.go(t(1) + dt.timedelta(minutes=45))
+        self.assertIn("stale run lock", log[0])
+        self.assertIn("practice buy", " ".join(log))
+        self.assertFalse(os.path.exists(lock))  # released after the run
 
     def test_dry_run_places_nothing(self):
         log = self.go(t(1), dry=True)

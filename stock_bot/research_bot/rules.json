@@ -1,6 +1,6 @@
 {
   "_read_me": "LIVE RULES for the research bot (practice money only). The AI may NOT edit this file: it proposes changes with `python3 -m stock_bot.research_bot.forecasts propose-rule`. A change needs the NB2 gate + Matthew's GO, then a human updates rules.lock (python3 -m stock_bot.research_bot.checker --lock). If this file and rules.lock disagree, the checker refuses every order.",
-  "version": 1,
+  "version": 2,
   "practice_only": true,
   "start_cash": 1000.0,
   "markets": {
@@ -29,5 +29,10 @@
   "weekly_drawdown_cap_pct": 6.0,
   "jump_lookback_minutes": 15,
   "min_lead_minutes": 15,
-  "long_only": true
+  "long_only": true,
+  "stop_daily_ranges": 2.0,
+  "max_loss_per_100": 15.0,
+  "daily_range_days": 20,
+  "_stop_read_me": "Per-bet stop (Goalie, 2026-11-10): the stop sits stop_daily_ranges x the asset's typical daily high-low range below the entry. If that is more than max_loss_per_100 (dollars per $100, i.e. %), the bet is skipped. Stops are checked when the executor runs (no exchange stop), so a gap can blow through them.",
+  "version_note": "v2 2026-11-10: added the per-bet stop (phase 1b, NB2 gate)"
 }

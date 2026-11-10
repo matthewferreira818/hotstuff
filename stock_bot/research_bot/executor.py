@@ -40,6 +40,8 @@ import forecasts as ledger  # noqa: E402
 from paper_broker import PaperBroker, new_account  # noqa: E402
 
 ORDERS = os.path.join(HERE, "orders.jsonl")
+RUN_LOCK = os.path.join(HERE, "RUN_LOCK")
+STALE_LOCK_MIN = 30
 EQUITY = os.path.join(HERE, "equity.jsonl")
 PAPER_DIR = os.path.join(os.path.dirname(HERE), "paper")
 
@@ -113,6 +115,53 @@ def yahoo_quote(asset, lookback_min=15):
         return None
 
 
+def yahoo_daily_range(asset, days=20):
+    """Typical (median) daily high-low range in %, over the last `days`
+    finished days. None on any failure: no range = no stop = no buy."""
+    try:
+        from screener import fetch
+        bars = fetch(asset, "3mo")[-days - 1:-1]
+        rng = sorted((b["high"] - b["low"]) / b["close"] * 100 for b in bars if b["close"])
+        return rng[len(rng) // 2] if len(rng) >= days // 2 else None
+    except Exception:
+        return None
+
+
+class RunLock:
+    """Only one executor at a time. The lock file is made atomically; a
+    lock older than STALE_LOCK_MIN minutes (a crashed run) is taken over and
+    said so. Half-done orders are caught separately by the order log."""
+
+    def __init__(self, path=RUN_LOCK, now=None):
+        self.path, self.now, self.note, self.held = path, now, None, False
+
+    def __enter__(self):
+        now = self.now or ledger.utcnow()
+        for _ in range(2):
+            try:
+                fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                with os.fdopen(fd, "w") as f:
+                    f.write(f"{os.getpid()} {ledger.iso(now)}\n")
+                self.held = True
+                return self
+            except FileExistsError:
+                try:
+                    with open(self.path) as f:
+                        started = ledger.parse_time(f.read().split()[1])
+                except (OSError, IndexError, ValueError):
+                    started = now
+                if now - started < dt.timedelta(minutes=STALE_LOCK_MIN):
+                    return self
+                self.note = f"took over a stale run lock from {ledger.iso(started)}"
+                os.replace(self.path, self.path + ".stale")
+        return self
+
+    def __exit__(self, *exc):
+        if self.held and os.path.exists(self.path):
+            os.remove(self.path)
+        return False
+
+
 def read_jsonl(path):
     return ledger.read_lines(path)
 
@@ -124,11 +173,23 @@ def append_jsonl(path, rec):
 
 def run(now=None, quote_fn=yahoo_quote, dry_run=False, lines=None, first_seen=None,
         rules=None, rules_ok=None, manual_pause=None, paper_dir=PAPER_DIR,
-        orders_path=ORDERS, equity_path=EQUITY, auto_pause_path=checker.AUTO_PAUSE):
+        orders_path=ORDERS, equity_path=EQUITY, auto_pause_path=checker.AUTO_PAUSE,
+        range_fn=yahoo_daily_range, lock_path=RUN_LOCK):
     """Returns a list of plain-English log lines. Everything it touches can be
     passed in, so tests run offline in a temp folder."""
     if os.environ.get("GITHUB_ACTIONS"):
         return ["refused: the research bot never runs on GitHub Actions"]
+    with RunLock(lock_path, now=ledger.parse_time(now) if now else None) as lock:
+        if not lock.held:
+            return ["another executor run is in progress: nothing done"]
+        log = _run(now, quote_fn, dry_run, lines, first_seen, rules, rules_ok,
+                   manual_pause, paper_dir, orders_path, equity_path,
+                   auto_pause_path, range_fn)
+        return ([lock.note] if lock.note else []) + log
+
+
+def _run(now, quote_fn, dry_run, lines, first_seen, rules, rules_ok, manual_pause,
+         paper_dir, orders_path, equity_path, auto_pause_path, range_fn):
     now = ledger.parse_time(now or ledger.utcnow())
     rules = rules or ledger.load_rules()
     rules_ok = checker.rules_locked_ok() if rules_ok is None else rules_ok
@@ -192,20 +253,31 @@ def run(now=None, quote_fn=yahoo_quote, dry_run=False, lines=None, first_seen=No
                     f.write(auto_pause + "\n")
             log.append(f"[{market}] AUTO-PAUSE: {reason}")
 
-        # Which forecast opened each held position (from our own order log).
-        opener = {o["asset"]: o["forecast_id"] for o in orders
+        # Which forecast opened each held position, and its stop (our order log).
+        opener = {o["asset"]: o for o in orders
                   if o["status"] == "filled" and o["side"] == "buy"}
-        planned = []
+        planned, stop_hit = [], set()
         for asset in acct_held:
-            fid = opener.get(asset)
+            o = opener.get(asset) or {}
+            fid = o.get("forecast_id")
             f = by_id.get(fid)
-            if f and now >= ledger.parse_time(f["resolves_at"]):
+            entry = broker.acct["positions"][asset]["avg_entry_price"]
+            stop = o.get("stop_pct")
+            if stop and quotes[asset]["price"] <= entry * (1 - stop / 100):
+                stop_hit.add(asset)
+                planned.append({"id": f"{fid}:stop", "side": "sell", "asset": asset,
+                                "market": market, "forecast_id": fid})
+            elif f and now >= ledger.parse_time(f["resolves_at"]):
                 planned.append({"id": f"{fid}:sell", "side": "sell", "asset": asset,
                                 "market": market, "forecast_id": fid})
         size = round(value * rules["max_position_pct"] / 100, 2)
+        ranges = {}
         for f in sorted(due_buys, key=lambda f: f["opens_at"]):
+            rng = ranges.setdefault(f["asset"], range_fn(f["asset"]))
+            stop = round(rules["stop_daily_ranges"] * rng, 2) if rng else None
             planned.append({"id": f"{f['id']}:buy", "side": "buy", "asset": f["asset"],
-                            "market": market, "dollars": size, "forecast_id": f["id"]})
+                            "market": market, "dollars": size, "forecast_id": f["id"],
+                            "stop_pct": stop})
 
         for o in planned:
             f = by_id.get(o["forecast_id"])
@@ -218,7 +290,9 @@ def run(now=None, quote_fn=yahoo_quote, dry_run=False, lines=None, first_seen=No
                    "quote": quotes.get(o["asset"]),
                    "account": {"value": broker.value(), "cash": broker.cash(),
                                "positions": broker.acct["positions"]},
-                   "equity": equity, "seen_ids": seen, "new_orders_today": new_today}
+                   "equity": equity, "seen_ids": seen, "new_orders_today": new_today,
+                   "daily_range_pct": ranges.get(o["asset"]),
+                   "stop_hit": o["side"] == "sell" and o["asset"] in stop_hit}
             ok, why, pause = checker.check_order(o, ctx)
             if pause and not auto_pause:
                 auto_pause = f"{market}: {pause} ({ledger.iso(now)})"

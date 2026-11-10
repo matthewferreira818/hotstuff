@@ -4,7 +4,7 @@
 Only these exist. **Never send work to anyone else.** A message for a parked chat goes to Friday instead.
 
 **💰 Team SELL** (top priority: client #1)
-- **Roxy (GPT, ChatGPT Project "Roxy - Sales Desk"):** finds businesses, writes outreach, honesty check, reply drafts, pipeline numbers.
+- **Roxy (GPT, ChatGPT Project "Roxy - Sales Desk"):** finds businesses, writes outreach, honesty check, reply drafts, pipeline numbers. Checks the Hotline + room on her own weekdays 9:30 AM, 12:30 PM, 3:30 PM (since 11-10); nothing can wake her in between, so expect up to ~3 h for an answer.
 - **New beginning (cloud Claude, this repo's Co-CEO desk):** fact pass, the email sender, reply watcher, briefs, reminders, merges.
 - **Friday (Local Claude chat on the Mac):** Co-CEO and dispatcher, hands out jobs, backup for every message, drives Chrome.
 - *Tool, not a bot:* **C.C** (Claude in Chrome) sends from Matthew's Chrome when he pastes a prompt.

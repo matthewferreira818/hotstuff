@@ -5,15 +5,38 @@ import AppKit
 // other page lives with a one-line "what this is". Plain words only. Advanced mode (More menu) brings back the full Signal Deck.
 // Nothing here starts anything by itself: the Talk button does what the dock's button did.
 extension CompanionInterfaceView {
- static let simpleTabs: [HubSection] = [.home,.friday,.store,.meeting]
- static let simpleMore: [HubSection] = [.stocks,.ecs,.crewStation,.memory,.hacking,.helper,.shield,.realFake,.lab,.council,.launchpad,.game,.stream,.accounts,.systems]
+ // Navigation (council layout, Matthew's YES 2026-11-08; LC-Pixels 2026-11-09). Five tabs, Cmd-1..5. A tab is a family of pages:
+ // it lights up on any of them, and a slim strip under the top bar switches between them. Every page has ONE home, either a family
+ // or a More group. Command Core (.hacking) has no home here: it lives in Advanced mode (a deep link still opens it).
+ static let simpleTabs: [HubSection] = [.home,.friday,.ecs,.meeting,.jobs]
+ static let simpleFamilies: [HubSection:[HubSection]] = [.friday:[.friday,.helper,.memory],.ecs:[.ecs,.store],.jobs:[.jobs,.crewStation,.systems,.stocks]]
+ static let simpleMoreGroups: [(title: String,sections: [HubSection])] = [("Safety",[.shield,.realFake,.accounts,.lab]),("Tools",[.launchpad,.council]),("Fun",[.game,.stream])]
+ static var simpleMore: [HubSection] { simpleMoreGroups.flatMap { $0.sections } }
+ // The tab a page belongs to (nil for More pages and Command Core).
+ static func simpleTab(of section: HubSection) -> HubSection? {
+  simpleTabs.first { $0 == section || (simpleFamilies[$0]?.contains(section) ?? false) }
+ }
+
+ func simpleTabName(_ section: HubSection) -> String {
+  switch section {
+  case .ecs: return "Business"
+  case .jobs: return "Crew"
+  default: return simpleName(section)
+  }
+ }
+
+ // Names on the strip under a tab (the page title stays simpleName).
+ func simpleStripName(_ section: HubSection) -> String {
+  section == .friday ? "Chat and Voice" : simpleName(section)
+ }
 
  func simpleName(_ section: HubSection) -> String {
   switch section {
   case .meeting: return "Messages"
-  case .stocks: return "Practice stocks"
+  case .stocks: return "Practice robots"
+  case .crewStation: return "Crew Station"
+  case .jobs: return "Jobs"
   case .ecs: return "East Coast Social"
-  case .crewStation: return "Crew station"
   case .memory: return "What Friday remembers"
   case .hacking: return "Command Core"
   case .shield: return "Safety checks"
@@ -22,6 +45,7 @@ extension CompanionInterfaceView {
   case .launchpad: return "Shortcuts"
   case .stream: return "Streaming"
   case .systems: return "Daily jobs"
+  case .helper: return "Helper"
   default: return section.title
   }
  }
@@ -47,6 +71,7 @@ extension CompanionInterfaceView {
   case .stream: return "Your Twitch setup."
   case .accounts: return "What's connected. No passwords shown."
   case .systems: return "Are your daily jobs running?"
+  case .jobs: return "Jobs handed to the crew, with each step's real time."
   default: return section.blurb
   }
  }
@@ -77,10 +102,13 @@ extension CompanionInterfaceView {
  }
 
  func simpleTab(_ section: HubSection) -> some View {
-  let on = hub.section == section
+  let on = Self.simpleTab(of:hub.section) == section
   let index = (Self.simpleTabs.firstIndex(of:section) ?? 0) + 1
   return Button { if section == .meeting { meeting.tab = 6 }; hubSelect(section) } label: {
-   Text(simpleName(section)).lineLimit(1).fixedSize()
+   HStack(spacing:5) {
+    Text(simpleTabName(section)).lineLimit(1).fixedSize()
+    if section == .jobs { SimpleCrewDot() }
+   }
     .font(.system(size:15,weight:on ? .semibold : .medium))
     .foregroundStyle(on ? HubTheme.text : HubTheme.subtext)
     .padding(.horizontal,hub.compact ? 10 : 16).frame(height:42)
@@ -88,15 +116,19 @@ extension CompanionInterfaceView {
     .overlay(RoundedRectangle(cornerRadius:10).stroke(on ? HubTheme.controlOutline : Color.clear,lineWidth:1))
     .contentShape(Rectangle())
   }
-  .buttonStyle(.plain).accessibilityLabel(simpleName(section)).accessibilityAddTraits(on ? .isSelected : [])
+  .buttonStyle(.plain).accessibilityLabel(simpleTabName(section)).accessibilityAddTraits(on ? .isSelected : [])
   .keyboardShortcut(KeyEquivalent(Character(String(index))),modifiers:.command)
  }
 
  var simpleMoreMenu: some View {
   let inMore = Self.simpleMore.contains(hub.section)
   return Menu {
-   ForEach(Self.simpleMore) { section in
-    Button { hubSelect(section) } label: { Label("\(simpleName(section))  ·  \(simpleBlurb(section))",systemImage:section.icon) }
+   ForEach(Self.simpleMoreGroups,id:\.title) { group in
+    Section(group.title) {
+     ForEach(group.sections) { section in
+      Button { hubSelect(section) } label: { Label("\(simpleName(section))  ·  \(simpleBlurb(section))",systemImage:section.icon) }
+     }
+    }
    }
    Divider()
    Button { hub.tourStep = 0; hubSelect(.home) } label: { Label("Show me around",systemImage:"questionmark.circle") }
@@ -294,7 +326,7 @@ extension CompanionInterfaceView {
   ("What needs you","Anything waiting on your OK shows up here in plain words, with Yes and Not now."),
   ("Today","A quick look at what your helpers and practice robots are doing."),
   ("Your businesses","Your store and East Coast Social at a glance. Tap one to open it."),
-  ("More is your toolbox","Everything else lives under More. Choose \"Show me around\" there to see this again, or switch to Advanced mode for the full view."),
+  ("More is your toolbox","Business, Messages and Crew have their own tabs. Everything else lives under More, in three groups: Safety, Tools and Fun. Choose \"Show me around\" there to see this again, or switch to Advanced mode for the full view."),
  ] }
 
  var simpleTour: some View {
@@ -404,6 +436,93 @@ extension CompanionInterfaceView {
     .frame(maxWidth:.infinity)
    }
    .scrollIndicators(.hidden)
+  }
+ }
+}
+
+
+// Under the top bar in Simple mode: the one-time "things moved" note, the strip for the open tab's pages, and the page title where
+// the page doesn't draw its own (Command Core-framed pages like Crew Station, Daily jobs and Jobs already have one).
+extension CompanionInterfaceView {
+ @ViewBuilder var simplePageTop: some View {
+  SimpleMovedHint()
+  if let tab = Self.simpleTab(of:hub.section), let family = Self.simpleFamilies[tab] { simpleFamilyBar(family) }
+  if !deckInHack && ![.home,.friday,.jobs].contains(hub.section) { deckPageHeader }
+ }
+
+ func simpleFamilyBar(_ family: [HubSection]) -> some View {
+  ScrollView(.horizontal,showsIndicators:false) {
+   HStack(spacing:6) {
+    ForEach(family) { section in
+     let on = hub.section == section
+     Button { hubSelect(section) } label: {
+      HStack(spacing:6) {
+       Image(systemName:section.icon).font(.system(size:12))
+       Text(simpleStripName(section)).font(.system(size:14,weight:on ? .semibold : .medium)).lineLimit(1).fixedSize()
+       if section == .jobs { SimpleCrewDot() }
+      }
+      .foregroundStyle(on ? HubTheme.text : HubTheme.subtext)
+      .padding(.horizontal,12).frame(height:34)
+      .background(on ? HubTheme.card : Color.clear,in:Capsule())
+      .overlay(Capsule().stroke(on ? HubTheme.controlOutline : HubTheme.line,lineWidth:1))
+      .contentShape(Capsule())
+     }
+     .buttonStyle(.plain).accessibilityLabel(simpleStripName(section)).accessibilityAddTraits(on ? .isSelected : [])
+    }
+   }
+   .padding(.horizontal,hub.compact ? 12 : 24).padding(.vertical,8)
+  }
+  .background(HubTheme.sidebar.opacity(0.6))
+  .overlay(alignment:.bottom) { Rectangle().fill(HubTheme.line).frame(height:1) }
+ }
+
+ // Simple mode's Jobs page: the same Jobs card Crew Station shows, with room for more jobs.
+ var crewJobsPage: some View {
+  coreFrame("Jobs","Every job handed to the crew, with each step's real time.",observations:[],
+            content:AnyView(ScrollView { CoreJobsCard(limit:20).frame(maxWidth:820).frame(maxWidth:.infinity).padding(.horizontal,24).padding(.bottom,16) }))
+ }
+}
+
+// Red dot on Crew when a crew job failed in the last 24 hours (read from the same job file the Jobs card reads). Nothing failed = no dot.
+struct SimpleCrewDot: View {
+ @ObservedObject var model = CrewJobsModel.shared
+ var body: some View {
+  Group {
+   if JobRules.failedRecently(model.jobs,now:Date()) {
+    Circle().fill(Noir.crimsonLight).frame(width:8,height:8).accessibilityLabel("A crew job failed")
+     .help("A crew job failed in the last 24 hours. Open Crew, then Jobs, to see which one and why.")
+   }
+  }
+  .onAppear { model.start() }
+  // The Jobs card stops the shared reader when it closes, so the dot re-reads on its own every 30 seconds.
+  .onReceive(Timer.publish(every:30,on:.main,in:.common).autoconnect()) { _ in model.start() }
+ }
+}
+
+// One-time note after the 2026-11-09 move. "Got it" hides it for good (UserDefaults "hub.navMoved1Seen").
+@MainActor final class SimpleMovedHintState: ObservableObject {
+ static let shared = SimpleMovedHintState()
+ static let key = "hub.navMoved1Seen"
+ @Published var seen = UserDefaults.standard.bool(forKey:SimpleMovedHintState.key)
+ func dismiss() { seen = true; UserDefaults.standard.set(true,forKey:Self.key) }
+}
+
+struct SimpleMovedHint: View {
+ @ObservedObject var state = SimpleMovedHintState.shared
+ static let text = "Things moved: East Coast Social and the Store are under Business. Jobs, Crew Station, Daily jobs and Practice robots are under Crew. Helper and What Friday remembers are on Friday's tab. Command Core is in Advanced mode."
+ var body: some View {
+  if !state.seen {
+   HStack(alignment:.top,spacing:10) {
+    Image(systemName:"arrow.triangle.swap").foregroundStyle(HubTheme.teal).padding(.top,2)
+    Text(Self.text).font(.system(size:13)).foregroundStyle(HubTheme.text).fixedSize(horizontal:false,vertical:true)
+    Spacer(minLength:8)
+    Button { withAnimation(.easeOut(duration:0.2)) { state.dismiss() } } label: {
+     Text("Got it").font(.system(size:13,weight:.semibold)).foregroundStyle(HubTheme.background).padding(.horizontal,14).frame(height:30).background(HubTheme.green,in:Capsule())
+    }.buttonStyle(.plain)
+   }
+   .padding(.horizontal,16).padding(.vertical,10)
+   .background(HubTheme.card)
+   .overlay(alignment:.bottom) { Rectangle().fill(HubTheme.line).frame(height:1) }
   }
  }
 }

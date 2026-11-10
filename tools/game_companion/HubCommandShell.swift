@@ -32,6 +32,7 @@ struct CoreShell: View {
  var title: String
  var subtitle: String
  var subtitleTone: Int = 0
+ var crumb = "Command Core"   // Simple mode names the page's own home instead (e.g. "Crew", "Safety")
  var lights: [(String,HackLight,String)]
  var observations: [CoreObservation]
  var newest: String
@@ -61,7 +62,7 @@ struct CoreShell: View {
  func header(_ width: CGFloat) -> some View {
   HStack(alignment:.bottom,spacing:14) {
    VStack(alignment:.leading,spacing:3) {
-    (Text("Command Core ").foregroundStyle(CoreStyle.crimson) + Text("/ \(title)").foregroundStyle(CoreStyle.ink))
+    (Text(crumb + " ").foregroundStyle(CoreStyle.crimson) + Text("/ \(title)").foregroundStyle(CoreStyle.ink))
      .font(.system(size:19,weight:.regular,design:.rounded))
     Text(subtitle).font(.system(size:12,design:.rounded)).foregroundStyle(subtitleTone == 0 ? CoreStyle.dim : tone(subtitleTone)).lineLimit(1)
    }
@@ -210,7 +211,7 @@ extension CompanionInterfaceView {
  // One call builds the shared frame for any tab.
  func coreFrame(_ title: String,_ subtitle: String,tone: Int = 0,observations: [CoreObservation],content: AnyView) -> some View {
   HackRoomFrame(state:HackRoomState.shared) {
-   CoreShell(title:title,subtitle:subtitle,subtitleTone:tone,
+   CoreShell(title:coreTitle(title).1,subtitle:subtitle,subtitleTone:tone,crumb:coreTitle(title).0,
              lights:HackSource.allCases.map { s in (s.rawValue,hackLight(s).0,hackLight(s).1) },
              observations:observations,
              newest:hackTape.first.map { "\(deckTapeTime($0.date))  \($0.tag)  \($0.text)" } ?? "quiet: nothing read yet",
@@ -230,6 +231,15 @@ extension CompanionInterfaceView {
    // Switching between Command Core tabs re-engages at once; leaving it for another page gives the window its normal minimum back.
    DispatchQueue.main.asyncAfter(deadline:.now() + 0.3) { if CoreWindowLock.showing == 0 { CoreWindowLock.release() } }
   }
+ }
+
+ // Header words: "Command Core / Guard" in Advanced mode. In Simple mode Command Core isn't a place, so the page is named by its home
+ // there and by the name the menu uses ("Crew / Jobs", "Safety / Safety checks"). The Overview (.hacking) keeps its Command Core name.
+ func coreTitle(_ title: String) -> (String,String) {
+  guard hub.simple, hub.section != .hacking else { return ("Command Core",title) }
+  let home = Self.simpleTab(of:hub.section).map { simpleTabName($0) } ?? Self.simpleMoreGroups.first { $0.sections.contains(hub.section) }?.title
+  guard let home = home else { return ("Command Core",title) }
+  return (home,simpleName(hub.section))
  }
 
  // Friday's observations from what Guard and the automations actually reported (each one names its source and time).

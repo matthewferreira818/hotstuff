@@ -17,7 +17,7 @@ enum HubColor {
 }
 
 enum HubSection: Int, CaseIterable, Identifiable {
- case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper, shield, realFake, lab, council, hacking, crewStation, memory
+ case home, friday, stocks, store, ecs, systems, launchpad, game, accounts, meeting, stream, helper, shield, realFake, lab, council, hacking, crewStation, memory, jobs   // jobs: added 2026-11-09 for Simple mode's Crew tab (appended so saved raw values keep their meaning)
  var id: Int { rawValue }
  var title: String {
   switch self {
@@ -40,6 +40,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .hacking: return "Command Core"
   case .crewStation: return "Crew station"
   case .memory: return "Memory"
+  case .jobs: return "Jobs"
   }
  }
  var icon: String {
@@ -63,6 +64,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .hacking: return "terminal.fill"
   case .crewStation: return "building.2.fill"
   case .memory: return "brain.head.profile"
+  case .jobs: return "checklist"
   }
  }
  var tint: Color {
@@ -83,7 +85,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .realFake: return HubColor.cyan
   case .lab: return HubColor.cyan
   case .council: return HubColor.cyan
-  case .hacking,.crewStation: return HubColor.green
+  case .hacking,.crewStation,.jobs: return HubColor.green
   case .memory: return Noir.crimson
   }
  }
@@ -108,6 +110,7 @@ enum HubSection: Int, CaseIterable, Identifiable {
   case .hacking: return "Your Mac, your network and your crew in one place: real health checks, live activity and a command line to Friday."
   case .crewStation: return "Who is at their desk, who is idle, who is away. Real states only."
   case .memory: return "What Friday remembers about you and us. Keep, edit or forget any note."
+  case .jobs: return "Jobs handed to the crew, with each step's real time."
   }
  }
 }

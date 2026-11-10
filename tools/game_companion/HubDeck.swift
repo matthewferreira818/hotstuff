@@ -20,7 +20,8 @@ extension CompanionInterfaceView {
     if hub.simple { simpleTopBar } else { deckTopBar }
     HStack(spacing:0) {
      VStack(spacing:0) {
-      if deckInHack { deckHackNav }
+      if hub.simple { simplePageTop }
+      else if deckInHack { deckHackNav }
       else if ![.home,.friday].contains(hub.section) { deckPageHeader }
       hubContent
        .frame(maxWidth:.infinity,maxHeight:.infinity)

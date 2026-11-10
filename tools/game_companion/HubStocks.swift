@@ -39,7 +39,10 @@ extension CompanionInterfaceView {
      }
     }
     .accessibilityElement(children:.contain).accessibilityLabel("Choose a practice robot")
-    if let robot = stocks.current {
+    researchBotChoice
+    if stocks.robot == Self.researchTab {
+     ResearchBotPanel()
+    } else if let robot = stocks.current {
      StockSnapshotDashboard(robot:robot,money:hubMoney,signed:hubSigned,ago:hubAgo)
     } else {
      VStack(alignment:.leading,spacing:10) {
@@ -53,12 +56,34 @@ extension CompanionInterfaceView {
      .background(HubTheme.card,in:RoundedRectangle(cornerRadius:20))
      .overlay(RoundedRectangle(cornerRadius:20).stroke(HubTheme.line,lineWidth:1))
     }
-    Text("Practice money only. This page reads snapshots and cannot place an order.")
+    Text("Practice money only. This page reads practice files and cannot place an order.")
      .font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext)
    }
    .padding(.horizontal,hub.compact ? 16 : 32).padding(.top,4).padding(.bottom,24)
   }
   .scrollIndicators(.hidden).background(HubTheme.background)
+ }
+
+ // The research bot's own big tab (index 7, after the seven snapshot robots). Its panel lives in HubResearchBot.swift.
+ static let researchTab = 7
+ private var researchBotChoice: some View {
+  let selected = stocks.robot == Self.researchTab
+  return Button { stocks.robot = Self.researchTab } label: {
+   HStack(spacing:12) {
+    Image(systemName:"flask.fill").font(.system(size:18,weight:.semibold)).foregroundStyle(selected ? HubTheme.amber : HubTheme.subtext)
+    VStack(alignment:.leading,spacing:2) {
+     Text("Research bot").font(.system(size:15,weight:.bold,design:.rounded)).foregroundStyle(HubTheme.text)
+     Text("Guesses written down first, graded by plain code · practice money only")
+      .font(.system(size:11.5,design:.rounded)).foregroundStyle(HubTheme.subtext).lineLimit(2)
+    }
+    Spacer(minLength:4)
+    Image(systemName:"chevron.right").font(.system(size:12,weight:.semibold)).foregroundStyle(HubTheme.subtext)
+   }
+   .padding(.horizontal,16).frame(maxWidth:.infinity,minHeight:58,alignment:.leading)
+   .background(selected ? HubTheme.control : HubTheme.card,in:RoundedRectangle(cornerRadius:14))
+   .overlay(RoundedRectangle(cornerRadius:14).stroke(selected ? HubTheme.amber : HubTheme.line,lineWidth:selected ? 1.5 : 1))
+  }
+  .buttonStyle(.plain).accessibilityLabel("Research bot, practice money only").accessibilityAddTraits(selected ? .isSelected : [])
  }
 
  private func hubStockChoice(_ title: String,index: Int) -> some View {

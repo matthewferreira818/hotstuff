@@ -57,3 +57,7 @@ printf 'enum PingRules { static func backups(for chat: String) -> [String] { cha
 cp "$D/checks/jobheal_check.swift" "$T/main.swift"
 xcrun swiftc -target arm64-apple-macos14.0 "$T/jhstub.swift" "$T/jh.swift" "$T/main.swift" -o "$T/jhx" 2>&1 | grep error
 "$T/jhx"
+# Research bot tab (Stock bot page): defensive reading of stock_bot/research_bot/, honest status, PAUSE push only adds PAUSE (throwaway repo)
+cp "$D/checks/research_check.swift" "$T/main.swift"
+xcrun swiftc -target arm64-apple-macos14.0 "$D/ResearchBotData.swift" "$T/main.swift" -o "$T/rb" 2>&1 | grep error
+"$T/rb" "$D/../.."

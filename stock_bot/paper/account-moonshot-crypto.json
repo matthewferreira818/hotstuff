@@ -1,16 +1,9 @@
 {
  "started": "2026-11-04T16:58:34+00:00",
  "start_cash": 1000.0,
- "cash": 0.0,
+ "cash": 468.9,
  "spy_at_start": 768.43,
  "positions": {
-  "AVAX-USD": {
-   "qty": 56.47358471432547,
-   "avg_entry_price": 8.8008,
-   "fill": 8.7567,
-   "peak": 8.993,
-   "bought": "2026-11-09T13:29:37+00:00"
-  },
   "PEPE24478-USD": {
    "qty": 94101127.4439846,
    "avg_entry_price": 5.28166e-06,
@@ -59,22 +52,22 @@
    "price": 5.25525e-06,
    "dollars": 497.01,
    "fee": 2.49
+  },
+  {
+   "time": "2026-11-10T13:29:40+00:00",
+   "symbol": "AVAX-USD",
+   "side": "sell",
+   "status": "filled",
+   "qty": 56.473585,
+   "price": 8.3446,
+   "dollars": 468.9,
+   "fee": 2.36
   }
  ],
  "deposited": 1000.0,
  "spy_units": 1.3013547102533738,
  "deposits": [],
  "events": [
-  {
-   "time": "2026-11-09T05:15:29+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-09T06:16:35+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
   {
    "time": "2026-11-09T07:17:41+00:00",
    "kind": "quiet",
@@ -262,6 +255,16 @@
   },
   {
    "time": "2026-11-10T12:06:57+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-10T12:44:25+00:00",
+   "kind": "start",
+   "text": "Checking 19 every 10 seconds."
+  },
+  {
+   "time": "2026-11-10T12:44:25+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
   }

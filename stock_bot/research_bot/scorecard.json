@@ -1,10 +1,10 @@
 {
- "generated": "2026-11-10T13:38:21Z",
+ "generated": "2026-11-10T14:25:19Z",
  "markets": {
   "stock": {
-   "ideas_tried": 9,
+   "ideas_tried": 16,
    "ideas_in_ledger": 1,
-   "ideas_in_replay": 8,
+   "ideas_in_replay": 15,
    "forecasts": 12,
    "graded": 0,
    "open": 12,
@@ -31,9 +31,9 @@
    "span_days": 0,
    "by_idea": {
     "I-20261110-133531-eda94a": {
-     "ideas_tried": 8,
+     "ideas_tried": 15,
      "ideas_in_ledger": 0,
-     "ideas_in_replay": 8,
+     "ideas_in_replay": 15,
      "forecasts": 12,
      "graded": 0,
      "open": 12,
@@ -75,14 +75,14 @@
    }
   },
   "crypto": {
-   "ideas_tried": 10,
+   "ideas_tried": 19,
    "ideas_in_ledger": 2,
-   "ideas_in_replay": 8,
+   "ideas_in_replay": 17,
    "forecasts": 0,
    "graded": 0,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 2,
+   "no_trade_days": 3,
    "hits": 0,
    "hit_rate": null,
    "luck_p_value": 1.0,

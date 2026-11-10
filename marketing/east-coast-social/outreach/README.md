@@ -27,7 +27,7 @@ Matthew will have a business advisor check this as we go. Until then:
    marked 🚫 in `prospects.md`.
 4. **Two touches at most per business:** a first message, and one follow-up at least three weeks later. Then they rest.
 5. **Keep a record:** the ledger notes the date, the page, and why we thought it was a fit.
-6. **Only true claims.** Free setup, free sample week, $79 a month, no contract, and "my own store's feed has published a new
+6. **Only true claims.** 7 free sample posts first, then $79 for a first pilot month, then $79 a month, no contract (never "free setup" or "free first week"), and "my own store's feed has published a new
    post every day since August 7" (never "my page"; link findhotstuff.com/automation). No invented reviews, no fake urgency,
    no misleading first line. Never claim a quiet page is quiet unless C.C just saw the last post date.
 7. **Small and personal:** at most 5 a batch, each with the business's real name. Facebook can flag accounts that send many

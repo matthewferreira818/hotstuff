@@ -82,6 +82,8 @@ REF_CHANNELS = [
     ("merch", "Merch QR (the sweater)"),
     ("buyer", "Post-purchase page"),
     ("setup", "Setup page -> automation"),
+    ("outreach-email", "ECS outreach emails"),
+    ("outreach-fb", "ECS outreach Facebook messages"),
 ]
 
 # Own-visit exclusion took effect Aug 12 (laptop toggled out of GoatCounter);

@@ -1,32 +1,35 @@
 {
- "generated": "2026-11-11T14:25:20Z",
+ "generated": "2026-11-11T15:25:22Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
    "ideas_in_ledger": 1,
    "ideas_in_replay": 15,
-   "forecasts": 12,
-   "graded": 0,
+   "forecasts": 24,
+   "graded": 12,
    "open": 12,
    "late_not_counted": 0,
    "no_trade_days": 1,
-   "hits": 0,
-   "hit_rate": null,
-   "luck_p_value": 1.0,
+   "hits": 2,
+   "hit_rate": 0.16666666666666666,
+   "luck_p_value": 0.996826171875,
    "brier": {
-    "forecaster": null,
-    "coin_flip": null,
-    "base_rate": null,
-    "tomorrow_equals_today": null
+    "forecaster": 0.2637333333333333,
+    "coin_flip": 0.25,
+    "base_rate": 0.25,
+    "tomorrow_equals_today": 0.17666666666666675
    },
-   "paper_trades": 0,
+   "paper_trades": 3,
    "trade_size": 100.0,
-   "paper_pnl": 0,
-   "median_trade": null,
-   "worst_trade": null,
-   "pnl_without_best": null,
+   "paper_pnl": -11.67,
+   "median_trade": -4.48,
+   "worst_trade": -7.19,
+   "pnl_without_best": -11.66,
    "cash_pnl": 0.0,
-   "hold_window": null,
+   "hold_window": {
+    "start": "2026-11-10T14:30:00Z",
+    "end": "2026-11-11T14:30:00Z"
+   },
    "benchmark": "SPY",
    "span_days": 1,
    "by_idea": {
@@ -34,39 +37,43 @@
      "ideas_tried": 15,
      "ideas_in_ledger": 0,
      "ideas_in_replay": 15,
-     "forecasts": 12,
-     "graded": 0,
+     "forecasts": 24,
+     "graded": 12,
      "open": 12,
      "late_not_counted": 0,
      "no_trade_days": 0,
-     "hits": 0,
-     "hit_rate": null,
-     "luck_p_value": 1.0,
+     "hits": 2,
+     "hit_rate": 0.16666666666666666,
+     "luck_p_value": 0.996826171875,
      "brier": {
-      "forecaster": null,
-      "coin_flip": null,
-      "base_rate": null,
-      "tomorrow_equals_today": null
+      "forecaster": 0.2637333333333333,
+      "coin_flip": 0.25,
+      "base_rate": 0.25,
+      "tomorrow_equals_today": 0.17666666666666675
      },
-     "paper_trades": 0,
+     "paper_trades": 3,
      "trade_size": 100.0,
-     "paper_pnl": 0,
-     "median_trade": null,
-     "worst_trade": null,
-     "pnl_without_best": null,
+     "paper_pnl": -11.67,
+     "median_trade": -4.48,
+     "worst_trade": -7.19,
+     "pnl_without_best": -11.66,
      "cash_pnl": 0.0,
-     "hold_window": null,
+     "hold_window": {
+      "start": "2026-11-10T14:30:00Z",
+      "end": "2026-11-11T14:30:00Z"
+     },
      "benchmark": "SPY",
      "span_days": 0,
      "text": "replay idea momentum h=1 {\"lookback\": 20, \"prob\": 0.52}",
      "replay_pass": false,
      "replay_status": "DEAD",
-     "label": "from an idea that failed the replay: data only, not a signal"
+     "label": "from an idea that failed the replay: data only, not a signal",
+     "hold_pnl": 5.88
     }
    },
-   "hold_pnl": null,
+   "hold_pnl": 5.88,
    "down_market_seen": false,
-   "max_drawdown_pct": null,
+   "max_drawdown_pct": 0.0,
    "evidence_bar": {
     "(a) walk-forward on past prices passes the six-condition gate": false,
     "(b) 100+ graded FORWARD forecasts": false,
@@ -84,7 +91,7 @@
    "graded": 0,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 24,
+   "no_trade_days": 25,
    "hits": 0,
    "hit_rate": null,
    "luck_p_value": 1.0,
@@ -128,7 +135,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 747.9000244140625,
+   "exit": 756.7999877929688,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-09635e",
@@ -139,7 +152,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 672.5499877929688,
+   "exit": 687.2750244140625,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-77c453",
@@ -150,7 +169,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 34.130001068115234,
+   "exit": 34.904998779296875,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-d8743d",
@@ -161,7 +186,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 225.0,
+   "exit": 235.35499572753906,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-59917b",
@@ -172,7 +203,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 81.26000213623047,
+   "exit": 84.0999984741211,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-cb5503",
@@ -183,7 +220,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 173.97999572753906,
+   "exit": 172.72000122070312,
+   "went_up": false,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-ca4f3f",
@@ -194,7 +237,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": true,
    "p_up": 0.52,
-   "status": "open"
+   "status": "graded",
+   "entry": 188.0,
+   "exit": 182.21499633789062,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.5,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261110-133531-5aa6d6",
@@ -205,7 +254,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": true,
    "p_up": 0.52,
-   "status": "open"
+   "status": "graded",
+   "entry": 17.934999465942383,
+   "exit": 18.700000762939453,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-5bdff4",
@@ -216,7 +271,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 181.52999877929688,
+   "exit": 191.6999969482422,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-cf01da",
@@ -227,7 +288,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 717.3699951171875,
+   "exit": 777.2750244140625,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-f814a9",
@@ -238,7 +305,13 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 5.834000110626221,
+   "exit": 5.84499979019165,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261110-133531-69ce5a",
@@ -247,6 +320,144 @@
    "asset": "PFE",
    "opens": "2026-11-10T14:30:00Z",
    "resolves": "2026-11-11T14:30:00Z",
+   "act": true,
+   "p_up": 0.52,
+   "status": "graded",
+   "entry": 29.149999618530273,
+   "exit": 29.059999465942383,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.5,
+   "p_persist": 0.4
+  },
+  {
+   "id": "F-20261111-152504-73aaf6",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "SPY",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-6539a7",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "QQQ",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-12f0e2",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "ASTS",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-03c756",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "CRWD",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-458ed8",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "HOOD",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-0f34d3",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "NVDA",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-834032",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "ABNB",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": true,
+   "p_up": 0.52,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-7e6f85",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "RIOT",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": true,
+   "p_up": 0.52,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-bdb562",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "ARM",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-071b8c",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "MU",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-d018c9",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "ONDS",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261111-152504-2cdaf1",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "PFE",
+   "opens": "2026-11-12T14:30:00Z",
+   "resolves": "2026-11-13T14:30:00Z",
    "act": true,
    "p_up": 0.52,
    "status": "open"

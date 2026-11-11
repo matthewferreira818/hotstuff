@@ -1,25 +1,25 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-11T14:25:20Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-11T15:25:22Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 
 ## Stock
 
-Ideas tried 16 · forecasts 12 · graded 0 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 1 days
+Ideas tried 16 · forecasts 24 · graded 12 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 1 days
 
 | Who | Brier |
 |---|---|
-| Forecaster | - |
-| Coin flip / no change | - |
-| Base rate | - |
-| Tomorrow = today | - |
+| Forecaster | 0.264 |
+| Coin flip / no change | 0.250 |
+| Base rate | 0.250 |
+| Tomorrow = today | 0.177 |
 
-Hit rate - (0 of 0); chance a coin does at least this well: 1.00.
+Hit rate 0.17 (2 of 12); chance a coin does at least this well: 1.00.
 
-**Note: 12 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
+**Note: 24 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
 
-Paper trades 0 at $100 each, after fees + slippage: **$+0.00** · cash $+0.00 · SPY with the whole $1000: - · median trade - · worst - · without the best -
+Paper trades 3 at $100 each, after fees + slippage: **$-11.67** · cash $+0.00 · SPY with the whole $1000: $+5.88 · median trade -4.48 · worst -7.19 · without the best -11.66
 
 **Fast-track bar for the ~Dec 1 council re-vote: NOT MET** (judged per idea; a line says yes if any idea meets it)
 
@@ -34,11 +34,11 @@ Info, not gates: span 1 days, a down market during it: not yet, chance a coin do
 
 | Idea | Graded | Brier | Coin | Base rate | Tomorrow=today | Paper P&L | Replay |
 |---|---|---|---|---|---|---|---|
-| momentum h=1 {"lookback": 20, "prob": 0.52} | 0 | - | - | - | - | $+0.00 | **FAILED** (data only, not a signal) |
+| momentum h=1 {"lookback": 20, "prob": 0.52} | 12 | 0.264 | 0.250 | 0.250 | 0.177 | $-11.67 | **FAILED** (data only, not a signal) |
 
 ## Crypto
 
-Ideas tried 19 · forecasts 0 · graded 0 · still open 0 · LATE (not counted) 0 · no-trade days 24 · span 1 days
+Ideas tried 19 · forecasts 0 · graded 0 · still open 0 · LATE (not counted) 0 · no-trade days 25 · span 1 days
 
 | Who | Brier |
 |---|---|

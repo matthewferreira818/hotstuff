@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 338.56,
+ "cash": 4.92,
  "spy_at_start": 777.22,
  "positions": {
   "RGTI": {
    "qty": 28.12031056305866,
    "avg_entry_price": 11.8726,
    "fill": 11.8018
+  },
+  "CIFR": {
+   "qty": 47.84385289800453,
+   "avg_entry_price": 6.9735,
+   "fill": 6.9319
   }
  },
  "orders": [
@@ -1339,6 +1344,16 @@
    "qty": 18.905715,
    "price": 17.9221,
    "dollars": 336.84,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-11T14:57:03+00:00",
+   "symbol": "CIFR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 47.843853,
+   "price": 6.9319,
+   "dollars": 333.64,
    "fee": 1.99
   }
  ],

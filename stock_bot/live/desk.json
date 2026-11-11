@@ -1,8 +1,8 @@
 {
  "paper": true,
  "note": "PRACTICE MONEY ONLY. Numbers are the practice accounts, not real money.",
- "as_of": "2026-11-11T16:10:46+00:00",
- "as_of_moncton": "Wed Nov 11 12:10 PM",
+ "as_of": "2026-11-11T19:11:35+00:00",
+ "as_of_moncton": "Wed Nov 11 03:11 PM",
  "paused": false,
  "robots": [
   {
@@ -22,15 +22,15 @@
    },
    "score": {
     "benchmark": "SPY",
-    "value": 723.67,
-    "hold_value": 1061.06,
+    "value": 729.18,
+    "hold_value": 1064.62,
     "put_in": 1070.3,
     "fees": 147.26,
     "trades_total": 74,
     "started": "2026-09-28T15:02:43+00:00",
     "days": 44,
-    "vs_hold": -337.39,
-    "vs_hold_pct": -31.52,
+    "vs_hold": -335.44,
+    "vs_hold_pct": -31.34,
     "beats_holding": false,
     "too_early": false
    }
@@ -47,20 +47,20 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 0,
+    "snapshot_age_min": 1,
     "trades_today": 0
    },
    "score": {
     "benchmark": "SPY",
-    "value": 1033.54,
-    "hold_value": 1060.86,
+    "value": 1035.83,
+    "hold_value": 1064.63,
     "put_in": 1070.3,
     "fees": 21.89,
     "trades_total": 11,
     "started": "2026-09-28T15:02:28+00:00",
     "days": 44,
-    "vs_hold": -27.32,
-    "vs_hold_pct": -2.55,
+    "vs_hold": -28.8,
+    "vs_hold_pct": -2.69,
     "beats_holding": false,
     "too_early": false
    }
@@ -77,20 +77,20 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 0,
-    "trades_today": 6
+    "snapshot_age_min": 1,
+    "trades_today": 8
    },
    "score": {
     "benchmark": "SPY",
-    "value": 663.04,
-    "hold_value": 974.91,
+    "value": 671.35,
+    "hold_value": 978.62,
     "put_in": 1000.0,
-    "fees": 279.23,
-    "trades_total": 136,
+    "fees": 283.21,
+    "trades_total": 138,
     "started": "2026-10-08T13:19:40+00:00",
     "days": 34,
-    "vs_hold": -311.87,
-    "vs_hold_pct": -31.19,
+    "vs_hold": -307.27,
+    "vs_hold_pct": -30.73,
     "beats_holding": false,
     "too_early": false
    }
@@ -101,13 +101,13 @@
    "crypto": false,
    "health": {
     "state": "stale",
-    "why": "snapshot 154 min old",
+    "why": "snapshot 334 min old",
     "ran_today": true,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": true,
-    "snapshot_age_min": 154,
+    "snapshot_age_min": 334,
     "trades_today": 0
    },
    "score": {
@@ -118,7 +118,7 @@
     "fees": 0.0,
     "trades_total": 2,
     "started": "2026-11-04T16:58:30+00:00",
-    "days": 6,
+    "days": 7,
     "vs_hold": -38.47,
     "vs_hold_pct": -3.85,
     "beats_holding": false,
@@ -143,14 +143,14 @@
    "score": {
     "benchmark": "Bitcoin",
     "value": 934.71,
-    "hold_value": 920.83,
+    "hold_value": 922.54,
     "put_in": 1000.0,
     "fees": 14.66,
     "trades_total": 6,
     "started": "2026-11-04T16:58:34+00:00",
-    "days": 6,
-    "vs_hold": 13.88,
-    "vs_hold_pct": 1.39,
+    "days": 7,
+    "vs_hold": 12.17,
+    "vs_hold_pct": 1.22,
     "beats_holding": true,
     "too_early": true
    }
@@ -172,15 +172,15 @@
    },
    "score": {
     "benchmark": "SPY",
-    "value": 1054.43,
-    "hold_value": 1030.95,
+    "value": 1055.03,
+    "hold_value": 1034.25,
     "put_in": 1000.0,
     "fees": 17.91,
     "trades_total": 9,
     "started": "2026-11-05T18:06:16+00:00",
-    "days": 5,
-    "vs_hold": 23.48,
-    "vs_hold_pct": 2.35,
+    "days": 6,
+    "vs_hold": 20.78,
+    "vs_hold_pct": 2.08,
     "beats_holding": true,
     "too_early": true
    }
@@ -197,20 +197,20 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1,
+    "snapshot_age_min": 0,
     "trades_today": 0
    },
    "score": {
     "benchmark": "SPY",
-    "value": 1100.1,
-    "hold_value": 1030.87,
+    "value": 1099.1,
+    "hold_value": 1034.17,
     "put_in": 1000.0,
     "fees": 15.92,
     "trades_total": 8,
     "started": "2026-11-05T18:06:17+00:00",
-    "days": 5,
-    "vs_hold": 69.23,
-    "vs_hold_pct": 6.92,
+    "days": 6,
+    "vs_hold": 64.93,
+    "vs_hold_pct": 6.49,
     "beats_holding": true,
     "too_early": true
    }
@@ -223,8 +223,8 @@
   "stale": 1,
   "beat_holding": 3,
   "beat_holding_but_too_early": 3,
-  "trades_today": 9,
-  "total_value": 6446.97
+  "trades_today": 11,
+  "total_value": 6462.68
  },
  "day_open": {
   "date": "2026-11-11",

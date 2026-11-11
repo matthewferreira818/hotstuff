@@ -71,11 +71,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-10T01:13:32+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-10T02:14:34+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
@@ -269,6 +264,11 @@
    "time": "2026-11-11T09:06:56+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-11T09:11:48+00:00",
+   "kind": "sell",
+   "text": "Sold PEPE24478-USD at 4.975e-06 (-5.3%): stopped climbing"
   }
  ],
  "bench_units": 0.01243555274788409

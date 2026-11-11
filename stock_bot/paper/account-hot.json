@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 341.8,
+ "cash": 7.87,
  "spy_at_start": 777.22,
  "positions": {
   "RGTI": {
    "qty": 28.12031056305866,
    "avg_entry_price": 11.8726,
    "fill": 11.8018
+  },
+  "BGS": {
+   "qty": 101.87661800565027,
+   "avg_entry_price": 3.2778,
+   "fill": 3.2583
   }
  },
  "orders": [
@@ -1359,6 +1364,16 @@
    "qty": 47.843853,
    "price": 7.0829,
    "dollars": 336.88,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-11T15:37:28+00:00",
+   "symbol": "BGS",
+   "side": "buy",
+   "status": "filled",
+   "qty": 101.876618,
+   "price": 3.2583,
+   "dollars": 333.93,
    "fee": 1.99
   }
  ],

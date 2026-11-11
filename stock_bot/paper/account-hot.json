@@ -1,13 +1,18 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 333.85,
+ "cash": 1.72,
  "spy_at_start": 777.22,
  "positions": {
   "RGTI": {
    "qty": 28.12031056305866,
    "avg_entry_price": 11.8726,
    "fill": 11.8018
+  },
+  "MIR": {
+   "qty": 18.90571452050386,
+   "avg_entry_price": 17.5677,
+   "fill": 17.4624
   }
  },
  "orders": [
@@ -1319,6 +1324,16 @@
    "qty": 28.120311,
    "price": 11.8018,
    "dollars": 333.86,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-11T14:45:09+00:00",
+   "symbol": "MIR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 18.905715,
+   "price": 17.4624,
+   "dollars": 332.13,
    "fee": 1.99
   }
  ],

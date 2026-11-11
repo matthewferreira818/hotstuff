@@ -1,7 +1,7 @@
 {
  "started": "2026-11-05T18:06:16+00:00",
  "start_cash": 1000.0,
- "cash": 428.83,
+ "cash": 428.06,
  "spy_at_start": 735.08,
  "positions": {
   "GOOGL": {
@@ -13,8 +13,8 @@
    "avg_entry_price": 608.0414
   },
   "NVDA": {
-   "qty": 1.2054427885744856,
-   "avg_entry_price": 175.4044
+   "qty": 1.1902639448573076,
+   "avg_entry_price": 177.3724
   }
  },
  "orders": [
@@ -89,23 +89,23 @@
    "fee": 1.99
   },
   {
-   "time": "2026-11-11T14:31:09+00:00",
+   "time": "2026-11-11T19:21:57+00:00",
    "symbol": "AVGO",
    "side": "sell",
    "status": "filled",
    "qty": 0.660638,
-   "price": 350.9487,
-   "dollars": 229.86,
+   "price": 349.2954,
+   "dollars": 228.77,
    "fee": 1.99
   },
   {
-   "time": "2026-11-11T14:31:10+00:00",
+   "time": "2026-11-11T19:21:58+00:00",
    "symbol": "NVDA",
    "side": "buy",
    "status": "filled",
-   "qty": 1.205443,
-   "price": 173.7536,
-   "dollars": 211.44,
+   "qty": 1.190264,
+   "price": 175.7005,
+   "dollars": 211.12,
    "fee": 1.99
   }
  ],

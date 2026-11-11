@@ -1,7 +1,7 @@
 {
  "started": "2026-11-04T16:58:30+00:00",
  "start_cash": 1000.0,
- "cash": 469.07,
+ "cash": 0.0,
  "spy_at_start": 768.4,
  "positions": {
   "CVNA": {
@@ -10,6 +10,10 @@
    "fill": 77.9078,
    "peak": 78.26,
    "bought": "2026-11-04T16:58:46+00:00"
+  },
+  "APP": {
+   "qty": 1.155898861868275,
+   "avg_entry_price": 405.8054
   }
  },
  "orders": [
@@ -40,6 +44,16 @@
    "status": "filled",
    "qty": 28.641084,
    "price": 16.3776,
+   "dollars": 469.07,
+   "fee": 0.0
+  },
+  {
+   "time": "2026-11-11T20:35:33+00:00",
+   "symbol": "APP",
+   "side": "buy",
+   "status": "filled",
+   "qty": 1.155899,
+   "price": 405.8054,
    "dollars": 469.07,
    "fee": 0.0
   }
@@ -177,6 +191,11 @@
    "time": "2026-11-11T20:08:20+00:00",
    "kind": "quiet",
    "text": "Checked 34. Holding steady."
+  },
+  {
+   "time": "2026-11-11T20:35:33+00:00",
+   "kind": "sell",
+   "text": "Sold SOFI at 16.38 (-6.2%): stopped climbing"
   }
  ],
  "bench_units": 1.3014055179593962

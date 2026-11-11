@@ -1,14 +1,9 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 13.13,
+ "cash": 326.05,
  "spy_at_start": 777.22,
  "positions": {
-  "RGTI": {
-   "qty": 28.12031056305866,
-   "avg_entry_price": 11.8726,
-   "fill": 11.8018
-  },
   "PEPG": {
    "qty": 64.3847515248667,
    "avg_entry_price": 5.2461,
@@ -1394,6 +1389,16 @@
    "qty": 64.384752,
    "price": 5.2152,
    "dollars": 337.77,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-11T20:24:23+00:00",
+   "symbol": "RGTI",
+   "side": "sell",
+   "status": "filled",
+   "qty": 28.120311,
+   "price": 11.1988,
+   "dollars": 312.92,
    "fee": 1.99
   }
  ],

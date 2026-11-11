@@ -12,6 +12,7 @@ Only these exist. **Never send work to anyone else.** A message for a parked cha
 **🔧 Team BUILD** (The Helm and tools, only when there is a job)
 - **NB2 (Local Claude):** builds AND gates everything (took over LC-Manager's gate). Backup when Friday is closed.
 - **LC-Pixels (Local Claude):** screens, plus clients' picture cards.
+- **LC-Stocks (Local Claude, added 11-10 by Matthew):** owns the practice stock robots + Robot Desk (practice money only); Grok writes strategies/forecasts, NB2 gates.
 
 **Separate:** Grok (xAI) keeps the practice robots + research when he's back (~Nov 11), on grok/* branches.
 

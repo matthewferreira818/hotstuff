@@ -15,7 +15,7 @@
    "qty": 1.155898861868275,
    "avg_entry_price": 405.8054,
    "fill": 405.8054,
-   "peak": 406.26,
+   "peak": 406.55,
    "bought": "2026-11-11T20:35:35+00:00"
   }
  },
@@ -204,6 +204,11 @@
    "time": "2026-11-11T20:35:36+00:00",
    "kind": "buy",
    "text": "Bought APP $469.07 at 405.8: up 54.3% in 10 days, the hottest on the list"
+  },
+  {
+   "time": "2026-11-11T21:00:48+00:00",
+   "kind": "stop",
+   "text": "Market closed."
   }
  ],
  "bench_units": 1.3014055179593962

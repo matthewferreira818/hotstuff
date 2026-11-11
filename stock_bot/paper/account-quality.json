@@ -1,7 +1,7 @@
 {
  "started": "2026-11-05T18:06:16+00:00",
  "start_cash": 1000.0,
- "cash": 410.41,
+ "cash": 640.27,
  "spy_at_start": 735.08,
  "positions": {
   "GOOGL": {
@@ -11,10 +11,6 @@
   "META": {
    "qty": 0.3289249701727462,
    "avg_entry_price": 608.0414
-  },
-  "AVGO": {
-   "qty": 0.6606381069448535,
-   "avg_entry_price": 300.1341
   }
  },
  "orders": [
@@ -86,6 +82,16 @@
    "qty": 1.085449,
    "price": 167.3325,
    "dollars": 179.64,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-11T14:31:09+00:00",
+   "symbol": "AVGO",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.660638,
+   "price": 350.9487,
+   "dollars": 229.86,
    "fee": 1.99
   }
  ],

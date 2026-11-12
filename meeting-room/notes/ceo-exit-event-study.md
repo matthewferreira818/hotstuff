@@ -87,3 +87,90 @@ first close that was certainly after the news.
 **Looked at and left out under the rule (before prices):** Hertz (Scherr, Mar 2024: effective two weeks later), Chipotle (Niccol, Aug 2024:
 left for Starbucks, effective Aug 31), Yahoo (Thompson, 2012) and J.C. Penney (Johnson, 2013): no price history left on Yahoo; NVDA
 (the live case). If a ticker below turns out to have no usable Yahoo history, it is dropped and named, not replaced.
+
+## Part 3: results (prices pulled after Parts 1-2 were committed: 925982d plan, 55113df events)
+
+**Data:** Yahoo daily closes adjusted for dividends and splits (so returns include dividends, for SPY too). **25 of the 28 events
+were measured.** Dropped, as the plan said, not replaced: CBS/Moonves and Walgreens/Brewer (no price history left on Yahoo), and
+Paramount/Bakish (Yahoo's "PARA" is now a different company, Parabolic Technologies; caught by checking each ticker's company name
+before using it). Every other ticker was checked the same way.
+
+### The answer, in plain words
+**No edge, either way.** Over the 20 trading days after the news, these stocks did about the same as SPY: a little worse on average
+(−0.68%), with a median of −1.51% and a wide spread (from −13.6% to +15.8%). That's well within luck: the average is less than
+half a standard error from zero. They didn't reliably keep falling, and they didn't reliably bounce. Buying the "bounce" as a $100
+practice trade loses about 4-5% against SPY on average, almost all of it the ~4.18% round-trip cost. 25 events clears the 20 the plan
+asked for, but it's still a small sample: a result like this can only say "no clear pattern", not "no effect ever".
+
+### Main test: 20 trading days (all 25 events)
+| | Average vs SPY | Median | Spread (sd; lowest to highest) | Beat SPY | Average ÷ standard error |
+|---|---|---|---|---|---|
+| Before costs | −0.68% | −1.51% | 7.27; −13.6% to +15.8% | 9 of 25 | −0.47 |
+| After costs ($100 long) | −4.86% | −5.65% | | 5 of 25 | −3.42 |
+
+Against the pre-registered bar: **bounce edge: NO** (average and median below zero, only 5 of 25 beat SPY). **Keep-falling pattern:
+NO** (needs the average 2+ standard errors below zero; it's −0.47). **Verdict: no edge.**
+
+### Secondary windows (3 windows = 3 looks, so treat these as hints, not results)
+| Window | Before costs: avg / median | Beat SPY | Avg ÷ SE | After costs: avg / median | Beat SPY |
+|---|---|---|---|---|---|
+| 5 days | −0.01% / −0.63% | 9 of 25 | −0.01 | −4.19% / −4.70% | 4 of 25 |
+| 60 days | −1.17% / −5.05% | 11 of 25 | −0.31 | −5.38% / −9.20% | 9 of 25 |
+
+The 60-day spread is huge (−43.3% Boeing/Muilenburg to +50.2% Kohl's/Buchanan): one company's own story swamps any "CEO exit" effect.
+
+### Sub-groups (fixed in advance; small, so anecdotes)
+| Group (20 days, before costs) | Events | Average | Median | Beat SPY | Avg ÷ SE |
+|---|---|---|---|---|---|
+| Misconduct / scandal | 14 | −0.01% | −1.80% | 5 | −0.01 |
+| Other sudden exits (board ousters, abrupt resignations) | 11 | −1.53% | −1.51% | 4 | −0.64 |
+
+The "other" group's 60-day number is the most negative thing in the tables (average −6.05%, median −8.58%, 3 of 11 beat SPY), but
+it's 11 events, the fourth look at the data, and 1.4 standard errors: not evidence. A board firing a CEO over results usually means
+the results were already bad, which may simply continue.
+
+**First-day reaction** (news to entry close, not tradeable, context only): average +0.24% vs SPY, median −0.52%. Sudden exits don't
+reliably crash the stock on day one either: Starbucks jumped about 23%, UnitedHealth fell about 18%.
+
+### Every event (excess return vs SPY, before costs, %)
+| Company | CEO | M | Day 1 | 5 d | 20 d | 60 d | 20 d after costs |
+|---|---|---|---|---|---|---|---|
+| Hewlett-Packard (HPQ) | Hurd | M | -8.5 | -0.6 | -3.3 | -5.4 | -7.4 |
+| Hewlett-Packard (HPQ) | Apotheker |  | -2.7 | +0.9 | +4.5 | +6.5 | +0.0 |
+| Best Buy (BBY) | Dunn | M | -4.2 | +1.2 | -5.4 | +2.4 | -9.5 |
+| Duke Energy (DUK) | Johnson |  | +0.3 | -0.4 | -1.5 | -10.3 | -5.6 |
+| Wells Fargo (WFC) | Stumpf | M | -0.9 | -0.0 | +14.5 | +16.1 | +10.0 |
+| Ford (F) | Fields |  | +1.6 | -1.0 | -1.8 | -5.1 | -6.0 |
+| Equifax (EFX) | Smith | M | +0.9 | +2.6 | -0.4 | +4.7 | -4.6 |
+| Lululemon (LULU) | Potdevin | M | -0.4 | -0.6 | +2.1 | +29.0 | -2.2 |
+| Wynn Resorts (WYNN) | Wynn | M | +9.2 | -7.9 | -1.1 | +9.1 | -5.3 |
+| Intel (INTC) | Krzanich | M | -1.7 | -4.4 | -2.5 | -17.9 | -6.7 |
+| Texas Instruments (TXN) | Crutcher | M | -0.3 | -3.2 | -5.0 | -10.8 | -9.1 |
+| General Electric (GE) | Flannery |  | +6.7 | +13.9 | +1.9 | -25.3 | -2.1 |
+| Wells Fargo (WFC) | Sloan | M | -2.2 | -1.2 | -4.1 | -7.0 | -8.3 |
+| McDonald's (MCD) | Easterbrook | M | -3.1 | +1.8 | +2.3 | +9.0 | -1.9 |
+| Expedia (EXPE) | Okerstrom |  | -0.1 | +5.8 | -1.3 | -8.8 | -5.6 |
+| Boeing (BA) | Muilenburg | M | +2.8 | -3.7 | -9.1 | -43.3 | -13.2 |
+| Disney (DIS) | Chapek |  | +6.7 | -3.1 | -7.7 | +4.1 | -11.6 |
+| Dollar General (DG) | Owen |  | -1.2 | +15.1 | +15.8 | +25.1 | +11.3 |
+| Starbucks (SBUX) | Narasimhan |  | +22.9 | -5.5 | +0.7 | -8.6 | -3.5 |
+| Norfolk Southern (NSC) | Shaw | M | -0.5 | -3.2 | -6.8 | -6.1 | -10.9 |
+| CVS Health (CVS) | Lynch |  | -5.6 | -4.4 | -11.1 | -14.5 | -15.0 |
+| Intel (INTC) | Gelsinger |  | -0.7 | -13.2 | -13.6 | -2.0 | -17.5 |
+| Kroger (KR) | McMullen | M | -1.2 | +11.7 | +11.5 | +7.2 | +7.2 |
+| Kohl's (KSS) | Buchanan | M | +6.9 | -3.3 | +7.2 | +50.2 | +2.8 |
+| UnitedHealth (UNH) | Witty |  | -18.4 | +2.3 | -2.7 | -27.8 | -6.9 |
+
+### Honest limits
+- 25 events over 15 years in very different markets; each company had its own news (earnings, scandals, takeover talk) mixed in.
+- The picker knew some outcomes from general memory before choosing (see Part 1, point 6). The selection rule, not the results,
+  decided what went in, and every qualifying case found was kept, but that can't be proven from inside.
+- Survivorship: three companies dropped for missing data (CBS, Walgreens, Paramount); all three later merged or were bought out.
+- The "costs" are the practice desk's ($100 positions). Bigger positions would pay less in percent; that doesn't create an edge before costs.
+- Adjusted closes for GE and HP include later spin-off adjustments; they scale whole histories and don't change returns inside a window.
+
+### What this means for NVDA (the live case)
+Nothing to act on. History gives no reliable direction for a stock in the weeks after a sudden CEO exit, so this is **not** a reason
+to buy or sell NVDA. It's a practice-money research result only.
+
+**Scorecard:** ideas tried 33 (32 before + this one), passed 0. Log it with `forecasts.py idea` once this branch is merged.

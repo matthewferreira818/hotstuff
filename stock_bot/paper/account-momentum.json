@@ -36,7 +36,9 @@
   },
   "AMD": {
    "qty": 0.17241344930793623,
-   "avg_entry_price": 593.2832
+   "avg_entry_price": 593.2832,
+   "peak": 581.1699829101562,
+   "trail": 27.14
   }
  },
  "orders": [
@@ -171,5 +173,5 @@
   }
  ],
  "next_deposit": "2026-10-14",
- "last_close_check": "2026-11-11"
+ "last_close_check": "2026-11-12"
 }

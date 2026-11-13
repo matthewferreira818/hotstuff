@@ -1,12 +1,12 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-13T14:34:42Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-13T15:35:55Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 
 ## Stock
 
-Ideas tried 16 · forecasts 24 · graded 24 · still open 0 · LATE (not counted) 0 · no-trade days 1 · span 3 days
+Ideas tried 16 · forecasts 36 · graded 24 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 3 days
 
 | Who | Brier |
 |---|---|
@@ -17,9 +17,9 @@ Ideas tried 16 · forecasts 24 · graded 24 · still open 0 · LATE (not counted
 
 Hit rate 0.29 (7 of 24); chance a coin does at least this well: 0.99.
 
-**Note: 24 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
+**Note: 36 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
 
-Paper trades 6 at $100 each, after fees + slippage: **$-23.04** · cash $+0.00 · SPY with the whole $1000: $+10.13 · median trade -3.49 · worst -7.19 · without the best -23.04
+Paper trades 6 at $100 each, after fees + slippage: **$-23.04** · cash $+0.00 · SPY with the whole $1000: $+8.76 · median trade -3.49 · worst -7.19 · without the best -23.04
 
 **Fast-track bar for the ~Dec 1 council re-vote: NOT MET** (judged per idea; a line says yes if any idea meets it)
 
@@ -38,7 +38,7 @@ Info, not gates: span 3 days, a down market during it: not yet, chance a coin do
 
 ## Crypto
 
-Ideas tried 19 · forecasts 0 · graded 0 · still open 0 · LATE (not counted) 0 · no-trade days 66 · span 3 days
+Ideas tried 19 · forecasts 0 · graded 0 · still open 0 · LATE (not counted) 0 · no-trade days 67 · span 3 days
 
 | Who | Brier |
 |---|---|

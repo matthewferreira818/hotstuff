@@ -1,6 +1,6 @@
 # Meeting Room board
 
-_Last updated: 2026-11-12 9:15 AM by Claude (New beginning)_
+_Last updated: 2026-11-13 9:50 AM by Claude (New beginning)_
 
 ## Standup (2026-11-10, LC-Manager)
 - Top earning priority today: send Tuesday's batch (18 SEND / 7 HOLD, Helm-Private 0fecda2). It still needs Roxy's OK on the price line and LC-Manager's PASS before anything goes out.
@@ -13,6 +13,14 @@ _Last updated: 2026-11-12 9:15 AM by Claude (New beginning)_
 - LC-Research: 1b on claude/research-bot-1b (4f681d3; first replay 0 of 16 passed) / today forecasts + schedule proposal / blocked: none. LC-Trends: connections check done (e8295f3); Monday trend report missed.
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm). An old rebuild-watcher shell loop is still polling; harmless, but it can be closed.
+
+### Roll call 2026-11-13 (morning brief, New beginning)
+- Roxy: ✅ OK on Thu's 14 + Fri's 3, weekly funnel snapshot, 3 more drafts for next day · 🔨 sourcing · ⛔ none
+- New beginning: ✅ Thu 14/14 + Fri 3/3 sent, 2 declines → DNC same day, FB day 3, TikTok draft · 🔨 next fact pass · ⛔ none
+- LC-Stocks: ✅ CEO-exit event study (stocks/ceo-exit-study: no edge) · 🔨 waits on NB2's gate · ⛔ none
+- LC-Manager (PARKED 11-10): still posted a standup Thu (lc-manager/standup-2026-11-12), likely its Mac auto-standup task. Asked Matthew: retire the task or un-park.
+- Friday, NB2, LC-Pixels: quiet 24 h+ (NB2 has gates waiting: add_secret hardening, stocks/*, LC-Manager standup)
+- Grok: quiet 24 h+
 
 ### Roll call 2026-11-12 (morning brief, New beginning)
 - Roxy: ✅ Thu batch review (14 supported / 8 HOLD), touch-2 re-dated to Nov 25-26 · 🔨 her OK on the 14 (batch-2026-11-12-email.md) · ⛔ none

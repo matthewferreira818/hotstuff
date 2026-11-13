@@ -1,6 +1,6 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-13T05:39:10Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-13T07:18:42Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 
@@ -38,7 +38,7 @@ Info, not gates: span 2 days, a down market during it: not yet, chance a coin do
 
 ## Crypto
 
-Ideas tried 19 · forecasts 0 · graded 0 · still open 0 · LATE (not counted) 0 · no-trade days 61 · span 2 days
+Ideas tried 19 · forecasts 0 · graded 0 · still open 0 · LATE (not counted) 0 · no-trade days 62 · span 2 days
 
 | Who | Brier |
 |---|---|

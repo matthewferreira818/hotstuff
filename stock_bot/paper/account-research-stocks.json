@@ -1,18 +1,9 @@
 {
  "started": "2026-11-10T15:25:22Z",
  "start_cash": 1000.0,
- "cash": 794.04,
+ "cash": 984.11,
  "spy_at_start": null,
- "positions": {
-  "ABNB": {
-   "qty": 0.5307226798457831,
-   "avg_entry_price": 186.9526
-  },
-  "PFE": {
-   "qty": 3.321569968649314,
-   "avg_entry_price": 29.8082
-  }
- },
+ "positions": {},
  "orders": [
   {
    "time": "2026-11-10T15:25:23+00:00",
@@ -52,6 +43,26 @@
    "qty": 3.32157,
    "price": 29.2091,
    "dollars": 99.01,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-13T14:34:40+00:00",
+   "symbol": "ABNB",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.530723,
+   "price": 185.1696,
+   "dollars": 96.28,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-13T14:34:40+00:00",
+   "symbol": "PFE",
+   "side": "sell",
+   "status": "filled",
+   "qty": 3.32157,
+   "price": 28.8361,
+   "dollars": 93.79,
    "fee": 1.99
   }
  ],

@@ -1,66 +1,66 @@
 {
- "generated": "2026-11-13T12:25:23Z",
+ "generated": "2026-11-13T14:34:42Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
    "ideas_in_ledger": 1,
    "ideas_in_replay": 15,
    "forecasts": 24,
-   "graded": 12,
-   "open": 12,
+   "graded": 24,
+   "open": 0,
    "late_not_counted": 0,
    "no_trade_days": 1,
-   "hits": 2,
-   "hit_rate": 0.16666666666666666,
-   "luck_p_value": 0.996826171875,
+   "hits": 7,
+   "hit_rate": 0.2916666666666667,
+   "luck_p_value": 0.9886720776557922,
    "brier": {
-    "forecaster": 0.2637333333333333,
+    "forecaster": 0.2587333333333335,
     "coin_flip": 0.25,
-    "base_rate": 0.25,
-    "tomorrow_equals_today": 0.17666666666666675
+    "base_rate": 0.23724489795918371,
+    "tomorrow_equals_today": 0.24333333333333343
    },
-   "paper_trades": 3,
+   "paper_trades": 6,
    "trade_size": 100.0,
-   "paper_pnl": -11.67,
-   "median_trade": -4.48,
+   "paper_pnl": -23.04,
+   "median_trade": -3.49,
    "worst_trade": -7.19,
-   "pnl_without_best": -11.66,
+   "pnl_without_best": -23.04,
    "cash_pnl": 0.0,
    "hold_window": {
     "start": "2026-11-10T14:30:00Z",
-    "end": "2026-11-11T14:30:00Z"
+    "end": "2026-11-13T14:30:00Z"
    },
    "benchmark": "SPY",
-   "span_days": 2,
+   "span_days": 3,
    "by_idea": {
     "I-20261110-133531-eda94a": {
      "ideas_tried": 15,
      "ideas_in_ledger": 0,
      "ideas_in_replay": 15,
      "forecasts": 24,
-     "graded": 12,
-     "open": 12,
+     "graded": 24,
+     "open": 0,
      "late_not_counted": 0,
      "no_trade_days": 0,
-     "hits": 2,
-     "hit_rate": 0.16666666666666666,
-     "luck_p_value": 0.996826171875,
+     "hits": 7,
+     "hit_rate": 0.2916666666666667,
+     "luck_p_value": 0.9886720776557922,
      "brier": {
-      "forecaster": 0.2637333333333333,
+      "forecaster": 0.2587333333333335,
       "coin_flip": 0.25,
-      "base_rate": 0.25,
-      "tomorrow_equals_today": 0.17666666666666675
+      "base_rate": 0.23724489795918371,
+      "tomorrow_equals_today": 0.24333333333333343
      },
-     "paper_trades": 3,
+     "paper_trades": 6,
      "trade_size": 100.0,
-     "paper_pnl": -11.67,
-     "median_trade": -4.48,
+     "paper_pnl": -23.04,
+     "median_trade": -3.49,
      "worst_trade": -7.19,
-     "pnl_without_best": -11.66,
+     "pnl_without_best": -23.04,
      "cash_pnl": 0.0,
      "hold_window": {
       "start": "2026-11-10T14:30:00Z",
-      "end": "2026-11-11T14:30:00Z"
+      "end": "2026-11-13T14:30:00Z"
      },
      "benchmark": "SPY",
      "span_days": 0,
@@ -68,12 +68,12 @@
      "replay_pass": false,
      "replay_status": "DEAD",
      "label": "from an idea that failed the replay: data only, not a signal",
-     "hold_pnl": 5.88
+     "hold_pnl": 10.13
     }
    },
-   "hold_pnl": 5.88,
+   "hold_pnl": 10.13,
    "down_market_seen": false,
-   "max_drawdown_pct": 0.0,
+   "max_drawdown_pct": 0.41,
    "evidence_bar": {
     "(a) walk-forward on past prices passes the six-condition gate": false,
     "(b) 100+ graded FORWARD forecasts": false,
@@ -91,7 +91,7 @@
    "graded": 0,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 65,
+   "no_trade_days": 66,
    "hits": 0,
    "hit_rate": null,
    "luck_p_value": 1.0,
@@ -110,7 +110,7 @@
    "cash_pnl": 0.0,
    "hold_window": null,
    "benchmark": "BTC-USD",
-   "span_days": 2,
+   "span_days": 3,
    "by_idea": {},
    "hold_pnl": null,
    "down_market_seen": false,
@@ -339,7 +339,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 753.97998046875,
+   "exit": 759.9949951171875,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-6539a7",
@@ -350,7 +356,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 680.2119750976562,
+   "exit": 688.510009765625,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-12f0e2",
@@ -361,7 +373,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 34.709999084472656,
+   "exit": 33.97999954223633,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-03c756",
@@ -372,7 +390,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 226.82749938964844,
+   "exit": 235.50010681152344,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-458ed8",
@@ -383,7 +407,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 80.75499725341797,
+   "exit": 79.79499816894531,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-0f34d3",
@@ -394,7 +424,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 149.2906036376953,
+   "exit": 169.88999938964844,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-834032",
@@ -405,7 +441,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": true,
    "p_up": 0.52,
-   "status": "open"
+   "status": "graded",
+   "entry": 179.60499572753906,
+   "exit": 182.6649932861328,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-7e6f85",
@@ -416,7 +458,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": true,
    "p_up": 0.52,
-   "status": "open"
+   "status": "graded",
+   "entry": 17.309999465942383,
+   "exit": 17.700000762939453,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-bdb562",
@@ -427,7 +475,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 190.36500549316406,
+   "exit": 196.6649932861328,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-071b8c",
@@ -438,7 +492,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 769.3099975585938,
+   "exit": 782.6599731445312,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-d018c9",
@@ -449,7 +509,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 5.4019999504089355,
+   "exit": 5.324999809265137,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-2cdaf1",
@@ -460,7 +526,13 @@
    "resolves": "2026-11-13T14:30:00Z",
    "act": true,
    "p_up": 0.52,
-   "status": "open"
+   "status": "graded",
+   "entry": 29.746000289916992,
+   "exit": 28.920000076293945,
+   "went_up": false,
+   "prev_up": true,
+   "p_base": 0.7142857142857143,
+   "p_persist": 0.6
   }
  ],
  "append_only_ok": true,

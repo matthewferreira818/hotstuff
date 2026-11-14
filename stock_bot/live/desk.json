@@ -1,8 +1,8 @@
 {
  "paper": true,
  "note": "PRACTICE MONEY ONLY. Numbers are the practice accounts, not real money.",
- "as_of": "2026-11-13T23:33:38+00:00",
- "as_of_moncton": "Fri Nov 13 07:33 PM",
+ "as_of": "2026-11-14T00:24:28+00:00",
+ "as_of_moncton": "Fri Nov 13 08:24 PM",
  "paused": false,
  "robots": [
   {
@@ -17,7 +17,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 153,
+    "snapshot_age_min": 204,
     "trades_today": 0
    },
    "score": {
@@ -47,7 +47,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 153,
+    "snapshot_age_min": 204,
     "trades_today": 0
    },
    "score": {
@@ -77,7 +77,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 153,
+    "snapshot_age_min": 204,
     "trades_today": 4
    },
    "score": {
@@ -107,7 +107,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 152,
+    "snapshot_age_min": 203,
     "trades_today": 0
    },
    "score": {
@@ -143,14 +143,14 @@
    "score": {
     "benchmark": "Bitcoin",
     "value": 934.71,
-    "hold_value": 847.52,
+    "hold_value": 849.27,
     "put_in": 1000.0,
     "fees": 14.66,
     "trades_total": 6,
     "started": "2026-11-04T16:58:34+00:00",
     "days": 9,
-    "vs_hold": 87.19,
-    "vs_hold_pct": 8.72,
+    "vs_hold": 85.44,
+    "vs_hold_pct": 8.54,
     "beats_holding": true,
     "too_early": true
    }
@@ -167,7 +167,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 153,
+    "snapshot_age_min": 204,
     "trades_today": 0
    },
    "score": {
@@ -197,7 +197,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 153,
+    "snapshot_age_min": 204,
     "trades_today": 1
    },
    "score": {

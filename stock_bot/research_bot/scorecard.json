@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-14T00:25:33Z",
+ "generated": "2026-11-14T01:25:21Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -73,7 +73,7 @@
    },
    "hold_pnl": 8.76,
    "down_market_seen": false,
-   "max_drawdown_pct": 0.72,
+   "max_drawdown_pct": 0.35,
    "evidence_bar": {
     "(a) walk-forward on past prices passes the six-condition gate": false,
     "(b) 100+ graded FORWARD forecasts": false,
@@ -91,7 +91,7 @@
    "graded": 0,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 76,
+   "no_trade_days": 77,
    "hits": 0,
    "hit_rate": null,
    "luck_p_value": 1.0,

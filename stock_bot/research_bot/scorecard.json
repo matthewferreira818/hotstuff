@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-14T21:30:39Z",
+ "generated": "2026-11-14T22:28:53Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -88,8 +88,8 @@
    "ideas_in_ledger": 2,
    "ideas_in_replay": 17,
    "forecasts": 9,
-   "graded": 1,
-   "open": 8,
+   "graded": 2,
+   "open": 7,
    "late_not_counted": 0,
    "no_trade_days": 90,
    "hits": 0,
@@ -101,16 +101,16 @@
     "base_rate": 0.25,
     "tomorrow_equals_today": 0.16000000000000003
    },
-   "paper_trades": 1,
+   "paper_trades": 2,
    "trade_size": 100.0,
-   "paper_pnl": -7.39,
-   "median_trade": -7.39,
+   "paper_pnl": -14.05,
+   "median_trade": -7.02,
    "worst_trade": -7.39,
-   "pnl_without_best": 0.0,
+   "pnl_without_best": -7.39,
    "cash_pnl": 0.0,
    "hold_window": {
     "start": "2026-11-14T16:00:00Z",
-    "end": "2026-11-14T20:00:00Z"
+    "end": "2026-11-14T22:00:00Z"
    },
    "benchmark": "BTC-USD",
    "span_days": 4,
@@ -154,8 +154,8 @@
      "ideas_in_ledger": 0,
      "ideas_in_replay": 17,
      "forecasts": 5,
-     "graded": 1,
-     "open": 4,
+     "graded": 2,
+     "open": 3,
      "late_not_counted": 0,
      "no_trade_days": 0,
      "hits": 0,
@@ -167,16 +167,16 @@
       "base_rate": 0.25,
       "tomorrow_equals_today": 0.16000000000000003
      },
-     "paper_trades": 1,
+     "paper_trades": 2,
      "trade_size": 100.0,
-     "paper_pnl": -7.39,
-     "median_trade": -7.39,
+     "paper_pnl": -14.05,
+     "median_trade": -7.02,
      "worst_trade": -7.39,
-     "pnl_without_best": 0.0,
+     "pnl_without_best": -7.39,
      "cash_pnl": 0.0,
      "hold_window": {
       "start": "2026-11-14T16:00:00Z",
-      "end": "2026-11-14T20:00:00Z"
+      "end": "2026-11-14T22:00:00Z"
      },
      "benchmark": "BTC-USD",
      "span_days": 0,
@@ -184,10 +184,10 @@
      "replay_pass": false,
      "replay_status": "DEAD",
      "label": "from an idea that failed the replay: data only, not a signal",
-     "hold_pnl": -11.74
+     "hold_pnl": -31.56
     }
    },
-   "hold_pnl": -11.74,
+   "hold_pnl": -31.56,
    "down_market_seen": false,
    "max_drawdown_pct": 0.0,
    "evidence_bar": {
@@ -778,7 +778,13 @@
    "resolves": "2026-11-14T22:00:00Z",
    "act": true,
    "p_up": 0.56,
-   "status": "open"
+   "status": "graded",
+   "entry": 3.980000201408984e-06,
+   "exit": 3.7600000268867007e-06,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.5,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261114-172504-413488",

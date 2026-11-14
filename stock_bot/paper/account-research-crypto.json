@@ -1,0 +1,27 @@
+{
+ "started": "2026-11-14T22:28:48Z",
+ "start_cash": 1000.0,
+ "cash": 900.0,
+ "spy_at_start": null,
+ "positions": {
+  "FARTCOIN-USD": {
+   "qty": 1113.8570124195783,
+   "avg_entry_price": 0.0897781
+  }
+ },
+ "orders": [
+  {
+   "time": "2026-11-14T22:28:49+00:00",
+   "symbol": "FARTCOIN-USD",
+   "side": "buy",
+   "status": "filled",
+   "qty": 1113.857012,
+   "price": 0.0893292,
+   "dollars": 100.0,
+   "fee": 0.5
+  }
+ ],
+ "deposited": 1000.0,
+ "spy_units": 0.0,
+ "deposits": []
+}

@@ -1,12 +1,12 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-14T13:32:48Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-14T14:33:48Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 
 ## Stock
 
-Ideas tried 16 · forecasts 36 · graded 24 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 3 days
+Ideas tried 16 · forecasts 36 · graded 24 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 4 days
 
 | Who | Brier |
 |---|---|
@@ -30,7 +30,7 @@ Paper trades 6 at $100 each, after fees + slippage: **$-23.04** · cash $+0.00 �
 - NO  - (b) paper P&L after costs beats buy-and-hold
 - NO  - one idea meets ALL of the above
 
-Info, not gates: span 3 days, a down market during it: not yet, chance a coin does this well: 0.99.
+Info, not gates: span 4 days, a down market during it: not yet, chance a coin does this well: 0.99.
 
 | Idea | Graded | Brier | Coin | Base rate | Tomorrow=today | Paper P&L | Replay |
 |---|---|---|---|---|---|---|---|
@@ -38,7 +38,7 @@ Info, not gates: span 3 days, a down market during it: not yet, chance a coin do
 
 ## Crypto
 
-Ideas tried 19 · forecasts 0 · graded 0 · still open 0 · LATE (not counted) 0 · no-trade days 89 · span 3 days
+Ideas tried 19 · forecasts 0 · graded 0 · still open 0 · LATE (not counted) 0 · no-trade days 90 · span 4 days
 
 | Who | Brier |
 |---|---|
@@ -60,7 +60,7 @@ Paper trades 0 at $100 each, after fees + slippage: **$+0.00** · cash $+0.00 ·
 - NO  - (b) paper P&L after costs beats buy-and-hold
 - NO  - one idea meets ALL of the above
 
-Info, not gates: span 3 days, a down market during it: not yet, chance a coin does this well: 1.00.
+Info, not gates: span 4 days, a down market during it: not yet, chance a coin does this well: 1.00.
 
 Later, before any real money (not part of the re-vote; real money is not in phase 1): six-condition #6: the practice desk is not behind SPY (forward); client #1 has paid; Service Canada / EI answer on trading; a Canadian tax check; Matthew picks a tiny cap and flips any switch himself.
 

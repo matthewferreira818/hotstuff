@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-14T19:54:00Z",
+ "generated": "2026-11-14T20:27:09Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -88,27 +88,30 @@
    "ideas_in_ledger": 2,
    "ideas_in_replay": 17,
    "forecasts": 4,
-   "graded": 0,
-   "open": 4,
+   "graded": 1,
+   "open": 3,
    "late_not_counted": 0,
    "no_trade_days": 90,
    "hits": 0,
-   "hit_rate": null,
+   "hit_rate": 0.0,
    "luck_p_value": 1.0,
    "brier": {
-    "forecaster": null,
-    "coin_flip": null,
-    "base_rate": null,
-    "tomorrow_equals_today": null
+    "forecaster": 0.31360000000000005,
+    "coin_flip": 0.25,
+    "base_rate": 0.25,
+    "tomorrow_equals_today": 0.16000000000000003
    },
-   "paper_trades": 0,
+   "paper_trades": 1,
    "trade_size": 100.0,
-   "paper_pnl": 0,
-   "median_trade": null,
-   "worst_trade": null,
-   "pnl_without_best": null,
+   "paper_pnl": -7.39,
+   "median_trade": -7.39,
+   "worst_trade": -7.39,
+   "pnl_without_best": 0.0,
    "cash_pnl": 0.0,
-   "hold_window": null,
+   "hold_window": {
+    "start": "2026-11-14T16:00:00Z",
+    "end": "2026-11-14T20:00:00Z"
+   },
    "benchmark": "BTC-USD",
    "span_days": 4,
    "by_idea": {
@@ -143,51 +146,56 @@
      "text": "replay idea reversal h=24 {\"drop_pct\": 8, \"lookback\": 5, \"prob\": 0.56}",
      "replay_pass": false,
      "replay_status": "DEAD",
-     "label": "from an idea that failed the replay: data only, not a signal"
+     "label": "from an idea that failed the replay: data only, not a signal",
+     "hold_pnl": null
     },
     "I-20261110-133531-fbd89e": {
      "ideas_tried": 17,
      "ideas_in_ledger": 0,
      "ideas_in_replay": 17,
      "forecasts": 2,
-     "graded": 0,
-     "open": 2,
+     "graded": 1,
+     "open": 1,
      "late_not_counted": 0,
      "no_trade_days": 0,
      "hits": 0,
-     "hit_rate": null,
+     "hit_rate": 0.0,
      "luck_p_value": 1.0,
      "brier": {
-      "forecaster": null,
-      "coin_flip": null,
-      "base_rate": null,
-      "tomorrow_equals_today": null
+      "forecaster": 0.31360000000000005,
+      "coin_flip": 0.25,
+      "base_rate": 0.25,
+      "tomorrow_equals_today": 0.16000000000000003
      },
-     "paper_trades": 0,
+     "paper_trades": 1,
      "trade_size": 100.0,
-     "paper_pnl": 0,
-     "median_trade": null,
-     "worst_trade": null,
-     "pnl_without_best": null,
+     "paper_pnl": -7.39,
+     "median_trade": -7.39,
+     "worst_trade": -7.39,
+     "pnl_without_best": 0.0,
      "cash_pnl": 0.0,
-     "hold_window": null,
+     "hold_window": {
+      "start": "2026-11-14T16:00:00Z",
+      "end": "2026-11-14T20:00:00Z"
+     },
      "benchmark": "BTC-USD",
      "span_days": 0,
      "text": "replay idea reversal h=4 {\"drop_pct\": 8, \"lookback\": 5, \"prob\": 0.56}",
      "replay_pass": false,
      "replay_status": "DEAD",
-     "label": "from an idea that failed the replay: data only, not a signal"
+     "label": "from an idea that failed the replay: data only, not a signal",
+     "hold_pnl": -11.74
     }
    },
-   "hold_pnl": null,
+   "hold_pnl": -11.74,
    "down_market_seen": false,
-   "max_drawdown_pct": null,
+   "max_drawdown_pct": 0.0,
    "evidence_bar": {
     "(a) walk-forward on past prices passes the six-condition gate": false,
     "(b) 100+ graded FORWARD forecasts": false,
     "(b) Brier beats all three baselines": false,
     "(b) paper P&L after costs beats cash": false,
-    "(b) paper P&L after costs beats buy-and-hold": false,
+    "(b) paper P&L after costs beats buy-and-hold": true,
     "one idea meets ALL of the above": false
    }
   }
@@ -742,7 +750,13 @@
    "resolves": "2026-11-14T20:00:00Z",
    "act": true,
    "p_up": 0.56,
-   "status": "open"
+   "status": "graded",
+   "entry": 0.005278999917209148,
+   "exit": 0.004947999957948923,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.5,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261114-152538-5820fa",

@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-15T13:33:51Z",
+ "generated": "2026-11-15T14:34:50Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -31,7 +31,7 @@
     "end": "2026-11-13T14:30:00Z"
    },
    "benchmark": "SPY",
-   "span_days": 4,
+   "span_days": 5,
    "by_idea": {
     "I-20261110-133531-eda94a": {
      "ideas_tried": 15,
@@ -113,7 +113,7 @@
     "end": "2026-11-15T04:00:00Z"
    },
    "benchmark": "BTC-USD",
-   "span_days": 4,
+   "span_days": 5,
    "by_idea": {
     "I-20261110-133531-4443e5": {
      "ideas_tried": 17,

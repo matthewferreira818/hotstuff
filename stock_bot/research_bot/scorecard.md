@@ -1,12 +1,12 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-15T13:33:51Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-15T14:34:50Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 
 ## Stock
 
-Ideas tried 16 · forecasts 36 · graded 24 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 4 days
+Ideas tried 16 · forecasts 36 · graded 24 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 5 days
 
 | Who | Brier |
 |---|---|
@@ -30,7 +30,7 @@ Paper trades 6 at $100 each, after fees + slippage: **$-23.04** · cash $+0.00 �
 - NO  - (b) paper P&L after costs beats buy-and-hold
 - NO  - one idea meets ALL of the above
 
-Info, not gates: span 4 days, a down market during it: not yet, chance a coin does this well: 0.99.
+Info, not gates: span 5 days, a down market during it: not yet, chance a coin does this well: 0.99.
 
 | Idea | Graded | Brier | Coin | Base rate | Tomorrow=today | Paper P&L | Replay |
 |---|---|---|---|---|---|---|---|
@@ -38,7 +38,7 @@ Info, not gates: span 4 days, a down market during it: not yet, chance a coin do
 
 ## Crypto
 
-Ideas tried 19 · forecasts 11 · graded 6 · still open 5 · LATE (not counted) 0 · no-trade days 90 · span 4 days
+Ideas tried 19 · forecasts 11 · graded 6 · still open 5 · LATE (not counted) 0 · no-trade days 90 · span 5 days
 
 | Who | Brier |
 |---|---|
@@ -62,7 +62,7 @@ Paper trades 6 at $100 each, after fees + slippage: **$-17.88** · cash $+0.00 �
 - yes - (b) paper P&L after costs beats buy-and-hold
 - NO  - one idea meets ALL of the above
 
-Info, not gates: span 4 days, a down market during it: not yet, chance a coin does this well: 0.89.
+Info, not gates: span 5 days, a down market during it: not yet, chance a coin does this well: 0.89.
 
 | Idea | Graded | Brier | Coin | Base rate | Tomorrow=today | Paper P&L | Replay |
 |---|---|---|---|---|---|---|---|

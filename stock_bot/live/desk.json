@@ -1,8 +1,8 @@
 {
  "paper": true,
  "note": "PRACTICE MONEY ONLY. Numbers are the practice accounts, not real money.",
- "as_of": "2026-11-15T09:26:17+00:00",
- "as_of_moncton": "Sun Nov 15 05:26 AM",
+ "as_of": "2026-11-15T17:11:00+00:00",
+ "as_of_moncton": "Sun Nov 15 01:11 PM",
  "paused": false,
  "robots": [
   {
@@ -17,7 +17,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 2186,
+    "snapshot_age_min": 2650,
     "trades_today": 0
    },
    "score": {
@@ -28,7 +28,7 @@
     "fees": 147.26,
     "trades_total": 74,
     "started": "2026-09-28T15:02:43+00:00",
-    "days": 47,
+    "days": 48,
     "vs_hold": -375.2,
     "vs_hold_pct": -35.06,
     "beats_holding": false,
@@ -47,7 +47,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 2186,
+    "snapshot_age_min": 2650,
     "trades_today": 0
    },
    "score": {
@@ -58,7 +58,7 @@
     "fees": 23.88,
     "trades_total": 12,
     "started": "2026-09-28T15:02:28+00:00",
-    "days": 47,
+    "days": 48,
     "vs_hold": -31.96,
     "vs_hold_pct": -2.99,
     "beats_holding": false,
@@ -77,7 +77,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 2186,
+    "snapshot_age_min": 2650,
     "trades_today": 0
    },
    "score": {
@@ -88,7 +88,7 @@
     "fees": 301.01,
     "trades_total": 146,
     "started": "2026-10-08T13:19:40+00:00",
-    "days": 37,
+    "days": 38,
     "vs_hold": -320.96,
     "vs_hold_pct": -32.1,
     "beats_holding": false,
@@ -107,7 +107,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1916,
+    "snapshot_age_min": 2381,
     "trades_today": 0
    },
    "score": {
@@ -118,7 +118,7 @@
     "fees": 0.0,
     "trades_total": 4,
     "started": "2026-11-04T16:58:30+00:00",
-    "days": 10,
+    "days": 11,
     "vs_hold": -44.4,
     "vs_hold_pct": -4.44,
     "beats_holding": false,
@@ -143,14 +143,14 @@
    "score": {
     "benchmark": "Bitcoin",
     "value": 934.71,
-    "hold_value": 815.82,
+    "hold_value": 804.58,
     "put_in": 1000.0,
     "fees": 14.66,
     "trades_total": 6,
     "started": "2026-11-04T16:58:34+00:00",
-    "days": 10,
-    "vs_hold": 118.89,
-    "vs_hold_pct": 11.89,
+    "days": 11,
+    "vs_hold": 130.13,
+    "vs_hold_pct": 13.01,
     "beats_holding": true,
     "too_early": true
    }
@@ -167,7 +167,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 2186,
+    "snapshot_age_min": 2650,
     "trades_today": 0
    },
    "score": {
@@ -197,7 +197,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 2185,
+    "snapshot_age_min": 2650,
     "trades_today": 0
    },
    "score": {

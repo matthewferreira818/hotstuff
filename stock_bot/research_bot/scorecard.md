@@ -1,6 +1,6 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-15T17:30:59Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-15T18:27:17Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 
@@ -38,20 +38,20 @@ Info, not gates: span 5 days, a down market during it: not yet, chance a coin do
 
 ## Crypto
 
-Ideas tried 19 · forecasts 11 · graded 7 · still open 4 · LATE (not counted) 0 · no-trade days 90 · span 5 days
+Ideas tried 19 · forecasts 11 · graded 8 · still open 3 · LATE (not counted) 0 · no-trade days 90 · span 5 days
 
 | Who | Brier |
 |---|---|
-| Forecaster | 0.279 |
+| Forecaster | 0.284 |
 | Coin flip / no change | 0.250 |
-| Base rate | 0.286 |
-| Tomorrow = today | 0.217 |
+| Base rate | 0.281 |
+| Tomorrow = today | 0.210 |
 
-Hit rate 0.29 (2 of 7); chance a coin does at least this well: 0.94.
+Hit rate 0.25 (2 of 8); chance a coin does at least this well: 0.96.
 
 **Note: 11 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
 
-Paper trades 7 at $100 each, after fees + slippage: **$-26.92** · cash $+0.00 · BTC-USD with the whole $1000: $-26.74 · median trade -1.93 · worst -9.04 · without the best -27.91
+Paper trades 8 at $100 each, after fees + slippage: **$-30.35** · cash $+0.00 · BTC-USD with the whole $1000: $-29.70 · median trade -2.68 · worst -9.04 · without the best -31.34
 
 **Fast-track bar for the ~Dec 1 council re-vote: NOT MET** (judged per idea; a line says yes if any idea meets it)
 
@@ -62,11 +62,11 @@ Paper trades 7 at $100 each, after fees + slippage: **$-26.92** · cash $+0.00 �
 - yes - (b) paper P&L after costs beats buy-and-hold
 - NO  - one idea meets ALL of the above
 
-Info, not gates: span 5 days, a down market during it: not yet, chance a coin does this well: 0.94.
+Info, not gates: span 5 days, a down market during it: not yet, chance a coin does this well: 0.96.
 
 | Idea | Graded | Brier | Coin | Base rate | Tomorrow=today | Paper P&L | Replay |
 |---|---|---|---|---|---|---|---|
-| reversal h=24 {"drop_pct": 8, "lookback": 5, "pr | 1 | 0.314 | 0.250 | 0.250 | 0.160 | $-9.04 | **FAILED** (data only, not a signal) |
+| reversal h=24 {"drop_pct": 8, "lookback": 5, "pr | 2 | 0.314 | 0.250 | 0.250 | 0.160 | $-12.47 | **FAILED** (data only, not a signal) |
 | reversal h=4 {"drop_pct": 8, "lookback": 5, "pro | 6 | 0.274 | 0.250 | 0.292 | 0.227 | $-17.88 | **FAILED** (data only, not a signal) |
 
 Later, before any real money (not part of the re-vote; real money is not in phase 1): six-condition #6: the practice desk is not behind SPY (forward); client #1 has paid; Service Canada / EI answer on trading; a Canadian tax check; Matthew picks a tiny cap and flips any switch himself.

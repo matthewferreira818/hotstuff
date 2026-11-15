@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-15T17:30:59Z",
+ "generated": "2026-11-15T18:27:17Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -88,29 +88,29 @@
    "ideas_in_ledger": 2,
    "ideas_in_replay": 17,
    "forecasts": 11,
-   "graded": 7,
-   "open": 4,
+   "graded": 8,
+   "open": 3,
    "late_not_counted": 0,
    "no_trade_days": 90,
    "hits": 2,
-   "hit_rate": 0.2857142857142857,
-   "luck_p_value": 0.9375,
+   "hit_rate": 0.25,
+   "luck_p_value": 0.96484375,
    "brier": {
-    "forecaster": 0.27931428571428574,
+    "forecaster": 0.2836,
     "coin_flip": 0.25,
-    "base_rate": 0.2857142857142857,
-    "tomorrow_equals_today": 0.21714285714285714
+    "base_rate": 0.28125,
+    "tomorrow_equals_today": 0.21000000000000002
    },
-   "paper_trades": 7,
+   "paper_trades": 8,
    "trade_size": 100.0,
-   "paper_pnl": -26.92,
-   "median_trade": -1.93,
+   "paper_pnl": -30.35,
+   "median_trade": -2.68,
    "worst_trade": -9.04,
-   "pnl_without_best": -27.91,
+   "pnl_without_best": -31.34,
    "cash_pnl": 0.0,
    "hold_window": {
     "start": "2026-11-14T16:00:00Z",
-    "end": "2026-11-15T16:00:00Z"
+    "end": "2026-11-15T18:00:00Z"
    },
    "benchmark": "BTC-USD",
    "span_days": 5,
@@ -120,8 +120,8 @@
      "ideas_in_ledger": 0,
      "ideas_in_replay": 17,
      "forecasts": 5,
-     "graded": 1,
-     "open": 4,
+     "graded": 2,
+     "open": 3,
      "late_not_counted": 0,
      "no_trade_days": 0,
      "hits": 0,
@@ -133,16 +133,16 @@
       "base_rate": 0.25,
       "tomorrow_equals_today": 0.16000000000000003
      },
-     "paper_trades": 1,
+     "paper_trades": 2,
      "trade_size": 100.0,
-     "paper_pnl": -9.04,
-     "median_trade": -9.04,
+     "paper_pnl": -12.47,
+     "median_trade": -6.23,
      "worst_trade": -9.04,
-     "pnl_without_best": 0.0,
+     "pnl_without_best": -9.04,
      "cash_pnl": 0.0,
      "hold_window": {
       "start": "2026-11-14T16:00:00Z",
-      "end": "2026-11-15T16:00:00Z"
+      "end": "2026-11-15T18:00:00Z"
      },
      "benchmark": "BTC-USD",
      "span_days": 0,
@@ -150,7 +150,7 @@
      "replay_pass": false,
      "replay_status": "DEAD",
      "label": "from an idea that failed the replay: data only, not a signal",
-     "hold_pnl": -26.74
+     "hold_pnl": -29.7
     },
     "I-20261110-133531-fbd89e": {
      "ideas_tried": 17,
@@ -190,7 +190,7 @@
      "hold_pnl": -25.47
     }
    },
-   "hold_pnl": -26.74,
+   "hold_pnl": -29.7,
    "down_market_seen": false,
    "max_drawdown_pct": 0.0,
    "evidence_bar": {
@@ -804,7 +804,13 @@
    "resolves": "2026-11-15T18:00:00Z",
    "act": true,
    "p_up": 0.56,
-   "status": "open"
+   "status": "graded",
+   "entry": 3.980000201408984e-06,
+   "exit": 3.889999788952991e-06,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.5,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261114-212653-1323cb",

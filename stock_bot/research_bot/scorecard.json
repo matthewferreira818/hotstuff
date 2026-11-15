@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-14T23:25:22Z",
+ "generated": "2026-11-15T00:25:19Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -103,10 +103,10 @@
    },
    "paper_trades": 2,
    "trade_size": 100.0,
-   "paper_pnl": -14.05,
-   "median_trade": -7.02,
-   "worst_trade": -7.39,
-   "pnl_without_best": -7.39,
+   "paper_pnl": -12.49,
+   "median_trade": -6.25,
+   "worst_trade": -8.81,
+   "pnl_without_best": -8.81,
    "cash_pnl": 0.0,
    "hold_window": {
     "start": "2026-11-14T16:00:00Z",
@@ -169,10 +169,10 @@
      },
      "paper_trades": 2,
      "trade_size": 100.0,
-     "paper_pnl": -14.05,
-     "median_trade": -7.02,
-     "worst_trade": -7.39,
-     "pnl_without_best": -7.39,
+     "paper_pnl": -12.49,
+     "median_trade": -6.25,
+     "worst_trade": -8.81,
+     "pnl_without_best": -8.81,
      "cash_pnl": 0.0,
      "hold_window": {
       "start": "2026-11-14T16:00:00Z",
@@ -184,12 +184,12 @@
      "replay_pass": false,
      "replay_status": "DEAD",
      "label": "from an idea that failed the replay: data only, not a signal",
-     "hold_pnl": -31.56
+     "hold_pnl": -35.81
     }
    },
-   "hold_pnl": -31.56,
+   "hold_pnl": -35.81,
    "down_market_seen": false,
-   "max_drawdown_pct": 0.0,
+   "max_drawdown_pct": null,
    "evidence_bar": {
     "(a) walk-forward on past prices passes the six-condition gate": false,
     "(b) 100+ graded FORWARD forecasts": false,
@@ -752,7 +752,7 @@
    "p_up": 0.56,
    "status": "graded",
    "entry": 0.005278999917209148,
-   "exit": 0.004947999957948923,
+   "exit": 0.004871999844908714,
    "went_up": false,
    "prev_up": false,
    "p_base": 0.5,
@@ -780,7 +780,7 @@
    "p_up": 0.56,
    "status": "graded",
    "entry": 3.980000201408984e-06,
-   "exit": 3.7600000268867007e-06,
+   "exit": 3.879999894706998e-06,
    "went_up": false,
    "prev_up": false,
    "p_base": 0.5,

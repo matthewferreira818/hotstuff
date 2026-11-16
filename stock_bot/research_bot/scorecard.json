@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-16T12:29:08Z",
+ "generated": "2026-11-16T15:15:24Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -31,7 +31,7 @@
     "end": "2026-11-13T14:30:00Z"
    },
    "benchmark": "SPY",
-   "span_days": 5,
+   "span_days": 6,
    "by_idea": {
     "I-20261110-133531-eda94a": {
      "ideas_tried": 15,
@@ -91,7 +91,7 @@
    "graded": 11,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 101,
+   "no_trade_days": 102,
    "hits": 5,
    "hit_rate": 0.45454545454545453,
    "luck_p_value": 0.7255859375,
@@ -113,7 +113,7 @@
     "end": "2026-11-16T00:00:00Z"
    },
    "benchmark": "BTC-USD",
-   "span_days": 5,
+   "span_days": 6,
    "by_idea": {
     "I-20261110-133531-4443e5": {
      "ideas_tried": 17,
@@ -192,7 +192,7 @@
    },
    "hold_pnl": -17.69,
    "down_market_seen": false,
-   "max_drawdown_pct": 2.25,
+   "max_drawdown_pct": 1.37,
    "evidence_bar": {
     "(a) walk-forward on past prices passes the six-condition gate": false,
     "(b) 100+ graded FORWARD forecasts": false,

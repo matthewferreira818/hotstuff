@@ -1,9 +1,20 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 649.51,
+ "cash": 0.01,
  "spy_at_start": 777.22,
- "positions": {},
+ "positions": {
+  "SMMT": {
+   "qty": 27.14120895939078,
+   "avg_entry_price": 11.9652,
+   "fill": 11.8919
+  },
+  "LUNR": {
+   "qty": 27.535231634292266,
+   "avg_entry_price": 11.794,
+   "fill": 11.7217
+  }
+ },
  "orders": [
   {
    "time": "2026-10-08T15:10:24+00:00",
@@ -1463,6 +1474,26 @@
    "qty": 110.636392,
    "price": 2.952,
    "dollars": 324.61,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-16T19:05:02+00:00",
+   "symbol": "SMMT",
+   "side": "buy",
+   "status": "filled",
+   "qty": 27.141209,
+   "price": 11.8919,
+   "dollars": 324.75,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-16T19:05:03+00:00",
+   "symbol": "LUNR",
+   "side": "buy",
+   "status": "filled",
+   "qty": 27.535232,
+   "price": 11.7217,
+   "dollars": 324.75,
    "fee": 1.99
   }
  ],

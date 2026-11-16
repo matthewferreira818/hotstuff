@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 187.53,
+ "cash": 37.53,
  "spy_at_start": 764.32,
  "positions": {
   "CRWD": {
@@ -15,6 +15,10 @@
   "NVDA": {
    "qty": 0.9480165279357431,
    "avg_entry_price": 158.2251
+  },
+  "MU": {
+   "qty": 0.2034762727227086,
+   "avg_entry_price": 737.1867
   }
  },
  "orders": [
@@ -785,6 +789,16 @@
    "status": "filled",
    "qty": 0.948017,
    "price": 156.126,
+   "dollars": 150.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-16T19:04:58+00:00",
+   "symbol": "MU",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.203476,
+   "price": 727.4067,
    "dollars": 150.0,
    "fee": 1.99
   }

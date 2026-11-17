@@ -71,41 +71,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-15T09:57:08+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-15T10:58:55+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-15T12:00:39+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-15T13:02:31+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-15T14:04:14+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-15T14:40:37+00:00",
-   "kind": "start",
-   "text": "Checking 19 every 10 seconds."
-  },
-  {
-   "time": "2026-11-15T14:40:38+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-15T15:42:03+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
@@ -267,6 +232,41 @@
   },
   {
    "time": "2026-11-16T18:49:08+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-17T01:12:49+00:00",
+   "kind": "start",
+   "text": "Checking 19 every 10 seconds."
+  },
+  {
+   "time": "2026-11-17T01:12:50+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-17T02:13:56+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-17T03:15:01+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-17T04:16:08+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-17T05:17:15+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-17T06:18:24+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
   }

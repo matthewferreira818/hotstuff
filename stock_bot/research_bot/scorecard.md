@@ -1,21 +1,21 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-17T06:39:46Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-17T12:09:19Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 
 ## Stock
 
-Ideas tried 16 · forecasts 36 · graded 23 · still open 13 · LATE (not counted) 0 · no-trade days 1 · span 6 days
+Ideas tried 16 · forecasts 36 · graded 24 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 6 days
 
 | Who | Brier |
 |---|---|
-| Forecaster | 0.258 |
+| Forecaster | 0.259 |
 | Coin flip / no change | 0.250 |
-| Base rate | 0.236 |
-| Tomorrow = today | 0.251 |
+| Base rate | 0.237 |
+| Tomorrow = today | 0.243 |
 
-Hit rate 0.30 (7 of 23); chance a coin does at least this well: 0.98.
+Hit rate 0.29 (7 of 24); chance a coin does at least this well: 0.99.
 
 **Note: 36 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
 
@@ -30,15 +30,15 @@ Paper trades 6 at $100 each, after fees + slippage: **$-23.04** · cash $+0.00 �
 - NO  - (b) paper P&L after costs beats buy-and-hold
 - NO  - one idea meets ALL of the above
 
-Info, not gates: span 6 days, a down market during it: not yet, chance a coin does this well: 0.98.
+Info, not gates: span 6 days, a down market during it: not yet, chance a coin does this well: 0.99.
 
 | Idea | Graded | Brier | Coin | Base rate | Tomorrow=today | Paper P&L | Replay |
 |---|---|---|---|---|---|---|---|
-| momentum h=1 {"lookback": 20, "prob": 0.52} | 23 | 0.258 | 0.250 | 0.236 | 0.251 | $-23.04 | **FAILED** (data only, not a signal) |
+| momentum h=1 {"lookback": 20, "prob": 0.52} | 24 | 0.259 | 0.250 | 0.237 | 0.243 | $-23.04 | **FAILED** (data only, not a signal) |
 
 ## Crypto
 
-Ideas tried 19 · forecasts 11 · graded 11 · still open 0 · LATE (not counted) 0 · no-trade days 107 · span 6 days
+Ideas tried 19 · forecasts 11 · graded 11 · still open 0 · LATE (not counted) 0 · no-trade days 108 · span 6 days
 
 | Who | Brier |
 |---|---|

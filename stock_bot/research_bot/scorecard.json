@@ -1,23 +1,23 @@
 {
- "generated": "2026-11-17T02:09:28Z",
+ "generated": "2026-11-17T06:39:46Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
    "ideas_in_ledger": 1,
    "ideas_in_replay": 15,
    "forecasts": 36,
-   "graded": 24,
-   "open": 12,
+   "graded": 23,
+   "open": 13,
    "late_not_counted": 0,
    "no_trade_days": 1,
    "hits": 7,
-   "hit_rate": 0.2916666666666667,
-   "luck_p_value": 0.9886720776557922,
+   "hit_rate": 0.30434782608695654,
+   "luck_p_value": 0.9826551675796509,
    "brier": {
-    "forecaster": 0.2587333333333335,
+    "forecaster": 0.2582260869565219,
     "coin_flip": 0.25,
-    "base_rate": 0.23724489795918371,
-    "tomorrow_equals_today": 0.24333333333333343
+    "base_rate": 0.23585027013120652,
+    "tomorrow_equals_today": 0.2508695652173914
    },
    "paper_trades": 6,
    "trade_size": 100.0,
@@ -38,18 +38,18 @@
      "ideas_in_ledger": 0,
      "ideas_in_replay": 15,
      "forecasts": 36,
-     "graded": 24,
-     "open": 12,
+     "graded": 23,
+     "open": 13,
      "late_not_counted": 0,
      "no_trade_days": 0,
      "hits": 7,
-     "hit_rate": 0.2916666666666667,
-     "luck_p_value": 0.9886720776557922,
+     "hit_rate": 0.30434782608695654,
+     "luck_p_value": 0.9826551675796509,
      "brier": {
-      "forecaster": 0.2587333333333335,
+      "forecaster": 0.2582260869565219,
       "coin_flip": 0.25,
-      "base_rate": 0.23724489795918371,
-      "tomorrow_equals_today": 0.24333333333333343
+      "base_rate": 0.23585027013120652,
+      "tomorrow_equals_today": 0.2508695652173914
      },
      "paper_trades": 6,
      "trade_size": 100.0,
@@ -91,7 +91,7 @@
    "graded": 11,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 106,
+   "no_trade_days": 107,
    "hits": 5,
    "hit_rate": 0.45454545454545453,
    "luck_p_value": 0.7255859375,
@@ -192,7 +192,7 @@
    },
    "hold_pnl": -17.69,
    "down_market_seen": false,
-   "max_drawdown_pct": 0.0,
+   "max_drawdown_pct": 0.69,
    "evidence_bar": {
     "(a) walk-forward on past prices passes the six-condition gate": false,
     "(b) 100+ graded FORWARD forecasts": false,
@@ -370,9 +370,9 @@
    "entry": 717.3699951171875,
    "exit": 777.2750244140625,
    "went_up": true,
-   "prev_up": true,
+   "prev_up": null,
    "p_base": 0.5,
-   "p_persist": 0.6
+   "p_persist": 0.5
   },
   {
    "id": "F-20261110-133531-f814a9",
@@ -383,13 +383,7 @@
    "resolves": "2026-11-11T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "graded",
-   "entry": 5.834000110626221,
-   "exit": 5.84499979019165,
-   "went_up": true,
-   "prev_up": true,
-   "p_base": 0.5,
-   "p_persist": 0.6
+   "status": "waiting for prices"
   },
   {
    "id": "F-20261110-133531-69ce5a",
@@ -422,7 +416,7 @@
    "exit": 758.9600219726562,
    "went_up": true,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -439,7 +433,7 @@
    "exit": 688.510009765625,
    "went_up": true,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -456,7 +450,7 @@
    "exit": 33.97999954223633,
    "went_up": false,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -473,7 +467,7 @@
    "exit": 235.50010681152344,
    "went_up": true,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -490,7 +484,7 @@
    "exit": 79.79499816894531,
    "went_up": false,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -507,7 +501,7 @@
    "exit": 169.88999938964844,
    "went_up": true,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -524,7 +518,7 @@
    "exit": 182.6649932861328,
    "went_up": true,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -541,7 +535,7 @@
    "exit": 17.700000762939453,
    "went_up": true,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -558,7 +552,7 @@
    "exit": 196.6649932861328,
    "went_up": true,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -575,7 +569,7 @@
    "exit": 782.6599731445312,
    "went_up": true,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -592,7 +586,7 @@
    "exit": 5.324999809265137,
    "went_up": false,
    "prev_up": false,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.4
   },
   {
@@ -609,7 +603,7 @@
    "exit": 28.920000076293945,
    "went_up": false,
    "prev_up": true,
-   "p_base": 0.7142857142857143,
+   "p_base": 0.6923076923076923,
    "p_persist": 0.6
   },
   {

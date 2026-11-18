@@ -1,8 +1,8 @@
 {
  "paper": true,
  "note": "PRACTICE MONEY ONLY. Numbers are the practice accounts, not real money.",
- "as_of": "2026-11-18T17:15:31+00:00",
- "as_of_moncton": "Wed Nov 18 01:15 PM",
+ "as_of": "2026-11-18T19:54:16+00:00",
+ "as_of_moncton": "Wed Nov 18 03:54 PM",
  "paused": false,
  "robots": [
   {
@@ -11,13 +11,13 @@
    "crypto": false,
    "health": {
     "state": "stale",
-    "why": "snapshot 2655 min old",
+    "why": "snapshot 2814 min old",
     "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": true,
-    "snapshot_age_min": 2655,
+    "snapshot_age_min": 2814,
     "trades_today": 0
    },
    "score": {
@@ -41,13 +41,13 @@
    "crypto": false,
    "health": {
     "state": "stale",
-    "why": "snapshot 2655 min old",
+    "why": "snapshot 2814 min old",
     "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": true,
-    "snapshot_age_min": 2655,
+    "snapshot_age_min": 2814,
     "trades_today": 0
    },
    "score": {
@@ -71,13 +71,13 @@
    "crypto": false,
    "health": {
     "state": "stale",
-    "why": "snapshot 2655 min old",
+    "why": "snapshot 2814 min old",
     "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": true,
-    "snapshot_age_min": 2655,
+    "snapshot_age_min": 2814,
     "trades_today": 0
    },
    "score": {
@@ -101,13 +101,13 @@
    "crypto": false,
    "health": {
     "state": "stale",
-    "why": "snapshot 1126 min old",
+    "why": "snapshot 1285 min old",
     "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": true,
-    "snapshot_age_min": 1126,
+    "snapshot_age_min": 1285,
     "trades_today": 0
    },
    "score": {
@@ -137,20 +137,20 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1,
+    "snapshot_age_min": 0,
     "trades_today": 0
    },
    "score": {
     "benchmark": "Bitcoin",
     "value": 934.71,
-    "hold_value": 778.16,
+    "hold_value": 778.97,
     "put_in": 1000.0,
     "fees": 14.66,
     "trades_total": 6,
     "started": "2026-11-04T16:58:34+00:00",
     "days": 14,
-    "vs_hold": 156.55,
-    "vs_hold_pct": 15.66,
+    "vs_hold": 155.74,
+    "vs_hold_pct": 15.57,
     "beats_holding": true,
     "too_early": true
    }
@@ -161,13 +161,13 @@
    "crypto": false,
    "health": {
     "state": "stale",
-    "why": "snapshot 2655 min old",
+    "why": "snapshot 2814 min old",
     "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": true,
-    "snapshot_age_min": 2655,
+    "snapshot_age_min": 2814,
     "trades_today": 0
    },
    "score": {
@@ -178,7 +178,7 @@
     "fees": 21.89,
     "trades_total": 11,
     "started": "2026-11-05T18:06:16+00:00",
-    "days": 12,
+    "days": 13,
     "vs_hold": 6.07,
     "vs_hold_pct": 0.61,
     "beats_holding": true,
@@ -191,13 +191,13 @@
    "crypto": false,
    "health": {
     "state": "stale",
-    "why": "snapshot 2655 min old",
+    "why": "snapshot 2813 min old",
     "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": true,
-    "snapshot_age_min": 2655,
+    "snapshot_age_min": 2813,
     "trades_today": 0
    },
    "score": {
@@ -208,7 +208,7 @@
     "fees": 27.86,
     "trades_total": 14,
     "started": "2026-11-05T18:06:17+00:00",
-    "days": 12,
+    "days": 13,
     "vs_hold": -51.34,
     "vs_hold_pct": -5.13,
     "beats_holding": false,

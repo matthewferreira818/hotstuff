@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-18T08:07:15Z",
+ "generated": "2026-11-18T11:34:33Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -17,7 +17,7 @@
     "forecaster": 0.2504000000000001,
     "coin_flip": 0.25,
     "base_rate": 0.2858752968643078,
-    "tomorrow_equals_today": 0.23472222222222236
+    "tomorrow_equals_today": 0.23222222222222236
    },
    "paper_trades": 8,
    "trade_size": 100.0,
@@ -49,7 +49,7 @@
       "forecaster": 0.2504000000000001,
       "coin_flip": 0.25,
       "base_rate": 0.2858752968643078,
-      "tomorrow_equals_today": 0.23472222222222236
+      "tomorrow_equals_today": 0.23222222222222236
      },
      "paper_trades": 8,
      "trade_size": 100.0,
@@ -91,7 +91,7 @@
    "graded": 11,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 120,
+   "no_trade_days": 121,
    "hits": 5,
    "hit_rate": 0.45454545454545453,
    "luck_p_value": 0.7255859375,
@@ -489,9 +489,9 @@
    "entry": 80.75499725341797,
    "exit": 79.79499816894531,
    "went_up": false,
-   "prev_up": null,
+   "prev_up": false,
    "p_base": 0.7142857142857143,
-   "p_persist": 0.5
+   "p_persist": 0.4
   },
   {
    "id": "F-20261111-152504-0f34d3",

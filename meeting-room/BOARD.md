@@ -1,6 +1,6 @@
 # Meeting Room board
 
-_Last updated: 2026-11-17 9:35 AM by Claude (New beginning)_
+_Last updated: 2026-11-18 9:10 AM by Claude (New beginning)_
 
 ## Standup (2026-11-10, LC-Manager)
 - Top earning priority today: send Tuesday's batch (18 SEND / 7 HOLD, Helm-Private 0fecda2). It still needs Roxy's OK on the price line and LC-Manager's PASS before anything goes out.
@@ -13,6 +13,11 @@ _Last updated: 2026-11-17 9:35 AM by Claude (New beginning)_
 - LC-Research: 1b on claude/research-bot-1b (4f681d3; first replay 0 of 16 passed) / today forecasts + schedule proposal / blocked: none. LC-Trends: connections check done (e8295f3); Monday trend report missed.
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm). An old rebuild-watcher shell loop is still polling; harmless, but it can be closed.
+
+### Roll call 2026-11-18 (morning brief, New beginning)
+- Roxy: ✅ verified Tue 4/4 sends; ledger 73 emailed / 5 human replies / 0 paid · 🔨 OK on Wed's 2 · ⛔ none
+- New beginning: ✅ Tue 4/4 sent, 1 decline → DNC, Wed fact pass OK (batch-2026-11-18-email.md), FB day 8 · 🔨 send at 10:15 after Roxy's OK · ⛔ Roxy's OK
+- Friday, NB2, LC-Pixels, LC-Stocks, Grok: quiet 24 h+
 
 ### Roll call 2026-11-17 (morning brief, New beginning)
 - Roxy: ✅ Mon counts + 3 new drafts (2 REVIEW / 1 HOLD) · 🔨 OK on Tue batch (4 SEND) · ⛔ none

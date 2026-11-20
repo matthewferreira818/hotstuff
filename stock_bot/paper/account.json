@@ -1,16 +1,12 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 278.97,
+ "cash": 396.6,
  "spy_at_start": 764.32,
  "positions": {
   "CRWD": {
    "qty": 0.6686056426051905,
    "avg_entry_price": 224.3475
-  },
-  "MU": {
-   "qty": 0.2034762727227086,
-   "avg_entry_price": 737.1867
   }
  },
  "orders": [
@@ -812,6 +808,16 @@
    "qty": 0.948017,
    "price": 124.905,
    "dollars": 116.42,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-20T20:56:27+00:00",
+   "symbol": "MU",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.203476,
+   "price": 587.8715,
+   "dollars": 117.63,
    "fee": 1.99
   }
  ],

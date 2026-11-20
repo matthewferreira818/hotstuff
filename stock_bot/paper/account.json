@@ -1,16 +1,12 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 37.53,
+ "cash": 162.55,
  "spy_at_start": 764.32,
  "positions": {
   "CRWD": {
    "qty": 0.6686056426051905,
    "avg_entry_price": 224.3475
-  },
-  "ARM": {
-   "qty": 0.8426633490747014,
-   "avg_entry_price": 178.007
   },
   "NVDA": {
    "qty": 0.9480165279357431,
@@ -800,6 +796,16 @@
    "qty": 0.203476,
    "price": 727.4067,
    "dollars": 150.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-20T20:56:24+00:00",
+   "symbol": "ARM",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.842663,
+   "price": 150.7191,
+   "dollars": 125.02,
    "fee": 1.99
   }
  ],

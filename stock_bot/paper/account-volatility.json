@@ -1,14 +1,9 @@
 {
  "started": "2026-11-05T18:06:17+00:00",
  "start_cash": 1000.0,
- "cash": 791.63,
+ "cash": 915.83,
  "spy_at_start": 735.08,
- "positions": {
-  "PLUG": {
-   "qty": 132.1271321271321,
-   "avg_entry_price": 1.0961
-  }
- },
+ "positions": {},
  "orders": [
   {
    "time": "2026-11-05T18:06:19+00:00",
@@ -158,6 +153,16 @@
    "qty": 5.595752,
    "price": 21.6034,
    "dollars": 118.9,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-20T20:59:55+00:00",
+   "symbol": "PLUG",
+   "side": "sell",
+   "status": "filled",
+   "qty": 132.127132,
+   "price": 0.955044,
+   "dollars": 124.2,
    "fee": 1.99
   }
  ],

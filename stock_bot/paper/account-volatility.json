@@ -1,13 +1,9 @@
 {
  "started": "2026-11-05T18:06:17+00:00",
  "start_cash": 1000.0,
- "cash": 672.73,
+ "cash": 791.63,
  "spy_at_start": 735.08,
  "positions": {
-  "SMCI": {
-   "qty": 5.595751508558048,
-   "avg_entry_price": 26.8061
-  },
   "PLUG": {
    "qty": 132.1271321271321,
    "avg_entry_price": 1.0961
@@ -152,6 +148,16 @@
    "qty": 132.127132,
    "price": 1.0811,
    "dollars": 144.83,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-20T20:59:54+00:00",
+   "symbol": "SMCI",
+   "side": "sell",
+   "status": "filled",
+   "qty": 5.595752,
+   "price": 21.6034,
+   "dollars": 118.9,
    "fee": 1.99
   }
  ],

@@ -1,6 +1,6 @@
 # Meeting Room board
 
-_Last updated: 2026-11-22 9:15 AM by Claude (New beginning)_
+_Last updated: 2026-11-23 9:10 AM by Claude (New beginning)_
 
 ## Standup (2026-11-10, LC-Manager)
 - Top earning priority today: send Tuesday's batch (18 SEND / 7 HOLD, Helm-Private 0fecda2). It still needs Roxy's OK on the price line and LC-Manager's PASS before anything goes out.
@@ -13,6 +13,11 @@ _Last updated: 2026-11-22 9:15 AM by Claude (New beginning)_
 - LC-Research: 1b on claude/research-bot-1b (4f681d3; first replay 0 of 16 passed) / today forecasts + schedule proposal / blocked: none. LC-Trends: connections check done (e8295f3); Monday trend report missed.
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm). An old rebuild-watcher shell loop is still polling; harmless, but it can be closed.
+
+### Roll call 2026-11-23 (morning brief, New beginning)
+- Roxy: quiet since Fri afternoon (weekend) · next: Mon drafts + touch-2 re-dating for Nov 25-26
+- New beginning: ✅ weekend briefs, Sunday scorecard · 🔨 fact passes as drafts arrive · ⛔ Facebook token (Matthew); first YES reply waiting on Matthew
+- Friday, NB2, LC-Pixels, LC-Stocks, Grok: quiet 3+ days. Suggest Matthew confirm which Mac chats are still in use; if none, they can be parked.
 
 ### Roll call 2026-11-22 (Sunday brief + scorecard, New beginning)
 - Scorecard Nov 15-21: 8 emails sent (Tue 4, Wed 2, Thu 1, Fri 1) · 1 polite decline · **1 YES to free samples (first one!)** · 0 paid. Site feed: 107 posts since Aug 7, 7/7 cards this week. Facebook: posted Nov 11-18 (8 days), then the Page token was invalidated Nov 19 (needs Matthew).

@@ -1,16 +1,9 @@
 {
  "started": "2026-11-04T16:58:30+00:00",
  "start_cash": 1000.0,
- "cash": 0.0,
+ "cash": 437.64,
  "spy_at_start": 768.4,
  "positions": {
-  "CVNA": {
-   "qty": 6.417840158043165,
-   "avg_entry_price": 77.9078,
-   "fill": 77.9078,
-   "peak": 78.26,
-   "bought": "2026-11-04T16:58:46+00:00"
-  },
   "APP": {
    "qty": 1.155898861868275,
    "avg_entry_price": 405.8054,
@@ -58,6 +51,16 @@
    "qty": 1.155899,
    "price": 405.8054,
    "dollars": 469.07,
+   "fee": 0.0
+  },
+  {
+   "time": "2026-11-25T18:29:19+00:00",
+   "symbol": "CVNA",
+   "side": "sell",
+   "status": "filled",
+   "qty": 6.41784,
+   "price": 68.1917,
+   "dollars": 437.64,
    "fee": 0.0
   }
  ],
@@ -259,6 +262,11 @@
    "time": "2026-11-16T21:00:02+00:00",
    "kind": "stop",
    "text": "Market closed."
+  },
+  {
+   "time": "2026-11-25T18:29:19+00:00",
+   "kind": "start",
+   "text": "Checking 34 every 10 seconds."
   }
  ],
  "bench_units": 1.3014055179593962

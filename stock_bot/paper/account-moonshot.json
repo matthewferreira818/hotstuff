@@ -1,17 +1,9 @@
 {
  "started": "2026-11-04T16:58:30+00:00",
  "start_cash": 1000.0,
- "cash": 437.64,
+ "cash": 872.4,
  "spy_at_start": 768.4,
- "positions": {
-  "APP": {
-   "qty": 1.155898861868275,
-   "avg_entry_price": 405.8054,
-   "fill": 405.8054,
-   "peak": 415.02,
-   "bought": "2026-11-11T20:35:35+00:00"
-  }
- },
+ "positions": {},
  "orders": [
   {
    "time": "2026-11-04T16:58:35+00:00",
@@ -62,17 +54,22 @@
    "price": 68.1917,
    "dollars": 437.64,
    "fee": 0.0
+  },
+  {
+   "time": "2026-11-25T18:29:20+00:00",
+   "symbol": "APP",
+   "side": "sell",
+   "status": "filled",
+   "qty": 1.155899,
+   "price": 376.1235,
+   "dollars": 434.76,
+   "fee": 0.0
   }
  ],
  "deposited": 1000.0,
  "spy_units": 1.3014055179593962,
  "deposits": [],
  "events": [
-  {
-   "time": "2026-11-04T16:58:31+00:00",
-   "kind": "start",
-   "text": "Moonshot robot started with 1,000 practice dollars."
-  },
   {
    "time": "2026-11-04T16:58:46+00:00",
    "kind": "buy",
@@ -267,6 +264,11 @@
    "time": "2026-11-25T18:29:19+00:00",
    "kind": "start",
    "text": "Checking 34 every 10 seconds."
+  },
+  {
+   "time": "2026-11-25T18:29:20+00:00",
+   "kind": "sell",
+   "text": "Sold CVNA at 68.19 (-12.5%): stopped climbing"
   }
  ],
  "bench_units": 1.3014055179593962

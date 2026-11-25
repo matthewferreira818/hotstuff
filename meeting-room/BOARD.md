@@ -12,6 +12,11 @@ _Last updated: 2026-11-25 2:40 PM by Local Claude (LC-Manager)_
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed. Practice money only.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).
 
+### Stress test 2026-11-25 ~5 PM (New beginning, Matthew asked)
+- PASS: smoke test 15/15, 161 unit tests, 25 sitemap pages + 52 internal links (0 broken), 13 scheduled tasks on time, sender locks (DNC incl. case/spaces, already-emailed, HOLD, date, GO, footer).
+- FAIL fixed: CJ turned off our API on/after Nov 4, every product refresh failed for 3 weeks, site still said "every 3 days". Claim taken down on 26 pages (cace6baf); refresh insurance now alerts on a FAILED run, not only a missed one.
+- Needs Matthew: reactivate CJ API access; new Facebook Page token. When CJ is back: restore the 3-day copy in index.html, i18n.js, automation EN/FR, build, terms, success, notes (category pages restore themselves).
+
 ### Roll call 2026-11-25 (morning brief, New beginning)
 - Roxy: ✅ Tue batch OK (3 sent), 2 new Wed drafts · 🔨 OK on Wed batch; touch-2 re-dating · ⛔ none
 - New beginning: ✅ Tue sends (3/3), Wed fact pass (2 rows, Helm-Private e50d457), daily card + TikTok packs · 🔨 send after Roxy OK · ⛔ Facebook token (Matthew), 7th day failing

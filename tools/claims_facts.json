@@ -25,7 +25,7 @@
   "channels": {
     "site_feed": "active",
     "x": "off",
-    "facebook": "active",
+    "facebook": "off",
     "instagram": "pending",
     "tiktok": "drafts_only",
     "pinterest": "packs_only"
@@ -137,7 +137,7 @@
     }
   ],
   "channel_notes": {
-    "facebook": "One public ECS Facebook card confirmed Nov5 in public CLAUDE.md. Existence only; no measured daily series or hourly rate. Permit no daily frequency claim yet; current board says wait ~7 observed public days. Configured cron is not posting evidence.",
+    "facebook": "OFF since 2026-11-19: the Page token was invalidated (Graph API error 190/460); every daily post since has failed. Earlier: one public card confirmed Nov 5. No Facebook posting or frequency claim until a new token is in and ~7 public days are observed.",
     "others": "Public CLAUDE.md remains the status source; code schedules alone do not prove posting."
   },
   "posting_frequencies": {},
@@ -165,5 +165,5 @@
     ".github/workflows/traffic-report.yml",
     ".github/workflows/watch-changes.yml"
   ],
-  "catalog_note": "Configured */3 calendar-day cron with backup fires; month boundary may yield a shorter interval. It is a schedule, not guaranteed observed refresh."
+  "catalog_note": "Configured */3 calendar-day cron with backup fires; month boundary may yield a shorter interval. It is a schedule, not guaranteed observed refresh. PAUSED: CJ disabled our API access; every refresh since 2026-11-04 has failed, so the live lineup dates from 2026-11-04. No 'every 3 days' / 'fresh lineup' claim until refreshes succeed again (site copy changed 2026-11-25)."
 }

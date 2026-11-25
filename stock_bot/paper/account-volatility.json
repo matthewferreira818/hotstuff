@@ -1,7 +1,7 @@
 {
  "started": "2026-11-05T18:06:17+00:00",
  "start_cash": 1000.0,
- "cash": 362.75,
+ "cash": 223.67,
  "spy_at_start": 735.08,
  "positions": {
   "ONDS": {
@@ -19,6 +19,10 @@
   "SMCI": {
    "qty": 6.047827200399513,
    "avg_entry_price": 22.9967
+  },
+  "PLUG": {
+   "qty": 131.05554732348992,
+   "avg_entry_price": 1.0612
   }
  },
  "orders": [
@@ -219,6 +223,16 @@
    "status": "filled",
    "qty": 6.047827,
    "price": 22.6676,
+   "dollars": 139.08,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-25T18:29:31+00:00",
+   "symbol": "PLUG",
+   "side": "buy",
+   "status": "filled",
+   "qty": 131.055547,
+   "price": 1.046,
    "dollars": 139.08,
    "fee": 1.99
   }

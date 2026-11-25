@@ -1,8 +1,8 @@
 {
  "paper": true,
  "note": "PRACTICE MONEY ONLY. Numbers are the practice accounts, not real money.",
- "as_of": "2026-11-25T02:28:34+00:00",
- "as_of_moncton": "Tue Nov 24 10:28 PM",
+ "as_of": "2026-11-25T14:22:26+00:00",
+ "as_of_moncton": "Wed Nov 25 10:22 AM",
  "paused": false,
  "robots": [
   {
@@ -10,14 +10,14 @@
    "label": "Dip",
    "crypto": false,
    "health": {
-    "state": "ok",
-    "why": "ran today",
-    "ran_today": true,
+    "state": "waiting",
+    "why": "market not open yet",
+    "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 6088,
+    "snapshot_age_min": 6802,
     "trades_today": 0
    },
    "score": {
@@ -40,14 +40,14 @@
    "label": "Momentum",
    "crypto": false,
    "health": {
-    "state": "ok",
-    "why": "ran today",
-    "ran_today": true,
+    "state": "waiting",
+    "why": "market not open yet",
+    "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 11848,
+    "snapshot_age_min": 12562,
     "trades_today": 0
    },
    "score": {
@@ -70,14 +70,14 @@
    "label": "Hot hands",
    "crypto": false,
    "health": {
-    "state": "ok",
-    "why": "ran today",
-    "ran_today": true,
+    "state": "waiting",
+    "why": "market not open yet",
+    "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 11848,
+    "snapshot_age_min": 12562,
     "trades_today": 0
    },
    "score": {
@@ -88,7 +88,7 @@
     "fees": 308.97,
     "trades_total": 150,
     "started": "2026-10-08T13:19:40+00:00",
-    "days": 47,
+    "days": 48,
     "vs_hold": -311.04,
     "vs_hold_pct": -31.1,
     "beats_holding": false,
@@ -100,14 +100,14 @@
    "label": "Moonshot",
    "crypto": false,
    "health": {
-    "state": "ok",
-    "why": "ran today",
-    "ran_today": true,
+    "state": "waiting",
+    "why": "market not open yet",
+    "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 178,
+    "snapshot_age_min": 891,
     "trades_today": 0
    },
    "score": {
@@ -143,14 +143,14 @@
    "score": {
     "benchmark": "Bitcoin",
     "value": 934.71,
-    "hold_value": 734.13,
+    "hold_value": 724.6,
     "put_in": 1000.0,
     "fees": 14.66,
     "trades_total": 6,
     "started": "2026-11-04T16:58:34+00:00",
     "days": 20,
-    "vs_hold": 200.58,
-    "vs_hold_pct": 20.06,
+    "vs_hold": 210.11,
+    "vs_hold_pct": 21.01,
     "beats_holding": true,
     "too_early": true
    }
@@ -160,14 +160,14 @@
    "label": "Quality dip",
    "crypto": false,
    "health": {
-    "state": "ok",
-    "why": "ran today",
-    "ran_today": true,
+    "state": "waiting",
+    "why": "market not open yet",
+    "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 11848,
+    "snapshot_age_min": 12562,
     "trades_today": 0
    },
    "score": {
@@ -190,14 +190,14 @@
    "label": "Volatility",
    "crypto": false,
    "health": {
-    "state": "ok",
-    "why": "ran today",
-    "ran_today": true,
+    "state": "waiting",
+    "why": "market not open yet",
+    "ran_today": false,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 6088,
+    "snapshot_age_min": 6801,
     "trades_today": 0
    },
    "score": {
@@ -218,7 +218,7 @@
  ],
  "desk": {
   "robots": 7,
-  "ran_today": 7,
+  "ran_today": 1,
   "failed": 0,
   "stale": 0,
   "beat_holding": 2,
@@ -227,8 +227,8 @@
   "total_value": 5911.8
  },
  "day_open": {
-  "date": "2026-11-24",
-  "total": 5915.36
+  "date": "2026-11-25",
+  "total": 5911.8
  },
  "limits": {
   "max_trades_per_day": 40,
@@ -237,5 +237,5 @@
   "stale_after_min": 120
  },
  "stop_reasons": [],
- "line": "Robot Desk (paper): 7/7 ran today, 2 beat holding (2 under 30 days old), paused: no"
+ "line": "Robot Desk (paper): 1/7 ran today, 2 beat holding (2 under 30 days old), paused: no"
 }

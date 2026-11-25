@@ -14,6 +14,11 @@ _Last updated: 2026-11-23 9:10 AM by Claude (New beginning)_
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm). An old rebuild-watcher shell loop is still polling; harmless, but it can be closed.
 
+### Roll call 2026-11-25 (morning brief, New beginning)
+- Roxy: ✅ Tue batch OK (3 sent), 2 new Wed drafts · 🔨 OK on Wed batch; touch-2 re-dating · ⛔ none
+- New beginning: ✅ Tue sends (3/3), Wed fact pass (2 rows, Helm-Private e50d457), daily card + TikTok packs · 🔨 send after Roxy OK · ⛔ Facebook token (Matthew), 7th day failing
+- Friday, NB2, LC-Pixels, LC-Stocks, Grok: quiet 5+ days. Waiting on Matthew: keep or park.
+
 ### Roll call 2026-11-24 (morning brief, New beginning)
 - Roxy: ✅ Mon drafts (1 new + 2 from Fri) · 🔨 OK on Tue batch (3 rows) · ⛔ none
 - New beginning: ✅ fact pass on all 3 (Helm-Private cc73983), daily card + TikTok packs + inbox draft · 🔨 send when Roxy OKs · ⛔ Facebook token (Matthew), 6th day failing

@@ -1,7 +1,7 @@
 {
  "started": "2026-11-05T18:06:16+00:00",
  "start_cash": 1000.0,
- "cash": 372.16,
+ "cash": 181.48,
  "spy_at_start": 735.08,
  "positions": {
   "GOOGL": {
@@ -15,6 +15,10 @@
   "MSFT": {
    "qty": 0.38465376029527,
    "avg_entry_price": 495.7185
+  },
+  "AMZN": {
+   "qty": 0.7687349557583235,
+   "avg_entry_price": 248.0439
   }
  },
  "orders": [
@@ -145,6 +149,16 @@
    "status": "filled",
    "qty": 0.384654,
    "price": 490.5451,
+   "dollars": 190.68,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-25T18:29:25+00:00",
+   "symbol": "AMZN",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.768735,
+   "price": 245.4552,
    "dollars": 190.68,
    "fee": 1.99
   }

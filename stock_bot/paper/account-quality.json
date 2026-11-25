@@ -1,7 +1,7 @@
 {
  "started": "2026-11-05T18:06:16+00:00",
  "start_cash": 1000.0,
- "cash": 562.84,
+ "cash": 372.16,
  "spy_at_start": 735.08,
  "positions": {
   "GOOGL": {
@@ -11,6 +11,10 @@
   "META": {
    "qty": 0.3289249701727462,
    "avg_entry_price": 608.0414
+  },
+  "MSFT": {
+   "qty": 0.38465376029527,
+   "avg_entry_price": 495.7185
   }
  },
  "orders": [
@@ -132,6 +136,16 @@
    "qty": 0.397215,
    "price": 395.4542,
    "dollars": 155.09,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-25T18:29:24+00:00",
+   "symbol": "MSFT",
+   "side": "buy",
+   "status": "filled",
+   "qty": 0.384654,
+   "price": 490.5451,
+   "dollars": 190.68,
    "fee": 1.99
   }
  ],

@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:28+00:00",
  "start_cash": 1000.0,
- "cash": 588.54,
+ "cash": 654.7,
  "spy_at_start": 764.384,
  "positions": {
   "APP": {
@@ -21,12 +21,6 @@
    "avg_entry_price": 53.7712,
    "peak": 52.68000030517578,
    "trail": 18.2
-  },
-  "AMD": {
-   "qty": 0.17241344930793623,
-   "avg_entry_price": 593.2832,
-   "peak": 581.1699829101562,
-   "trail": 27.14
   }
  },
  "orders": [
@@ -168,6 +162,16 @@
    "qty": 1.139385,
    "price": 76.0339,
    "dollars": 84.64,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-25T18:29:13+00:00",
+   "symbol": "AMD",
+   "side": "sell",
+   "status": "filled",
+   "qty": 0.172413,
+   "price": 395.2643,
+   "dollars": 66.16,
    "fee": 1.99
   }
  ],

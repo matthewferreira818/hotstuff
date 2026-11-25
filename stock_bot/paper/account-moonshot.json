@@ -71,11 +71,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-04T16:58:46+00:00",
-   "kind": "buy",
-   "text": "Bought CVNA $500.00 at 77.91: up 29.2% in 10 days, the hottest on the list"
-  },
-  {
    "time": "2026-11-04T16:58:48+00:00",
    "kind": "buy",
    "text": "Bought SOFI $500.00 at 17.46: up 18.7% in 10 days, the hottest on the list"
@@ -269,6 +264,11 @@
    "time": "2026-11-25T18:29:20+00:00",
    "kind": "sell",
    "text": "Sold CVNA at 68.19 (-12.5%): stopped climbing"
+  },
+  {
+   "time": "2026-11-25T18:29:22+00:00",
+   "kind": "sell",
+   "text": "Sold APP at 376.1 (-7.3%): stopped climbing"
   }
  ],
  "bench_units": 1.3014055179593962

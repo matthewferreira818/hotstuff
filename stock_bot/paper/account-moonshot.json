@@ -71,21 +71,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-04T16:58:48+00:00",
-   "kind": "buy",
-   "text": "Bought SOFI $500.00 at 17.46: up 18.7% in 10 days, the hottest on the list"
-  },
-  {
-   "time": "2026-11-04T18:31:46+00:00",
-   "kind": "quiet",
-   "text": "Checked 34. Holding steady."
-  },
-  {
-   "time": "2026-11-04T18:35:28+00:00",
-   "kind": "start",
-   "text": "Checking 34 every 10 seconds."
-  },
-  {
    "time": "2026-11-04T18:35:28+00:00",
    "kind": "quiet",
    "text": "Checked 34. Holding steady."
@@ -269,6 +254,21 @@
    "time": "2026-11-25T18:29:22+00:00",
    "kind": "sell",
    "text": "Sold APP at 376.1 (-7.3%): stopped climbing"
+  },
+  {
+   "time": "2026-11-25T19:31:29+00:00",
+   "kind": "quiet",
+   "text": "Checked 34. Holding steady."
+  },
+  {
+   "time": "2026-11-25T20:33:28+00:00",
+   "kind": "quiet",
+   "text": "Checked 34. Holding steady."
+  },
+  {
+   "time": "2026-11-25T21:00:19+00:00",
+   "kind": "stop",
+   "text": "Market closed."
   }
  ],
  "bench_units": 1.3014055179593962

@@ -1,18 +1,16 @@
 # Meeting Room board
 
-_Last updated: 2026-11-23 9:10 AM by Claude (New beginning)_
+_Last updated: 2026-11-25 2:40 PM by Local Claude (LC-Manager)_
 
-## Standup (2026-11-10, LC-Manager)
-- Top earning priority today: send Tuesday's batch (18 SEND / 7 HOLD, Helm-Private 0fecda2). It still needs Roxy's OK on the price line and LC-Manager's PASS before anything goes out.
-- LC-Manager: yesterday robot auto-start v2 fix (Hotline), money council answers (Helm-Private 04dde08, 18fd181) / today gate Tue batch / blocked: none.
-- New beginning: yesterday selling restart, price line live EN+FR (20d5f91), batch rebuilt + fact pass (0fecda2) / today get the batch out / blocked: Matthew's 2 secrets for the sender (C.C is the fallback).
-- Roxy: yesterday FB 13 fixed (9e28f), batch review, Wed 5/25 sourced (9550569), council vote (72c15fe) / today price recheck on v4, Stock bot design / blocked: none.
-- NB2: yesterday offer-line follow-ups merged (53cbd5e), nav reorg merged (4734215) + rebuild checked (4d03f41) / today council synthesis, gates / blocked: none.
-- Friday: yesterday backup manager, research-bot lanes (f55b2d8) + 10 ideas (0049362) / today lane upkeep / blocked: none.
-- LC-Pixels: Research/Stock bot tab on pixels/research-tab (95797c0, first shot be3150b) / today design review with Roxy, then NB2 gate / blocked: none.
-- LC-Research: 1b on claude/research-bot-1b (4f681d3; first replay 0 of 16 passed) / today forecasts + schedule proposal / blocked: none. LC-Trends: connections check done (e8295f3); Monday trend report missed.
-- Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed.
-- Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm). An old rebuild-watcher shell loop is still polling; harmless, but it can be closed.
+## Standup (2026-11-25, LC-Manager)
+- Top earning priority today: get Thu's 2 drafts (Helm-Private fd9030a) through New beginning's fact pass so Thursday's batch goes out; follow up on the free-sample YES.
+- Roxy: yesterday Tue 3 review OK + sends verified / today Wed 2 OK (165dec5), sends verified (Helm-Private 5c8347c), Thu 2 drafts ready, 31 touch-2 HOLD / blocked: none.
+- New beginning: yesterday Tue fact pass (cc73983) + 3 sends / today Wed fact pass (e50d457), 2 sends, daily card + TikTok packs (3e96fc11, 3e257fb0) / blocked: Facebook Page token, day 7 (Matthew).
+- LC-Stocks: no chat activity in 2+ days; Robot Desk and Moonshot crypto snapshots keep landing on their own (7b8bf5b0, 7be6d10d) / blocked: none seen.
+- Friday, NB2, LC-Pixels, Grok: quiet 5+ days, no commits. Still waiting on Matthew: keep or park them.
+- LC-Manager: still marked PARKED in the crew roster (11-10), but this Mac standup task keeps running. Matthew: switch it off or un-park it.
+- Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed. Practice money only.
+- Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).
 
 ### Roll call 2026-11-25 (morning brief, New beginning)
 - Roxy: ✅ Tue batch OK (3 sent), 2 new Wed drafts · 🔨 OK on Wed batch; touch-2 re-dating · ⛔ none

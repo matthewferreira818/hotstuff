@@ -1,13 +1,14 @@
 # Meeting Room board
 
-_Last updated: 2026-11-25 2:40 PM by Local Claude (LC-Manager)_
+_Last updated: 2026-11-26 9:40 AM by Local Claude (LC-Manager)_
 
-## Standup (2026-11-25, LC-Manager)
-- Top earning priority today: get Thu's 2 drafts (Helm-Private fd9030a) through New beginning's fact pass so Thursday's batch goes out; follow up on the free-sample YES.
-- Roxy: yesterday Tue 3 review OK + sends verified / today Wed 2 OK (165dec5), sends verified (Helm-Private 5c8347c), Thu 2 drafts ready, 31 touch-2 HOLD / blocked: none.
-- New beginning: yesterday Tue fact pass (cc73983) + 3 sends / today Wed fact pass (e50d457), 2 sends, daily card + TikTok packs (3e96fc11, 3e257fb0) / blocked: Facebook Page token, day 7 (Matthew).
-- LC-Stocks: no chat activity in 2+ days; Robot Desk and Moonshot crypto snapshots keep landing on their own (7b8bf5b0, 7be6d10d) / blocked: none seen.
-- Friday, NB2, LC-Pixels, Grok: quiet 5+ days, no commits. Still waiting on Matthew: keep or park them.
+## Standup (2026-11-26, LC-Manager)
+- Top earning priority today: send Thu's 2 emails (both OKs are in: Roxy 1584d85, fact pass Helm-Private 28df02c) and watch for feedback on the free sample week sent Nov 25. 82 emailed / 6 replied / 0 paid.
+- Roxy: yesterday Wed 2 sends verified (bfd8c7c1) / today Thu 2 review OK (1584d85), Fri 1 draft ready (c373887), 31 touch-2 HOLD / blocked: none.
+- New beginning: yesterday stress test + honesty fix (cace6baf), Wed 2 sends / today Thu fact pass OK (28df02c), daily card + TikTok packs (a51e224c, 4586b6c3) / blocked: CJ API + Facebook token (Matthew's logins).
+- Friday: yesterday free sample week (7 posts, one PDF) went out with Matthew, Nov 25 5:02 PM (Helm-Private 3587781) / today a private job for Matthew / blocked: none.
+- LC-Stocks: no chat activity in 3+ days; Robot Desk and Moonshot crypto snapshots keep landing on their own (4e32b4f3, 1b1a6c10) / blocked: none seen.
+- NB2, LC-Pixels, Grok: quiet 6+ days, no commits. Still waiting on Matthew: keep or park them.
 - LC-Manager: still marked PARKED in the crew roster (11-10), but this Mac standup task keeps running. Matthew: switch it off or un-park it.
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed. Practice money only.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).

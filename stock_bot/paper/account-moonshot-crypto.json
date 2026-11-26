@@ -8,7 +8,7 @@
    "qty": 3304.8206684117627,
    "avg_entry_price": 0.141418,
    "fill": 0.140711,
-   "peak": 0.140711,
+   "peak": 0.14075,
    "bought": "2026-11-26T18:24:56+00:00"
   }
  },
@@ -88,11 +88,6 @@
  "spy_units": 1.3013547102533738,
  "deposits": [],
  "events": [
-  {
-   "time": "2026-11-25T10:39:44+00:00",
-   "kind": "start",
-   "text": "Checking 19 every 10 seconds."
-  },
   {
    "time": "2026-11-25T10:39:44+00:00",
    "kind": "quiet",
@@ -287,6 +282,11 @@
    "time": "2026-11-26T18:24:57+00:00",
    "kind": "buy",
    "text": "Bought WIF-USD $467.36 at 0.1407: up 5.3% in 10 days, the hottest on the list"
+  },
+  {
+   "time": "2026-11-26T18:29:25+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
   }
  ],
  "bench_units": 0.01243555274788409

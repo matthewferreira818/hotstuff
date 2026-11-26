@@ -6,7 +6,10 @@
  "positions": {
   "WIF-USD": {
    "qty": 3304.8206684117627,
-   "avg_entry_price": 0.141418
+   "avg_entry_price": 0.141418,
+   "fill": 0.140711,
+   "peak": 0.140711,
+   "bought": "2026-11-26T18:24:56+00:00"
   }
  },
  "orders": [

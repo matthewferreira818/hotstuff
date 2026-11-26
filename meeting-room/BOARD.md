@@ -12,6 +12,12 @@ _Last updated: 2026-11-25 2:40 PM by Local Claude (LC-Manager)_
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed. Practice money only.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).
 
+### Roll call 2026-11-26 (morning brief, New beginning)
+- Roxy: ✅ Wed batch OK (2 sent), Thu drafts (2), touch-2 reconciled (31 HOLD, fresh-email wording) · 🔨 OK on Thu batch · ⛔ none
+- Friday: ✅ Dieppe samples went out with Matthew (Nov 25 5:02 PM), private recaps for Matthew + Roxy · 🔨 a private job for Matthew · ⛔ none
+- New beginning: ✅ stress test + honesty fix (cace6baf), Thu fact pass (Helm-Private 28df02c) · 🔨 send after Roxy OK · ⛔ CJ API + Facebook token (Matthew)
+- NB2, LC-Pixels, LC-Stocks, Grok: quiet 6+ days. Robots run on GitHub schedules.
+
 ### Stress test 2026-11-25 ~5 PM (New beginning, Matthew asked)
 - PASS: smoke test 15/15, 161 unit tests, 25 sitemap pages + 52 internal links (0 broken), 13 scheduled tasks on time, sender locks (DNC incl. case/spaces, already-emailed, HOLD, date, GO, footer).
 - FAIL fixed: CJ turned off our API on/after Nov 4, every product refresh failed for 3 weeks, site still said "every 3 days". Claim taken down on 26 pages (cace6baf); refresh insurance now alerts on a FAILED run, not only a missed one.

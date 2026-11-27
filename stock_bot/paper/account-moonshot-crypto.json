@@ -1,7 +1,7 @@
 {
  "started": "2026-11-04T16:58:34+00:00",
  "start_cash": 1000.0,
- "cash": 467.35,
+ "cash": 0.0,
  "spy_at_start": 768.43,
  "positions": {
   "WIF-USD": {
@@ -10,6 +10,10 @@
    "fill": 0.140711,
    "peak": 0.14188,
    "bought": "2026-11-26T18:24:56+00:00"
+  },
+  "LINK-USD": {
+   "qty": 48.39048971861473,
+   "avg_entry_price": 9.6579
   }
  },
  "orders": [
@@ -82,42 +86,22 @@
    "price": 0.140711,
    "dollars": 467.36,
    "fee": 2.34
+  },
+  {
+   "time": "2026-11-27T07:57:37+00:00",
+   "symbol": "LINK-USD",
+   "side": "buy",
+   "status": "filled",
+   "qty": 48.39049,
+   "price": 9.6096,
+   "dollars": 467.35,
+   "fee": 2.34
   }
  ],
  "deposited": 1000.0,
  "spy_units": 1.3013547102533738,
  "deposits": [],
  "events": [
-  {
-   "time": "2026-11-25T18:27:11+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-25T19:28:10+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-25T20:29:11+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-25T21:30:13+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-25T22:10:27+00:00",
-   "kind": "start",
-   "text": "Checking 19 every 10 seconds."
-  },
-  {
-   "time": "2026-11-25T22:10:27+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
   {
    "time": "2026-11-25T23:12:00+00:00",
    "kind": "quiet",
@@ -285,6 +269,36 @@
   },
   {
    "time": "2026-11-27T02:20:00+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T02:57:09+00:00",
+   "kind": "start",
+   "text": "Checking 19 every 10 seconds."
+  },
+  {
+   "time": "2026-11-27T02:57:09+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T03:58:42+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T05:00:17+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T06:01:59+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T07:03:43+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
   }

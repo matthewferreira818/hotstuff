@@ -8,7 +8,7 @@
    "qty": 3304.8206684117627,
    "avg_entry_price": 0.141418,
    "fill": 0.140711,
-   "peak": 0.14364,
+   "peak": 0.14366,
    "bought": "2026-11-26T18:24:56+00:00"
   },
   "LINK-USD": {
@@ -105,11 +105,6 @@
  "spy_units": 1.3013547102533738,
  "deposits": [],
  "events": [
-  {
-   "time": "2026-11-26T15:26:32+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
   {
    "time": "2026-11-26T16:27:28+00:00",
    "kind": "quiet",
@@ -302,6 +297,11 @@
   },
   {
    "time": "2026-11-27T22:15:50+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T23:17:24+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
   }

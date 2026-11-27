@@ -199,7 +199,12 @@ def commit_and_push(path=ledger.LEDGER):
     git("add", path)
     if git("diff", "--cached", "--quiet").returncode == 0:
         return "nothing new to commit"
-    git("commit", "-q", "-m", "Research bot: forward forecasts (generate.py)")
+    done = git("commit", "-q", "-m", "Research bot: forward forecasts (generate.py)")
+    if done.returncode != 0:
+        # Nov 18 2026: the commit failed (no git identity) but this still said
+        # "committed and pushed", because pushing an unchanged HEAD succeeds.
+        why = (done.stderr or done.stdout or "").strip().splitlines()
+        return "COMMIT FAILED, nothing pushed: " + (why[-1] if why else "unknown error")
     # The Mac runner is a detached checkout of master: no branch name there.
     branch = git("branch", "--show-current").stdout.strip() or "master"
     for _ in range(3):

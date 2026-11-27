@@ -100,6 +100,17 @@ class GitProofTests(TempLedger):
         self.assertIn(r["id"], seen)
         self.assertIn(self.idea, seen)
 
+    def test_failed_commit_is_not_reported_as_pushed(self):
+        # Nov 18 2026: a commit that failed was still logged as "committed and pushed".
+        hook = os.path.join(self.dir, ".git", "hooks", "pre-commit")
+        with open(hook, "w") as f:
+            f.write("#!/bin/sh\necho 'Author identity unknown' >&2\nexit 1\n")
+        os.chmod(hook, 0o755)
+        ledger.add_forecast(self.fc(), self.path, RULES, now=T0)
+        msg = generate.commit_and_push(self.path)
+        self.assertTrue(msg.startswith("COMMIT FAILED"), msg)
+        self.assertNotIn("pushed", msg.replace("nothing pushed", ""))
+
     def test_edit_is_caught(self):
         with open(self.path) as f:
             text = f.read()

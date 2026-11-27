@@ -1,8 +1,8 @@
 {
  "paper": true,
  "note": "PRACTICE MONEY ONLY. Numbers are the practice accounts, not real money.",
- "as_of": "2026-11-27T04:15:51+00:00",
- "as_of_moncton": "Fri Nov 27 12:15 AM",
+ "as_of": "2026-11-27T16:39:41+00:00",
+ "as_of_moncton": "Fri Nov 27 12:39 PM",
  "paused": false,
  "robots": [
   {
@@ -10,27 +10,27 @@
    "label": "Dip",
    "crypto": false,
    "health": {
-    "state": "closed",
-    "why": "market closed today",
-    "ran_today": false,
-    "running": false,
+    "state": "running",
+    "why": "running now",
+    "ran_today": true,
+    "running": true,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1875,
-    "trades_today": 0
+    "snapshot_age_min": 0,
+    "trades_today": 1
    },
    "score": {
     "benchmark": "SPY",
-    "value": 553.59,
-    "hold_value": 1003.52,
+    "value": 556.37,
+    "hold_value": 1016.19,
     "put_in": 1070.3,
     "fees": 165.17,
     "trades_total": 83,
     "started": "2026-09-28T15:02:43+00:00",
-    "days": 59,
-    "vs_hold": -449.93,
-    "vs_hold_pct": -42.04,
+    "days": 60,
+    "vs_hold": -459.82,
+    "vs_hold_pct": -42.96,
     "beats_holding": false,
     "too_early": false
    }
@@ -40,27 +40,27 @@
    "label": "Momentum",
    "crypto": false,
    "health": {
-    "state": "closed",
-    "why": "market closed today",
-    "ran_today": false,
-    "running": false,
+    "state": "running",
+    "why": "running now",
+    "ran_today": true,
+    "running": true,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1875,
+    "snapshot_age_min": 0,
     "trades_today": 0
    },
    "score": {
     "benchmark": "SPY",
-    "value": 947.98,
-    "hold_value": 1004.89,
+    "value": 959.28,
+    "hold_value": 1016.05,
     "put_in": 1070.3,
     "fees": 29.85,
     "trades_total": 15,
     "started": "2026-09-28T15:02:28+00:00",
-    "days": 59,
-    "vs_hold": -56.91,
-    "vs_hold_pct": -5.32,
+    "days": 60,
+    "vs_hold": -56.77,
+    "vs_hold_pct": -5.3,
     "beats_holding": false,
     "too_early": false
    }
@@ -70,27 +70,27 @@
    "label": "Hot hands",
    "crypto": false,
    "health": {
-    "state": "closed",
-    "why": "market closed today",
-    "ran_today": false,
-    "running": false,
+    "state": "running",
+    "why": "running now",
+    "ran_today": true,
+    "running": true,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1875,
-    "trades_today": 0
+    "snapshot_age_min": 0,
+    "trades_today": 3
    },
    "score": {
     "benchmark": "SPY",
-    "value": 641.12,
-    "hold_value": 922.18,
+    "value": 638.28,
+    "hold_value": 933.96,
     "put_in": 1000.0,
-    "fees": 308.97,
-    "trades_total": 150,
+    "fees": 314.94,
+    "trades_total": 153,
     "started": "2026-10-08T13:19:40+00:00",
-    "days": 49,
-    "vs_hold": -281.06,
-    "vs_hold_pct": -28.11,
+    "days": 50,
+    "vs_hold": -295.68,
+    "vs_hold_pct": -29.57,
     "beats_holding": false,
     "too_early": false
    }
@@ -100,14 +100,14 @@
    "label": "Moonshot",
    "crypto": false,
    "health": {
-    "state": "closed",
-    "why": "market closed today",
-    "ran_today": false,
+    "state": "stale",
+    "why": "snapshot 158 min old",
+    "ran_today": true,
     "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
-    "stale": false,
-    "snapshot_age_min": 312,
+    "stale": true,
+    "snapshot_age_min": 158,
     "trades_today": 0
    },
    "score": {
@@ -130,27 +130,27 @@
    "label": "Moonshot crypto",
    "crypto": true,
    "health": {
-    "state": "not started",
-    "why": "no run today yet",
-    "ran_today": false,
-    "running": false,
+    "state": "running",
+    "why": "running now",
+    "ran_today": true,
+    "running": true,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 0,
-    "trades_today": 0
+    "snapshot_age_min": 1,
+    "trades_today": 1
    },
    "score": {
     "benchmark": "Bitcoin",
-    "value": 920.51,
-    "hold_value": 763.47,
+    "value": 908.29,
+    "hold_value": 750.38,
     "put_in": 1000.0,
-    "fees": 17.0,
-    "trades_total": 7,
+    "fees": 19.34,
+    "trades_total": 8,
     "started": "2026-11-04T16:58:34+00:00",
     "days": 22,
-    "vs_hold": 157.04,
-    "vs_hold_pct": 15.7,
+    "vs_hold": 157.91,
+    "vs_hold_pct": 15.79,
     "beats_holding": true,
     "too_early": true
    }
@@ -160,27 +160,27 @@
    "label": "Quality dip",
    "crypto": false,
    "health": {
-    "state": "closed",
-    "why": "market closed today",
-    "ran_today": false,
-    "running": false,
+    "state": "running",
+    "why": "running now",
+    "ran_today": true,
+    "running": true,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1875,
-    "trades_today": 0
+    "snapshot_age_min": 0,
+    "trades_today": 1
    },
    "score": {
     "benchmark": "SPY",
-    "value": 949.05,
-    "hold_value": 975.15,
+    "value": 958.78,
+    "hold_value": 986.68,
     "put_in": 1000.0,
-    "fees": 27.86,
-    "trades_total": 14,
+    "fees": 29.85,
+    "trades_total": 15,
     "started": "2026-11-05T18:06:16+00:00",
     "days": 21,
-    "vs_hold": -26.1,
-    "vs_hold_pct": -2.61,
+    "vs_hold": -27.9,
+    "vs_hold_pct": -2.79,
     "beats_holding": false,
     "too_early": true
    }
@@ -190,27 +190,27 @@
    "label": "Volatility",
    "crypto": false,
    "health": {
-    "state": "closed",
-    "why": "market closed today",
-    "ran_today": false,
-    "running": false,
+    "state": "running",
+    "why": "running now",
+    "ran_today": true,
+    "running": true,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1875,
+    "snapshot_age_min": 0,
     "trades_today": 0
    },
    "score": {
     "benchmark": "SPY",
-    "value": 923.11,
-    "hold_value": 975.15,
+    "value": 953.62,
+    "hold_value": 987.32,
     "put_in": 1000.0,
     "fees": 41.79,
     "trades_total": 21,
     "started": "2026-11-05T18:06:17+00:00",
     "days": 21,
-    "vs_hold": -52.04,
-    "vs_hold_pct": -5.2,
+    "vs_hold": -33.7,
+    "vs_hold_pct": -3.37,
     "beats_holding": false,
     "too_early": true
    }
@@ -218,13 +218,13 @@
  ],
  "desk": {
   "robots": 7,
-  "ran_today": 0,
+  "ran_today": 7,
   "failed": 0,
-  "stale": 0,
+  "stale": 1,
   "beat_holding": 1,
   "beat_holding_but_too_early": 1,
-  "trades_today": 0,
-  "total_value": 5807.76
+  "trades_today": 6,
+  "total_value": 5847.02
  },
  "day_open": {
   "date": "2026-11-27",
@@ -237,5 +237,5 @@
   "stale_after_min": 120
  },
  "stop_reasons": [],
- "line": "Robot Desk (paper): 0/7 ran today, 1 beat holding (1 under 30 days old), paused: no"
+ "line": "Robot Desk (paper): 7/7 ran today, 1 beat holding (1 under 30 days old), 1 stale, paused: no"
 }

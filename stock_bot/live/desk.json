@@ -1,8 +1,8 @@
 {
  "paper": true,
  "note": "PRACTICE MONEY ONLY. Numbers are the practice accounts, not real money.",
- "as_of": "2026-11-26T21:31:37+00:00",
- "as_of_moncton": "Thu Nov 26 05:31 PM",
+ "as_of": "2026-11-27T03:27:30+00:00",
+ "as_of_moncton": "Thu Nov 26 11:27 PM",
  "paused": false,
  "robots": [
   {
@@ -17,7 +17,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1471,
+    "snapshot_age_min": 1827,
     "trades_today": 0
    },
    "score": {
@@ -47,7 +47,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1471,
+    "snapshot_age_min": 1827,
     "trades_today": 0
    },
    "score": {
@@ -77,7 +77,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1471,
+    "snapshot_age_min": 1827,
     "trades_today": 0
    },
    "score": {
@@ -107,7 +107,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 475,
+    "snapshot_age_min": 263,
     "trades_today": 0
    },
    "score": {
@@ -130,10 +130,10 @@
    "label": "Moonshot crypto",
    "crypto": true,
    "health": {
-    "state": "running",
-    "why": "running now",
+    "state": "ok",
+    "why": "ran today",
     "ran_today": true,
-    "running": true,
+    "running": false,
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
@@ -142,15 +142,15 @@
    },
    "score": {
     "benchmark": "Bitcoin",
-    "value": 919.85,
-    "hold_value": 756.39,
+    "value": 925.46,
+    "hold_value": 765.22,
     "put_in": 1000.0,
     "fees": 17.0,
     "trades_total": 7,
     "started": "2026-11-04T16:58:34+00:00",
     "days": 22,
-    "vs_hold": 163.46,
-    "vs_hold_pct": 16.35,
+    "vs_hold": 160.24,
+    "vs_hold_pct": 16.02,
     "beats_holding": true,
     "too_early": true
    }
@@ -167,7 +167,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1470,
+    "snapshot_age_min": 1826,
     "trades_today": 0
    },
    "score": {
@@ -197,7 +197,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 1471,
+    "snapshot_age_min": 1827,
     "trades_today": 0
    },
    "score": {
@@ -224,7 +224,7 @@
   "beat_holding": 1,
   "beat_holding_but_too_early": 1,
   "trades_today": 1,
-  "total_value": 5807.1
+  "total_value": 5812.71
  },
  "day_open": {
   "date": "2026-11-26",

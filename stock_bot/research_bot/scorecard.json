@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-27T13:18:55Z",
+ "generated": "2026-11-27T14:25:21Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -31,7 +31,7 @@
     "end": "2026-11-19T14:30:00Z"
    },
    "benchmark": "SPY",
-   "span_days": 16,
+   "span_days": 17,
    "by_idea": {
     "I-20261110-133531-eda94a": {
      "ideas_tried": 15,
@@ -91,7 +91,7 @@
    "graded": 11,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 130,
+   "no_trade_days": 131,
    "hits": 5,
    "hit_rate": 0.45454545454545453,
    "luck_p_value": 0.7255859375,
@@ -113,7 +113,7 @@
     "end": "2026-11-16T00:00:00Z"
    },
    "benchmark": "BTC-USD",
-   "span_days": 16,
+   "span_days": 17,
    "by_idea": {
     "I-20261110-133531-4443e5": {
      "ideas_tried": 17,

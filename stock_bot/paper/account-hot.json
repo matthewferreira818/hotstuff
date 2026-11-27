@@ -1,9 +1,15 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 641.12,
+ "cash": 320.56,
  "spy_at_start": 777.22,
- "positions": {},
+ "positions": {
+  "LCID": {
+   "qty": 122.8771228771229,
+   "avg_entry_price": 2.6088,
+   "fill": 2.5926
+  }
+ },
  "orders": [
   {
    "time": "2026-10-08T15:10:24+00:00",
@@ -1503,6 +1509,16 @@
    "qty": 27.535232,
    "price": 11.8282,
    "dollars": 323.7,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-27T14:48:11+00:00",
+   "symbol": "LCID",
+   "side": "buy",
+   "status": "filled",
+   "qty": 122.877123,
+   "price": 2.5926,
+   "dollars": 320.56,
    "fee": 1.99
   }
  ],

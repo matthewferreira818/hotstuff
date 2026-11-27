@@ -15,7 +15,7 @@
    "qty": 48.39048971861473,
    "avg_entry_price": 9.6579,
    "fill": 9.6096,
-   "peak": 9.6096,
+   "peak": 9.617,
    "bought": "2026-11-27T07:57:39+00:00"
   }
  },
@@ -105,11 +105,6 @@
  "spy_units": 1.3013547102533738,
  "deposits": [],
  "events": [
-  {
-   "time": "2026-11-26T00:13:28+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
   {
    "time": "2026-11-26T01:14:44+00:00",
    "kind": "quiet",
@@ -304,6 +299,11 @@
    "time": "2026-11-27T07:57:41+00:00",
    "kind": "buy",
    "text": "Bought LINK-USD $467.35 at 9.61: up 5.2% in 10 days, the hottest on the list"
+  },
+  {
+   "time": "2026-11-27T08:05:35+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
   }
  ],
  "bench_units": 0.01243555274788409

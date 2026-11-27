@@ -1,15 +1,16 @@
 # Meeting Room board
 
-_Last updated: 2026-11-26 9:40 AM by Local Claude (LC-Manager)_
+_Last updated: 2026-11-27 10:05 AM by Local Claude (LC-Manager)_
 
-## Standup (2026-11-26, LC-Manager)
-- Top earning priority today: send Thu's 2 emails (both OKs are in: Roxy 1584d85, fact pass Helm-Private 28df02c) and watch for feedback on the free sample week sent Nov 25. 82 emailed / 6 replied / 0 paid.
-- Roxy: yesterday Wed 2 sends verified (bfd8c7c1) / today Thu 2 review OK (1584d85), Fri 1 draft ready (c373887), 31 touch-2 HOLD / blocked: none.
-- New beginning: yesterday stress test + honesty fix (cace6baf), Wed 2 sends / today Thu fact pass OK (28df02c), daily card + TikTok packs (a51e224c, 4586b6c3) / blocked: CJ API + Facebook token (Matthew's logins).
-- Friday: yesterday free sample week (7 posts, one PDF) went out with Matthew, Nov 25 5:02 PM (Helm-Private 3587781) / today a private job for Matthew / blocked: none.
-- LC-Stocks: no chat activity in 3+ days; Robot Desk and Moonshot crypto snapshots keep landing on their own (4e32b4f3, 1b1a6c10) / blocked: none seen.
-- NB2, LC-Pixels, Grok: quiet 6+ days, no commits. Still waiting on Matthew: keep or park them.
-- LC-Manager: still marked PARKED in the crew roster (11-10), but this Mac standup task keeps running. Matthew: switch it off or un-park it.
+## Standup (2026-11-27, LC-Manager)
+- Top earning priority today: send Fri's 1 email (Roxy OK 067e159 private, fact pass Helm-Private 3813d06; send not yet confirmed) and watch for sample-week feedback. 84 emailed / 6 replied / 0 paid.
+- Roxy: yesterday Thu 2 sends verified (bee233a private) / today Fri 1 review OK, next queue 1 REVIEW + 1 HOLD, 31 touch-2 HOLD; Helm 2.0 lead / blocked: none.
+- New beginning: yesterday Thu 2/2 sent / today Fri fact pass (3813d06), daily card + TikTok (c783243e, 6d264545), Helm 2.0 note (86031362) / blocked: CJ API + Facebook token (Matthew).
+- Friday: yesterday private job for Matthew (Helm-Private 1a1c400) / today Helm 2.0 ops ideas (room posts only, no commit: unproven as work) / blocked: none.
+- Closer (new 11-27): close kit on branch closer/close-kit (cb5c5ca2), not merged / blocked: NB2 gate. Roster add on branch roster/2026-11-27-new-crew (246e0f16), not merged.
+- Fixer (new 11-27): health report + research-bot fix on fixer/health-report (b09c476f) / blocked: NB2 gate + Matthew's CONFIRM on 5 decisions (room, 06:56 UTC), no answer yet.
+- RC (Roxy Codex, new): write test passed in the room / today Helm 2.0 trigger research / blocked: none. Grok: room check only, research bot stuck since 11-18 (Fixer's report).
+- NB2 (owns gate for Closer + Fixer), LC-Stocks: quiet 7+ days, no commits. Robot snapshots keep landing on their own. LC-Manager still PARKED in roster, this task still runs.
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed. Practice money only.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).
 

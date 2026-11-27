@@ -1,7 +1,7 @@
 {
  "started": "2026-09-28T15:02:43+00:00",
  "start_cash": 1000.0,
- "cash": 246.6,
+ "cash": 96.6,
  "spy_at_start": 764.32,
  "positions": {
   "CRWD": {
@@ -11,6 +11,10 @@
   "ASTS": {
    "qty": 6.438586451649809,
    "avg_entry_price": 23.297
+  },
+  "HOOD": {
+   "qty": 2.1491589805543296,
+   "avg_entry_price": 69.7947
   }
  },
  "orders": [
@@ -831,6 +835,16 @@
    "status": "filled",
    "qty": 6.438586,
    "price": 22.988,
+   "dollars": 150.0,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-27T14:30:27+00:00",
+   "symbol": "HOOD",
+   "side": "buy",
+   "status": "filled",
+   "qty": 2.149159,
+   "price": 68.8688,
    "dollars": 150.0,
    "fee": 1.99
   }

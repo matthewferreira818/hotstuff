@@ -106,11 +106,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-25T23:12:00+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-26T00:13:28+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
@@ -304,6 +299,11 @@
    "time": "2026-11-27T07:03:43+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T07:57:41+00:00",
+   "kind": "buy",
+   "text": "Bought LINK-USD $467.35 at 9.61: up 5.2% in 10 days, the hottest on the list"
   }
  ],
  "bench_units": 0.01243555274788409

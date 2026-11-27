@@ -1,18 +1,13 @@
 {
  "started": "2026-10-08T13:19:40+00:00",
  "start_cash": 1000.0,
- "cash": 1.16,
+ "cash": 321.26,
  "spy_at_start": 777.22,
  "positions": {
   "LCID": {
    "qty": 122.8771228771229,
    "avg_entry_price": 2.6088,
    "fill": 2.5926
-  },
-  "MARA": {
-   "qty": 59.15912445763192,
-   "avg_entry_price": 5.399,
-   "fill": 5.3654
   }
  },
  "orders": [
@@ -1534,6 +1529,16 @@
    "qty": 59.159124,
    "price": 5.3654,
    "dollars": 319.4,
+   "fee": 1.99
+  },
+  {
+   "time": "2026-11-27T15:11:35+00:00",
+   "symbol": "MARA",
+   "side": "sell",
+   "status": "filled",
+   "qty": 59.159124,
+   "price": 5.4446,
+   "dollars": 320.1,
    "fee": 1.99
   }
  ],

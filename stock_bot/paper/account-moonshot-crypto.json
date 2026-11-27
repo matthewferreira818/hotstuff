@@ -13,7 +13,10 @@
   },
   "LINK-USD": {
    "qty": 48.39048971861473,
-   "avg_entry_price": 9.6579
+   "avg_entry_price": 9.6579,
+   "fill": 9.6096,
+   "peak": 9.6096,
+   "bought": "2026-11-27T07:57:39+00:00"
   }
  },
  "orders": [

@@ -1,25 +1,25 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-18T13:25:24Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-27T07:01:23Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 
 ## Stock
 
-Ideas tried 16 · forecasts 48 · graded 36 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 7 days
+Ideas tried 16 · forecasts 60 · graded 48 · still open 12 · LATE (not counted) 0 · no-trade days 1 · span 16 days
 
 | Who | Brier |
 |---|---|
-| Forecaster | 0.250 |
+| Forecaster | 0.251 |
 | Coin flip / no change | 0.250 |
-| Base rate | 0.286 |
-| Tomorrow = today | 0.232 |
+| Base rate | 0.271 |
+| Tomorrow = today | 0.248 |
 
-Hit rate 0.50 (18 of 36); chance a coin does at least this well: 0.57.
+Hit rate 0.48 (23 of 48); chance a coin does at least this well: 0.67.
 
-**Note: 48 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
+**Note: 60 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
 
-Paper trades 8 at $100 each, after fees + slippage: **$-28.96** · cash $+0.00 · SPY with the whole $1000: $-18.64 · median trade -2.98 · worst -7.19 · without the best -28.96
+Paper trades 10 at $100 each, after fees + slippage: **$-24.15** · cash $+0.00 · SPY with the whole $1000: $-19.88 · median trade -2.49 · worst -7.19 · without the best -31.26
 
 **Fast-track bar for the ~Dec 1 council re-vote: NOT MET** (judged per idea; a line says yes if any idea meets it)
 
@@ -30,15 +30,15 @@ Paper trades 8 at $100 each, after fees + slippage: **$-28.96** · cash $+0.00 �
 - NO  - (b) paper P&L after costs beats buy-and-hold
 - NO  - one idea meets ALL of the above
 
-Info, not gates: span 7 days, a down market during it: not yet, chance a coin does this well: 0.57.
+Info, not gates: span 16 days, a down market during it: yes, chance a coin does this well: 0.67.
 
 | Idea | Graded | Brier | Coin | Base rate | Tomorrow=today | Paper P&L | Replay |
 |---|---|---|---|---|---|---|---|
-| momentum h=1 {"lookback": 20, "prob": 0.52} | 36 | 0.250 | 0.250 | 0.286 | 0.232 | $-28.96 | **FAILED** (data only, not a signal) |
+| momentum h=1 {"lookback": 20, "prob": 0.52} | 48 | 0.251 | 0.250 | 0.271 | 0.248 | $-24.15 | **FAILED** (data only, not a signal) |
 
 ## Crypto
 
-Ideas tried 19 · forecasts 11 · graded 11 · still open 0 · LATE (not counted) 0 · no-trade days 123 · span 7 days
+Ideas tried 19 · forecasts 11 · graded 11 · still open 0 · LATE (not counted) 0 · no-trade days 124 · span 16 days
 
 | Who | Brier |
 |---|---|
@@ -62,7 +62,7 @@ Paper trades 11 at $100 each, after fees + slippage: **$-17.33** · cash $+0.00 
 - yes - (b) paper P&L after costs beats buy-and-hold
 - NO  - one idea meets ALL of the above
 
-Info, not gates: span 7 days, a down market during it: not yet, chance a coin does this well: 0.73.
+Info, not gates: span 16 days, a down market during it: not yet, chance a coin does this well: 0.73.
 
 | Idea | Graded | Brier | Coin | Base rate | Tomorrow=today | Paper P&L | Replay |
 |---|---|---|---|---|---|---|---|

@@ -1,66 +1,66 @@
 {
- "generated": "2026-11-18T13:25:24Z",
+ "generated": "2026-11-27T07:01:23Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
    "ideas_in_ledger": 1,
    "ideas_in_replay": 15,
-   "forecasts": 48,
-   "graded": 36,
+   "forecasts": 60,
+   "graded": 48,
    "open": 12,
    "late_not_counted": 0,
    "no_trade_days": 1,
-   "hits": 18,
-   "hit_rate": 0.5,
-   "luck_p_value": 0.5660302997857798,
+   "hits": 23,
+   "hit_rate": 0.4791666666666667,
+   "luck_p_value": 0.6672670939616907,
    "brier": {
-    "forecaster": 0.2504000000000001,
+    "forecaster": 0.2512333333333334,
     "coin_flip": 0.25,
-    "base_rate": 0.2858752968643078,
-    "tomorrow_equals_today": 0.23222222222222236
+    "base_rate": 0.2710200460554329,
+    "tomorrow_equals_today": 0.24750000000000003
    },
-   "paper_trades": 8,
+   "paper_trades": 10,
    "trade_size": 100.0,
-   "paper_pnl": -28.96,
-   "median_trade": -2.98,
+   "paper_pnl": -24.15,
+   "median_trade": -2.49,
    "worst_trade": -7.19,
-   "pnl_without_best": -28.96,
+   "pnl_without_best": -31.26,
    "cash_pnl": 0.0,
    "hold_window": {
     "start": "2026-11-10T14:30:00Z",
-    "end": "2026-11-17T14:30:00Z"
+    "end": "2026-11-19T14:30:00Z"
    },
    "benchmark": "SPY",
-   "span_days": 7,
+   "span_days": 16,
    "by_idea": {
     "I-20261110-133531-eda94a": {
      "ideas_tried": 15,
      "ideas_in_ledger": 0,
      "ideas_in_replay": 15,
-     "forecasts": 48,
-     "graded": 36,
+     "forecasts": 60,
+     "graded": 48,
      "open": 12,
      "late_not_counted": 0,
      "no_trade_days": 0,
-     "hits": 18,
-     "hit_rate": 0.5,
-     "luck_p_value": 0.5660302997857798,
+     "hits": 23,
+     "hit_rate": 0.4791666666666667,
+     "luck_p_value": 0.6672670939616907,
      "brier": {
-      "forecaster": 0.2504000000000001,
+      "forecaster": 0.2512333333333334,
       "coin_flip": 0.25,
-      "base_rate": 0.2858752968643078,
-      "tomorrow_equals_today": 0.23222222222222236
+      "base_rate": 0.2710200460554329,
+      "tomorrow_equals_today": 0.24750000000000003
      },
-     "paper_trades": 8,
+     "paper_trades": 10,
      "trade_size": 100.0,
-     "paper_pnl": -28.96,
-     "median_trade": -2.98,
+     "paper_pnl": -24.15,
+     "median_trade": -2.49,
      "worst_trade": -7.19,
-     "pnl_without_best": -28.96,
+     "pnl_without_best": -31.26,
      "cash_pnl": 0.0,
      "hold_window": {
       "start": "2026-11-10T14:30:00Z",
-      "end": "2026-11-17T14:30:00Z"
+      "end": "2026-11-19T14:30:00Z"
      },
      "benchmark": "SPY",
      "span_days": 0,
@@ -68,12 +68,12 @@
      "replay_pass": false,
      "replay_status": "DEAD",
      "label": "from an idea that failed the replay: data only, not a signal",
-     "hold_pnl": -18.64
+     "hold_pnl": -19.88
     }
    },
-   "hold_pnl": -18.64,
-   "down_market_seen": false,
-   "max_drawdown_pct": 3.6,
+   "hold_pnl": -19.88,
+   "down_market_seen": true,
+   "max_drawdown_pct": 5.78,
    "evidence_bar": {
     "(a) walk-forward on past prices passes the six-condition gate": false,
     "(b) 100+ graded FORWARD forecasts": false,
@@ -91,7 +91,7 @@
    "graded": 11,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 123,
+   "no_trade_days": 124,
    "hits": 5,
    "hit_rate": 0.45454545454545453,
    "luck_p_value": 0.7255859375,
@@ -113,7 +113,7 @@
     "end": "2026-11-16T00:00:00Z"
    },
    "benchmark": "BTC-USD",
-   "span_days": 7,
+   "span_days": 16,
    "by_idea": {
     "I-20261110-133531-4443e5": {
      "ideas_tried": 17,
@@ -1012,7 +1012,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 733.3699951171875,
+   "exit": 737.4600219726562,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261117-162506-1ca958",
@@ -1023,7 +1029,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 661.0679931640625,
+   "exit": 671.0499877929688,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261117-162506-ed40c7",
@@ -1034,7 +1046,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 28.0,
+   "exit": 27.704999923706055,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261117-162506-92df42",
@@ -1045,7 +1063,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 223.8000030517578,
+   "exit": 246.71499633789062,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261117-162506-0d85d7",
@@ -1056,7 +1080,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 69.05000305175781,
+   "exit": 72.875,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261117-162506-5542c9",
@@ -1067,7 +1097,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 159.19000244140625,
+   "exit": 154.2949981689453,
+   "went_up": false,
+   "prev_up": true,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261117-162506-b9d676",
@@ -1078,7 +1114,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": true,
    "p_up": 0.52,
-   "status": "open"
+   "status": "graded",
+   "entry": 179.36000061035156,
+   "exit": 182.8000030517578,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261117-162506-d8261e",
@@ -1089,7 +1131,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": true,
    "p_up": 0.52,
-   "status": "open"
+   "status": "graded",
+   "entry": 17.440000534057617,
+   "exit": 19.45199966430664,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261117-162506-30c3b8",
@@ -1100,7 +1148,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 188.25,
+   "exit": 190.64869689941406,
+   "went_up": true,
+   "prev_up": true,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.6
   },
   {
    "id": "F-20261117-162506-caab1c",
@@ -1111,7 +1165,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 718.5,
+   "exit": 740.4299926757812,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261117-162506-87939e",
@@ -1122,7 +1182,13 @@
    "resolves": "2026-11-19T14:30:00Z",
    "act": false,
    "p_up": 0.48,
-   "status": "open"
+   "status": "graded",
+   "entry": 4.429999828338623,
+   "exit": 4.599999904632568,
+   "went_up": true,
+   "prev_up": false,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.4
   },
   {
    "id": "F-20261117-162506-e736a6",
@@ -1131,6 +1197,144 @@
    "asset": "PFE",
    "opens": "2026-11-18T14:30:00Z",
    "resolves": "2026-11-19T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "graded",
+   "entry": 28.059999465942383,
+   "exit": 27.920000076293945,
+   "went_up": false,
+   "prev_up": false,
+   "p_base": 0.5526315789473685,
+   "p_persist": 0.4
+  },
+  {
+   "id": "F-20261127-070105-aade33",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "SPY",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-4ac22a",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "QQQ",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-2aa94a",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "ASTS",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-a8ebb8",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "CRWD",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-b9ebf7",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "HOOD",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-51831f",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "NVDA",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-3d9581",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "ABNB",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": true,
+   "p_up": 0.52,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-8ddfb6",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "RIOT",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": true,
+   "p_up": 0.52,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-e6d768",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "ARM",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-642f7c",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "MU",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-ee59e2",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "ONDS",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
+   "act": false,
+   "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261127-070105-09eafd",
+   "idea": "I-20261110-133531-eda94a",
+   "market": "stock",
+   "asset": "PFE",
+   "opens": "2026-11-27T14:30:00Z",
+   "resolves": "2026-11-30T14:30:00Z",
    "act": false,
    "p_up": 0.48,
    "status": "open"

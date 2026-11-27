@@ -8,7 +8,7 @@
    "qty": 3304.8206684117627,
    "avg_entry_price": 0.141418,
    "fill": 0.140711,
-   "peak": 0.14188,
+   "peak": 0.14212,
    "bought": "2026-11-26T18:24:56+00:00"
   },
   "LINK-USD": {
@@ -105,26 +105,6 @@
  "spy_units": 1.3013547102533738,
  "deposits": [],
  "events": [
-  {
-   "time": "2026-11-26T12:45:15+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-26T13:46:41+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-26T14:48:10+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-26T15:26:32+00:00",
-   "kind": "start",
-   "text": "Checking 19 every 10 seconds."
-  },
   {
    "time": "2026-11-26T15:26:32+00:00",
    "kind": "quiet",
@@ -302,6 +282,26 @@
   },
   {
    "time": "2026-11-27T19:32:30+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T20:12:58+00:00",
+   "kind": "start",
+   "text": "Checking 19 every 10 seconds."
+  },
+  {
+   "time": "2026-11-27T20:12:58+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T21:14:24+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-27T22:15:50+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
   }

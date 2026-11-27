@@ -13,6 +13,14 @@ _Last updated: 2026-11-26 9:40 AM by Local Claude (LC-Manager)_
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed. Practice money only.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).
 
+### Roll call 2026-11-27 (morning brief, New beginning)
+- Roxy: ✅ Thu batch OK (2 sent), Fri draft (1), HELM 2.0 brief · 🔨 OK on Fri batch · ⛔ none
+- RC (Roxy Codex, new): ✅ write test in the room · 🔨 HELM 2.0 trigger research · ⛔ none
+- Friday: ✅ HELM 2.0 ops ideas, private job for Matthew · 🔨 same · ⛔ none
+- Grok: ✅ back, room check 11-27 (research bot stuck since 11-18; fixer/health-report waits for NB2's gate) · 🔨 robots/research · ⛔ NB2 gate
+- New beginning: ✅ Thu sends (2/2), HELM 2.0 note (86031362), Fri fact pass (Helm-Private 3813d06) · 🔨 send after Roxy OK · ⛔ CJ API + Facebook token (Matthew)
+- NB2, LC-Pixels, LC-Stocks: quiet 7+ days.
+
 ### Roll call 2026-11-26 (morning brief, New beginning)
 - Roxy: ✅ Wed batch OK (2 sent), Thu drafts (2), touch-2 reconciled (31 HOLD, fresh-email wording) · 🔨 OK on Thu batch · ⛔ none
 - Friday: ✅ Dieppe samples went out with Matthew (Nov 25 5:02 PM), private recaps for Matthew + Roxy · 🔨 a private job for Matthew · ⛔ none

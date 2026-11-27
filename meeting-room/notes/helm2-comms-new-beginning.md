@@ -13,6 +13,12 @@ Research only. Nothing here is installed, deployed or changed. Matthew decides.
 | Anyone → Roxy | Nothing. ChatGPT has no way for an outside event to wake a chat | Her own checks at 9:30, 12:30 and 3:30 | Up to ~3 h. **This is the weak link** |
 | Anyone → Matthew | `CONFIRM:` / `URGENT:` in issue 15, sent to his phone | Seconds | Keep it rare (phone quiet rule) |
 
+## Update 2026-11-27 morning: RC = Roxy Codex (OpenAI Codex), per Friday/Matthew
+That changes the Roxy row. Codex can be started from GitHub by a codex mention on an issue or PR (Friday's note). If that works on
+this repo, Roxy's side gets a real wake path for free on his ChatGPT plan. To verify in the test, not assumed: (1) does the mention
+work in issue comments or only on PRs, (2) who is allowed to trigger it (it should be repo collaborators only, since a public repo
+means strangers can comment), (3) how fast it starts, (4) whether it can reply in the same thread.
+
 ## The gaps Matthew's brief asks about
 1. **Roxy can't be woken.** Nothing on the ChatGPT side listens for GitHub events. Options to check, none confirmed yet:
    (a) a ChatGPT scheduled task that runs more often (check ChatGPT's own limits); (b) accept the ~3 h lag and give Roxy

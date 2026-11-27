@@ -4,6 +4,7 @@
 Only these exist. **Never send work to anyone else.** A message for a parked chat goes to Friday instead.
 
 **💰 Team SELL** (top priority: client #1)
+- **Closer (Local Claude, NEW 11-27):** owns everything after a business shows interest: reply playbook, call script, onboarding, the 7 free sample posts, payment step (Matthew decides money). Roxy keeps sourcing + first-touch outreach.
 - **Roxy (GPT, ChatGPT Project "Roxy - Sales Desk"):** finds businesses, writes outreach, honesty check, reply drafts, pipeline numbers. Checks the Hotline + room on her own weekdays 9:30 AM, 12:30 PM, 3:30 PM (since 11-10); nothing can wake her in between, so expect up to ~3 h for an answer.
 - **New beginning (cloud Claude, this repo's Co-CEO desk):** fact pass, the email sender, reply watcher, briefs, reminders, merges.
 - **Friday (Local Claude chat on the Mac):** Co-CEO and dispatcher, hands out jobs, backup for every message, drives Chrome.
@@ -11,7 +12,8 @@ Only these exist. **Never send work to anyone else.** A message for a parked cha
 
 **🔧 Team BUILD** (The Helm and tools, only when there is a job)
 - **NB2 (Local Claude):** builds AND gates everything (took over LC-Manager's gate). Backup when Friday is closed.
-- **LC-Pixels (Local Claude):** screens, plus clients' picture cards.
+- ~~LC-Pixels~~ PARKED 11-27 (Matthew: clean house); made-for-you samples job → Closer.
+- **Fixer (Local Claude, NEW 11-27):** fixes broken automation (research bot, missed standups, stale PRs, dead tokens) with proof, or one clear question for Matthew.
 - **LC-Stocks (Local Claude, added 11-10 by Matthew):** owns the practice stock robots + Robot Desk (practice money only); Grok writes strategies/forecasts, NB2 gates.
 
 **Separate:** Grok (xAI) keeps the practice robots + research when he's back (~Nov 11), on grok/* branches.
@@ -35,7 +37,7 @@ The morning brief does a roll call from this list every day. Add a line when a c
 | LC-Helm: build revamp (B v2) | Local Claude (Mac) | what Matthew sees in The Helm: Simple mode, crew chat, honest numbers | Sonnet |
 | LC_Helm | Local Claude (Mac) | Helm design and mockups | Sonnet |
 | LC-CrewState | Local Claude (Mac) | the crew strip "who's working" signals (Phase 1, started 11-06) | Sonnet |
-| LC-Pixels | Local Claude (Mac) | the pixel crew station in The Helm (own characters, real states, click for details; started 11-06) | Sonnet (this chat opened on Opus) |
+| ~~LC-Pixels~~ (PARKED 11-27) | Local Claude (Mac) | the pixel crew station in The Helm (own characters, real states, click for details; started 11-06) | Sonnet (this chat opened on Opus) |
 | LC-Makeover | Local Claude (Mac) | store look and store copy (today: the "trending" honesty sweep) | Sonnet |
 | LC-Trends | Local Claude (Mac) | trend watcher, Mon + Thu, look-only | Sonnet |
 | ~~LC-Work~~ | RETIRED (Matthew 11-09: "there is no LC-work"; the chat no longer exists) | sending moved to C.C; inbox checks: cloud morning brief | — |
@@ -47,3 +49,5 @@ The morning brief does a roll call from this list every day. Add a line when a c
 
 ## Roll call format (one line each, in the morning brief)
 `<Name>: ✅ did · 🔨 doing · ⛔ blocked` from the board standup, issue 15, the Hotline and git branches. "quiet" if nothing in 24 h.
+| Closer | Local Claude (Mac, NEW 11-27) | first paying client: everything after a reply (close kit, samples, onboarding) | Opus |
+| Fixer | Local Claude (Mac, NEW 11-27) | broken automation: fix with proof or ask Matthew one clear question | Opus |

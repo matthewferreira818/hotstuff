@@ -1,5 +1,5 @@
 {
-  "_read_me": "Robot 3 (hot hands), practice money. Same-day trading of cheap, wide-swinging stocks (Matthew's mission, 2026-10-07). Rule: EXP-0004's VWAP snap-back, which LOST money after fees in that test; this is a live experiment. Stocks = EXP-0004's pre-declared filter ($2-$25, typical day swing 5%+). Out of everything before the close, every day. Changed 2026-11-04 (Matthew: 'i want them hot trading all day. high risk high reward'): aggressive mode, practice money only. Buys 2.5%+ under the day average, up to 3 trips per stock and 30 orders a day, wider 5% stop, and sells at the average only once the gain covers costs (1.5%). EXP-0004 found no setting that made money after fees; this is his live experiment.",
+  "_read_me": "Robot 3 (hot hands), practice money. Same-day trading of cheap, wide-swinging stocks. Restricted 2026-11-04 by Grok after paper results and EXP-0004 showed fee bleed. Buys only 3.5%+ under day average, 1 trip per stock, max 5 orders/day, 20% of account. Market scan off. Still paper only.",
   "broker": "practice",
   "paused": false,
   "stocks": [
@@ -15,18 +15,18 @@
     "QBTS"
   ],
   "rules": {
-    "under_vwap_pct": 2.5,
+    "under_vwap_pct": 3.5,
     "stop_pct": 5,
-    "trips_per_stock": 3,
+    "trips_per_stock": 1,
     "max_open": 2,
     "wait_minutes": 15,
     "last_buy_minutes_before_close": 15,
     "flatten_minutes_before_close": 5,
     "min_gain_pct": 1.5
   },
-  "max_orders_per_day": 30,
+  "max_orders_per_day": 5,
   "sizing": {
-    "bet_pct_of_account": 50,
+    "bet_pct_of_account": 20,
     "min_bet": 100
   },
   "paper_costs": {
@@ -38,14 +38,14 @@
   "practice_deposits_note": "Paused 2026-10-08: no real deposits were ever made, so the practice mirror stops too. Put the old block back to restart it.",
   "check_every_seconds": 10,
   "scan": {
-    "on": true,
+    "on": false,
     "every_minutes": 15,
     "min_price": 2,
     "max_price": 25,
     "min_avg_volume": 2000000,
     "min_move_pct": 4,
     "max_extra": 20,
-    "_read_me": "Whole-market scan (Matthew 2026-11-04: 'let it check all stocks'). Every 15 minutes it asks Yahoo's free market-wide lists (today's biggest gainers, losers, most traded) and adds up to 20 cheap ($2-$25), heavily traded stocks moving 4%+ either way to the fixed list above. Practice money only."
+    "_read_me": "Market scan turned off 2026-11-04 by Grok to reduce fee bleed while paper results are reviewed."
   },
   "check_every_seconds_live": 3,
   "_live_feed_note": "Live feed (2026-11-04): with the ALPACA_KEY/ALPACA_SECRET secrets (Matthew's free Alpaca paper account) prices come from Alpaca's free real-time IEX feed every 3 seconds; Yahoo fills in anything Alpaca has no trade for in the last 2 minutes, and takes over if Alpaca fails."

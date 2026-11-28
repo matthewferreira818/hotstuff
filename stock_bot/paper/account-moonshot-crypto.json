@@ -111,11 +111,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-27T02:20:00+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-27T02:57:09+00:00",
    "kind": "start",
    "text": "Checking 19 every 10 seconds."
@@ -309,6 +304,11 @@
    "time": "2026-11-28T07:43:30+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-28T07:57:41+00:00",
+   "kind": "sell",
+   "text": "Sold LINK-USD at 9.163 (-4.6%): stopped climbing"
   }
  ],
  "bench_units": 0.01243555274788409

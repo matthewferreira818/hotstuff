@@ -1,6 +1,6 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-28T16:30:01Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-28T17:29:11Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 

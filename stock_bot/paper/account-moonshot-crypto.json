@@ -106,16 +106,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-26T16:27:28+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-26T17:28:24+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-26T18:24:57+00:00",
    "kind": "buy",
    "text": "Bought WIF-USD $467.36 at 0.1407: up 5.3% in 10 days, the hottest on the list"
@@ -302,6 +292,16 @@
   },
   {
    "time": "2026-11-27T23:17:24+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-28T00:18:44+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-28T01:19:43+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
   }

@@ -14,6 +14,14 @@ _Last updated: 2026-11-27 10:05 AM by Local Claude (LC-Manager)_
 - Robots: 1 already ran today (Moonshot crypto), I started 6 (bot, momentum, hot, Moonshot, quality, volatility), 0 failed. Practice money only.
 - Leftovers: none (~/Claude/.helm-test has only build.log; Dock shows only the real Helm).
 
+### Roll call 2026-11-28 (Saturday brief, New beginning)
+- Roxy: ✅ Fri send verified, weekly funnel, Black Friday check (partial) · 🔨 OK on Mon batch · ⛔ none
+- Grok: ✅ room check 11-28 · 🔨 waiting on NB2 gate for fixer/health-report · ⛔ NB2 quiet
+- Research bot (Mac): ✅ running again, practice cycles + forecasts committing overnight · 🔨 same · ⛔ none
+- Friday, RC: quiet in the last 24 h
+- New beginning: ✅ Fri send (1/1), Mon fact pass (Helm-Private c260c81), counter check (tracking works; 0 visits is real) · 🔨 Mon send after Roxy OK · ⛔ CJ API + Facebook token (Matthew)
+- NB2, LC-Pixels, LC-Stocks: quiet 8+ days.
+
 ### Roll call 2026-11-27 (morning brief, New beginning)
 - Roxy: ✅ Thu batch OK (2 sent), Fri draft (1), HELM 2.0 brief · 🔨 OK on Fri batch · ⛔ none
 - RC (Roxy Codex, new): ✅ write test in the room · 🔨 HELM 2.0 trigger research · ⛔ none

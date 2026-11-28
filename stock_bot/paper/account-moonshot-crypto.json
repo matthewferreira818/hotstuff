@@ -111,31 +111,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-27T02:57:09+00:00",
-   "kind": "start",
-   "text": "Checking 19 every 10 seconds."
-  },
-  {
-   "time": "2026-11-27T02:57:09+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-27T03:58:42+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-27T05:00:17+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
-   "time": "2026-11-27T06:01:59+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-27T07:03:43+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
@@ -309,6 +284,31 @@
    "time": "2026-11-28T07:57:41+00:00",
    "kind": "sell",
    "text": "Sold LINK-USD at 9.163 (-4.6%): stopped climbing"
+  },
+  {
+   "time": "2026-11-28T08:45:04+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-28T09:46:37+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-28T10:48:11+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-28T11:49:48+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-28T12:51:28+00:00",
+   "kind": "quiet",
+   "text": "Checked 19. Holding steady."
   }
  ],
  "bench_units": 0.01243555274788409

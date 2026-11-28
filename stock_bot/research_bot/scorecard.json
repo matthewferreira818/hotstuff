@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-28T05:25:22Z",
+ "generated": "2026-11-28T06:25:23Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -87,9 +87,9 @@
    "ideas_tried": 19,
    "ideas_in_ledger": 2,
    "ideas_in_replay": 17,
-   "forecasts": 11,
+   "forecasts": 13,
    "graded": 11,
-   "open": 0,
+   "open": 2,
    "late_not_counted": 0,
    "no_trade_days": 146,
    "hits": 5,
@@ -119,9 +119,9 @@
      "ideas_tried": 17,
      "ideas_in_ledger": 0,
      "ideas_in_replay": 17,
-     "forecasts": 5,
+     "forecasts": 6,
      "graded": 5,
-     "open": 0,
+     "open": 1,
      "late_not_counted": 0,
      "no_trade_days": 0,
      "hits": 3,
@@ -156,9 +156,9 @@
      "ideas_tried": 17,
      "ideas_in_ledger": 0,
      "ideas_in_replay": 17,
-     "forecasts": 6,
+     "forecasts": 7,
      "graded": 6,
-     "open": 0,
+     "open": 1,
      "late_not_counted": 0,
      "no_trade_days": 0,
      "hits": 2,
@@ -1337,6 +1337,28 @@
    "resolves": "2026-11-30T14:30:00Z",
    "act": false,
    "p_up": 0.48,
+   "status": "open"
+  },
+  {
+   "id": "F-20261128-062506-4afefa",
+   "idea": "I-20261110-133531-fbd89e",
+   "market": "crypto",
+   "asset": "TRUMP35336-USD",
+   "opens": "2026-11-28T07:00:00Z",
+   "resolves": "2026-11-28T11:00:00Z",
+   "act": true,
+   "p_up": 0.56,
+   "status": "open"
+  },
+  {
+   "id": "F-20261128-062506-9b917b",
+   "idea": "I-20261110-133531-4443e5",
+   "market": "crypto",
+   "asset": "TRUMP35336-USD",
+   "opens": "2026-11-28T07:00:00Z",
+   "resolves": "2026-11-29T07:00:00Z",
+   "act": true,
+   "p_up": 0.56,
    "status": "open"
   }
  ],

@@ -1,6 +1,6 @@
 # Research bot scorecard (PRACTICE MONEY ONLY)
 
-_Made by plain code (scorer.py), not the AI. 2026-11-28T05:25:22Z._
+_Made by plain code (scorer.py), not the AI. 2026-11-28T06:25:23Z._
 
 Lower Brier is better: 0 is perfect, 0.25 is a coin flip.
 
@@ -38,7 +38,7 @@ Info, not gates: span 17 days, a down market during it: yes, chance a coin does 
 
 ## Crypto
 
-Ideas tried 19 · forecasts 11 · graded 11 · still open 0 · LATE (not counted) 0 · no-trade days 146 · span 17 days
+Ideas tried 19 · forecasts 13 · graded 11 · still open 2 · LATE (not counted) 0 · no-trade days 146 · span 17 days
 
 | Who | Brier |
 |---|---|
@@ -49,7 +49,7 @@ Ideas tried 19 · forecasts 11 · graded 11 · still open 0 · LATE (not counted
 
 Hit rate 0.45 (5 of 11); chance a coin does at least this well: 0.73.
 
-**Note: 11 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
+**Note: 13 of these forecasts (and any paper trades from them) come from ideas that FAILED the replay. They are data only, not a signal.**
 
 Paper trades 11 at $100 each, after fees + slippage: **$-17.33** · cash $+0.00 · BTC-USD with the whole $1000: $-17.69 · median trade -1.86 · worst -9.04 · without the best -23.30
 

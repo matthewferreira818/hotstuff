@@ -1,8 +1,8 @@
 {
  "paper": true,
  "note": "PRACTICE MONEY ONLY. Numbers are the practice accounts, not real money.",
- "as_of": "2026-11-28T01:27:05+00:00",
- "as_of_moncton": "Fri Nov 27 09:27 PM",
+ "as_of": "2026-11-28T03:03:13+00:00",
+ "as_of_moncton": "Fri Nov 27 11:03 PM",
  "paused": false,
  "robots": [
   {
@@ -17,7 +17,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 447,
+    "snapshot_age_min": 543,
     "trades_today": 1
    },
    "score": {
@@ -47,7 +47,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 447,
+    "snapshot_age_min": 543,
     "trades_today": 0
    },
    "score": {
@@ -77,7 +77,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 447,
+    "snapshot_age_min": 543,
     "trades_today": 4
    },
    "score": {
@@ -107,7 +107,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 162,
+    "snapshot_age_min": 258,
     "trades_today": 0
    },
    "score": {
@@ -142,15 +142,15 @@
    },
    "score": {
     "benchmark": "Bitcoin",
-    "value": 922.56,
-    "hold_value": 746.88,
+    "value": 913.03,
+    "hold_value": 744.89,
     "put_in": 1000.0,
     "fees": 19.34,
     "trades_total": 8,
     "started": "2026-11-04T16:58:34+00:00",
     "days": 23,
-    "vs_hold": 175.68,
-    "vs_hold_pct": 17.57,
+    "vs_hold": 168.14,
+    "vs_hold_pct": 16.81,
     "beats_holding": true,
     "too_early": true
    }
@@ -167,7 +167,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 446,
+    "snapshot_age_min": 543,
     "trades_today": 1
    },
    "score": {
@@ -197,7 +197,7 @@
     "last_run_failed": false,
     "failed_in_a_row": 0,
     "stale": false,
-    "snapshot_age_min": 446,
+    "snapshot_age_min": 543,
     "trades_today": 0
    },
    "score": {
@@ -224,7 +224,7 @@
   "beat_holding": 1,
   "beat_holding_but_too_early": 1,
   "trades_today": 7,
-  "total_value": 5865.12
+  "total_value": 5855.59
  },
  "day_open": {
   "date": "2026-11-27",

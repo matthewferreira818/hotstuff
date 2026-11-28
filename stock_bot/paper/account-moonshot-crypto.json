@@ -109,11 +109,6 @@
  "deposits": [],
  "events": [
   {
-   "time": "2026-11-26T21:11:50+00:00",
-   "kind": "quiet",
-   "text": "Checked 19. Holding steady."
-  },
-  {
    "time": "2026-11-26T22:13:42+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
@@ -307,6 +302,11 @@
    "time": "2026-11-28T05:03:47+00:00",
    "kind": "quiet",
    "text": "Checked 19. Holding steady."
+  },
+  {
+   "time": "2026-11-28T05:46:27+00:00",
+   "kind": "sell",
+   "text": "Sold WIF-USD at 0.1374 (-2.4%): stopped climbing"
   }
  ],
  "bench_units": 0.01243555274788409

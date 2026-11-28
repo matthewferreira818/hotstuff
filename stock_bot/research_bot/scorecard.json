@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-27T23:25:20Z",
+ "generated": "2026-11-28T00:25:20Z",
  "markets": {
   "stock": {
    "ideas_tried": 16,
@@ -91,7 +91,7 @@
    "graded": 11,
    "open": 0,
    "late_not_counted": 0,
-   "no_trade_days": 140,
+   "no_trade_days": 141,
    "hits": 5,
    "hit_rate": 0.45454545454545453,
    "luck_p_value": 0.7255859375,
